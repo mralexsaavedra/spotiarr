@@ -21,13 +21,9 @@
     "build:fe": "pnpm --filter frontend run build",
     "build": "pnpm run build:be && pnpm run build:fe",
     "start": "pnpm --filter backend run start:prod",
-    "lint": "pnpm --filter backend lint && pnpm --filter frontend lint",
-    "clean": "rimraf dist node_modules/.cache",
-    "docker:build": "docker build -t spotiarr .",
-    "docker:run": "docker run -p 3000:3000 spotiarr"
+    "lint": "pnpm --filter backend lint && pnpm --filter frontend lint"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
-    "rimraf": "^6.0.1"
+    "concurrently": "^9.2.1"
   }
 }
