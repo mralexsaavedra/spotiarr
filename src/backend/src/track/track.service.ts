@@ -140,16 +140,41 @@ export class TrackService {
       }
       
       await this.youtubeService.downloadAndFormat(track, trackFilePath);
+      
+      // Embed cover art in the audio file
       await this.youtubeService.addImage(
         trackFilePath,
         track.playlist.coverUrl,
         track.name,
         track.artist,
       );
-      await this.youtubeService.saveCoverArt(
-        trackDirectory,
-        track.playlist.coverUrl,
-      );
+      
+      // Check if it's a playlist
+      const isPlaylist = track.playlist.spotifyUrl?.includes('/playlist/');
+      
+      if (isPlaylist) {
+        // For playlists: save cover in the playlist folder
+        await this.youtubeService.saveCoverArt(
+          trackDirectory,
+          track.playlist.coverUrl,
+        );
+      } else {
+        // For albums/tracks: save cover at album level and artist level
+        const albumDirectory = trackDirectory;
+        const artistDirectory = path.dirname(albumDirectory);
+        
+        // Save album cover
+        await this.youtubeService.saveCoverArt(
+          albumDirectory,
+          track.playlist.coverUrl,
+        );
+        
+        // Save artist cover (if artist directory exists and doesn't have cover yet)
+        await this.youtubeService.saveCoverArt(
+          artistDirectory,
+          track.playlist.coverUrl,
+        );
+      }
     } catch (err) {
       this.logger.error(err);
       error = String(err);

@@ -80,33 +80,31 @@ export class YoutubeService {
   }
 
   /**
-   * Saves cover art in the playlist/album folder for Jellyfin detection
+   * Saves cover art in the specified directory for Jellyfin detection
    * Jellyfin looks for: cover.jpg, folder.jpg
+   * Downloads the image only if it doesn't exist yet
    */
-  async saveCoverArt(trackFilePath: string, coverUrl: string): Promise<void> {
+  async saveCoverArt(directory: string, coverUrl: string): Promise<void> {
     if (!coverUrl) {
       return;
     }
 
     try {
-      // Obtener el directorio donde está el track
-      const directory = dirname(trackFilePath);
-
-      // Archivos de portada que Jellyfin reconoce
+      // Cover files that Jellyfin recognizes
       const coverFiles = [
-        join(directory, 'cover.jpg'), // Prioridad 1 para Jellyfin
-        join(directory, 'folder.jpg'), // Alternativa
+        join(directory, 'cover.jpg'), // Priority 1 for Jellyfin
+        join(directory, 'folder.jpg'), // Alternative
       ];
 
-      // Solo descargar si no existe ninguno de los archivos
+      // Only download if none of the files exist
       const coverExists = coverFiles.some((file) => fs.existsSync(file));
       if (coverExists) {
         this.logger.debug(`Cover art already exists in ${directory}`);
         return;
       }
 
-      // Descargar la imagen
-      this.logger.debug(`Downloading cover art from ${coverUrl}`);
+      // Download the image
+      this.logger.debug(`Downloading cover art to ${directory}`);
       const response = await fetch(coverUrl);
 
       if (!response.ok) {
@@ -115,14 +113,14 @@ export class YoutubeService {
 
       const imageBuffer = Buffer.from(await response.arrayBuffer());
 
-      // Guardar ambos archivos para compatibilidad
+      // Save both files for compatibility
       for (const coverFile of coverFiles) {
         fs.writeFileSync(coverFile, imageBuffer);
       }
 
       this.logger.log(`✓ Cover art saved in ${directory}`);
     } catch (error) {
-      this.logger.error(`Failed to save cover art: ${error.message}`);
+      this.logger.error(`Failed to save cover art in ${directory}: ${error.message}`);
     }
   }
 }
