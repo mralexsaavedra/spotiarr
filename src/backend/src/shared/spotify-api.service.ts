@@ -139,7 +139,10 @@ export class SpotifyApiService {
         const tracks = data.items.map((track: any) => ({
           name: track.name,
           artist: track.artists.map((a: any) => a.name).join(', '),
-          artistUrl: track.artists[0]?.external_urls?.spotify,
+          artists: track.artists.map((a: any) => ({
+            name: a.name,
+            url: a.external_urls?.spotify,
+          })),
           trackUrl: track.external_urls?.spotify,
           previewUrl: track.preview_url,
         }));
@@ -205,7 +208,10 @@ export class SpotifyApiService {
                 return {
                   name: item.track.name,
                   artist: item.track.artists.map((a) => a.name).join(', '),
-                  artistUrl: item.track.artists[0]?.external_urls?.spotify,
+                  artists: item.track.artists.map((a) => ({
+                    name: a.name,
+                    url: a.external_urls?.spotify,
+                  })),
                   trackUrl: item.track.external_urls?.spotify,
                   previewUrl: item.track.preview_url,
                 };
@@ -285,7 +291,10 @@ export class SpotifyApiService {
       return {
         name: data.name,
         artist: data.artists.map((a: any) => a.name).join(', '),
-        artistUrl: data.artists[0]?.external_urls?.spotify,
+        artists: data.artists.map((a: any) => ({
+          name: a.name,
+          url: a.external_urls?.spotify,
+        })),
         trackUrl: data.external_urls?.spotify,
         previewUrl: data.preview_url,
       };

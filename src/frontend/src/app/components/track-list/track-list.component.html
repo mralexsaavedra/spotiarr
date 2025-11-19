@@ -1,16 +1,23 @@
 <a class="flex justify-between items-center px-5 py-3 border-b dark:border-spotify-gray-dark hover:bg-gray-100 dark:hover:bg-spotify-gray-dark transition-all group" *ngFor="let track of tracks$ | async">
   <div class="flex items-center gap-3 dark:text-white">
     <span class="font-medium">
-          <a
-            *ngIf="track.artistUrl"
-            [href]="track.artistUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-spotify-gray-light hover:text-spotify-green hover:underline transition-all mr-1"
-          >
-            {{ track.artist }}
-          </a>
-          <span *ngIf="!track.artistUrl" class="text-spotify-gray-light mr-1">{{ track.artist }}</span>
+          <ng-container *ngIf="track.artists && track.artists.length > 0; else fallbackArtist">
+            <ng-container *ngFor="let artist of track.artists; let isLast = last">
+              <a
+                [href]="artist.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-spotify-gray-light hover:text-spotify-green hover:underline transition-all"
+              >
+                {{ artist.name }}
+              </a>
+              <span *ngIf="!isLast" class="text-spotify-gray-light">, </span>
+            </ng-container>
+          </ng-container>
+          <ng-template #fallbackArtist>
+            <span class="text-spotify-gray-light mr-1">{{ track.artist }}</span>
+          </ng-template>
+          <span class="mx-1 text-spotify-gray-light">•</span>
           <a
             *ngIf="track.trackUrl"
             [href]="track.trackUrl"

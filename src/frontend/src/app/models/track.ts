@@ -4,7 +4,7 @@ export interface Track {
   name: string;
   spotifyUrl: string;
   trackUrl?: string;
-  artistUrl?: string;
+  artists?: { name: string; url: string }[];
   youtubeUrl: string;
   status: TrackStatusEnum;
   playlistId?: number;

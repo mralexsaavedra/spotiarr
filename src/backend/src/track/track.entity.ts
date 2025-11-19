@@ -27,8 +27,8 @@ export class TrackEntity {
   @Column({ nullable: true })
   trackUrl?: string;
 
-  @Column({ nullable: true })
-  artistUrl?: string;
+  @Column({ type: 'simple-json', nullable: true })
+  artists?: { name: string; url: string }[];
 
   @Column({ nullable: true })
   youtubeUrl?: string;

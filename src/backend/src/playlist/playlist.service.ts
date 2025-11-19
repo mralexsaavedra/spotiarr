@@ -113,7 +113,7 @@ export class PlaylistService {
               artist: track.artist,
               name: track.name,
               spotifyUrl: track.previewUrl || null,
-              artistUrl: track.artistUrl,
+              artists: track.artists,
               trackUrl: track.trackUrl,
             },
             savedPlaylist,
@@ -189,7 +189,7 @@ export class PlaylistService {
           artist: track.artist,
           name: track.name,
           spotifyUrl: track.previewUrl,
-          artistUrl: track.artistUrl,
+          artists: track.artists,
           trackUrl: track.trackUrl,
         };
         const isExist = !!(
