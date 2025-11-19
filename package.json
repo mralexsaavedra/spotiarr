@@ -1,6 +1,13 @@
 {
   "version": "2.2.1",
-  "name": "spooty",
+  "name": "spotiarr",
+  "description": "Self-hosted Spotify downloader with media server integration and *ARR compatibility",
+  "author": "Alexander Saavedra <mralexsaavedra@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mralexsaavedra/spotiarr.git"
+  },
   "workspaces": [
     "src/backend",
     "src/frontend"

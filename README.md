@@ -1,17 +1,23 @@
-[![npm version](https://img.shields.io/docker/pulls/raiper34/spooty)](https://hub.docker.com/r/raiper34/spooty)
-[![npm version](https://img.shields.io/docker/image-size/raiper34/spooty)](https://hub.docker.com/r/raiper34/spooty)
-![Docker Image Version](https://img.shields.io/docker/v/raiper34/spooty)
-[![npm version](https://img.shields.io/docker/stars/raiper34/spooty)](https://hub.docker.com/r/raiper34/spooty)
-[![GitHub License](https://img.shields.io/github/license/raiper34/spooty)](https://github.com/Raiper34/spooty)
-[![GitHub Repo stars](https://img.shields.io/github/stars/raiper34/spooty)](https://github.com/Raiper34/spooty)
+[![GitHub License](https://img.shields.io/github/license/mralexsaavedra/spotiarr)](https://github.com/mralexsaavedra/spotiarr)
+[![GitHub Repo stars](https://img.shields.io/github/stars/mralexsaavedra/spotiarr)](https://github.com/mralexsaavedra/spotiarr)
 
-![spooty logo](assets/logo.svg)
-# Spooty - selfhosted Spotify downloader
-Spooty is a self-hosted Spotify downloader.
-It allows download track/playlist/album from the Spotify url.
-It can also subscribe to a playlist or author page and download new songs upon release.
-Spooty basically downloads nothing from Spotify, it only gets information from spotify and then finds relevant and downloadeds music on Youtube. 
-The project is based on NestJS and Angular.
+![spotiarr logo](assets/logo.svg)
+# SpotiArr - Self-hosted Spotify Downloader
+
+SpotiArr is a self-hosted Spotify downloader with media server integration and *ARR compatibility.
+Download tracks, playlists, and albums from Spotify URLs with automatic metadata tagging.
+Subscribe to playlists to automatically download new releases.
+Perfect for integration with media servers (Jellyfin, Navidrome, etc) and the *ARR ecosystem (Radarr, Sonarr, etc).
+
+**Features:**
+- 🎵 Download tracks, albums, and playlists from Spotify URLs
+- 🔄 Subscribe to playlists for automatic updates
+- 🎨 Modern Spotify-inspired UI with dark mode
+- 📦 Multiple artist support with individual profile links
+- 🏷️ Automatic metadata tagging for media server compatibility
+- 🔗 Integration-ready for *ARR ecosystem
+
+Built with NestJS and Angular 19 with Tailwind CSS.
 
 > [!IMPORTANT]
 > Please do not use this tool for piracy! Download only music you own rights! Use this tool only on your responsibility.
