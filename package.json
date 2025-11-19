@@ -14,6 +14,7 @@
   },
   "packageManager": "pnpm@10.20.0",
   "scripts": {
+    "dev": "concurrently \"pnpm start:be\" \"pnpm start:fe\"",
     "start:be": "pnpm --filter backend run start:dev",
     "start:fe": "pnpm --filter frontend run start",
     "build:be": "pnpm --filter backend run build",
@@ -22,16 +23,16 @@
     "gen:fe": "pnpm --filter frontend run gen",
     "gen:be": "pnpm --filter backend run gen",
     "start": "pnpm --filter backend run start:prod",
-    "clean": "rimraf dist",
-    "changelog": "auto-changelog -p",
-    "commit": "cz",
-    "check:lib": "pnpm --filter backend update ytdlp-nodejs"
+    "lint": "pnpm --filter backend lint && pnpm --filter frontend lint",
+    "test": "pnpm --filter backend test && pnpm --filter frontend test",
+    "clean": "rimraf dist node_modules/.cache",
+    "check:lib": "pnpm --filter backend update ytdlp-nodejs",
+    "docker:build": "docker build -t spotiarr .",
+    "docker:run": "docker run -p 3000:3000 spotiarr"
   },
   "devDependencies": {
-    "auto-changelog": "^2.5.0",
-    "commitizen": "^4.3.1",
+    "concurrently": "^9.2.1",
     "copy-files-from-to": "^3.2.2",
-    "cz-conventional-changelog": "^3.3.0",
     "npm-check-updates": "^17.1.15",
     "rimraf": "^6.0.1"
   }
