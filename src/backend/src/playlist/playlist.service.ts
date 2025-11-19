@@ -68,11 +68,15 @@ export class PlaylistService {
         }
       }
 
+      // Get artist image from first track if available (for albums/tracks)
+      const artistImageUrl = detail.tracks?.[0]?.primaryArtistImage || null;
+
       playlist2Save = {
         ...playlist,
         name: displayName,
         coverUrl: detail.image,
         type: detail.type,
+        artistImageUrl: artistImageUrl,
       };
     } catch (err) {
       this.logger.error(`Error getting playlist details: ${err}`);
@@ -114,9 +118,10 @@ export class PlaylistService {
 
           // For albums/tracks: use primaryArtist from Spotify if available
           // For playlists: use the full artist string
-          const artistToUse = (isAlbum || isTrack) && track.primaryArtist 
-            ? track.primaryArtist 
-            : track.artist;
+          const artistToUse =
+            (isAlbum || isTrack) && track.primaryArtist
+              ? track.primaryArtist
+              : track.artist;
 
           await this.trackService.create(
             {
@@ -190,21 +195,22 @@ export class PlaylistService {
       } catch (err) {
         await this.update(playlist.id, { ...playlist, error: String(err) });
       }
-      
+
       // Detect if it's a playlist, album, or individual track
       const isPlaylist = playlist.spotifyUrl?.includes('/playlist/');
       const isTrack = playlist.spotifyUrl?.includes('/track/');
       const isAlbum = !isPlaylist && !isTrack;
-      
+
       for (let i = 0; i < (tracks ?? []).length; i++) {
         const track = tracks[i];
-        
+
         // For albums/tracks: use primaryArtist from Spotify if available
         // For playlists: use the full artist string
-        const artistToUse = (isAlbum || isTrack) && track.primaryArtist 
-          ? track.primaryArtist 
-          : track.artist;
-        
+        const artistToUse =
+          (isAlbum || isTrack) && track.primaryArtist
+            ? track.primaryArtist
+            : track.artist;
+
         const track2Save = {
           artist: artistToUse,
           name: track.name,

@@ -33,6 +33,9 @@ export class PlaylistEntity {
   @Column({ nullable: true })
   coverUrl?: string;
 
+  @Column({ nullable: true })
+  artistImageUrl?: string;
+
   @OneToMany(() => TrackEntity, (track) => track.playlist)
   tracks?: TrackEntity[];
 }

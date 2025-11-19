@@ -107,6 +107,37 @@ export class SpotifyApiService {
   }
 
   /**
+   * Get artist image from Spotify API
+   */
+  async getArtistImage(artistId: string): Promise<string | null> {
+    try {
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(
+        `https://api.spotify.com/v1/artists/${artistId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        this.logger.warn(`Failed to fetch artist image: ${response.status}`);
+        return null;
+      }
+
+      const artist = await response.json();
+
+      // Return the largest image available
+      return artist.images?.[0]?.url || null;
+    } catch (error) {
+      this.logger.error(`Failed to get artist image: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
    * Get track details from Spotify API for a single track
    */
   async getTrackDetails(trackId: string): Promise<any> {
@@ -128,10 +159,15 @@ export class SpotifyApiService {
 
       const track = await response.json();
 
+      // Get artist image
+      const artistId = track.artists[0]?.id;
+      const artistImage = artistId ? await this.getArtistImage(artistId) : null;
+
       return {
         name: track.name,
         artist: track.artists.map((a: any) => a.name).join(', '),
         primaryArtist: track.artists[0]?.name, // First artist as primary
+        primaryArtistImage: artistImage, // Artist image
         album: track.album?.name,
         trackNumber: track.track_number,
         previewUrl: track.preview_url,
@@ -175,10 +211,17 @@ export class SpotifyApiService {
       const albumData = await albumResponse.json();
       const albumName = albumData.name;
 
+      // Get artist image (all tracks in album have same primary artist)
+      const firstArtistId = data.items[0]?.artists[0]?.id;
+      const artistImage = firstArtistId
+        ? await this.getArtistImage(firstArtistId)
+        : null;
+
       return data.items.map((track: any) => ({
         name: track.name,
         artist: track.artists.map((a: any) => a.name).join(', '),
         primaryArtist: track.artists[0]?.name, // First artist as primary
+        primaryArtistImage: artistImage, // Artist image
         album: albumName,
         trackNumber: track.track_number,
         previewUrl: track.preview_url,

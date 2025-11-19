@@ -153,27 +153,29 @@ export class TrackService {
       const isPlaylist = track.playlist.spotifyUrl?.includes('/playlist/');
       
       if (isPlaylist) {
-        // For playlists: save cover in the playlist folder
+        // For playlists: save playlist cover in the playlist folder
         await this.youtubeService.saveCoverArt(
           trackDirectory,
           track.playlist.coverUrl,
         );
       } else {
-        // For albums/tracks: save cover at album level and artist level
+        // For albums/tracks: save covers at album level and artist level
         const albumDirectory = trackDirectory;
         const artistDirectory = path.dirname(albumDirectory);
         
-        // Save album cover
+        // Save album cover (using playlist cover which is the album cover)
         await this.youtubeService.saveCoverArt(
           albumDirectory,
           track.playlist.coverUrl,
         );
         
-        // Save artist cover (if artist directory exists and doesn't have cover yet)
-        await this.youtubeService.saveCoverArt(
-          artistDirectory,
-          track.playlist.coverUrl,
-        );
+        // Save artist cover (using artist image from Spotify)
+        if (track.playlist.artistImageUrl) {
+          await this.youtubeService.saveCoverArt(
+            artistDirectory,
+            track.playlist.artistImageUrl,
+          );
+        }
       }
     } catch (err) {
       this.logger.error(err);
