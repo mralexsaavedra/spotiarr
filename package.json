@@ -22,7 +22,6 @@
     "build": "pnpm run build:be && pnpm run build:fe",
     "start": "pnpm --filter backend run start:prod",
     "lint": "pnpm --filter backend lint && pnpm --filter frontend lint",
-    "test": "pnpm --filter backend test && pnpm --filter frontend test",
     "clean": "rimraf dist node_modules/.cache",
     "docker:build": "docker build -t spotiarr .",
     "docker:run": "docker run -p 3000:3000 spotiarr"
