@@ -89,6 +89,16 @@ export class PlaylistService {
       let skippedCount = 0;
       let errorCount = 0;
 
+      // Detect if it's a playlist, album, or individual track
+      const isPlaylist = savedPlaylist.spotifyUrl?.includes('/playlist/');
+      const isTrack = savedPlaylist.spotifyUrl?.includes('/track/');
+      const isAlbum = !isPlaylist && !isTrack;
+      
+      // For albums and tracks, use the first/main artist
+      const primaryArtist = (isAlbum || isTrack) && detail.tracks.length > 0 
+        ? detail.tracks[0].artist.split(',')[0].trim() 
+        : null;
+
       for (const track of detail.tracks) {
         try {
           if (!track.artist || !track.name) {
@@ -109,7 +119,7 @@ export class PlaylistService {
 
           await this.trackService.create(
             {
-              artist: track.artist,
+              artist: (isAlbum || isTrack) ? primaryArtist : track.artist,
               name: track.name,
               album: track.album || savedPlaylist.name,
               trackNumber: track.trackNumber || processedCount + 1,
@@ -179,10 +189,21 @@ export class PlaylistService {
       } catch (err) {
         await this.update(playlist.id, { ...playlist, error: String(err) });
       }
+      
+      // Detect if it's a playlist, album, or individual track
+      const isPlaylist = playlist.spotifyUrl?.includes('/playlist/');
+      const isTrack = playlist.spotifyUrl?.includes('/track/');
+      const isAlbum = !isPlaylist && !isTrack;
+      
+      // For albums and tracks, use the first/main artist
+      const primaryArtist = (isAlbum || isTrack) && tracks.length > 0 
+        ? tracks[0].artist.split(',')[0].trim() 
+        : null;
+      
       for (let i = 0; i < (tracks ?? []).length; i++) {
         const track = tracks[i];
         const track2Save = {
-          artist: track.artist,
+          artist: (isAlbum || isTrack) ? primaryArtist : track.artist,
           name: track.name,
           album: track.album || playlist.name,
           trackNumber: track.trackNumber || i + 1,
