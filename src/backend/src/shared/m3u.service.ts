@@ -97,14 +97,27 @@ export class M3uService {
   }
 
   /**
-   * Gets the track file name
+   * Gets the track file name following Jellyfin structure
    */
   private getTrackFileName(track: TrackEntity): string {
     const format = this.configService.get<string>(EnvironmentEnum.FORMAT, 'mp3');
-    const safeArtist = track.artist || 'unknown_artist';
-    const safeName = (track.name || 'unknown_track').replace(/\//g, '');
-    const fileName = `${safeArtist} - ${safeName}`;
-    return `${this.sanitizeFileName(fileName)}.${format}`;
+    const artistName = this.sanitizeFileName(track.artist || 'Unknown Artist');
+    const trackName = this.sanitizeFileName(track.name || 'Unknown Track');
+    const trackNumber = String(track.trackNumber || 1).padStart(2, '0');
+    
+    // Check if this track belongs to a Spotify playlist
+    const isPlaylist = track.playlist?.spotifyUrl?.includes('/playlist/');
+    
+    if (isPlaylist) {
+      // For playlists: tracks are in the same folder as the M3U file
+      // Format: 01 - Artist - Track.mp3
+      return `${trackNumber} - ${artistName} - ${trackName}.${format}`;
+    } else {
+      // For albums: tracks are in Music/Artist/Album/
+      // M3U is in Playlists folder, so need to go back: ../../Artist/Album/01 - Track.mp3
+      const albumName = this.sanitizeFileName(track.album || 'Unknown Album');
+      return path.join('..', '..', artistName, albumName, `${trackNumber} - ${trackName}.${format}`);
+    }
   }
 
   /**

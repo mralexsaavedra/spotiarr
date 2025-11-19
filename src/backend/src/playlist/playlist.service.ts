@@ -74,7 +74,6 @@ export class PlaylistService {
         coverUrl: detail.image,
         type: detail.type,
       };
-      this.createPlaylistFolderStructure(playlist2Save.name);
     } catch (err) {
       this.logger.error(`Error getting playlist details: ${err}`);
       playlist2Save = { ...playlist, error: String(err) };
@@ -112,6 +111,8 @@ export class PlaylistService {
             {
               artist: track.artist,
               name: track.name,
+              album: track.album || savedPlaylist.name,
+              trackNumber: track.trackNumber || processedCount + 1,
               spotifyUrl: track.previewUrl || null,
               artists: track.artists,
               trackUrl: track.trackUrl,
@@ -166,11 +167,6 @@ export class PlaylistService {
     }
   }
 
-  private createPlaylistFolderStructure(playlistName: string): void {
-    const playlistPath = this.utilsService.getPlaylistFolderPath(playlistName);
-    !fs.existsSync(playlistPath) && fs.mkdirSync(playlistPath);
-  }
-
   @Interval(3_600_000)
   async checkActivePlaylists(): Promise<void> {
     const activePlaylists = await this.findAll({}, { active: true });
@@ -180,21 +176,25 @@ export class PlaylistService {
         tracks = await this.spotifyService.getPlaylistTracks(
           playlist.spotifyUrl,
         );
-        this.createPlaylistFolderStructure(playlist.name);
       } catch (err) {
         await this.update(playlist.id, { ...playlist, error: String(err) });
       }
-      for (const track of tracks ?? []) {
+      for (let i = 0; i < (tracks ?? []).length; i++) {
+        const track = tracks[i];
         const track2Save = {
           artist: track.artist,
           name: track.name,
+          album: track.album || playlist.name,
+          trackNumber: track.trackNumber || i + 1,
           spotifyUrl: track.previewUrl,
           artists: track.artists,
           trackUrl: track.trackUrl,
         };
         const isExist = !!(
           await this.trackService.getAll({
-            ...track2Save,
+            artist: track2Save.artist,
+            name: track2Save.name,
+            spotifyUrl: track2Save.spotifyUrl,
             playlist: { id: playlist.id },
           })
         ).length;

@@ -13,6 +13,8 @@ import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { YoutubeService } from '../shared/youtube.service';
 import { M3uService } from '../shared/m3u.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 enum WsTrackOperation {
   New = 'trackNew',
@@ -129,16 +131,23 @@ export class TrackService {
     });
     let error: string;
     try {
-      const folderName = this.getFolderName(track, track.playlist);
-      await this.youtubeService.downloadAndFormat(track, folderName);
+      const trackFilePath = this.getFolderName(track, track.playlist);
+      const trackDirectory = path.dirname(trackFilePath);
+      
+      // Create the directory structure if it doesn't exist (Artist/Album/)
+      if (!fs.existsSync(trackDirectory)) {
+        fs.mkdirSync(trackDirectory, { recursive: true });
+      }
+      
+      await this.youtubeService.downloadAndFormat(track, trackFilePath);
       await this.youtubeService.addImage(
-        folderName,
+        trackFilePath,
         track.playlist.coverUrl,
         track.name,
         track.artist,
       );
       await this.youtubeService.saveCoverArt(
-        folderName,
+        trackDirectory,
         track.playlist.coverUrl,
       );
     } catch (err) {
@@ -191,17 +200,39 @@ export class TrackService {
   }
 
   getTrackFileName(track: TrackEntity): string {
-    const safeArtist = track.artist || 'unknown_artist';
-    const safeName = (track.name || 'unknown_track').replace('/', '');
-    const fileName = `${safeArtist} - ${safeName}`;
-    return `${this.utilsService.stripFileIllegalChars(fileName)}.${this.configService.get<string>(EnvironmentEnum.FORMAT)}`;
+    const format = this.configService.get<string>(EnvironmentEnum.FORMAT);
+    const artistName = track.artist || 'Unknown Artist';
+    const trackName = track.name || 'Unknown Track';
+    const trackNumber = track.trackNumber || 1;
+
+    // Check if this track belongs to a Spotify playlist
+    const isPlaylist = track.playlist?.spotifyUrl?.includes('/playlist/');
+    
+    if (isPlaylist) {
+      // For playlists: Music/Playlists/PlaylistName/01 - Artist - Track.ext
+      const playlistName = track.playlist?.name || 'Unknown Playlist';
+      return this.utilsService.getPlaylistTrackFilePath(
+        playlistName,
+        artistName,
+        trackName,
+        trackNumber,
+        format,
+      );
+    } else {
+      // For albums/tracks: Music/Artist/Album/01 - Track.ext
+      const albumName = track.album || track.playlist?.name || 'Unknown Album';
+      return this.utilsService.getTrackFilePath(
+        artistName,
+        albumName,
+        trackName,
+        trackNumber,
+        format,
+      );
+    }
   }
 
   getFolderName(track: TrackEntity, playlist: PlaylistEntity): string {
-    const safePlaylistName = playlist?.name || 'unknown_playlist';
-    return resolve(
-      this.utilsService.getPlaylistFolderPath(safePlaylistName),
-      this.getTrackFileName(track),
-    );
+    // Use Jellyfin-compatible structure
+    return this.getTrackFileName(track);
   }
 }
