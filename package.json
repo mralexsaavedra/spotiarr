@@ -23,19 +23,15 @@
     "start": "npm run start:prod -w backend",
     "clean": "rimraf dist",
     "changelog": "auto-changelog -p",
-    "release": "release-it",
     "commit": "cz",
     "check:lib": "npm-check-updates -w backend -f ytdlp-nodejs -u"
   },
   "devDependencies": {
-    "@release-it/bumper": "^7.0.1",
     "auto-changelog": "^2.5.0",
     "commitizen": "^4.3.1",
     "copy-files-from-to": "^3.2.2",
     "cz-conventional-changelog": "^3.3.0",
     "npm-check-updates": "^17.1.15",
-    "release-it": "^18.1.2",
-    "release-it-docker-plugin": "^2.0.0",
     "rimraf": "^6.0.1"
   }
 }
