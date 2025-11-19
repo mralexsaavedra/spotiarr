@@ -32,10 +32,23 @@ PYTHON=$(which python3.11) npm run build-release
 cd ../../../../../
 ```
 
-4. Create a `.env` file in root or `src/backend`:
+4. Create and configure `.env` file:
 ```bash
-cp .env.example .env
-# Edit with your Spotify credentials
+# Copy to backend directory
+cp .env.example src/backend/.env
+
+# Edit src/backend/.env:
+# - Add your Spotify credentials
+# - Change REDIS_HOST=redis to REDIS_HOST=localhost
+```
+
+5. Start Redis (required):
+```bash
+# Using Homebrew
+brew install redis && brew services start redis
+
+# OR using Docker
+docker run -d -p 6379:6379 --name redis redis:7-alpine
 ```
 
 ### Running the Development Environment

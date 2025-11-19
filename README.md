@@ -145,13 +145,23 @@ SpotiArr can be also build from source files on your own.
    ```
 4. **Install dependencies**: `pnpm install`
 5. **Configure environment**:
-   - Copy `.env.example` as `.env` in root folder
-   - Add your Spotify credentials to `.env`:
-     ```env
-     SPOTIFY_CLIENT_ID=your_client_id
-     SPOTIFY_CLIENT_SECRET=your_client_secret
-     ```
-6. **Start development servers**:
+   ```bash
+   # Copy template to backend
+   cp .env.example src/backend/.env
+   
+   # Edit src/backend/.env with your credentials
+   # Change REDIS_HOST=redis to REDIS_HOST=localhost for local development
+   ```
+6. **Start Redis** (required):
+   ```bash
+   # Option 1: Using Homebrew
+   brew install redis
+   brew services start redis
+   
+   # Option 2: Using Docker
+   docker run -d -p 6379:6379 --name redis redis:7-alpine
+   ```
+7. **Start development servers**:
    ```bash
    # Option 1: Start both backend and frontend together
    pnpm dev
@@ -160,13 +170,18 @@ SpotiArr can be also build from source files on your own.
    pnpm start:be  # Backend at http://localhost:3000
    pnpm start:fe  # Frontend at http://localhost:4200
    ```
-7. **Build for production**:
+8. **Build for production**:
    ```bash
    pnpm build  # Output in dist/ folder
    pnpm start  # Start production server
    ```
 
 #### Troubleshooting
+
+**Error: `ENOTFOUND redis`**
+- For local development, ensure `REDIS_HOST=localhost` in `src/backend/.env`
+- Start Redis locally or use Docker: `docker run -d -p 6379:6379 redis:7-alpine`
+- For Docker Compose, use `REDIS_HOST=redis`
 
 **Issue: better-sqlite3 compilation errors**
 - Ensure Python 3.11 or 3.12 is installed (Python 3.13+ won't work)
