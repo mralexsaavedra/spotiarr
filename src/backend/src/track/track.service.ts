@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { TrackEntity, TrackStatusEnum } from './track.entity';
 import { PlaylistEntity } from '../playlist/playlist.entity';
 import { ConfigService } from '@nestjs/config';
-import { resolve } from 'path';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { EnvironmentEnum } from '../environmentEnum';
@@ -131,27 +130,28 @@ export class TrackService {
     });
     let error: string;
     try {
-      const trackFilePath = this.getFolderName(track, track.playlist);
+      const trackFilePath = this.getFolderName(track);
       const trackDirectory = path.dirname(trackFilePath);
-      
+
       // Create the directory structure if it doesn't exist (Artist/Album/)
       if (!fs.existsSync(trackDirectory)) {
         fs.mkdirSync(trackDirectory, { recursive: true });
       }
-      
+
       await this.youtubeService.downloadAndFormat(track, trackFilePath);
-      
+
       // Embed cover art in the audio file
       await this.youtubeService.addImage(
         trackFilePath,
         track.playlist.coverUrl,
         track.name,
         track.artist,
+        track.albumYear,
       );
-      
+
       // Check if it's a playlist
       const isPlaylist = track.playlist.spotifyUrl?.includes('/playlist/');
-      
+
       if (isPlaylist) {
         // For playlists: save playlist cover in the playlist folder
         await this.youtubeService.saveCoverArt(
@@ -162,13 +162,13 @@ export class TrackService {
         // For albums/tracks: save covers at album level and artist level
         const albumDirectory = trackDirectory;
         const artistDirectory = path.dirname(albumDirectory);
-        
+
         // Save album cover (using playlist cover which is the album cover)
         await this.youtubeService.saveCoverArt(
           albumDirectory,
           track.playlist.coverUrl,
         );
-        
+
         // Save artist cover (using artist image from Spotify)
         if (track.playlist.artistImageUrl) {
           await this.youtubeService.saveCoverArt(
@@ -234,7 +234,7 @@ export class TrackService {
 
     // Check if this track belongs to a Spotify playlist
     const isPlaylist = track.playlist?.spotifyUrl?.includes('/playlist/');
-    
+
     if (isPlaylist) {
       // For playlists: keep all artists in the filename
       const playlistName = track.playlist?.name || 'Unknown Playlist';
@@ -258,7 +258,7 @@ export class TrackService {
     }
   }
 
-  getFolderName(track: TrackEntity, playlist: PlaylistEntity): string {
+  getFolderName(track: TrackEntity): string {
     // Use Jellyfin-compatible structure
     return this.getTrackFileName(track);
   }

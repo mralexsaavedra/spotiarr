@@ -81,7 +81,9 @@ export class UtilsService {
     format: string,
   ): string {
     const paddedNumber = String(trackNumber).padStart(2, '0');
-    const safeArtist = this.stripFileIllegalChars(artistName || 'Unknown Artist');
+    const safeArtist = this.stripFileIllegalChars(
+      artistName || 'Unknown Artist',
+    );
     const safeTrack = this.stripFileIllegalChars(trackName || 'Unknown Track');
     const fileName = `${paddedNumber} - ${safeArtist} - ${safeTrack}.${format}`;
     return resolve(this.getPlaylistFolderPath(playlistName), fileName);

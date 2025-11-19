@@ -5,10 +5,10 @@ import { TrackService } from '../track/track.service';
 import { ConfigService } from '@nestjs/config';
 import { YtDlp } from 'ytdlp-nodejs';
 import * as yts from 'yt-search';
+import * as fs from 'fs';
+import { join } from 'path';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const NodeID3 = require('node-id3');
-import * as fs from 'fs';
-import { dirname, join } from 'path';
 
 const HEADERS = {
   'User-Agent':
@@ -57,25 +57,30 @@ export class YoutubeService {
     coverUrl: string,
     title: string,
     artist: string,
+    albumYear?: number,
   ): Promise<void> {
     if (coverUrl) {
       const res = await fetch(coverUrl);
       const arrayBuf = await res.arrayBuffer();
       const imageBuffer = Buffer.from(arrayBuf);
 
-      NodeID3.write(
-        {
-          title,
-          artist,
-          APIC: {
-            mime: 'image/jpeg',
-            type: { id: 3, name: 'front cover' },
-            description: 'cover',
-            imageBuffer,
-          },
+      const tags: any = {
+        title,
+        artist,
+        APIC: {
+          mime: 'image/jpeg',
+          type: { id: 3, name: 'front cover' },
+          description: 'cover',
+          imageBuffer,
         },
-        folderName,
-      );
+      };
+
+      // Add year if available
+      if (albumYear) {
+        tags.year = albumYear.toString();
+      }
+
+      NodeID3.write(tags, folderName);
     }
   }
 
@@ -113,7 +118,9 @@ export class YoutubeService {
 
       this.logger.log(`✓ Cover art saved in ${directory}`);
     } catch (error) {
-      this.logger.error(`Failed to save cover art in ${directory}: ${error.message}`);
+      this.logger.error(
+        `Failed to save cover art in ${directory}: ${error.message}`,
+      );
     }
   }
 }

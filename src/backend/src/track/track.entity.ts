@@ -25,6 +25,9 @@ export class TrackEntity {
   album?: string;
 
   @Column({ nullable: true })
+  albumYear?: number;
+
+  @Column({ nullable: true })
   trackNumber?: number;
 
   @Column({ nullable: true })

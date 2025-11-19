@@ -5,7 +5,6 @@ import { PlaylistEntity } from './playlist.entity';
 import { TrackService } from '../track/track.service';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import * as fs from 'fs';
 import { Interval } from '@nestjs/schedule';
 import { TrackStatusEnum } from '../track/track.entity';
 import { UtilsService } from '../shared/utils.service';
@@ -128,6 +127,7 @@ export class PlaylistService {
               artist: artistToUse,
               name: track.name,
               album: track.album || (isTrack ? 'Singles' : savedPlaylist.name),
+              albumYear: track.albumYear,
               trackNumber: track.trackNumber || processedCount + 1,
               spotifyUrl: track.previewUrl || null,
               artists: track.artists,
@@ -215,6 +215,7 @@ export class PlaylistService {
           artist: artistToUse,
           name: track.name,
           album: track.album || (isTrack ? 'Singles' : playlist.name),
+          albumYear: track.albumYear,
           trackNumber: track.trackNumber || i + 1,
           spotifyUrl: track.previewUrl,
           artists: track.artists,

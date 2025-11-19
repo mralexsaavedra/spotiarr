@@ -163,12 +163,19 @@ export class SpotifyApiService {
       const artistId = track.artists[0]?.id;
       const artistImage = artistId ? await this.getArtistImage(artistId) : null;
 
+      // Extract year from release_date (format: "YYYY-MM-DD" or "YYYY")
+      const releaseDate = track.album?.release_date;
+      const albumYear = releaseDate
+        ? parseInt(releaseDate.substring(0, 4))
+        : undefined;
+
       return {
         name: track.name,
         artist: track.artists.map((a: any) => a.name).join(', '),
         primaryArtist: track.artists[0]?.name, // First artist as primary
         primaryArtistImage: artistImage, // Artist image
         album: track.album?.name,
+        albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,
         previewUrl: track.preview_url,
       };
@@ -217,12 +224,19 @@ export class SpotifyApiService {
         ? await this.getArtistImage(firstArtistId)
         : null;
 
+      // Extract year from release_date
+      const releaseDate = albumData.release_date;
+      const albumYear = releaseDate
+        ? parseInt(releaseDate.substring(0, 4))
+        : undefined;
+
       return data.items.map((track: any) => ({
         name: track.name,
         artist: track.artists.map((a: any) => a.name).join(', '),
         primaryArtist: track.artists[0]?.name, // First artist as primary
         primaryArtistImage: artistImage, // Artist image
         album: albumName,
+        albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,
         previewUrl: track.preview_url,
       }));
@@ -326,11 +340,15 @@ export class SpotifyApiService {
                   name: any;
                   artists: any[];
                   preview_url: any;
-                  album?: { name: string };
+                  album?: { name: string; release_date?: string };
                   track_number?: number;
                 };
               }) => {
                 if (!item.track) return null;
+
+                const albumYear = item.track.album?.release_date
+                  ? parseInt(item.track.album.release_date.substring(0, 4))
+                  : undefined;
 
                 return {
                   name: item.track.name,
@@ -341,6 +359,7 @@ export class SpotifyApiService {
                   })),
                   trackUrl: item.track.external_urls?.spotify,
                   album: item.track.album?.name,
+                  albumYear: albumYear,
                   trackNumber: item.track.track_number,
                   previewUrl: item.track.preview_url,
                 };
