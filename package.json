@@ -1,5 +1,5 @@
 {
-  "version": "2.2.1",
+  "version": "0.1.0",
   "name": "spotiarr",
   "description": "Self-hosted Spotify downloader with media server integration and *ARR compatibility",
   "author": "Alexander Saavedra <mralexsaavedra@gmail.com>",

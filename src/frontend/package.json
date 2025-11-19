@@ -1,6 +1,7 @@
 {
   "name": "frontend",
-  "version": "2.2.1",
+  "version": "0.1.0",
+  "description": "SpotiArr Frontend",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
