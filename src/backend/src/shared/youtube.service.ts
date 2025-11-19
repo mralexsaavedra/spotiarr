@@ -90,15 +90,10 @@ export class YoutubeService {
     }
 
     try {
-      // Cover files that Jellyfin recognizes
-      const coverFiles = [
-        join(directory, 'cover.jpg'), // Priority 1 for Jellyfin
-        join(directory, 'folder.jpg'), // Alternative
-      ];
+      const coverFile = join(directory, 'cover.jpg');
 
-      // Only download if none of the files exist
-      const coverExists = coverFiles.some((file) => fs.existsSync(file));
-      if (coverExists) {
+      // Only download if the file doesn't exist
+      if (fs.existsSync(coverFile)) {
         this.logger.debug(`Cover art already exists in ${directory}`);
         return;
       }
@@ -113,10 +108,8 @@ export class YoutubeService {
 
       const imageBuffer = Buffer.from(await response.arrayBuffer());
 
-      // Save both files for compatibility
-      for (const coverFile of coverFiles) {
-        fs.writeFileSync(coverFile, imageBuffer);
-      }
+      // Save cover.jpg
+      fs.writeFileSync(coverFile, imageBuffer);
 
       this.logger.log(`✓ Cover art saved in ${directory}`);
     } catch (error) {
