@@ -20,20 +20,15 @@
     "build:be": "pnpm --filter backend run build",
     "build:fe": "pnpm --filter frontend run build",
     "build": "pnpm run build:be && pnpm run build:fe",
-    "gen:fe": "pnpm --filter frontend run gen",
-    "gen:be": "pnpm --filter backend run gen",
     "start": "pnpm --filter backend run start:prod",
     "lint": "pnpm --filter backend lint && pnpm --filter frontend lint",
     "test": "pnpm --filter backend test && pnpm --filter frontend test",
     "clean": "rimraf dist node_modules/.cache",
-    "check:lib": "pnpm --filter backend update ytdlp-nodejs",
     "docker:build": "docker build -t spotiarr .",
     "docker:run": "docker run -p 3000:3000 spotiarr"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "copy-files-from-to": "^3.2.2",
-    "npm-check-updates": "^17.1.15",
     "rimraf": "^6.0.1"
   }
 }

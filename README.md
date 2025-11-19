@@ -139,17 +139,50 @@ SpotiArr can be also build from source files on your own.
 - Python 3.11 or 3.12 (required for native module compilation)
 
 #### Process
-- Install Node.js v23.10.0: `nvm install && nvm use`
-- Install dependencies: `pnpm install`
-- copy `.env.default` as `.env` in `src/backend` folder and modify desired environment properties (see [environment variables](#environment-variables))
-- add your Spotify application credentials to the `.env` file:
-  ```
-  SPOTIFY_CLIENT_ID=your_client_id
-  SPOTIFY_CLIENT_SECRET=your_client_secret
-  ```
-- build source files `npm run build`
-    - built project will be stored in `dist` folder
-- start server `npm run start`
+1. **Install Node.js v23.10.0**: `nvm install && nvm use`
+2. **Install pnpm globally** (if not installed): `npm install -g pnpm`
+3. **Clone the repository**:
+   ```bash
+   git clone https://github.com/mralexsaavedra/spotiarr.git
+   cd spotiarr
+   ```
+4. **Install dependencies**: `pnpm install`
+5. **Configure environment**:
+   - Copy `.env.default` as `.env` in `src/backend` folder
+   - Add your Spotify credentials to `.env`:
+     ```env
+     SPOTIFY_CLIENT_ID=your_client_id
+     SPOTIFY_CLIENT_SECRET=your_client_secret
+     ```
+6. **Start development servers**:
+   ```bash
+   # Option 1: Start both backend and frontend together
+   pnpm dev
+   
+   # Option 2: Start separately in different terminals
+   pnpm start:be  # Backend at http://localhost:3000
+   pnpm start:fe  # Frontend at http://localhost:4200
+   ```
+7. **Build for production**:
+   ```bash
+   pnpm build  # Output in dist/ folder
+   pnpm start  # Start production server
+   ```
+
+#### Troubleshooting
+
+**Issue: better-sqlite3 compilation errors**
+- Ensure Python 3.11 or 3.12 is installed (Python 3.13+ won't work)
+- Run: `pnpm rebuild better-sqlite3`
+
+**Issue: Redis connection errors**
+- Make sure Redis is running: `redis-server`
+- Check Redis connection in your `.env` file
+
+**Issue: FFmpeg not found**
+- macOS: `brew install ffmpeg`
+- Ubuntu/Debian: `sudo apt install ffmpeg`
+- Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
 
 ### Environment variables
 
@@ -194,6 +227,48 @@ SpotiArr organizes your music library following Jellyfin's recommended structure
 - **M3U Files:** Generated for playlists for easy import
 
 For detailed setup instructions, see [JELLYFIN_SETUP.md](JELLYFIN_SETUP.md)
+
+## 🛠️ Development
+
+### Project Structure
+```
+spotiarr/
+├── src/
+│   ├── backend/          # NestJS backend
+│   │   ├── src/
+│   │   │   ├── playlist/ # Playlist management
+│   │   │   ├── track/    # Track downloads & processing
+│   │   │   └── shared/   # Shared services (Spotify, YouTube, etc.)
+│   └── frontend/         # Angular 19 frontend
+├── assets/               # Static assets (logo, etc.)
+└── dist/                 # Build output
+```
+
+### Tech Stack
+- **Backend**: NestJS, TypeORM, BullMQ, better-sqlite3
+- **Frontend**: Angular 19, Tailwind CSS, RxJS
+- **Processing**: FFmpeg, ytdlp-nodejs
+- **Storage**: SQLite, Redis
+
+### Available Scripts
+```bash
+pnpm dev          # Start both backend & frontend
+pnpm start:be     # Start backend only (dev mode)
+pnpm start:fe     # Start frontend only (dev mode)
+pnpm build        # Build both projects
+pnpm lint         # Run linters
+pnpm test         # Run tests
+pnpm clean        # Clean build artifacts
+pnpm check:lib    # Update ytdlp-nodejs (do this regularly!)
+```
+
+### Development Workflow
+1. Create a feature branch: `git checkout -b feature/my-feature`
+2. Make your changes
+3. Test locally: `pnpm dev`
+4. Run linters: `pnpm lint`
+5. Build: `pnpm build`
+6. Create a Pull Request
 
 ## 🤝 Contributing
 
