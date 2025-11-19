@@ -12,6 +12,7 @@ import { UtilsService } from '../shared/utils.service';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { YoutubeService } from '../shared/youtube.service';
+import { M3uService } from '../shared/m3u.service';
 
 enum WsTrackOperation {
   New = 'trackNew',
@@ -33,6 +34,7 @@ export class TrackService {
     private readonly configService: ConfigService,
     private readonly utilsService: UtilsService,
     private readonly youtubeService: YoutubeService,
+    private readonly m3uService: M3uService,
   ) {}
 
   getAll(
@@ -145,6 +147,43 @@ export class TrackService {
       ...(error ? { error } : {}),
     };
     await this.update(track.id, updatedTrack);
+
+    if (!error && track.playlist && this.m3uService.isEnabled()) {
+      try {
+        const playlistTracks = await this.getAllByPlaylist(track.playlist.id);
+
+        const isPlaylist = track.playlist.spotifyUrl?.includes('/playlist/');
+        const hasMultipleTracks = playlistTracks.length > 1;
+
+        if (isPlaylist && hasMultipleTracks) {
+          const completedCount =
+            this.m3uService.getCompletedTracksCount(playlistTracks);
+          const totalCount = playlistTracks.length;
+
+          this.logger.debug(
+            `Playlist "${track.playlist.name}": ${completedCount}/${totalCount} tracks completed`,
+          );
+
+          const playlistFolderPath = this.utilsService.getPlaylistFolderPath(
+            track.playlist.name,
+          );
+
+          await this.m3uService.generateM3uFile(
+            track.playlist,
+            playlistTracks,
+            playlistFolderPath,
+          );
+
+          if (this.m3uService.isPlaylistComplete(playlistTracks)) {
+            this.logger.log(
+              `🎉 Playlist "${track.playlist.name}" fully completed! M3U file updated.`,
+            );
+          }
+        }
+      } catch (err) {
+        this.logger.error(`Failed to generate M3U: ${err.message}`);
+      }
+    }
   }
 
   getTrackFileName(track: TrackEntity): string {
