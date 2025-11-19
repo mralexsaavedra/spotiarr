@@ -1,28 +1,60 @@
 [![GitHub License](https://img.shields.io/github/license/mralexsaavedra/spotiarr)](https://github.com/mralexsaavedra/spotiarr)
 [![GitHub Repo stars](https://img.shields.io/github/stars/mralexsaavedra/spotiarr)](https://github.com/mralexsaavedra/spotiarr)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mralexsaavedra/spotiarr)](https://github.com/mralexsaavedra/spotiarr/releases)
+[![Docker Pulls](https://img.shields.io/docker/pulls/mralexandersaavedra/spotiarr)](https://hub.docker.com/r/mralexandersaavedra/spotiarr)
 
 ![spotiarr logo](assets/logo.svg)
 # SpotiArr - Self-hosted Spotify Downloader
 
-SpotiArr is a self-hosted Spotify downloader with media server integration and *ARR compatibility.
-Download tracks, playlists, and albums from Spotify URLs with automatic metadata tagging.
-Subscribe to playlists to automatically download new releases.
-Perfect for integration with media servers (Jellyfin, Navidrome, etc) and the *ARR ecosystem (Radarr, Sonarr, etc).
+> **A powerful, self-hosted solution for downloading and organizing your Spotify music library with seamless Jellyfin integration.**
 
-**Features:**
-- 🎵 Download tracks, albums, and playlists from Spotify URLs
-- 🔄 Subscribe to playlists for automatic updates
-- 🎨 Modern Spotify-inspired UI with dark mode
-- 📦 Multiple artist support with individual profile links
-- 🏷️ Automatic metadata tagging for media server compatibility
-- 🔗 Integration-ready for *ARR ecosystem
+SpotiArr bridges the gap between Spotify and your personal media server. Download tracks, albums, and entire playlists with automatic metadata tagging, smart folder organization, and native Jellyfin compatibility. Perfect for music enthusiasts who want complete control over their music collection.
 
-Built with NestJS and Angular 19 with Tailwind CSS.
+## ✨ Key Features
+
+### 🎵 **Smart Music Management**
+- Download tracks, albums, and playlists from Spotify URLs
+- Automatic metadata tagging (artist, album, year, cover art)
+- Subscribe to playlists for automatic updates when new tracks are added
+- Smart duplicate detection
+
+### 📁 **Jellyfin-Ready Organization**
+- Automatic folder structure following Jellyfin best practices
+- Separate organization for playlists vs. albums
+- Automatic M3U8 playlist generation for easy imports
+- Cover art embedded in files and saved as `cover.jpg`
+
+### 🎨 **Modern User Interface**
+- Spotify-inspired dark mode design
+- Real-time download progress tracking
+- Multiple artist support with clickable profile links
+- Responsive design for desktop and mobile
+
+### 🔗 **Ecosystem Integration**
+- Native Jellyfin compatibility
+- Works with Navidrome, Plex, and other media servers
+- *ARR ecosystem ready (Radarr, Sonarr, Lidarr patterns)
+- Docker support for easy deployment
+
+**Tech Stack:** NestJS (Backend) + Angular 19 (Frontend) + Tailwind CSS + SQLite + Redis
 
 > [!IMPORTANT]
-> Please do not use this tool for piracy! Download only music you own rights! Use this tool only on your responsibility.
+> **Legal Notice:** This tool is intended for personal use only. Download only music you have legal rights to access. The author is not responsible for any misuse of this software.
 
-### Content
+## 🚀 Quick Start
+
+```bash
+# Using Docker (recommended)
+docker run -d -p 3000:3000 \
+  -v /path/to/music:/spotiarr/backend/downloads \
+  -e SPOTIFY_CLIENT_ID=your_client_id \
+  -e SPOTIFY_CLIENT_SECRET=your_client_secret \
+  mralexandersaavedra/spotiarr:latest
+```
+
+Then open http://localhost:3000 in your browser!
+
+## 📚 Table of Contents
 - [SpotiArr - Self-hosted Spotify Downloader](#spotiarr---self-hosted-spotify-downloader)
     - [Content](#content)
   - [🚀 Installation](#-installation)
@@ -138,7 +170,37 @@ Some behaviour and settings of SpotiArr can be configured using environment vari
 6. Paste this string into the YT_COOKIES environment variable (in your .env or Docker config).
 
 ### 🎵 M3U Playlist Generation
-SpotiArr automatically generates M3U8 playlist files when downloading playlists from Spotify
+SpotiArr automatically generates M3U8 playlist files when downloading playlists from Spotify.
+
+## 📺 Jellyfin Integration
+
+SpotiArr organizes your music library following Jellyfin's recommended structure:
+
+- **Playlists:** `downloads/Playlists/PlaylistName/01 - Artist - Track.mp3`
+- **Albums:** `downloads/Artist/Album/01 - Track.mp3`
+- **Cover Art:** Automatically saved as `cover.jpg` in each folder
+- **M3U Files:** Generated for playlists for easy import
+
+For detailed setup instructions, see [JELLYFIN_SETUP.md](JELLYFIN_SETUP.md)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## 📝 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes in each version.
+
+## 💬 Support
+
+If you encounter any issues or have questions:
+- Open an [issue](https://github.com/mralexsaavedra/spotiarr/issues)
+- Check existing issues for solutions
+- Read the [Jellyfin Integration Guide](JELLYFIN_SETUP.md)
+
+## ⭐ Show Your Support
+
+If you find SpotiArr useful, please consider giving it a star on GitHub! It helps the project gain visibility and encourages further development.
 
 # ⚖️ License
 [MIT](https://choosealicense.com/licenses/mit/)
