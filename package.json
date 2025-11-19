@@ -1,9 +1,20 @@
 {
-  "version": "0.1.0",
   "name": "spotiarr",
+  "version": "0.1.0",
   "description": "Self-hosted Spotify downloader with media server integration and *ARR compatibility",
+  "keywords": [
+    "spotify",
+    "downloader",
+    "self-hosted",
+    "media-server",
+    "arr",
+    "jellyfin",
+    "plex",
+    "music"
+  ],
   "author": "Alexander Saavedra <mralexsaavedra@gmail.com>",
   "license": "MIT",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/mralexsaavedra/spotiarr.git"
