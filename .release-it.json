@@ -17,7 +17,7 @@
     },
     "release-it-docker-plugin": {
       "latestTag": true,
-      "imageName": "raiper34/spooty",
+      "imageName": "mralexandersaavedra/spotiarr",
       "buildx": true,
       "builder": "container",
       "platform": "linux/arm64,linux/amd64",

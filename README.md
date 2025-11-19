@@ -23,23 +23,26 @@ Built with NestJS and Angular 19 with Tailwind CSS.
 > Please do not use this tool for piracy! Download only music you own rights! Use this tool only on your responsibility.
 
 ### Content
-- [🚀 Installation](#-installation)
-  - [Spotify App Configuration](#spotify-app-configuration)
-  - [Docker](#docker)
-    - [Docker command](#docker-command)
-    - [Docker compose](#docker-compose)
-  - [Build from source](#build-from-source)
-    - [Process](#requirements)
-    - [Requirements](#process)
-  - [Environment variables](#environment-variables)
-- [⚖️ License](#-license)
+- [SpotiArr - Self-hosted Spotify Downloader](#spotiarr---self-hosted-spotify-downloader)
+    - [Content](#content)
+  - [🚀 Installation](#-installation)
+    - [Spotify App Configuration](#spotify-app-configuration)
+    - [Docker](#docker)
+      - [Docker command](#docker-command)
+      - [Docker compose](#docker-compose)
+    - [Build from source](#build-from-source)
+      - [Requirements](#requirements)
+      - [Process](#process)
+    - [Environment variables](#environment-variables)
+    - [How to get your YouTube cookies (using browser dev tools):](#how-to-get-your-youtube-cookies-using-browser-dev-tools)
+- [⚖️ License](#️-license)
 
 ## 🚀 Installation
-Recommended and the easiest way how to start to use of Spooty is using docker.
+Recommended and the easiest way how to start to use of SpotiArr is using docker.
 
 ### Spotify App Configuration
 
-To fully use Spooty, you need to create an application in the Spotify Developer Dashboard:
+To fully use SpotiArr, you need to create an application in the Spotify Developer Dashboard:
 
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 2. Sign in with your Spotify account
@@ -47,7 +50,7 @@ To fully use Spooty, you need to create an application in the Spotify Developer 
 4. Note your `Client ID` and `Client Secret`
 5. Configure the redirect URI to `http://localhost:3000/api/callback` (or the corresponding URL of your instance)
 
-These credentials will be used by Spooty to access the Spotify API.
+These credentials will be used by SpotiArr to access the Spotify API.
 
 ### Docker
 
@@ -57,23 +60,23 @@ For detailed configuration, see available [environment variables](#environment-v
 #### Docker command
 ```shell
 docker run -d -p 3000:3000 \
-  -v /path/to/downloads:/spooty/backend/downloads \
+  -v /path/to/downloads:/spotiarr/backend/downloads \
   -e SPOTIFY_CLIENT_ID=your_client_id \
   -e SPOTIFY_CLIENT_SECRET=your_client_secret \
-  raiper34/spooty:latest
+  mralexandersaavedra/spotiarr:latest
 ```
 
 #### Docker compose
 ```yaml
 services:
-  spooty:
-    image: raiper34/spooty:latest
-    container_name: spooty
+  spotiarr:
+    image: mralexandersaavedra/spotiarr:latest
+    container_name: spotiarr
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
-      - /path/to/downloads:/spooty/backend/downloads
+      - /path/to/downloads:/spotiarr/backend/downloads
     environment:
       - SPOTIFY_CLIENT_ID=your_client_id
       - SPOTIFY_CLIENT_SECRET=your_client_secret
@@ -82,7 +85,7 @@ services:
 
 ### Build from source
 
-Spooty can be also build from source files on your own.
+SpotiArr can be also build from source files on your own.
 
 #### Requirements
 - Node v18.19.1 (it is recommended to use `nvm` node version manager to install proper version of node)
@@ -105,15 +108,15 @@ Spooty can be also build from source files on your own.
 
 ### Environment variables
 
-Some behaviour and settings of Spooty can be configured using environment variables and `.env` file.
+Some behaviour and settings of SpotiArr can be configured using environment variables and `.env` file.
 
  Name                 | Default                                     | Description                                                                                                                                                      |
 ----------------------|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
- DB_PATH              | `./config/db.sqlite` (relative to backend)  | Path where Spooty database will be stored                                                                                                                        |
+ DB_PATH              | `./config/db.sqlite` (relative to backend)  | Path where SpotiArr database will be stored                                                                                                                        |
  FE_PATH              | `../frontend/browser` (relative to backend) | Path to frontend part of application                                                                                                                             |
  DOWNLOADS_PATH       | `./downloads` (relative to backend)         | Path where downaloded files will be stored                                                                                                                       |
  FORMAT               | `mp3`                                       | Format of downloaded files (currently fully supported only `mp3` but you can try whatever you want from [ffmpeg](https://ffmpeg.org/ffmpeg-formats.html#Muxers)) |
- PORT                 | 3000                                        | Port of Spooty server                                                                                                                                            |
+ PORT                 | 3000                                        | Port of SpotiArr server                                                                                                                                            |
  REDIS_PORT           | 6379                                        | Port of Redis server                                                                                                                                             |
  REDIS_HOST           | localhost                                   | Host of Redis server                                                                                                                                             |
  RUN_REDIS            | false                                       | Whenever Redis server should be started from backend (recommended for Docker environment)                                                                        |

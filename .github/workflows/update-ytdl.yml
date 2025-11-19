@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     branches: main
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   update-ytdl:
@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v2
         with:
-          node-version: '18.x'
+          node-version: "18.x"
       - name: Set up docker builder
         run: docker buildx create --name container --driver=docker-container
       - name: Update ytdlp-nodejs and release
@@ -31,7 +31,7 @@ jobs:
             echo "NO changes detected"
           else
             npm update ytdlp-nodejs -w backend
-            git config --global user.email "updater@spooty"
+            git config --global user.email "updater@spotiarr"
             git config --global user.name "AutoUpdater"
             git add .
             git commit -m "fix(ytdl): Upgrade ytdl package (automated)"
@@ -39,4 +39,3 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.AUTOUPDATE_PAT }}
-
