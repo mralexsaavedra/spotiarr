@@ -27,6 +27,21 @@ export class SpotifyApiService {
     }
   }
 
+  private getAlbumId(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/');
+      const albumIndex = pathParts.findIndex((part) => part === 'album');
+      if (albumIndex >= 0 && pathParts.length > albumIndex + 1) {
+        return pathParts[albumIndex + 1].split('?')[0];
+      }
+      throw new Error('Invalid Spotify album URL');
+    } catch (error) {
+      this.logger.error(`Failed to extract album ID: ${error.message}`);
+      throw error;
+    }
+  }
+
   async getPlaylistMetadata(
     spotifyUrl: string,
   ): Promise<{ name: string; image: string }> {
@@ -158,7 +173,44 @@ export class SpotifyApiService {
           }
         }
 
-        // For albums or fallback, return the tracks as-is
+        // For albums, use Spotify API to get artistUrl
+        if (spotifyUrl.includes('/album/')) {
+          this.logger.debug(
+            'Album detected, using Spotify API to get full track details including artistUrl',
+          );
+          try {
+            const albumId = this.getAlbumId(spotifyUrl);
+            const accessToken = await this.getAccessToken();
+
+            const response = await fetch(
+              `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              },
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              const tracks = data.items.map((track: any) => ({
+                name: track.name,
+                artist: track.artists.map((a: any) => a.name).join(', '),
+                artistUrl: track.artists[0]?.external_urls?.spotify,
+                previewUrl: track.preview_url,
+              }));
+
+              this.logger.debug(
+                `Retrieved ${tracks.length} album tracks with artistUrl from Spotify API`,
+              );
+              return tracks;
+            }
+          } catch (error) {
+            this.logger.error(`Failed to get album from API: ${error.message}`);
+          }
+        }
+
+        // Fallback, return the tracks as-is
         return detail.tracks || [];
       }
 
