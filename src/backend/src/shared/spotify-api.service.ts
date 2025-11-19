@@ -112,7 +112,53 @@ export class SpotifyApiService {
           }
         }
 
-        // For small playlists/albums, return the tracks as-is
+        // For small playlists, still use Spotify API to get artistUrl
+        if (spotifyUrl.includes('/playlist/')) {
+          this.logger.debug(
+            'Small playlist detected, using Spotify API to get full track details including artistUrl',
+          );
+          try {
+            const playlistId = this.getPlaylistId(spotifyUrl);
+            const accessToken = await this.getAccessToken();
+
+            const response = await fetch(
+              `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100&fields=items(track(name,artists(name,external_urls),preview_url))`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              },
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              const tracks = data.items
+                .map((item: { track: any }) => {
+                  if (!item.track) return null;
+                  return {
+                    name: item.track.name,
+                    artist: item.track.artists
+                      .map((a: any) => a.name)
+                      .join(', '),
+                    artistUrl: item.track.artists[0]?.external_urls?.spotify,
+                    previewUrl: item.track.preview_url,
+                  };
+                })
+                .filter((track: any) => track !== null);
+
+              this.logger.debug(
+                `Retrieved ${tracks.length} tracks with artistUrl from Spotify API`,
+              );
+              return tracks;
+            }
+          } catch (error) {
+            this.logger.error(
+              `Failed to get playlist from API: ${error.message}`,
+            );
+          }
+        }
+
+        // For albums or fallback, return the tracks as-is
         return detail.tracks || [];
       }
 
