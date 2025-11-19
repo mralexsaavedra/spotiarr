@@ -25,7 +25,11 @@
     <div class="bg-gradient-to-br from-spotify-gray-medium to-spotify-black dark:from-spotify-black dark:to-spotify-gray-dark rounded-2xl shadow-2xl p-6 mb-6">
       <p class="text-xl font-bold mb-4 text-white">Download from Spotify</p>
       <div class="flex gap-3">
-        <input class="flex-1 px-4 py-3 bg-spotify-gray-dark border-2 border-spotify-gray-medium text-white rounded-full focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-spotify-green placeholder-spotify-gray-light" type="text" [(ngModel)]="url" placeholder="Paste Spotify playlist, album or track URL"/>
+        <input class="flex-1 px-4 py-3 bg-spotify-gray-dark border-2 border-spotify-gray-medium text-white rounded-full focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-spotify-green placeholder-spotify-gray-light" 
+               type="text" 
+               [(ngModel)]="url" 
+               (keyup.enter)="download()"
+               placeholder="Paste Spotify playlist, album or track URL"/>
         <button class="px-8 py-3 bg-spotify-green text-black font-bold rounded-full hover:bg-spotify-green-light hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2 shadow-lg"
                 [class.opacity-50]="(createLoading$ | async)?.isLoading"
                 [class.cursor-wait]="(createLoading$ | async)?.isLoading"
