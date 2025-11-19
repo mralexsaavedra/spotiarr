@@ -1,20 +1,45 @@
-FROM node:18.20.4-alpine AS builder
-WORKDIR /spotiarr
-COPY . .
-RUN npm ci
-RUN npm run build
+FROM node:23.10.0-alpine AS builder
 
-FROM node:18.20.4-alpine
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /spotiarr
-COPY --from=builder /spotiarr/dist .
-COPY --from=builder /spotiarr/src ./src
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY src/backend/package.json ./src/backend/
+COPY src/frontend/package.json ./src/frontend/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source files
+COPY . .
+
+# Build the project
+RUN pnpm run build
+
+FROM node:23.10.0-alpine
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Install runtime dependencies
+RUN apk add --no-cache ffmpeg redis python3
+
+WORKDIR /spotiarr
+
+# Copy built files
+COPY --from=builder /spotiarr/dist ./dist
 COPY --from=builder /spotiarr/package.json ./package.json
-COPY --from=builder /spotiarr/package-lock.json ./package-lock.json
-COPY --from=builder /spotiarr/src/backend/.env.docker ./.env
-RUN npm prune --production
-RUN rm -rf src package.json package-lock.json
-RUN apk add --no-cache ffmpeg
-RUN apk add --no-cache redis
-RUN apk add --no-cache python3 py3-pip
+COPY --from=builder /spotiarr/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /spotiarr/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /spotiarr/src/backend/package.json ./src/backend/package.json
+COPY --from=builder /spotiarr/src/backend/.env.docker ./dist/backend/.env
+
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
+
 EXPOSE 3000
-CMD ["node", "backend/main.js"]
+CMD ["node", "dist/backend/main.js"]
