@@ -14,7 +14,7 @@ services:
       retries: 3
 
   spotiarr:
-    image: mralexsaavedra/spotiarr:latest
+    image: mralexandersaavedra/spotiarr:latest
     container_name: spotiarr
     restart: unless-stopped
     ports:

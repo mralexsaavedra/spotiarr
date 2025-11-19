@@ -110,22 +110,19 @@ docker run -d -p 3000:3000 \
   mralexandersaavedra/spotiarr:latest
 ```
 
-#### Docker compose
-```yaml
-services:
-  spotiarr:
-    image: mralexandersaavedra/spotiarr:latest
-    container_name: spotiarr
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - /path/to/downloads:/spotiarr/backend/downloads
-    environment:
-      - SPOTIFY_CLIENT_ID=your_client_id
-      - SPOTIFY_CLIENT_SECRET=your_client_secret
-      # Configure other environment variables if needed
+#### Docker compose (Recommended)
+A complete `docker-compose.yml` is included in the repository with Redis:
+
+```bash
+# 1. Copy environment template
+cp .env.example .env
+
+# 2. Edit .env with your Spotify credentials
+# 3. Start services
+docker-compose up -d
 ```
+
+See the included `docker-compose.yml` for full configuration with Redis, volumes, and all environment variables.
 
 ### Build from source
 
@@ -148,7 +145,7 @@ SpotiArr can be also build from source files on your own.
    ```
 4. **Install dependencies**: `pnpm install`
 5. **Configure environment**:
-   - Copy `.env.default` as `.env` in `src/backend` folder
+   - Copy `.env.example` as `.env` in root folder
    - Add your Spotify credentials to `.env`:
      ```env
      SPOTIFY_CLIENT_ID=your_client_id
@@ -252,12 +249,11 @@ spotiarr/
 
 ### Available Scripts
 ```bash
-pnpm dev          # Start both backend & frontend
-pnpm start:be     # Start backend only (dev mode)
-pnpm start:fe     # Start frontend only (dev mode)
-pnpm build        # Build both projects
-pnpm lint         # Run linters
-pnpm test         # Run tests
+pnpm dev          # Run backend and frontend concurrently
+pnpm start:be     # Run backend in watch mode
+pnpm start:fe     # Run frontend dev server
+pnpm build        # Build both backend and frontend
+pnpm lint         # Lint all workspaces
 pnpm clean        # Clean build artifacts
 pnpm check:lib    # Update ytdlp-nodejs (do this regularly!)
 ```

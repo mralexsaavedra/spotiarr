@@ -32,13 +32,10 @@ PYTHON=$(which python3.11) npm run build-release
 cd ../../../../../
 ```
 
-4. Create a `.env` file in `src/backend` with your configuration:
-```env
-SPOTIFY_CLIENT_ID=your_client_id
-SPOTIFY_CLIENT_SECRET=your_client_secret
-SPOTIFY_REFRESH_TOKEN=your_refresh_token
-REDIS_HOST=localhost
-REDIS_PORT=6379
+4. Create a `.env` file in root or `src/backend`:
+```bash
+cp .env.example .env
+# Edit with your Spotify credentials
 ```
 
 ### Running the Development Environment
@@ -107,11 +104,6 @@ Run linting:
 pnpm lint
 ```
 
-Run tests:
-```bash
-pnpm test
-```
-
 Test the application manually:
 ```bash
 pnpm dev
@@ -131,7 +123,6 @@ Commit message format:
 - `docs:` - Documentation changes
 - `style:` - Code style changes (formatting, etc.)
 - `refactor:` - Code refactoring
-- `test:` - Adding or updating tests
 - `chore:` - Maintenance tasks
 
 ### 5. Push and Create Pull Request
@@ -173,19 +164,11 @@ Create a Pull Request on GitHub with:
 - Handle errors with proper HTTP status codes
 - Use decorators appropriately
 
-## Testing
-
-- Write unit tests for new features
-- Maintain or improve code coverage
-- Test edge cases and error handling
-- Use meaningful test descriptions
-
 ## Pull Request Guidelines
 
 ### Before Submitting
 
 - [ ] Code follows project style guidelines
-- [ ] All tests pass (`pnpm test`)
 - [ ] Linting passes (`pnpm lint`)
 - [ ] No console.log or debug code left in
 - [ ] Documentation updated if needed
@@ -195,7 +178,7 @@ Create a Pull Request on GitHub with:
 
 - Summary of changes
 - Motivation and context
-- How to test the changes
+- How to verify the changes
 - Screenshots/videos for UI changes
 - Breaking changes (if any)
 - Related issue numbers
