@@ -35,6 +35,7 @@ Built with NestJS and Angular 19 with Tailwind CSS.
       - [Process](#process)
     - [Environment variables](#environment-variables)
     - [How to get your YouTube cookies (using browser dev tools):](#how-to-get-your-youtube-cookies-using-browser-dev-tools)
+    - [🎵 M3U Playlist Generation](#-m3u-playlist-generation)
 - [⚖️ License](#️-license)
 
 ## 🚀 Installation
@@ -124,6 +125,8 @@ Some behaviour and settings of SpotiArr can be configured using environment vari
  SPOTIFY_CLIENT_SECRET| your_client_secret                          | Client Secret of your Spotify application (required)                                                                                                              |
  YT_DOWNLOADS_PER_MINUTE | 3                                           | Set the maximum number of YouTube downloads started per minute                                                                                                  |
  YT_COOKIES           |                                             | Allows you to pass your YouTube cookies to bypass some download restrictions. See [below](#how-to-get-your-youtube-cookies) for instructions.                   |
+ M3U_GENERATION_ENABLED | `true` | Enable/disable automatic M3U playlist generation. When enabled, M3U8 playlist files are automatically created for Spotify playlists (not for albums or single tracks). These playlists are compatible with Jellyfin, VLC, and other M3U-compatible players. |
+
 
 ### How to get your YouTube cookies (using browser dev tools):
 1. Go to https://www.youtube.com and log in if needed.
@@ -133,6 +136,9 @@ Some behaviour and settings of SpotiArr can be configured using environment vari
 5. Copy all the cookies (name=value) and join them with a semicolon and a space, like:
    VISITOR_INFO1_LIVE=xxxx; YSC=xxxx; SID=xxxx; ...
 6. Paste this string into the YT_COOKIES environment variable (in your .env or Docker config).
+
+### 🎵 M3U Playlist Generation
+SpotiArr automatically generates M3U8 playlist files when downloading playlists from Spotify
 
 # ⚖️ License
 [MIT](https://choosealicense.com/licenses/mit/)

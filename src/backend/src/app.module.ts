@@ -11,6 +11,7 @@ import { PlaylistEntity } from './playlist/playlist.entity';
 import { resolve } from 'path';
 import { EnvironmentEnum } from './environmentEnum';
 import { BullModule } from '@nestjs/bullmq';
+import { M3uService } from './shared/m3u.service';
 
 @Module({
   imports: [
@@ -59,6 +60,6 @@ import { BullModule } from '@nestjs/bullmq';
     PlaylistModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [M3uService],
 })
 export class AppModule {}

@@ -22,6 +22,15 @@ export class TrackEntity {
   name: string;
 
   @Column({ nullable: true })
+  album?: string;
+
+  @Column({ nullable: true })
+  albumYear?: number;
+
+  @Column({ nullable: true })
+  trackNumber?: number;
+
+  @Column({ nullable: true })
   spotifyUrl: string;
 
   @Column({ nullable: true })

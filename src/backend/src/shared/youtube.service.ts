@@ -5,6 +5,8 @@ import { TrackService } from '../track/track.service';
 import { ConfigService } from '@nestjs/config';
 import { YtDlp } from 'ytdlp-nodejs';
 import * as yts from 'yt-search';
+import * as fs from 'fs';
+import { join } from 'path';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const NodeID3 = require('node-id3');
 
@@ -55,24 +57,69 @@ export class YoutubeService {
     coverUrl: string,
     title: string,
     artist: string,
+    albumYear?: number,
   ): Promise<void> {
     if (coverUrl) {
       const res = await fetch(coverUrl);
       const arrayBuf = await res.arrayBuffer();
       const imageBuffer = Buffer.from(arrayBuf);
 
-      NodeID3.write(
-        {
-          title,
-          artist,
-          APIC: {
-            mime: 'image/jpeg',
-            type: { id: 3, name: 'front cover' },
-            description: 'cover',
-            imageBuffer,
-          },
+      const tags: any = {
+        title,
+        artist,
+        APIC: {
+          mime: 'image/jpeg',
+          type: { id: 3, name: 'front cover' },
+          description: 'cover',
+          imageBuffer,
         },
-        folderName,
+      };
+
+      // Add year if available
+      if (albumYear) {
+        tags.year = albumYear.toString();
+      }
+
+      NodeID3.write(tags, folderName);
+    }
+  }
+
+  /**
+   * Saves cover art in the specified directory for Jellyfin detection
+   * Jellyfin looks for: cover.jpg
+   * Downloads the image only if it doesn't exist yet
+   */
+  async saveCoverArt(directory: string, coverUrl: string): Promise<void> {
+    if (!coverUrl) {
+      return;
+    }
+
+    try {
+      const coverFile = join(directory, 'cover.jpg');
+
+      // Only download if the file doesn't exist
+      if (fs.existsSync(coverFile)) {
+        this.logger.debug(`Cover art already exists in ${directory}`);
+        return;
+      }
+
+      // Download the image
+      this.logger.debug(`Downloading cover art to ${directory}`);
+      const response = await fetch(coverUrl);
+
+      if (!response.ok) {
+        throw new Error(`Failed to download cover: ${response.statusText}`);
+      }
+
+      const imageBuffer = Buffer.from(await response.arrayBuffer());
+
+      // Save cover.jpg
+      fs.writeFileSync(coverFile, imageBuffer);
+
+      this.logger.log(`✓ Cover art saved in ${directory}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to save cover art in ${directory}: ${error.message}`,
       );
     }
   }

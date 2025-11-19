@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { TrackEntity, TrackStatusEnum } from './track.entity';
 import { PlaylistEntity } from '../playlist/playlist.entity';
 import { ConfigService } from '@nestjs/config';
-import { resolve } from 'path';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { EnvironmentEnum } from '../environmentEnum';
@@ -12,6 +11,10 @@ import { UtilsService } from '../shared/utils.service';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { YoutubeService } from '../shared/youtube.service';
+import { M3uService } from '../shared/m3u.service';
+import { SpotifyUrlHelper } from '../shared/spotify-url.helper';
+import * as fs from 'fs';
+import * as path from 'path';
 
 enum WsTrackOperation {
   New = 'trackNew',
@@ -33,6 +36,7 @@ export class TrackService {
     private readonly configService: ConfigService,
     private readonly utilsService: UtilsService,
     private readonly youtubeService: YoutubeService,
+    private readonly m3uService: M3uService,
   ) {}
 
   getAll(
@@ -127,14 +131,53 @@ export class TrackService {
     });
     let error: string;
     try {
-      const folderName = this.getFolderName(track, track.playlist);
-      await this.youtubeService.downloadAndFormat(track, folderName);
+      const trackFilePath = this.getFolderName(track);
+      const trackDirectory = path.dirname(trackFilePath);
+
+      // Create the directory structure if it doesn't exist (Artist/Album/)
+      if (!fs.existsSync(trackDirectory)) {
+        fs.mkdirSync(trackDirectory, { recursive: true });
+      }
+
+      await this.youtubeService.downloadAndFormat(track, trackFilePath);
+
+      // Embed cover art in the audio file
       await this.youtubeService.addImage(
-        folderName,
+        trackFilePath,
         track.playlist.coverUrl,
         track.name,
         track.artist,
+        track.albumYear,
       );
+
+      // Check if it's a playlist
+      const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist.spotifyUrl);
+
+      if (isPlaylist) {
+        // For playlists: save playlist cover in the playlist folder
+        await this.youtubeService.saveCoverArt(
+          trackDirectory,
+          track.playlist.coverUrl,
+        );
+      } else {
+        // For albums/tracks: save covers at album level and artist level
+        const albumDirectory = trackDirectory;
+        const artistDirectory = path.dirname(albumDirectory);
+
+        // Save album cover (using playlist cover which is the album cover)
+        await this.youtubeService.saveCoverArt(
+          albumDirectory,
+          track.playlist.coverUrl,
+        );
+
+        // Save artist cover (using artist image from Spotify)
+        if (track.playlist.artistImageUrl) {
+          await this.youtubeService.saveCoverArt(
+            artistDirectory,
+            track.playlist.artistImageUrl,
+          );
+        }
+      }
     } catch (err) {
       this.logger.error(err);
       error = String(err);
@@ -145,20 +188,79 @@ export class TrackService {
       ...(error ? { error } : {}),
     };
     await this.update(track.id, updatedTrack);
+
+    if (!error && track.playlist && this.m3uService.isEnabled()) {
+      try {
+        const playlistTracks = await this.getAllByPlaylist(track.playlist.id);
+
+        const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist.spotifyUrl);
+        const hasMultipleTracks = playlistTracks.length > 1;
+
+        if (isPlaylist && hasMultipleTracks) {
+          const completedCount =
+            this.m3uService.getCompletedTracksCount(playlistTracks);
+          const totalCount = playlistTracks.length;
+
+          this.logger.debug(
+            `Playlist "${track.playlist.name}": ${completedCount}/${totalCount} tracks completed`,
+          );
+
+          const playlistFolderPath = this.utilsService.getPlaylistFolderPath(
+            track.playlist.name,
+          );
+
+          await this.m3uService.generateM3uFile(
+            track.playlist,
+            playlistTracks,
+            playlistFolderPath,
+          );
+
+          if (this.m3uService.isPlaylistComplete(playlistTracks)) {
+            this.logger.log(
+              `🎉 Playlist "${track.playlist.name}" fully completed! M3U file updated.`,
+            );
+          }
+        }
+      } catch (err) {
+        this.logger.error(`Failed to generate M3U: ${err.message}`);
+      }
+    }
   }
 
   getTrackFileName(track: TrackEntity): string {
-    const safeArtist = track.artist || 'unknown_artist';
-    const safeName = (track.name || 'unknown_track').replace('/', '');
-    const fileName = `${safeArtist} - ${safeName}`;
-    return `${this.utilsService.stripFileIllegalChars(fileName)}.${this.configService.get<string>(EnvironmentEnum.FORMAT)}`;
+    const format = this.configService.get<string>(EnvironmentEnum.FORMAT);
+    const trackName = track.name || 'Unknown Track';
+    const trackNumber = track.trackNumber ?? 1;
+    const artistName = track.artist || 'Unknown Artist';
+
+    // Check if this track belongs to a Spotify playlist
+    const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist?.spotifyUrl);
+
+    if (isPlaylist) {
+      // For playlists: keep all artists in the filename
+      const playlistName = track.playlist?.name || 'Unknown Playlist';
+      return this.utilsService.getPlaylistTrackFilePath(
+        playlistName,
+        artistName,
+        trackName,
+        trackNumber,
+        format,
+      );
+    } else {
+      // For albums/tracks: artist is already the primary artist from Spotify
+      const albumName = track.album || track.playlist?.name || 'Unknown Album';
+      return this.utilsService.getTrackFilePath(
+        artistName,
+        albumName,
+        trackName,
+        trackNumber,
+        format,
+      );
+    }
   }
 
-  getFolderName(track: TrackEntity, playlist: PlaylistEntity): string {
-    const safePlaylistName = playlist?.name || 'unknown_playlist';
-    return resolve(
-      this.utilsService.getPlaylistFolderPath(safePlaylistName),
-      this.getTrackFileName(track),
-    );
+  getFolderName(track: TrackEntity): string {
+    // Use Jellyfin-compatible structure
+    return this.getTrackFileName(track);
   }
 }
