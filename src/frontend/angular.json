@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "spooty-fe": {
+    "spotiarr-fe": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -64,10 +64,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "spooty-fe:build:production"
+              "buildTarget": "spotiarr-fe:build:production"
             },
             "development": {
-              "buildTarget": "spooty-fe:build:development"
+              "buildTarget": "spotiarr-fe:build:development"
             }
           },
           "defaultConfiguration": "development"
