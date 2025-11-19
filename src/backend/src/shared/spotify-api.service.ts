@@ -174,6 +174,11 @@ export class SpotifyApiService {
         artist: track.artists.map((a: any) => a.name).join(', '),
         primaryArtist: track.artists[0]?.name, // First artist as primary
         primaryArtistImage: artistImage, // Artist image
+        artists: track.artists.map((a: any) => ({
+          name: a.name,
+          url: a.external_urls?.spotify,
+        })),
+        trackUrl: track.external_urls?.spotify,
         album: track.album?.name,
         albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,
@@ -235,6 +240,11 @@ export class SpotifyApiService {
         artist: track.artists.map((a: any) => a.name).join(', '),
         primaryArtist: track.artists[0]?.name, // First artist as primary
         primaryArtistImage: artistImage, // Artist image
+        artists: track.artists.map((a: any) => ({
+          name: a.name,
+          url: a.external_urls?.spotify,
+        })),
+        trackUrl: track.external_urls?.spotify,
         album: albumName,
         albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,
