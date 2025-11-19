@@ -56,7 +56,13 @@ Then open http://localhost:3000 in your browser!
 
 ## 📚 Table of Contents
 - [SpotiArr - Self-hosted Spotify Downloader](#spotiarr---self-hosted-spotify-downloader)
-    - [Content](#content)
+  - [✨ Key Features](#-key-features)
+    - [🎵 **Smart Music Management**](#-smart-music-management)
+    - [📁 **Jellyfin-Ready Organization**](#-jellyfin-ready-organization)
+    - [🎨 **Modern User Interface**](#-modern-user-interface)
+    - [🔗 **Ecosystem Integration**](#-ecosystem-integration)
+  - [🚀 Quick Start](#-quick-start)
+  - [📚 Table of Contents](#-table-of-contents)
   - [🚀 Installation](#-installation)
     - [Spotify App Configuration](#spotify-app-configuration)
     - [Docker](#docker)
@@ -68,6 +74,11 @@ Then open http://localhost:3000 in your browser!
     - [Environment variables](#environment-variables)
     - [How to get your YouTube cookies (using browser dev tools):](#how-to-get-your-youtube-cookies-using-browser-dev-tools)
     - [🎵 M3U Playlist Generation](#-m3u-playlist-generation)
+  - [📺 Jellyfin Integration](#-jellyfin-integration)
+  - [🤝 Contributing](#-contributing)
+  - [📝 Changelog](#-changelog)
+  - [💬 Support](#-support)
+  - [⭐ Show Your Support](#-show-your-support)
 - [⚖️ License](#️-license)
 
 ## 🚀 Installation
@@ -128,7 +139,7 @@ SpotiArr can be also build from source files on your own.
 
 #### Process
 - install Node v18.19.1 using `nvm install` and use that node version `nvm use`
-- from project root install all dependencies using `npm install`
+- from project root install all dependencies using `npm install --legacy-peer-deps`
 - copy `.env.default` as `.env` in `src/backend` folder and modify desired environment properties (see [environment variables](#environment-variables))
 - add your Spotify application credentials to the `.env` file:
   ```
