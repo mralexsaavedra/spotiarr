@@ -132,14 +132,15 @@ services:
 SpotiArr can be also build from source files on your own.
 
 #### Requirements
-- Node v18.19.1 (it is recommended to use `nvm` node version manager to install proper version of node)
-- Redis in memory cache
-- Ffmpeg
-- Python3
+- Node.js v23.10.0 (use `nvm` to install: `nvm install 23.10.0`)
+- pnpm v9+ (`npm install -g pnpm`)
+- Redis (for queue management)
+- FFmpeg (for audio processing)
+- Python 3.11 or 3.12 (required for native module compilation)
 
 #### Process
-- install Node v18.19.1 using `nvm install` and use that node version `nvm use`
-- from project root install all dependencies using `npm install --legacy-peer-deps`
+- Install Node.js v23.10.0: `nvm install && nvm use`
+- Install dependencies: `pnpm install`
 - copy `.env.default` as `.env` in `src/backend` folder and modify desired environment properties (see [environment variables](#environment-variables))
 - add your Spotify application credentials to the `.env` file:
   ```
