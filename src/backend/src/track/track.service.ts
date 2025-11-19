@@ -137,6 +137,10 @@ export class TrackService {
         track.name,
         track.artist,
       );
+      await this.youtubeService.saveCoverArt(
+        folderName,
+        track.playlist.coverUrl,
+      );
     } catch (err) {
       this.logger.error(err);
       error = String(err);

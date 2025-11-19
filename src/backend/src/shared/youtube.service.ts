@@ -7,6 +7,8 @@ import { YtDlp } from 'ytdlp-nodejs';
 import * as yts from 'yt-search';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const NodeID3 = require('node-id3');
+import * as fs from 'fs';
+import { dirname, join } from 'path';
 
 const HEADERS = {
   'User-Agent':
@@ -74,6 +76,53 @@ export class YoutubeService {
         },
         folderName,
       );
+    }
+  }
+
+  /**
+   * Saves cover art in the playlist/album folder for Jellyfin detection
+   * Jellyfin looks for: cover.jpg, folder.jpg
+   */
+  async saveCoverArt(trackFilePath: string, coverUrl: string): Promise<void> {
+    if (!coverUrl) {
+      return;
+    }
+
+    try {
+      // Obtener el directorio donde está el track
+      const directory = dirname(trackFilePath);
+
+      // Archivos de portada que Jellyfin reconoce
+      const coverFiles = [
+        join(directory, 'cover.jpg'), // Prioridad 1 para Jellyfin
+        join(directory, 'folder.jpg'), // Alternativa
+      ];
+
+      // Solo descargar si no existe ninguno de los archivos
+      const coverExists = coverFiles.some((file) => fs.existsSync(file));
+      if (coverExists) {
+        this.logger.debug(`Cover art already exists in ${directory}`);
+        return;
+      }
+
+      // Descargar la imagen
+      this.logger.debug(`Downloading cover art from ${coverUrl}`);
+      const response = await fetch(coverUrl);
+
+      if (!response.ok) {
+        throw new Error(`Failed to download cover: ${response.statusText}`);
+      }
+
+      const imageBuffer = Buffer.from(await response.arrayBuffer());
+
+      // Guardar ambos archivos para compatibilidad
+      for (const coverFile of coverFiles) {
+        fs.writeFileSync(coverFile, imageBuffer);
+      }
+
+      this.logger.log(`✓ Cover art saved in ${directory}`);
+    } catch (error) {
+      this.logger.error(`Failed to save cover art: ${error.message}`);
     }
   }
 }
