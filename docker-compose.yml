@@ -1,0 +1,58 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: spotiarr-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  spotiarr:
+    build: .
+    container_name: spotiarr
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/spotiarr/dist/backend/config
+      - ./downloads:/spotiarr/dist/backend/downloads
+    environment:
+      # Database
+      - DB_PATH=./config/db.sqlite
+
+      # Paths
+      - FE_PATH=../frontend/browser
+      - DOWNLOADS_PATH=./downloads
+
+      # Server
+      - PORT=3000
+      - FORMAT=mp3
+
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_RUN=false
+
+      # Spotify API (REQUIRED - Replace with your credentials)
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-your_client_id}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-your_client_secret}
+
+      # YouTube
+      - YT_COOKIES=${YT_COOKIES:-}
+      - YT_DOWNLOADS_PER_MINUTE=3
+
+      # M3U Playlist Generation
+      - M3U_GENERATION_ENABLED=true
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis-data:
+    driver: local
