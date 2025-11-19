@@ -1,22 +1,23 @@
-<section class="hero is-primary">
-  <div class="hero-body">
-    <p class="title">
+<section class="bg-primary text-white">
+  <div class="py-12 px-6">
+    <p class="text-4xl font-bold">
       <i class="fa-brands fa-spotify"></i>
       <span>Spooty</span>
-      <span class="tag is-dark is-size-7">v{{version}}</span>
+      <span class="inline-block bg-gray-800 text-white text-xs font-semibold px-2 py-1 rounded ml-2">v{{version}}</span>
     </p>
-    <p class="subtitle">Self-hosted spotify downloader</p>
+    <p class="text-xl mt-2">Self-hosted spotify downloader</p>
   </div>
 </section>
 
-<section class="hero">
-  <div class="hero-body">
-    <div class="box">
-      <p class="subtitle">Download</p>
-      <div class="is-flex">
-        <input class="input" type="text" [(ngModel)]="url" placeholder="Paste playlist/song/artist url"/>
-        <button class="button is-primary"
-                [class.is-loading]="(createLoading$ | async)?.isLoading"
+<section class="bg-gray-50">
+  <div class="py-12 px-6">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <p class="text-xl font-semibold mb-4">Download</p>
+      <div class="flex gap-2">
+        <input class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" type="text" [(ngModel)]="url" placeholder="Paste playlist/song/artist url"/>
+        <button class="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                [class.opacity-50]="(createLoading$ | async)?.isLoading"
+                [class.cursor-wait]="(createLoading$ | async)?.isLoading"
                 (click)="download()"
                 [disabled]="!url"
         >
@@ -24,15 +25,15 @@
         </button>
       </div>
     </div>
-    <hr>
-    <div class="box">
-    <div class="is-flex is-justify-content-space-between">
-      <p class="subtitle">Playlists</p>
-      <div class="buttons has-addons">
-        <button class="button is-outlined is-success" title="Remove completed from list" (click)="deleteCompleted()">
+    <hr class="my-6 border-gray-300">
+    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex justify-between items-center mb-4">
+      <p class="text-xl font-semibold">Playlists</p>
+      <div class="flex gap-2">
+        <button class="px-4 py-2 border-2 border-green-500 text-green-500 rounded-md hover:bg-green-50 transition" title="Remove completed from list" (click)="deleteCompleted()">
           <i class="fa-solid fa-check"></i>
         </button>
-        <button class="button is-outlined is-danger" title="Remove failed from list" (click)="deleteFailed()">
+        <button class="px-4 py-2 border-2 border-red-500 text-red-500 rounded-md hover:bg-red-50 transition" title="Remove failed from list" (click)="deleteFailed()">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>

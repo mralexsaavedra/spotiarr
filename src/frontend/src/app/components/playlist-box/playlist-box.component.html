@@ -1,30 +1,30 @@
-<article class="panel" [ngClass]="statusClass$ | async">
-  <p class="panel-heading is-flex is-justify-content-space-between">
-        <span>
-          <i class="is-clickable fa-solid"
+<article class="border rounded-lg mb-4 overflow-hidden" [ngClass]="statusClass$ | async">
+  <p class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+        <span class="flex items-center gap-2">
+          <i class="cursor-pointer fa-solid"
              [ngClass]="playlist.collapsed ? 'fa-caret-up' : 'fa-caret-down'"
              (click)="toggleCollapse(playlist.id)"
-          ></i>&nbsp;
-          <span *ngIf="playlist.error; else noErrorTemplate" class="is-size-6 has-text-weight-medium">{{playlist.error}}</span>
+          ></i>
+          <span *ngIf="playlist.error; else noErrorTemplate" class="text-base font-medium">{{playlist.error}}</span>
           <ng-template #noErrorTemplate>
-            <span class="is-size-6 has-text-weight-semibold">{{playlist.name}}</span>
-          </ng-template>&nbsp;
+            <span class="text-base font-semibold">{{playlist.name}}</span>
+          </ng-template>
           <a [href]="playlist.spotifyUrl"
              target="_blank"
-             class="has-text-black" title="Link to Spotify url to be download from">
+             class="text-black hover:text-primary transition" title="Link to Spotify url to be download from">
             <i class="fa-brands fa-spotify"></i>
           </a>
         </span>
-    <span>
-      <i class="fa-solid is-clickable hover-icon"
+    <span class="flex items-center gap-2">
+      <i class="fa-solid cursor-pointer hover:text-primary transition"
          [ngClass]="playlist.active ? 'fa-toggle-on' : 'fa-toggle-off'"
          [title]="playlist.active ? '[ON]: Unsubscribe from playlist changes?' : '[OFF]: Subscribe to playlist changes?'"
          (click)="toggleActive(playlist.id, playlist.active)"
-      ></i>&nbsp;
-      <i class="fa-solid fa-repeat is-clickable hover-icon" title="Retry download failed tracks" (click)="retryFailed(playlist.id)"></i>&nbsp;
-      <i class="fa-solid fa-xmark is-clickable hover-icon" title="Remove playlist from list" (click)="delete(playlist.id)"></i>&nbsp;
-      <i *ngIf="playlist.active" class="fa-solid fa-toggle-on hover-icon-reversed"></i>&nbsp;
-      <span *ngIf="!playlist.error" class="is-size-6 has-text-weight-medium">{{trackCompletedCount$ | async}}/{{trackCount$ | async}}</span>&nbsp;
+      ></i>
+      <i class="fa-solid fa-repeat cursor-pointer hover:text-primary transition" title="Retry download failed tracks" (click)="retryFailed(playlist.id)"></i>
+      <i class="fa-solid fa-xmark cursor-pointer hover:text-red-500 transition" title="Remove playlist from list" (click)="delete(playlist.id)"></i>
+      <i *ngIf="playlist.active" class="fa-solid fa-toggle-on opacity-30"></i>
+      <span *ngIf="!playlist.error" class="text-base font-medium">{{trackCompletedCount$ | async}}/{{trackCount$ | async}}</span>
     </span>
   </p>
   <ng-container *ngIf="playlist.collapsed">

@@ -1,34 +1,34 @@
-<a class="panel-block is-flex is-justify-content-space-between" *ngFor="let track of tracks$ | async">
-  <div>
-    <span>{{ track.artist }} - {{ track.name }}</span>&nbsp;
+<a class="flex justify-between items-center px-4 py-3 border-b hover:bg-gray-50 transition" *ngFor="let track of tracks$ | async">
+  <div class="flex items-center gap-2">
+    <span>{{ track.artist }} - {{ track.name }}</span>
     <a [href]="track.spotifyUrl"
        target="_blank"
-       class="has-text-primary margin-left" title="Spotify preview of track that will be downloaded">
+       class="text-primary hover:text-primary-dark transition" title="Spotify preview of track that will be downloaded">
       <i class="fa-brands fa-spotify"></i>
-    </a>&nbsp;
+    </a>
     <a [href]="track.youtubeUrl"
        target="_blank"
-       class="has-text-danger is-color-black" title="Youtube searched track that will be downloaded">
+       class="text-red-600 hover:text-red-700 transition" title="Youtube searched track that will be downloaded">
       <i class="fa-brands fa-youtube"></i>
-    </a>&nbsp;
+    </a>
     <a *ngIf="track.status === trackStatuses.Completed"
        href="api/track/download/{{track.id}}"
-       class="has-text-info"
+       class="text-blue-500 hover:text-blue-600 transition"
        title="Download downloaded and locally saved file"
        download>
       <i class="fa-solid fa-download"></i>
     </a>
   </div>
-  <div>
-    <i *ngIf="track.status === trackStatuses.Error" class="fa-solid fa-repeat hover-icon" title="Retry to download" (click)="retry(track.id)"></i>&nbsp;
-    <i class="fa-solid fa-xmark hover-icon" title="Remove track from list" (click)="delete(track.id)"></i>&nbsp;
+  <div class="flex items-center gap-2">
+    <i *ngIf="track.status === trackStatuses.Error" class="fa-solid fa-repeat cursor-pointer hover:text-primary transition" title="Retry to download" (click)="retry(track.id)"></i>
+    <i class="fa-solid fa-xmark cursor-pointer hover:text-red-500 transition" title="Remove track from list" (click)="delete(track.id)"></i>
     <ng-container [ngSwitch]="track.status">
-      <span *ngSwitchCase="trackStatuses.New" class="tag is-info">New</span>
-      <span *ngSwitchCase="trackStatuses.Searching" class="tag is-warning">Searching</span>
-      <span *ngSwitchCase="trackStatuses.Queued" class="tag is-warning">Queued</span>
-      <span *ngSwitchCase="trackStatuses.Downloading" class="tag is-warning">Downloading</span>
-      <span *ngSwitchCase="trackStatuses.Completed" class="tag is-success">Completed</span>
-      <span *ngSwitchCase="trackStatuses.Error" class="tag is-danger" [title]="track.error">Error</span>
+      <span *ngSwitchCase="trackStatuses.New" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">New</span>
+      <span *ngSwitchCase="trackStatuses.Searching" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Searching</span>
+      <span *ngSwitchCase="trackStatuses.Queued" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Queued</span>
+      <span *ngSwitchCase="trackStatuses.Downloading" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Downloading</span>
+      <span *ngSwitchCase="trackStatuses.Completed" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">Completed</span>
+      <span *ngSwitchCase="trackStatuses.Error" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800" [title]="track.error">Error</span>
     </ng-container>
   </div>
 </a>
