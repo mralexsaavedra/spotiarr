@@ -19,8 +19,7 @@ Playlists/
 │   ├── 02 - Artist B - Track Name.mp3
 │   ├── 03 - Artist C - Track Name.mp3
 │   ├── My Playlist.m3u8
-│   ├── cover.jpg
-│   └── folder.jpg
+│   └── cover.jpg
 └── Another Playlist/
     ├── 01 - Artist X - Track Name.mp3
     ├── Another Playlist.m3u8
@@ -37,8 +36,7 @@ Artist Name/
 │   ├── 01 - Track Name.mp3
 │   ├── 02 - Track Name.mp3
 │   ├── 03 - Track Name.mp3
-│   ├── cover.jpg
-│   └── folder.jpg
+│   └── cover.jpg
 └── Another Album/
     ├── 01 - Track Name.mp3
     └── cover.jpg
@@ -56,13 +54,13 @@ Another Artist/
 2. **Playlist Name/** - Individual playlist folder
 3. **Tracks** - Files with format: `{TrackNumber} - {Artist} - {TrackName}.{ext}`
 4. **M3U File** - Playlist file in the same folder
-5. **Cover Art** - `cover.jpg` and `folder.jpg` for playlist artwork
+5. **Cover Art** - `cover.jpg` for playlist artwork
 
 **For Albums:**
 1. **Artist/** - Folder for each artist
 2. **Album/** - Folder for each album under the artist
 3. **Tracks** - Files with format: `{TrackNumber} - {TrackName}.{ext}`
-4. **Cover Art** - `cover.jpg` and `folder.jpg` for album artwork
+4. **Cover Art** - `cover.jpg` for album artwork
 
 ## How It Works
 
@@ -77,9 +75,7 @@ Each track is stored with the following metadata:
 
 ### Cover Art
 
-Cover art is automatically downloaded and saved in two formats for maximum compatibility:
-- `cover.jpg` - Primary cover image (Jellyfin's preferred format)
-- `folder.jpg` - Alternative cover image
+Cover art is automatically downloaded and saved as `cover.jpg` (Jellyfin's preferred format).
 
 Cover art is also embedded in the audio file's metadata.
 
@@ -152,8 +148,7 @@ downloads/                          # Jellyfin music library
 │   │   ├── 02 - Artist B - Song 2.mp3
 │   │   ├── 03 - Artist C - Song 3.mp3
 │   │   ├── My Playlist.m3u8
-│   │   ├── cover.jpg
-│   │   └── folder.jpg
+│   │   └── cover.jpg
 │   └── Workout Mix/
 │       ├── 01 - Artist X - Song 1.mp3
 │       ├── 02 - Artist Y - Song 2.mp3
@@ -163,8 +158,7 @@ downloads/                          # Jellyfin music library
 │   └── Album A/
 │       ├── 01 - Song 1.mp3
 │       ├── 02 - Song 2.mp3
-│       ├── cover.jpg
-│       └── folder.jpg
+│       └── cover.jpg
 └── Artist 2/
     └── Album B/
         ├── 01 - Song 1.mp3

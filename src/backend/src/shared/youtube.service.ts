@@ -86,7 +86,7 @@ export class YoutubeService {
 
   /**
    * Saves cover art in the specified directory for Jellyfin detection
-   * Jellyfin looks for: cover.jpg, folder.jpg
+   * Jellyfin looks for: cover.jpg
    * Downloads the image only if it doesn't exist yet
    */
   async saveCoverArt(directory: string, coverUrl: string): Promise<void> {
@@ -115,10 +115,6 @@ export class YoutubeService {
 
       // Save cover.jpg
       fs.writeFileSync(coverFile, imageBuffer);
-
-      // Save folder.jpg (Jellyfin also looks for this)
-      const folderFile = join(directory, 'folder.jpg');
-      fs.writeFileSync(folderFile, imageBuffer);
 
       this.logger.log(`✓ Cover art saved in ${directory}`);
     } catch (error) {
