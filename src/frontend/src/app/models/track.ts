@@ -3,6 +3,7 @@ export interface Track {
   artist: string;
   name: string;
   spotifyUrl: string;
+  trackUrl?: string;
   artistUrl?: string;
   youtubeUrl: string;
   status: TrackStatusEnum;

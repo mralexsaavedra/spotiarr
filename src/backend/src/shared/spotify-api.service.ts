@@ -140,6 +140,7 @@ export class SpotifyApiService {
           name: track.name,
           artist: track.artists.map((a: any) => a.name).join(', '),
           artistUrl: track.artists[0]?.external_urls?.spotify,
+          trackUrl: track.external_urls?.spotify,
           previewUrl: track.preview_url,
         }));
 
@@ -165,7 +166,7 @@ export class SpotifyApiService {
           );
 
           const response = await fetch(
-            `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&fields=items(track(name,artists(name,external_urls),preview_url)),next`,
+            `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&fields=items(track(name,artists(name,external_urls),preview_url,external_urls)),next`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -192,7 +193,12 @@ export class SpotifyApiService {
           const pageTracks = data.items
             .map(
               (item: {
-                track: { name: any; artists: any[]; preview_url: any };
+                track: {
+                  name: any;
+                  artists: any[];
+                  preview_url: any;
+                  external_urls: any;
+                };
               }) => {
                 if (!item.track) return null;
 
@@ -200,6 +206,7 @@ export class SpotifyApiService {
                   name: item.track.name,
                   artist: item.track.artists.map((a) => a.name).join(', '),
                   artistUrl: item.track.artists[0]?.external_urls?.spotify,
+                  trackUrl: item.track.external_urls?.spotify,
                   previewUrl: item.track.preview_url,
                 };
               },
@@ -279,6 +286,7 @@ export class SpotifyApiService {
         name: data.name,
         artist: data.artists.map((a: any) => a.name).join(', '),
         artistUrl: data.artists[0]?.external_urls?.spotify,
+        trackUrl: data.external_urls?.spotify,
         previewUrl: data.preview_url,
       };
     } catch (error) {
