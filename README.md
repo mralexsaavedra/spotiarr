@@ -138,7 +138,7 @@ Some behaviour and settings of SpotiArr can be configured using environment vari
 6. Paste this string into the YT_COOKIES environment variable (in your .env or Docker config).
 
 ### 🎵 M3U Playlist Generation
-Spooty automatically generates M3U8 playlist files when downloading playlists from Spotify
+SpotiArr automatically generates M3U8 playlist files when downloading playlists from Spotify
 
 # ⚖️ License
 [MIT](https://choosealicense.com/licenses/mit/)

@@ -9,6 +9,7 @@ import { Interval } from '@nestjs/schedule';
 import { TrackStatusEnum } from '../track/track.entity';
 import { UtilsService } from '../shared/utils.service';
 import { SpotifyService } from '../shared/spotify.service';
+import { SpotifyUrlHelper, SpotifyUrlType } from '../shared/spotify-url.helper';
 
 enum WsPlaylistOperation {
   New = 'playlistNew',
@@ -93,9 +94,9 @@ export class PlaylistService {
       let errorCount = 0;
 
       // Detect if it's a playlist, album, or individual track
-      const isPlaylist = savedPlaylist.spotifyUrl?.includes('/playlist/');
-      const isTrack = savedPlaylist.spotifyUrl?.includes('/track/');
-      const isAlbum = !isPlaylist && !isTrack;
+      const urlType = SpotifyUrlHelper.getUrlType(savedPlaylist.spotifyUrl);
+      const isTrack = urlType === SpotifyUrlType.Track;
+      const isAlbum = urlType === SpotifyUrlType.Album;
 
       for (const track of detail.tracks) {
         try {
@@ -126,9 +127,9 @@ export class PlaylistService {
             {
               artist: artistToUse,
               name: track.name,
-              album: track.album || (isTrack ? 'Singles' : savedPlaylist.name),
+              album: track.album ?? (isTrack ? 'Singles' : savedPlaylist.name),
               albumYear: track.albumYear,
-              trackNumber: track.trackNumber || processedCount + 1,
+              trackNumber: track.trackNumber ?? processedCount + 1,
               spotifyUrl: track.previewUrl || null,
               artists: track.artists,
               trackUrl: track.trackUrl,
@@ -197,9 +198,9 @@ export class PlaylistService {
       }
 
       // Detect if it's a playlist, album, or individual track
-      const isPlaylist = playlist.spotifyUrl?.includes('/playlist/');
-      const isTrack = playlist.spotifyUrl?.includes('/track/');
-      const isAlbum = !isPlaylist && !isTrack;
+      const urlType = SpotifyUrlHelper.getUrlType(playlist.spotifyUrl);
+      const isTrack = urlType === SpotifyUrlType.Track;
+      const isAlbum = urlType === SpotifyUrlType.Album;
 
       for (let i = 0; i < (tracks ?? []).length; i++) {
         const track = tracks[i];
@@ -214,9 +215,9 @@ export class PlaylistService {
         const track2Save = {
           artist: artistToUse,
           name: track.name,
-          album: track.album || (isTrack ? 'Singles' : playlist.name),
+          album: track.album ?? (isTrack ? 'Singles' : playlist.name),
           albumYear: track.albumYear,
-          trackNumber: track.trackNumber || i + 1,
+          trackNumber: track.trackNumber ?? i + 1,
           spotifyUrl: track.previewUrl,
           artists: track.artists,
           trackUrl: track.trackUrl,

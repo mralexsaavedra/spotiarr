@@ -340,6 +340,7 @@ export class SpotifyApiService {
                   name: any;
                   artists: any[];
                   preview_url: any;
+                  external_urls?: { spotify?: string };
                   album?: { name: string; release_date?: string };
                   track_number?: number;
                 };
@@ -407,47 +408,6 @@ export class SpotifyApiService {
       throw new Error('Invalid Spotify track URL');
     } catch (error) {
       this.logger.error(`Failed to extract track ID: ${error.message}`);
-      throw error;
-    }
-  }
-
-  async getTrackDetails(spotifyUrl: string): Promise<any> {
-    try {
-      this.logger.debug(
-        `Getting track details from Spotify API for ${spotifyUrl}`,
-      );
-      const trackId = this.getTrackId(spotifyUrl);
-      const accessToken = await this.getAccessToken();
-
-      const response = await fetch(
-        `https://api.spotify.com/v1/tracks/${trackId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        this.logger.error(`Spotify API error: ${response.status} ${errorText}`);
-        throw new Error(`Failed to fetch track: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      return {
-        name: data.name,
-        artist: data.artists.map((a: any) => a.name).join(', '),
-        artists: data.artists.map((a: any) => ({
-          name: a.name,
-          url: a.external_urls?.spotify,
-        })),
-        trackUrl: data.external_urls?.spotify,
-        previewUrl: data.preview_url,
-      };
-    } catch (error) {
-      this.logger.error(`Failed to get track details: ${error.message}`);
       throw error;
     }
   }

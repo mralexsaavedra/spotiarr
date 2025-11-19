@@ -2,11 +2,11 @@
 
 ## Overview
 
-Spooty has been configured to organize downloaded music in a Jellyfin-compatible folder structure, making it easy to add your downloaded music to your Jellyfin media server.
+SpotiArr has been configured to organize downloaded music in a Jellyfin-compatible folder structure, making it easy to add your downloaded music to your Jellyfin media server.
 
 ## Folder Structure
 
-Spooty organizes music following Jellyfin's recommended structure, with different layouts for playlists and albums:
+SpotiArr organizes music following Jellyfin's recommended structure, with different layouts for playlists and albums:
 
 ### Spotify Playlists
 
@@ -90,7 +90,7 @@ Cover art is also embedded in the audio file's metadata.
 1. Open Jellyfin Dashboard
 2. Navigate to **Libraries** → **Add Media Library**
 3. Select **Music** as the content type
-4. Add the path to your downloads folder (e.g., `/path/to/spooty/downloads`)
+4. Add the path to your downloads folder (e.g., `/path/to/spotiarr/downloads`)
 5. Enable **Automatically refresh metadata from the internet**
 6. Save the library
 
@@ -111,9 +111,9 @@ For optimal music organization:
 
 ## M3U Playlist Files
 
-Spooty automatically generates M3U8 playlist files for each Spotify playlist. These files are saved **in the same folder** as the playlist tracks for easy access.
+SpotiArr automatically generates M3U8 playlist files for **Spotify playlists only** (not for albums or individual tracks). These files are saved **in the same folder** as the playlist tracks for easy access.
 
-### M3U File Structure for Playlists
+### M3U File Structure
 
 For Spotify playlists, the M3U file uses relative paths in the same directory:
 
@@ -129,17 +129,7 @@ For Spotify playlists, the M3U file uses relative paths in the same directory:
 02 - Artist B - Track Name.mp3
 ```
 
-### M3U File Structure for Albums
-
-For individual albums, M3U files reference tracks in the artist/album structure:
-
-```m3u
-#EXTM3U
-#PLAYLIST:Album Name
-#EXTINF:-1,Artist Name - Track Name
-#EXTART:Artist Name
-../../Artist Name/Album Name/01 - Track Name.mp3
-```
+**Note:** M3U files are only generated for playlists with multiple tracks. Albums and individual tracks don't need M3U files as they are already organized by artist/album structure.
 
 ### Using M3U Files with Jellyfin
 

@@ -12,6 +12,7 @@ import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { YoutubeService } from '../shared/youtube.service';
 import { M3uService } from '../shared/m3u.service';
+import { SpotifyUrlHelper } from '../shared/spotify-url.helper';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -150,7 +151,7 @@ export class TrackService {
       );
 
       // Check if it's a playlist
-      const isPlaylist = track.playlist.spotifyUrl?.includes('/playlist/');
+      const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist.spotifyUrl);
 
       if (isPlaylist) {
         // For playlists: save playlist cover in the playlist folder
@@ -192,7 +193,7 @@ export class TrackService {
       try {
         const playlistTracks = await this.getAllByPlaylist(track.playlist.id);
 
-        const isPlaylist = track.playlist.spotifyUrl?.includes('/playlist/');
+        const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist.spotifyUrl);
         const hasMultipleTracks = playlistTracks.length > 1;
 
         if (isPlaylist && hasMultipleTracks) {
@@ -229,11 +230,11 @@ export class TrackService {
   getTrackFileName(track: TrackEntity): string {
     const format = this.configService.get<string>(EnvironmentEnum.FORMAT);
     const trackName = track.name || 'Unknown Track';
-    const trackNumber = track.trackNumber || 1;
+    const trackNumber = track.trackNumber ?? 1;
     const artistName = track.artist || 'Unknown Artist';
 
     // Check if this track belongs to a Spotify playlist
-    const isPlaylist = track.playlist?.spotifyUrl?.includes('/playlist/');
+    const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist?.spotifyUrl);
 
     if (isPlaylist) {
       // For playlists: keep all artists in the filename

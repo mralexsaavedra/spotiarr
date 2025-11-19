@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TrackEntity, TrackStatusEnum } from '../track/track.entity';
 import { PlaylistEntity } from '../playlist/playlist.entity';
+import { SpotifyUrlHelper } from './spotify-url.helper';
 
 @Injectable()
 export class M3uService {
@@ -98,26 +99,17 @@ export class M3uService {
 
   /**
    * Gets the track file name following Jellyfin structure
+   * Only used for playlists (M3U files are only generated for playlists)
    */
   private getTrackFileName(track: TrackEntity): string {
     const format = this.configService.get<string>(EnvironmentEnum.FORMAT, 'mp3');
     const artistName = this.sanitizeFileName(track.artist || 'Unknown Artist');
     const trackName = this.sanitizeFileName(track.name || 'Unknown Track');
-    const trackNumber = String(track.trackNumber || 1).padStart(2, '0');
+    const trackNumber = String(track.trackNumber ?? 1).padStart(2, '0');
     
-    // Check if this track belongs to a Spotify playlist
-    const isPlaylist = track.playlist?.spotifyUrl?.includes('/playlist/');
-    
-    if (isPlaylist) {
-      // For playlists: tracks are in the same folder as the M3U file
-      // Format: 01 - Artist - Track.mp3
-      return `${trackNumber} - ${artistName} - ${trackName}.${format}`;
-    } else {
-      // For albums: tracks are in Music/Artist/Album/
-      // M3U is in Playlists folder, so need to go back: ../../Artist/Album/01 - Track.mp3
-      const albumName = this.sanitizeFileName(track.album || 'Unknown Album');
-      return path.join('..', '..', artistName, albumName, `${trackNumber} - ${trackName}.${format}`);
-    }
+    // For playlists: tracks are in the same folder as the M3U file
+    // Format: 01 - Artist - Track.mp3
+    return `${trackNumber} - ${artistName} - ${trackName}.${format}`;
   }
 
   /**

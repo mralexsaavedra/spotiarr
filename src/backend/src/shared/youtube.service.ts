@@ -116,6 +116,10 @@ export class YoutubeService {
       // Save cover.jpg
       fs.writeFileSync(coverFile, imageBuffer);
 
+      // Save folder.jpg (Jellyfin also looks for this)
+      const folderFile = join(directory, 'folder.jpg');
+      fs.writeFileSync(folderFile, imageBuffer);
+
       this.logger.log(`✓ Cover art saved in ${directory}`);
     } catch (error) {
       this.logger.error(
