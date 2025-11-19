@@ -106,6 +106,87 @@ export class SpotifyApiService {
     }
   }
 
+  /**
+   * Get track details from Spotify API for a single track
+   */
+  async getTrackDetails(trackId: string): Promise<any> {
+    try {
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(
+        `https://api.spotify.com/v1/tracks/${trackId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch track: ${response.status}`);
+      }
+
+      const track = await response.json();
+
+      return {
+        name: track.name,
+        artist: track.artists.map((a: any) => a.name).join(', '),
+        album: track.album?.name,
+        trackNumber: track.track_number,
+        previewUrl: track.preview_url,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get track details: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get album details from Spotify API
+   */
+  async getAlbumTracks(albumId: string): Promise<any[]> {
+    try {
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(
+        `https://api.spotify.com/v1/albums/${albumId}/tracks`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch album: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const albumResponse = await fetch(
+        `https://api.spotify.com/v1/albums/${albumId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      const albumData = await albumResponse.json();
+      const albumName = albumData.name;
+
+      return data.items.map((track: any) => ({
+        name: track.name,
+        artist: track.artists.map((a: any) => a.name).join(', '),
+        album: albumName,
+        trackNumber: track.track_number,
+        previewUrl: track.preview_url,
+      }));
+    } catch (error) {
+      this.logger.error(`Failed to get album tracks: ${error.message}`);
+      throw error;
+    }
+  }
+
   async getAllPlaylistTracks(spotifyUrl: string): Promise<any[]> {
     try {
       this.logger.debug(`Getting all tracks for ${spotifyUrl}`);
@@ -200,7 +281,8 @@ export class SpotifyApiService {
                   name: any;
                   artists: any[];
                   preview_url: any;
-                  external_urls: any;
+                  album?: { name: string };
+                  track_number?: number;
                 };
               }) => {
                 if (!item.track) return null;
@@ -213,6 +295,8 @@ export class SpotifyApiService {
                     url: a.external_urls?.spotify,
                   })),
                   trackUrl: item.track.external_urls?.spotify,
+                  album: item.track.album?.name,
+                  trackNumber: item.track.track_number,
                   previewUrl: item.track.preview_url,
                 };
               },

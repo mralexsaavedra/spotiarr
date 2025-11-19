@@ -26,18 +26,51 @@ export class SpotifyService {
     }
 
     try {
-      const metadata =
-        await this.spotifyApiService.getPlaylistMetadata(spotifyUrl);
+      // Detect the type of Spotify URL
+      const isTrack = spotifyUrl.includes('/track/');
+      const isAlbum = spotifyUrl.includes('/album/');
+      const isPlaylist = spotifyUrl.includes('/playlist/');
 
-      const tracks =
-        await this.spotifyApiService.getAllPlaylistTracks(spotifyUrl);
+      if (isTrack) {
+        // Handle single track
+        const trackId = this.extractId(spotifyUrl);
+        const track = await this.spotifyApiService.getTrackDetails(trackId);
+        const detail = await getDetails(spotifyUrl);
 
-      return {
-        name: metadata.name,
-        tracks: tracks || [],
-        image: metadata.image,
-        type,
-      };
+        return {
+          name: track.name,
+          tracks: [track],
+          image: detail.preview?.image || '',
+        };
+      } else if (isAlbum) {
+        // Handle album
+        const albumId = this.extractId(spotifyUrl);
+        const tracks = await this.spotifyApiService.getAlbumTracks(albumId);
+        const detail = await getDetails(spotifyUrl);
+
+        return {
+          name: tracks[0]?.album || detail.preview?.title || 'Unknown Album',
+          tracks: tracks || [],
+          image: detail.preview?.image || '',
+          type,
+        };
+      } else if (isPlaylist) {
+        // Handle playlist
+        const metadata =
+          await this.spotifyApiService.getPlaylistMetadata(spotifyUrl);
+
+        const tracks =
+          await this.spotifyApiService.getAllPlaylistTracks(spotifyUrl);
+
+        return {
+          name: metadata.name,
+          tracks: tracks || [],
+          image: metadata.image,
+          type,
+        };
+      }
+
+      throw new Error('Unknown Spotify URL type');
     } catch (error) {
       this.logger.error(`Error getting playlist details: ${error.message}`);
       const detail = await getDetails(spotifyUrl);
@@ -48,6 +81,11 @@ export class SpotifyService {
         type,
       };
     }
+  }
+
+  private extractId(spotifyUrl: string): string {
+    const match = spotifyUrl.match(/\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
+    return match ? match[2] : '';
   }
 
   async getPlaylistTracks(spotifyUrl: string): Promise<any[]> {
