@@ -6,10 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
-    "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
+    "build": "nest build",
     "start:prod": "node ../../dist/backend/main",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix"
   },
