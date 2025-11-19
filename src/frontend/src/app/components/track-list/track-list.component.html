@@ -1,34 +1,34 @@
-<a class="flex justify-between items-center px-4 py-3 border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition" *ngFor="let track of tracks$ | async">
-  <div class="flex items-center gap-2 dark:text-gray-200">
-    <span>{{ track.artist }} - {{ track.name }}</span>
+<a class="flex justify-between items-center px-5 py-3 border-b dark:border-spotify-gray-dark hover:bg-gray-100 dark:hover:bg-spotify-gray-dark transition-all group" *ngFor="let track of tracks$ | async">
+  <div class="flex items-center gap-3 dark:text-white">
+    <span class="font-medium"><span class="text-spotify-gray-light">{{ track.artist }}</span> <span class="text-black dark:text-white">{{ track.name }}</span></span>
     <a [href]="track.spotifyUrl"
        target="_blank"
-       class="text-primary hover:text-primary-dark transition" title="Spotify preview of track that will be downloaded">
+       class="text-spotify-green hover:text-spotify-green-light hover:scale-110 transition-all" title="Preview on Spotify">
       <i class="fa-brands fa-spotify"></i>
     </a>
     <a [href]="track.youtubeUrl"
        target="_blank"
-       class="text-red-600 hover:text-red-700 transition" title="Youtube searched track that will be downloaded">
+       class="text-red-500 hover:text-red-600 hover:scale-110 transition-all" title="View on YouTube">
       <i class="fa-brands fa-youtube"></i>
     </a>
     <a *ngIf="track.status === trackStatuses.Completed"
        href="api/track/download/{{track.id}}"
-       class="text-blue-500 hover:text-blue-600 transition"
-       title="Download downloaded and locally saved file"
+       class="text-blue-500 hover:text-blue-600 hover:scale-110 transition-all"
+       title="Download file"
        download>
       <i class="fa-solid fa-download"></i>
     </a>
   </div>
-  <div class="flex items-center gap-2">
-    <i *ngIf="track.status === trackStatuses.Error" class="fa-solid fa-repeat cursor-pointer hover:text-primary transition dark:text-gray-200" title="Retry to download" (click)="retry(track.id)"></i>
-    <i class="fa-solid fa-xmark cursor-pointer hover:text-red-500 transition dark:text-gray-200" title="Remove track from list" (click)="delete(track.id)"></i>
+  <div class="flex items-center gap-3">
+    <i *ngIf="track.status === trackStatuses.Error" class="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all text-spotify-gray-light" title="Retry download" (click)="retry(track.id)"></i>
+    <i class="fa-solid fa-xmark cursor-pointer hover:text-red-500 hover:scale-110 transition-all text-spotify-gray-light opacity-0 group-hover:opacity-100" title="Remove track" (click)="delete(track.id)"></i>
     <ng-container [ngSwitch]="track.status">
-      <span *ngSwitchCase="trackStatuses.New" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">New</span>
-      <span *ngSwitchCase="trackStatuses.Searching" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Searching</span>
-      <span *ngSwitchCase="trackStatuses.Queued" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Queued</span>
-      <span *ngSwitchCase="trackStatuses.Downloading" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Downloading</span>
-      <span *ngSwitchCase="trackStatuses.Completed" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Completed</span>
-      <span *ngSwitchCase="trackStatuses.Error" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200" [title]="track.error">Error</span>
+      <span *ngSwitchCase="trackStatuses.New" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">NEW</span>
+      <span *ngSwitchCase="trackStatuses.Searching" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">SEARCHING</span>
+      <span *ngSwitchCase="trackStatuses.Queued" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">QUEUED</span>
+      <span *ngSwitchCase="trackStatuses.Downloading" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 animate-pulse">DOWNLOADING</span>
+      <span *ngSwitchCase="trackStatuses.Completed" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-spotify-green/20 text-spotify-green border border-spotify-green/30">COMPLETED</span>
+      <span *ngSwitchCase="trackStatuses.Error" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-red-500/20 text-red-400 border border-red-500/30" [title]="track.error">ERROR</span>
     </ng-container>
   </div>
 </a>
