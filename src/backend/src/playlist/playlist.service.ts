@@ -93,11 +93,6 @@ export class PlaylistService {
       const isPlaylist = savedPlaylist.spotifyUrl?.includes('/playlist/');
       const isTrack = savedPlaylist.spotifyUrl?.includes('/track/');
       const isAlbum = !isPlaylist && !isTrack;
-      
-      // For albums and tracks, use the first/main artist
-      const primaryArtist = (isAlbum || isTrack) && detail.tracks.length > 0 
-        ? detail.tracks[0].artist.split(',')[0].trim() 
-        : null;
 
       for (const track of detail.tracks) {
         try {
@@ -117,11 +112,17 @@ export class PlaylistService {
             continue;
           }
 
+          // For albums/tracks: use primaryArtist from Spotify if available
+          // For playlists: use the full artist string
+          const artistToUse = (isAlbum || isTrack) && track.primaryArtist 
+            ? track.primaryArtist 
+            : track.artist;
+
           await this.trackService.create(
             {
-              artist: (isAlbum || isTrack) ? primaryArtist : track.artist,
+              artist: artistToUse,
               name: track.name,
-              album: track.album || savedPlaylist.name,
+              album: track.album || (isTrack ? 'Singles' : savedPlaylist.name),
               trackNumber: track.trackNumber || processedCount + 1,
               spotifyUrl: track.previewUrl || null,
               artists: track.artists,
@@ -195,17 +196,19 @@ export class PlaylistService {
       const isTrack = playlist.spotifyUrl?.includes('/track/');
       const isAlbum = !isPlaylist && !isTrack;
       
-      // For albums and tracks, use the first/main artist
-      const primaryArtist = (isAlbum || isTrack) && tracks.length > 0 
-        ? tracks[0].artist.split(',')[0].trim() 
-        : null;
-      
       for (let i = 0; i < (tracks ?? []).length; i++) {
         const track = tracks[i];
+        
+        // For albums/tracks: use primaryArtist from Spotify if available
+        // For playlists: use the full artist string
+        const artistToUse = (isAlbum || isTrack) && track.primaryArtist 
+          ? track.primaryArtist 
+          : track.artist;
+        
         const track2Save = {
-          artist: (isAlbum || isTrack) ? primaryArtist : track.artist,
+          artist: artistToUse,
           name: track.name,
-          album: track.album || playlist.name,
+          album: track.album || (isTrack ? 'Singles' : playlist.name),
           trackNumber: track.trackNumber || i + 1,
           spotifyUrl: track.previewUrl,
           artists: track.artists,

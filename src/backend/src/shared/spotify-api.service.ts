@@ -131,6 +131,7 @@ export class SpotifyApiService {
       return {
         name: track.name,
         artist: track.artists.map((a: any) => a.name).join(', '),
+        primaryArtist: track.artists[0]?.name, // First artist as primary
         album: track.album?.name,
         trackNumber: track.track_number,
         previewUrl: track.preview_url,
@@ -177,6 +178,7 @@ export class SpotifyApiService {
       return data.items.map((track: any) => ({
         name: track.name,
         artist: track.artists.map((a: any) => a.name).join(', '),
+        primaryArtist: track.artists[0]?.name, // First artist as primary
         album: albumName,
         trackNumber: track.track_number,
         previewUrl: track.preview_url,
