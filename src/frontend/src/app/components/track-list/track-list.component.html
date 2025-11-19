@@ -1,6 +1,10 @@
 <a class="flex justify-between items-center px-5 py-3 border-b dark:border-spotify-gray-dark hover:bg-gray-100 dark:hover:bg-spotify-gray-dark transition-all group" *ngFor="let track of tracks$ | async">
   <div class="flex items-center gap-3 dark:text-white">
-    <span class="font-medium"><span class="text-spotify-gray-light mr-1">{{ track.artist }}</span> <span class="text-black dark:text-white">{{ track.name }}</span></span>
+    <span class="font-medium">
+      <a *ngIf="track.artistUrl" [href]="track.artistUrl" target="_blank" class="text-spotify-gray-light hover:text-spotify-green hover:underline transition-all mr-1">{{ track.artist }}</a>
+      <span *ngIf="!track.artistUrl" class="text-spotify-gray-light mr-1">{{ track.artist }}</span>
+      <span class="text-black dark:text-white">{{ track.name }}</span>
+    </span>
     <a [href]="track.spotifyUrl"
        target="_blank"
        class="text-spotify-green hover:text-spotify-green-light hover:scale-110 transition-all" title="Preview on Spotify">

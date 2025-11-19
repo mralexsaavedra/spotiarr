@@ -101,6 +101,18 @@ export class SpotifyApiService {
       );
 
       if (!detail.tracks || detail.tracks.length < 100) {
+        // Check if this is a single track URL
+        if (spotifyUrl.includes('/track/')) {
+          try {
+            const trackDetails = await this.getTrackDetails(spotifyUrl);
+            return [trackDetails];
+          } catch (error) {
+            this.logger.error(`Failed to get track from API: ${error.message}`);
+            // Fallback to spotify-url-info data
+          }
+        }
+
+        // For small playlists/albums, return the tracks as-is
         return detail.tracks || [];
       }
 
@@ -126,7 +138,7 @@ export class SpotifyApiService {
           );
 
           const response = await fetch(
-            `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&fields=items(track(name,artists,preview_url)),next`,
+            `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&fields=items(track(name,artists(name,external_urls),preview_url)),next`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -160,6 +172,7 @@ export class SpotifyApiService {
                 return {
                   name: item.track.name,
                   artist: item.track.artists.map((a) => a.name).join(', '),
+                  artistUrl: item.track.artists[0]?.external_urls?.spotify,
                   previewUrl: item.track.preview_url,
                 };
               },
@@ -194,6 +207,58 @@ export class SpotifyApiService {
       }
     } catch (error) {
       this.logger.error(`Failed to get all playlist tracks: ${error.message}`);
+      throw error;
+    }
+  }
+
+  private getTrackId(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/');
+      const trackIndex = pathParts.findIndex((part) => part === 'track');
+      if (trackIndex >= 0 && pathParts.length > trackIndex + 1) {
+        return pathParts[trackIndex + 1].split('?')[0];
+      }
+      throw new Error('Invalid Spotify track URL');
+    } catch (error) {
+      this.logger.error(`Failed to extract track ID: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getTrackDetails(spotifyUrl: string): Promise<any> {
+    try {
+      this.logger.debug(
+        `Getting track details from Spotify API for ${spotifyUrl}`,
+      );
+      const trackId = this.getTrackId(spotifyUrl);
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(
+        `https://api.spotify.com/v1/tracks/${trackId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.logger.error(`Spotify API error: ${response.status} ${errorText}`);
+        throw new Error(`Failed to fetch track: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        name: data.name,
+        artist: data.artists.map((a: any) => a.name).join(', '),
+        artistUrl: data.artists[0]?.external_urls?.spotify,
+        previewUrl: data.preview_url,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get track details: ${error.message}`);
       throw error;
     }
   }

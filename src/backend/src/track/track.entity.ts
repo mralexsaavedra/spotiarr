@@ -25,6 +25,9 @@ export class TrackEntity {
   spotifyUrl: string;
 
   @Column({ nullable: true })
+  artistUrl?: string;
+
+  @Column({ nullable: true })
   youtubeUrl?: string;
 
   @Column({ default: TrackStatusEnum.New })

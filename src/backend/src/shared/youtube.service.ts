@@ -5,6 +5,7 @@ import { TrackService } from '../track/track.service';
 import { ConfigService } from '@nestjs/config';
 import { YtDlp } from 'ytdlp-nodejs';
 import * as yts from 'yt-search';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const NodeID3 = require('node-id3');
 
 const HEADERS = {
@@ -25,10 +26,7 @@ export class YoutubeService {
     return url;
   }
 
-  async downloadAndFormat(
-    track: TrackEntity,
-    output: string,
-  ): Promise<void> {
+  async downloadAndFormat(track: TrackEntity, output: string): Promise<void> {
     this.logger.debug(
       `Downloading ${track.artist} - ${track.name} (${track.youtubeUrl}) from YT`,
     );
