@@ -1,12 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
-@import "bulma/bulma.scss";
 @import "@fortawesome/fontawesome-free/css/all.css";
 
-:root {
-  --bulma-primary-h: 141deg;
-  --bulma-primary-s: 73%;
-  --bulma-primary-l: 42%;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
   padding: 0;
