@@ -224,9 +224,31 @@ export class TrackService {
     }
   }
 
+  /**
+   * Extracts the primary artist from a potentially multi-artist string
+   * Examples: "Artist A, Artist B" -> "Artist A"
+   *           "Artist A & Artist B" -> "Artist A"
+   */
+  private getPrimaryArtist(artist: string): string {
+    if (!artist) return 'Unknown Artist';
+    
+    // Split by common separators and take the first artist
+    const separators = [',', '&', ' feat.', ' feat ', ' ft.', ' ft ', ' featuring '];
+    let primaryArtist = artist;
+    
+    for (const separator of separators) {
+      const index = artist.indexOf(separator);
+      if (index > 0) {
+        primaryArtist = artist.substring(0, index);
+        break;
+      }
+    }
+    
+    return primaryArtist.trim();
+  }
+
   getTrackFileName(track: TrackEntity): string {
     const format = this.configService.get<string>(EnvironmentEnum.FORMAT);
-    const artistName = track.artist || 'Unknown Artist';
     const trackName = track.name || 'Unknown Track';
     const trackNumber = track.trackNumber || 1;
 
@@ -234,7 +256,8 @@ export class TrackService {
     const isPlaylist = track.playlist?.spotifyUrl?.includes('/playlist/');
     
     if (isPlaylist) {
-      // For playlists: Music/Playlists/PlaylistName/01 - Artist - Track.ext
+      // For playlists: keep all artists in the filename
+      const artistName = track.artist || 'Unknown Artist';
       const playlistName = track.playlist?.name || 'Unknown Playlist';
       return this.utilsService.getPlaylistTrackFilePath(
         playlistName,
@@ -244,10 +267,11 @@ export class TrackService {
         format,
       );
     } else {
-      // For albums/tracks: Music/Artist/Album/01 - Track.ext
+      // For albums/tracks: use only the primary artist for folder structure
+      const primaryArtist = this.getPrimaryArtist(track.artist);
       const albumName = track.album || track.playlist?.name || 'Unknown Album';
       return this.utilsService.getTrackFilePath(
-        artistName,
+        primaryArtist,
         albumName,
         trackName,
         trackNumber,
