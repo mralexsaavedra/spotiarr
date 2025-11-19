@@ -1,21 +1,21 @@
-<article class="border rounded-lg mb-4 overflow-hidden" [ngClass]="statusClass$ | async">
-  <p class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+<article class="border dark:border-gray-700 rounded-lg mb-4 overflow-hidden" [ngClass]="statusClass$ | async">
+  <p class="bg-gray-100 dark:bg-gray-700 px-4 py-3 flex justify-between items-center border-b dark:border-gray-600">
         <span class="flex items-center gap-2">
-          <i class="cursor-pointer fa-solid"
+          <i class="cursor-pointer fa-solid dark:text-gray-200"
              [ngClass]="playlist.collapsed ? 'fa-caret-up' : 'fa-caret-down'"
              (click)="toggleCollapse(playlist.id)"
           ></i>
-          <span *ngIf="playlist.error; else noErrorTemplate" class="text-base font-medium">{{playlist.error}}</span>
+          <span *ngIf="playlist.error; else noErrorTemplate" class="text-base font-medium dark:text-gray-200">{{playlist.error}}</span>
           <ng-template #noErrorTemplate>
-            <span class="text-base font-semibold">{{playlist.name}}</span>
+            <span class="text-base font-semibold dark:text-gray-200">{{playlist.name}}</span>
           </ng-template>
           <a [href]="playlist.spotifyUrl"
              target="_blank"
-             class="text-black hover:text-primary transition" title="Link to Spotify url to be download from">
+             class="text-black dark:text-gray-200 hover:text-primary transition" title="Link to Spotify url to be download from">
             <i class="fa-brands fa-spotify"></i>
           </a>
         </span>
-    <span class="flex items-center gap-2">
+    <span class="flex items-center gap-2 dark:text-gray-200">
       <i class="fa-solid cursor-pointer hover:text-primary transition"
          [ngClass]="playlist.active ? 'fa-toggle-on' : 'fa-toggle-off'"
          [title]="playlist.active ? '[ON]: Unsubscribe from playlist changes?' : '[OFF]: Subscribe to playlist changes?'"

@@ -1,5 +1,5 @@
-<a class="flex justify-between items-center px-4 py-3 border-b hover:bg-gray-50 transition" *ngFor="let track of tracks$ | async">
-  <div class="flex items-center gap-2">
+<a class="flex justify-between items-center px-4 py-3 border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition" *ngFor="let track of tracks$ | async">
+  <div class="flex items-center gap-2 dark:text-gray-200">
     <span>{{ track.artist }} - {{ track.name }}</span>
     <a [href]="track.spotifyUrl"
        target="_blank"
@@ -20,15 +20,15 @@
     </a>
   </div>
   <div class="flex items-center gap-2">
-    <i *ngIf="track.status === trackStatuses.Error" class="fa-solid fa-repeat cursor-pointer hover:text-primary transition" title="Retry to download" (click)="retry(track.id)"></i>
-    <i class="fa-solid fa-xmark cursor-pointer hover:text-red-500 transition" title="Remove track from list" (click)="delete(track.id)"></i>
+    <i *ngIf="track.status === trackStatuses.Error" class="fa-solid fa-repeat cursor-pointer hover:text-primary transition dark:text-gray-200" title="Retry to download" (click)="retry(track.id)"></i>
+    <i class="fa-solid fa-xmark cursor-pointer hover:text-red-500 transition dark:text-gray-200" title="Remove track from list" (click)="delete(track.id)"></i>
     <ng-container [ngSwitch]="track.status">
-      <span *ngSwitchCase="trackStatuses.New" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">New</span>
-      <span *ngSwitchCase="trackStatuses.Searching" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Searching</span>
-      <span *ngSwitchCase="trackStatuses.Queued" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Queued</span>
-      <span *ngSwitchCase="trackStatuses.Downloading" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Downloading</span>
-      <span *ngSwitchCase="trackStatuses.Completed" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">Completed</span>
-      <span *ngSwitchCase="trackStatuses.Error" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800" [title]="track.error">Error</span>
+      <span *ngSwitchCase="trackStatuses.New" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">New</span>
+      <span *ngSwitchCase="trackStatuses.Searching" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Searching</span>
+      <span *ngSwitchCase="trackStatuses.Queued" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Queued</span>
+      <span *ngSwitchCase="trackStatuses.Downloading" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Downloading</span>
+      <span *ngSwitchCase="trackStatuses.Completed" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Completed</span>
+      <span *ngSwitchCase="trackStatuses.Error" class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200" [title]="track.error">Error</span>
     </ng-container>
   </div>
 </a>

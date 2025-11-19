@@ -18,12 +18,32 @@ export class AppComponent {
   createLoading$ = this.playlistService.createLoading$;
   playlists$ = this.playlistService.all$;
   version = this.versionService.getVersion();
+  isDarkMode = false;
 
   constructor(
     private readonly playlistService: PlaylistService,
     private readonly versionService: VersionService,
   ) {
     this.fetchPlaylists();
+    this.loadDarkMode();
+  }
+
+  loadDarkMode(): void {
+    this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (this.isDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }
+
+  toggleDarkMode(): void {
+    this.isDarkMode = !this.isDarkMode;
+    if (this.isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+    }
   }
 
   fetchPlaylists(): void {
