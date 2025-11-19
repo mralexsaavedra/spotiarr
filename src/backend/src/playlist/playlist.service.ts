@@ -48,7 +48,7 @@ export class PlaylistService {
   }
 
   async create(playlist: PlaylistEntity): Promise<void> {
-    let detail: { tracks: any; name: any; image: any };
+    let detail: { tracks: any; name: any; image: any; type: any };
     let playlist2Save: PlaylistEntity;
     try {
       detail = await this.spotifyService.getPlaylistDetail(playlist.spotifyUrl);
@@ -56,10 +56,23 @@ export class PlaylistService {
         `Playlist detail retrieved with ${detail.tracks?.length || 0} tracks`,
       );
 
+      // For tracks and albums, format name as "Artist - Title"
+      let displayName = detail.name;
+      if (
+        (detail.type === 'track' || detail.type === 'album') &&
+        detail.tracks?.length > 0
+      ) {
+        const firstTrack = detail.tracks[0];
+        if (firstTrack.artist && detail.name) {
+          displayName = `${firstTrack.artist} - ${detail.name}`;
+        }
+      }
+
       playlist2Save = {
         ...playlist,
-        name: detail.name,
+        name: displayName,
         coverUrl: detail.image,
+        type: detail.type,
       };
       this.createPlaylistFolderStructure(playlist2Save.name);
     } catch (err) {

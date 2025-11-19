@@ -7,7 +7,7 @@
           ></i>
           <span *ngIf="playlist.error; else noErrorTemplate" class="text-base font-semibold text-red-500 dark:text-red-400">{{playlist.error}}</span>
           <ng-template #noErrorTemplate>
-            <span class="text-base font-bold dark:text-white">{{playlist.name}}</span>
+            <span class="text-base font-bold dark:text-white">{{getDisplayName()}}</span>
           </ng-template>
           <a [href]="playlist.spotifyUrl"
              target="_blank"

@@ -14,8 +14,16 @@ export class SpotifyService {
 
   async getPlaylistDetail(
     spotifyUrl: string,
-  ): Promise<{ name: string; tracks: any[]; image: string }> {
+  ): Promise<{ name: string; tracks: any[]; image: string; type: string }> {
     this.logger.debug(`Get playlist ${spotifyUrl} on Spotify`);
+
+    // Detect type from URL
+    let type = 'playlist';
+    if (spotifyUrl.includes('/track/')) {
+      type = 'track';
+    } else if (spotifyUrl.includes('/album/')) {
+      type = 'album';
+    }
 
     try {
       const metadata =
@@ -28,6 +36,7 @@ export class SpotifyService {
         name: metadata.name,
         tracks: tracks || [],
         image: metadata.image,
+        type,
       };
     } catch (error) {
       this.logger.error(`Error getting playlist details: ${error.message}`);
@@ -36,6 +45,7 @@ export class SpotifyService {
         name: detail.preview.title,
         tracks: detail?.tracks ?? [],
         image: detail.preview.image,
+        type,
       };
     }
   }

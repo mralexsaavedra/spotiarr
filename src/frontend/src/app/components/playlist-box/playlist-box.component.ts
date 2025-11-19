@@ -45,6 +45,18 @@ export class PlaylistBoxComponent {
 
   constructor(private readonly service: PlaylistService) { }
 
+  getDisplayName(): string {
+    if (!this.playlist.name) return '';
+    
+    // For tracks and albums, format as "Artist - Title"
+    if (this.playlist.type === 'track' || this.playlist.type === 'album') {
+      return this.playlist.name;
+    }
+    
+    // For playlists, show name as-is
+    return this.playlist.name;
+  }
+
   toggleCollapse(playlistId: number): void {
     this.service.toggleCollapsed(playlistId);
   }
