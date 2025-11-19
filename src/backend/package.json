@@ -33,6 +33,7 @@
     "@nestjs/websockets": "^10.3.10",
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/yt-search": "^2.10.3",
+    "better-sqlite3": "^12.4.1",
     "bullmq": "^5.31.2",
     "fluent-ffmpeg": "^2.1.3",
     "isomorphic-unfetch": "^4.0.2",

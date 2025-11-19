@@ -20,7 +20,7 @@ import { M3uService } from './shared/m3u.service';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        type: 'sqlite',
+        type: 'better-sqlite3',
         database: resolve(
           __dirname,
           configService.get<string>(EnvironmentEnum.DB_PATH),
