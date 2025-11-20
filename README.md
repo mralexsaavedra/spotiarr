@@ -164,10 +164,10 @@ SpotiArr can be also build from source files on your own.
 5. **Configure environment**:
 
    ```bash
-   # Copy template to backend
-   cp .env.example src/backend/.env
+   # Copy template to root
+   cp .env.example .env
 
-   # Edit src/backend/.env:
+   # Edit .env:
    # 1. Add your Spotify credentials
    # 2. Change REDIS_HOST=redis to REDIS_HOST=localhost (important!)
    ```
@@ -210,7 +210,7 @@ SpotiArr can be also build from source files on your own.
 
 **Error: `ENOTFOUND redis`**
 
-- For local development, ensure `REDIS_HOST=localhost` in `src/backend/.env`
+- For local development, ensure `REDIS_HOST=localhost` in `.env`
 - Start Redis locally or use Docker: `docker run -d -p 6379:6379 redis:7-alpine`
 - For Docker Compose, use `REDIS_HOST=redis`
 
@@ -221,8 +221,9 @@ SpotiArr can be also build from source files on your own.
 
 **Issue: Redis connection errors**
 
-- Make sure Redis is running: `redis-server`
-- Check Redis connection in your `.env` file
+- Make sure Redis is running: `redis-server` or via Docker
+- Check `REDIS_HOST` and `REDIS_PORT` in your `.env` file
+- For local dev use `REDIS_HOST=localhost`, for Docker use `REDIS_HOST=redis`
 
 **Issue: FFmpeg not found**
 
@@ -241,22 +242,21 @@ SpotiArr can be also build from source files on your own.
 
 Some behaviour and settings of SpotiArr can be configured using environment variables and `.env` file.
 
-| Name                    | Default                                     | Description                                                                                                                                                                                                                                                 |
-| ----------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DB_PATH                 | `./config/db.sqlite` (relative to backend)  | Path where SpotiArr database will be stored                                                                                                                                                                                                                 |
-| FE_PATH                 | `../frontend/browser` (relative to backend) | Path to frontend part of application                                                                                                                                                                                                                        |
-| DOWNLOADS_PATH          | `./downloads` (relative to backend)         | Path where downaloded files will be stored                                                                                                                                                                                                                  |
-| FORMAT                  | `mp3`                                       | Format of downloaded files (currently fully supported only `mp3` but you can try whatever you want from [ffmpeg](https://ffmpeg.org/ffmpeg-formats.html#Muxers))                                                                                            |
-| PORT                    | 3000                                        | Port of SpotiArr server                                                                                                                                                                                                                                     |
-| REDIS_PORT              | 6379                                        | Port of Redis server                                                                                                                                                                                                                                        |
-| REDIS_HOST              | localhost                                   | Host of Redis server                                                                                                                                                                                                                                        |
-| RUN_REDIS               | false                                       | Whenever Redis server should be started from backend (recommended for Docker environment)                                                                                                                                                                   |
-| SPOTIFY_CLIENT_ID       | your_client_id                              | Client ID of your Spotify application (required)                                                                                                                                                                                                            |
-| SPOTIFY_CLIENT_SECRET   | your_client_secret                          | Client Secret of your Spotify application (required)                                                                                                                                                                                                        |
-| YT_DOWNLOADS_PER_MINUTE | 3                                           | Set the maximum number of YouTube downloads started per minute                                                                                                                                                                                              |
-| YT_COOKIES              |                                             | Allows you to pass your YouTube cookies to bypass some download restrictions. See [below](#how-to-get-your-youtube-cookies) for instructions.                                                                                                               |
-| YT_DLP_PATH             |                                             | Custom path to yt-dlp binary (auto-detected from PATH if not set)                                                                                                                                                                                           |
-| M3U_GENERATION_ENABLED  | `true`                                      | Enable/disable automatic M3U playlist generation. When enabled, M3U8 playlist files are automatically created for Spotify playlists (not for albums or single tracks). These playlists are compatible with Jellyfin, VLC, and other M3U-compatible players. |
+| Name                    | Default                   | Description                                                                                                                                                                                                                                                 |
+| ----------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DB_PATH                 | `./config/db.sqlite`      | Path where SpotiArr database will be stored (relative to project root)                                                                                                                                                                                      |
+| FE_PATH                 | `./dist/frontend/browser` | Path to frontend build output (relative to project root)                                                                                                                                                                                                    |
+| DOWNLOADS_PATH          | `./downloads`             | Path where downloaded files will be stored (relative to project root)                                                                                                                                                                                       |
+| FORMAT                  | `mp3`                     | Format of downloaded files (currently fully supported only `mp3` but you can try whatever you want from [ffmpeg](https://ffmpeg.org/ffmpeg-formats.html#Muxers))                                                                                            |
+| PORT                    | 3000                      | Port of SpotiArr server                                                                                                                                                                                                                                     |
+| REDIS_PORT              | 6379                      | Port of Redis server                                                                                                                                                                                                                                        |
+| REDIS_HOST              | localhost                 | Host of Redis server                                                                                                                                                                                                                                        |
+| SPOTIFY_CLIENT_ID       | your_client_id            | Client ID of your Spotify application (required)                                                                                                                                                                                                            |
+| SPOTIFY_CLIENT_SECRET   | your_client_secret        | Client Secret of your Spotify application (required)                                                                                                                                                                                                        |
+| YT_DOWNLOADS_PER_MINUTE | 3                         | Set the maximum number of YouTube downloads started per minute                                                                                                                                                                                              |
+| YT_COOKIES              |                           | Allows you to pass your YouTube cookies to bypass some download restrictions. See [below](#how-to-get-your-youtube-cookies) for instructions.                                                                                                               |
+| YT_DLP_PATH             |                           | Custom path to yt-dlp binary (auto-detected from PATH if not set)                                                                                                                                                                                           |
+| M3U_GENERATION_ENABLED  | `true`                    | Enable/disable automatic M3U playlist generation. When enabled, M3U8 playlist files are automatically created for Spotify playlists (not for albums or single tracks). These playlists are compatible with Jellyfin, VLC, and other M3U-compatible players. |
 
 ### How to get your YouTube cookies (using browser dev tools):
 
@@ -315,8 +315,7 @@ pnpm start:be     # Run backend in watch mode
 pnpm start:fe     # Run frontend dev server
 pnpm build        # Build both backend and frontend
 pnpm lint         # Lint all workspaces
-pnpm clean        # Clean build artifacts
-pnpm check:lib    # Update ytdlp-nodejs (do this regularly!)
+pnpm format       # Format all files with Prettier
 ```
 
 ### Development Workflow
