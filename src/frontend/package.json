@@ -12,6 +12,7 @@
   "scripts": {
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
+    "lint": "ng lint",
     "ng": "ng"
   },
   "dependencies": {
