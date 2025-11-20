@@ -75,11 +75,11 @@ export const TrackList = ({ playlistId }: Props) => {
         return (
           <div
             key={track.id}
-            className="flex justify-between items-center rounded-xl bg-spotify-gray-light dark:bg-spotify-gray-dark px-6 py-4 shadow-sm border border-spotify-gray-light dark:border-spotify-gray-medium hover:border-spotify-green hover:bg-spotify-gray-medium transition-all group"
+            className="flex justify-between items-center rounded-xl bg-white dark:bg-spotify-gray-dark px-6 py-4 shadow-sm border border-spotify-gray-light dark:border-spotify-gray-medium hover:border-spotify-green hover:bg-spotify-gray-light dark:hover:bg-spotify-gray-medium transition-all group"
           >
             <div className="flex items-center gap-4 flex-wrap">
               <span className="font-semibold flex items-center gap-2 text-base text-black dark:text-white">
-                <span className="text-spotify-gray-light flex items-center gap-1">
+                <span className="text-spotify-gray-dark dark:text-spotify-gray-light flex items-center gap-1">
                   {artists.length
                     ? artists.map((artist, index) => (
                         <span key={`${artist.name}-${index}`} className="flex items-center gap-1">
@@ -102,18 +102,18 @@ export const TrackList = ({ playlistId }: Props) => {
                       ))
                     : track.artist}
                 </span>
-                <span className="text-spotify-gray-light">•</span>
+                <span className="text-spotify-gray-dark dark:text-spotify-gray-light">•</span>
                 {track.trackUrl || track.spotifyUrl ? (
                   <a
                     href={track.trackUrl || track.spotifyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-white hover:text-spotify-green hover:underline decoration-spotify-green decoration-2 underline-offset-4 transition-colors"
+                    className="text-black dark:text-white hover:text-spotify-green hover:underline decoration-spotify-green decoration-2 underline-offset-4 transition-colors"
                   >
                     {track.name}
                   </a>
                 ) : (
-                  <span className="text-white">{track.name}</span>
+                  <span className="text-black dark:text-white">{track.name}</span>
                 )}
               </span>
               {track.youtubeUrl && (
