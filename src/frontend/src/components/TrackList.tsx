@@ -63,71 +63,106 @@ export const TrackList = ({ playlistId }: Props) => {
 
   return (
     <div>
-      {tracks.map((track) => (
-        <div
-          key={track.id}
-          className="flex justify-between items-center px-5 py-3 border-b dark:border-spotify-gray-dark hover:bg-gray-100 dark:hover:bg-spotify-gray-dark transition-all group"
-        >
-          <div className="flex items-center gap-3 dark:text-white">
-            <span className="font-medium">
-              <span className="text-spotify-gray-light mr-1">
-                {track.artist}
+      {tracks.map((track) => {
+        const artists = track.artists ?? [];
+
+        return (
+          <div
+            key={track.id}
+            className="flex justify-between items-center px-5 py-3 border-b dark:border-spotify-gray-dark hover:bg-gray-100 dark:hover:bg-spotify-gray-dark transition-all group"
+          >
+            <div className="flex items-center gap-3 dark:text-white flex-wrap">
+              <span className="font-medium flex items-center gap-2 flex-wrap text-sm sm:text-base">
+                <span className="text-spotify-gray-light flex items-center gap-1 flex-wrap">
+                  {artists.length
+                    ? artists.map((artist, index) => (
+                        <span key={`${artist.name}-${index}`} className="flex items-center gap-1">
+                          {artist.url ? (
+                            <a
+                              href={artist.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-spotify-green hover:underline decoration-spotify-green decoration-2 underline-offset-4 transition-colors"
+                            >
+                              {artist.name}
+                            </a>
+                          ) : (
+                            <span>{artist.name}</span>
+                          )}
+                          {index < artists.length - 1 && (
+                            <span className="text-spotify-gray-light">,</span>
+                          )}
+                        </span>
+                      ))
+                    : track.artist}
+                </span>
+                <span className="text-spotify-gray-light">•</span>
+                {track.trackUrl || track.spotifyUrl ? (
+                  <a
+                    href={track.trackUrl || track.spotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-black dark:text-white hover:text-spotify-green hover:underline decoration-spotify-green decoration-2 underline-offset-4 transition-colors"
+                  >
+                    {track.name}
+                  </a>
+                ) : (
+                  <span className="text-black dark:text-white">{track.name}</span>
+                )}
               </span>
-              <span className="mx-1 text-spotify-gray-light">•</span>
-              <span className="text-black dark:text-white">{track.name}</span>
-            </span>
 
-            {track.youtubeUrl && (
-              <a
-                href={track.youtubeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-red-500 hover:text-red-600 hover:scale-110 transition-all"
-                title="View on YouTube"
-              >
-                <i className="fa-brands fa-youtube" />
-              </a>
-            )}
-
-            {track.status === TrackStatus.Completed && (
-              <a
-                href={`/api/track/download/${track.id}`}
-                className="text-blue-500 hover:text-blue-600 hover:scale-110 transition-all"
-                title="Download file"
-                download
-              >
-                <i className="fa-solid fa-download" />
-              </a>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            {track.status === TrackStatus.Error && (
-              <i
-                className="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all text-spotify-gray-light"
-                title="Retry download"
-                onClick={() => track.id != null && handleRetry(track.id)}
-              />
-            )}
-            <i
-              className="fa-solid fa-xmark cursor-pointer hover:text-red-500 hover:scale-110 transition-all text-spotify-gray-light opacity-0 group-hover:opacity-100"
-              title="Remove track"
-              onClick={() => track.id != null && handleDelete(track.id)}
-            />
-            <span
-              className={clsx(
-                "inline-block px-3 py-1 text-xs font-bold rounded-full border",
-                // defensive: fallback to Error class if unknown
-                STATUS_CONFIG[track.status]?.className ||
-                  STATUS_CONFIG[TrackStatus.Error].className,
+              {track.youtubeUrl && (
+                <a
+                  href={track.youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-500 hover:text-red-600 hover:scale-110 transition-all"
+                  title="View on YouTube"
+                >
+                  <i className="fa-brands fa-youtube" />
+                </a>
               )}
-            >
-              {STATUS_CONFIG[track.status]?.label ||
-                STATUS_CONFIG[TrackStatus.Error].label}
-            </span>
+
+              {track.status === TrackStatus.Completed && (
+                <a
+                  href={`/api/track/download/${track.id}`}
+                  className="text-blue-500 hover:text-blue-600 hover:scale-110 transition-all"
+                  title="Download file"
+                  download
+                >
+                  <i className="fa-solid fa-download" />
+                </a>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {track.status === TrackStatus.Error && (
+                <i
+                  className="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all text-spotify-gray-light"
+                  title="Retry download"
+                  onClick={() => track.id != null && handleRetry(track.id)}
+                />
+              )}
+              <i
+                className="fa-solid fa-xmark cursor-pointer hover:text-red-500 hover:scale-110 transition-all text-spotify-gray-light opacity-0 group-hover:opacity-100"
+                title="Remove track"
+                onClick={() => track.id != null && handleDelete(track.id)}
+              />
+              <span
+                className={clsx(
+                  "inline-block px-3 py-1 text-xs font-bold rounded-full border",
+                  // defensive: fallback to Error class if unknown
+                  STATUS_CONFIG[track.status]?.className ||
+                    STATUS_CONFIG[TrackStatus.Error].className,
+                )}
+              >
+                {STATUS_CONFIG[track.status]?.label ||
+                  STATUS_CONFIG[TrackStatus.Error].label}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
