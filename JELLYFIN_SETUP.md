@@ -50,6 +50,7 @@ Another Artist/
 ### Folder Hierarchy
 
 **For Playlists:**
+
 1. **Playlists/** - All playlists container
 2. **Playlist Name/** - Individual playlist folder
 3. **Tracks** - Files with format: `{TrackNumber} - {Artist} - {TrackName}.{ext}`
@@ -57,6 +58,7 @@ Another Artist/
 5. **Cover Art** - `cover.jpg` for playlist artwork
 
 **For Albums:**
+
 1. **Artist/** - Folder for each artist
 2. **Album/** - Folder for each album under the artist
 3. **Tracks** - Files with format: `{TrackNumber} - {TrackName}.{ext}`
@@ -97,7 +99,6 @@ For optimal music organization:
 1. **Library Settings**:
    - Enable: "Automatically add to collection"
    - Enable: "Enable chapter image extraction"
-   
 2. **Metadata Settings**:
    - Preferred metadata language: Your language
    - Country: Your country
@@ -200,6 +201,7 @@ M3U_GENERATION_ENABLED=true  # Enable/disable M3U playlist generation
 The following fields were added to support Jellyfin structure:
 
 ### TrackEntity
+
 - `album`: string (nullable) - Album name for the track
 - `trackNumber`: number (nullable) - Position in the album/playlist
 

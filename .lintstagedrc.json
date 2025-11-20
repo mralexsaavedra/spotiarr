@@ -1,5 +1,5 @@
 {
-  "src/backend/**/*.ts": ["eslint --fix"],
-  "src/frontend/**/*.ts": ["eslint --fix"],
-  "*.{json,md,yml,yaml}": ["prettier --write --ignore-path .gitignore"]
+  "src/backend/**/*.ts": ["cd src/backend && pnpm eslint --fix"],
+  "src/frontend/**/*.ts": ["cd src/frontend && pnpm eslint --fix"],
+  "*.{json,md,yml,yaml}": ["pnpm prettier --write --ignore-path .gitignore"]
 }

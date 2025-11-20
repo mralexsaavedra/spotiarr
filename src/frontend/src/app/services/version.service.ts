@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import {version} from '../../../package.json';
+import { version } from '../../../package.json';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class VersionService {
   getVersion(): string {

@@ -1,29 +1,65 @@
-<article class="border-2 dark:border-spotify-gray-medium rounded-xl mb-4 overflow-hidden bg-gray-50 dark:bg-spotify-gray-medium hover:border-spotify-green transition-all" [ngClass]="statusClass$ | async">
-  <p class="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-spotify-gray-dark dark:to-spotify-gray-medium px-5 py-4 flex justify-between items-center border-b-2 dark:border-spotify-gray-dark">
-        <span class="flex items-center gap-3">
-          <i class="cursor-pointer fa-solid text-spotify-green text-lg hover:scale-110 transition-transform"
-             [ngClass]="playlist.collapsed ? 'fa-caret-down' : 'fa-caret-right'"
-             (click)="toggleCollapse(playlist.id)"
-          ></i>
-          <span *ngIf="playlist.error; else noErrorTemplate" class="text-base font-semibold text-red-500 dark:text-red-400">{{playlist.error}}</span>
-          <ng-template #noErrorTemplate>
-            <span class="text-base font-bold dark:text-white">{{getDisplayName()}}</span>
-          </ng-template>
-          <a [href]="playlist.spotifyUrl"
-             target="_blank"
-             class="text-spotify-green hover:text-spotify-green-light hover:scale-110 transition-all" title="Open in Spotify">
-            <i class="fa-brands fa-spotify text-lg"></i>
-          </a>
-        </span>
-    <span class="flex items-center gap-3 text-spotify-gray-light dark:text-spotify-gray-light">
-      <i class="fa-solid cursor-pointer hover:text-spotify-green hover:scale-110 transition-all"
-         [ngClass]="playlist.active ? 'fa-toggle-on text-spotify-green' : 'fa-toggle-off'"
-         [title]="playlist.active ? '[ON]: Unsubscribe from playlist changes?' : '[OFF]: Subscribe to playlist changes?'"
-         (click)="toggleActive(playlist.id, playlist.active)"
+<article
+  class="border-2 dark:border-spotify-gray-medium rounded-xl mb-4 overflow-hidden bg-gray-50 dark:bg-spotify-gray-medium hover:border-spotify-green transition-all"
+  [ngClass]="statusClass$ | async"
+>
+  <p
+    class="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-spotify-gray-dark dark:to-spotify-gray-medium px-5 py-4 flex justify-between items-center border-b-2 dark:border-spotify-gray-dark"
+  >
+    <span class="flex items-center gap-3">
+      <i
+        class="cursor-pointer fa-solid text-spotify-green text-lg hover:scale-110 transition-transform"
+        [ngClass]="playlist.collapsed ? 'fa-caret-down' : 'fa-caret-right'"
+        (click)="toggleCollapse(playlist.id)"
       ></i>
-      <i class="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all" title="Retry download failed tracks" (click)="retryFailed(playlist.id)"></i>
-      <i class="fa-solid fa-xmark cursor-pointer hover:text-red-500 hover:scale-110 transition-all" title="Remove playlist from list" (click)="delete(playlist.id)"></i>
-      <span *ngIf="!playlist.error" class="text-sm font-bold bg-spotify-gray-dark dark:bg-black px-3 py-1 rounded-full">{{trackCompletedCount$ | async}}/{{trackCount$ | async}}</span>
+      <span
+        *ngIf="playlist.error; else noErrorTemplate"
+        class="text-base font-semibold text-red-500 dark:text-red-400"
+        >{{ playlist.error }}</span
+      >
+      <ng-template #noErrorTemplate>
+        <span class="text-base font-bold dark:text-white">{{
+          getDisplayName()
+        }}</span>
+      </ng-template>
+      <a
+        [href]="playlist.spotifyUrl"
+        target="_blank"
+        class="text-spotify-green hover:text-spotify-green-light hover:scale-110 transition-all"
+        title="Open in Spotify"
+      >
+        <i class="fa-brands fa-spotify text-lg"></i>
+      </a>
+    </span>
+    <span
+      class="flex items-center gap-3 text-spotify-gray-light dark:text-spotify-gray-light"
+    >
+      <i
+        class="fa-solid cursor-pointer hover:text-spotify-green hover:scale-110 transition-all"
+        [ngClass]="
+          playlist.active ? 'fa-toggle-on text-spotify-green' : 'fa-toggle-off'
+        "
+        [title]="
+          playlist.active
+            ? '[ON]: Unsubscribe from playlist changes?'
+            : '[OFF]: Subscribe to playlist changes?'
+        "
+        (click)="toggleActive(playlist.id, playlist.active)"
+      ></i>
+      <i
+        class="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all"
+        title="Retry download failed tracks"
+        (click)="retryFailed(playlist.id)"
+      ></i>
+      <i
+        class="fa-solid fa-xmark cursor-pointer hover:text-red-500 hover:scale-110 transition-all"
+        title="Remove playlist from list"
+        (click)="delete(playlist.id)"
+      ></i>
+      <span
+        *ngIf="!playlist.error"
+        class="text-sm font-bold bg-spotify-gray-dark dark:bg-black px-3 py-1 rounded-full"
+        >{{ trackCompletedCount$ | async }}/{{ trackCount$ | async }}</span
+      >
     </span>
   </p>
   <ng-container *ngIf="playlist.collapsed">

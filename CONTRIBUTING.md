@@ -16,17 +16,20 @@ Thank you for considering contributing to SpotiArr! This document provides guide
 ### Initial Setup
 
 1. Fork and clone the repository:
+
 ```bash
 git clone https://github.com/YOUR_USERNAME/spotiarr.git
 cd spotiarr
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. If you encounter issues with `better-sqlite3` compilation:
+
 ```bash
 cd node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3
 PYTHON=$(which python3.11) npm run build-release
@@ -34,6 +37,7 @@ cd ../../../../../
 ```
 
 4. Create and configure `.env` file:
+
 ```bash
 # Copy to backend directory
 cp .env.example src/backend/.env
@@ -44,6 +48,7 @@ cp .env.example src/backend/.env
 ```
 
 5. Install system dependencies:
+
 ```bash
 # macOS (Homebrew)
 brew install redis ffmpeg yt-dlp
@@ -61,11 +66,13 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 ### Running the Development Environment
 
 Start both backend and frontend concurrently:
+
 ```bash
 pnpm dev
 ```
 
 Or run them separately:
+
 ```bash
 # Terminal 1 - Backend (http://localhost:3000)
 pnpm start:be
@@ -100,11 +107,13 @@ spotiarr/
 ### 1. Create a Branch
 
 Always create a feature branch from `main`:
+
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
 Use descriptive branch names:
+
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `docs/` - Documentation updates
@@ -120,11 +129,13 @@ Use descriptive branch names:
 ### 3. Test Your Changes
 
 Run linting:
+
 ```bash
 pnpm lint
 ```
 
 Test the application manually:
+
 ```bash
 pnpm dev
 ```
@@ -132,12 +143,14 @@ pnpm dev
 ### 4. Commit Your Changes
 
 Write clear, descriptive commit messages:
+
 ```bash
 git add .
 git commit -m "feat: add playlist import feature"
 ```
 
 Commit message format:
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation changes
@@ -152,6 +165,7 @@ git push origin feature/your-feature-name
 ```
 
 Create a Pull Request on GitHub with:
+
 - Clear title describing the change
 - Detailed description of what and why
 - Screenshots/videos if UI changes
@@ -213,11 +227,13 @@ Create a Pull Request on GitHub with:
 ## Docker Development
 
 Build Docker image:
+
 ```bash
 pnpm docker:build
 ```
 
 Run Docker container:
+
 ```bash
 pnpm docker:run
 ```

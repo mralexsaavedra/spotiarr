@@ -1,10 +1,15 @@
 import { Injectable } from '@angular/core';
-import {createStore} from "@ngneat/elf";
-import {deleteEntities, selectManyByPredicate, upsertEntities, withEntities} from "@ngneat/elf-entities";
-import {Socket} from "ngx-socket-io";
-import {map, Observable, tap} from "rxjs";
-import {HttpClient} from "@angular/common/http";
-import {Track, TrackStatusEnum} from "../models/track";
+import { createStore } from '@ngneat/elf';
+import {
+  deleteEntities,
+  selectManyByPredicate,
+  upsertEntities,
+  withEntities,
+} from '@ngneat/elf-entities';
+import { Socket } from 'ngx-socket-io';
+import { map, Observable, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Track, TrackStatusEnum } from '../models/track';
 
 const STORE_NAME = 'track';
 const ENDPOINT = '/api/track';
@@ -15,19 +20,17 @@ enum WsTrackOperation {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TrackService {
-
-  private store = createStore(
-    { name: STORE_NAME },
-    withEntities<Track>(),
-  );
+  private store = createStore({ name: STORE_NAME }, withEntities<Track>());
 
   getAllByPlaylist(id: number, status?: TrackStatusEnum): Observable<Track[]> {
     return this.store.pipe(
       selectManyByPredicate((track) => track?.playlistId === id),
-      map(data => data.filter(item => status === undefined || item.status === status)),
+      map((data) =>
+        data.filter((item) => status === undefined || item.status === status),
+      ),
     );
   }
 
@@ -47,9 +50,16 @@ export class TrackService {
   }
 
   fetch(playlistId: number): void {
-    this.http.get<Track[]>(`${ENDPOINT}/playlist/${playlistId}`).pipe(
-      tap((data: Track[]) => this.store.update(upsertEntities(data.map(track => ({...track, playlistId}))))),
-    ).subscribe();
+    this.http
+      .get<Track[]>(`${ENDPOINT}/playlist/${playlistId}`)
+      .pipe(
+        tap((data: Track[]) =>
+          this.store.update(
+            upsertEntities(data.map((track) => ({ ...track, playlistId }))),
+          ),
+        ),
+      )
+      .subscribe();
   }
 
   delete(id: number): void {
@@ -61,10 +71,16 @@ export class TrackService {
   }
 
   private initWsConnection(): void {
-    this.socket.on(WsTrackOperation.Update, (track: Track) => this.store.update(upsertEntities(track)));
-    this.socket.on(WsTrackOperation.Delete, ({id}: {id: number}) => this.store.update(deleteEntities(id)));
-    this.socket.on(WsTrackOperation.New, ({track, playlistId}: {track: Track, playlistId: number}) =>
-      this.store.update(upsertEntities([{...track, playlistId}]))
+    this.socket.on(WsTrackOperation.Update, (track: Track) =>
+      this.store.update(upsertEntities(track)),
+    );
+    this.socket.on(WsTrackOperation.Delete, ({ id }: { id: number }) =>
+      this.store.update(deleteEntities(id)),
+    );
+    this.socket.on(
+      WsTrackOperation.New,
+      ({ track, playlistId }: { track: Track; playlistId: number }) =>
+        this.store.update(upsertEntities([{ ...track, playlistId }])),
     );
   }
 }

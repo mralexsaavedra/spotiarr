@@ -1,9 +1,13 @@
-import {Component, Input} from '@angular/core';
-import {AsyncPipe, CommonModule, NgIf} from "@angular/common";
-import {TrackListComponent} from "../track-list/track-list.component";
-import {PlaylistService, PlaylistStatusEnum, PlaylistUi} from "../../services/playlist.service";
-import {Observable, map} from "rxjs";
-import {Playlist} from "../../models/playlist";
+import { Component, Input } from '@angular/core';
+import { AsyncPipe, CommonModule, NgIf } from '@angular/common';
+import { TrackListComponent } from '../track-list/track-list.component';
+import {
+  PlaylistService,
+  PlaylistStatusEnum,
+  PlaylistUi,
+} from '../../services/playlist.service';
+import { Observable, map } from 'rxjs';
+import { Playlist } from '../../models/playlist';
 
 const STATUS2CLASS = {
   [PlaylistStatusEnum.Completed]: 'is-success',
@@ -11,29 +15,23 @@ const STATUS2CLASS = {
   [PlaylistStatusEnum.Warning]: 'is-warning',
   [PlaylistStatusEnum.Error]: 'is-danger',
   [PlaylistStatusEnum.Subscribed]: 'is-primary',
-}
+};
 
 @Component({
-    selector: 'app-playlist-box',
-    imports: [
-        CommonModule,
-        AsyncPipe,
-        NgIf,
-        TrackListComponent
-    ],
-    templateUrl: './playlist-box.component.html',
-    styleUrl: './playlist-box.component.scss',
-  standalone: true
+  selector: 'app-playlist-box',
+  imports: [CommonModule, AsyncPipe, NgIf, TrackListComponent],
+  templateUrl: './playlist-box.component.html',
+  styleUrl: './playlist-box.component.scss',
+  standalone: true,
 })
 export class PlaylistBoxComponent {
-
   @Input() set playlist(val: Playlist & PlaylistUi) {
     this._playlist = val;
     this.trackCount$ = this.service.getTrackCount(val.id);
     this.trackCompletedCount$ = this.service.getCompletedTrackCount(val.id);
-    this.statusClass$ = this.service.getStatus$(val.id).pipe(
-      map(status => STATUS2CLASS[status])
-    );
+    this.statusClass$ = this.service
+      .getStatus$(val.id)
+      .pipe(map((status) => STATUS2CLASS[status]));
   }
   get playlist(): Playlist & PlaylistUi {
     return this._playlist;
@@ -43,16 +41,16 @@ export class PlaylistBoxComponent {
   trackCompletedCount$!: Observable<number>;
   statusClass$!: Observable<string>;
 
-  constructor(private readonly service: PlaylistService) { }
+  constructor(private readonly service: PlaylistService) {}
 
   getDisplayName(): string {
     if (!this.playlist.name) return '';
-    
+
     // For tracks and albums, format as "Artist - Title"
     if (this.playlist.type === 'track' || this.playlist.type === 'album') {
       return this.playlist.name;
     }
-    
+
     // For playlists, show name as-is
     return this.playlist.name;
   }
@@ -70,6 +68,6 @@ export class PlaylistBoxComponent {
   }
 
   toggleActive(id: number, currentActive: boolean): void {
-    this.service.setActive(id, !currentActive)
+    this.service.setActive(id, !currentActive);
   }
 }

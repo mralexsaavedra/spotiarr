@@ -13,6 +13,7 @@
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "lint": "ng lint",
+    "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
     "ng": "ng"
   },
   "dependencies": {

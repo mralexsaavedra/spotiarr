@@ -14,7 +14,8 @@
     "start:debug": "nest start --debug --watch",
     "build": "nest build",
     "start:prod": "node ../../dist/backend/main",
-    "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix"
+    "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,json}\""
   },
   "dependencies": {
     "@nestjs/bullmq": "^10.2.3",
