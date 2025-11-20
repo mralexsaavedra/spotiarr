@@ -6,7 +6,7 @@ interface Props {
   playlistId: number;
 }
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<number, { label: string; className: string }> = {
   [TrackStatus.New]: {
     label: "NEW",
     className: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -118,11 +118,11 @@ export const TrackList = ({ playlistId }: Props) => {
               className={clsx(
                 "inline-block px-3 py-1 text-xs font-bold rounded-full border",
                 // defensive: fallback to Error class if unknown
-                (STATUS_CONFIG as any)[track.status]?.className ||
+                STATUS_CONFIG[track.status]?.className ||
                   STATUS_CONFIG[TrackStatus.Error].className,
               )}
             >
-              {(STATUS_CONFIG as any)[track.status]?.label ||
+              {STATUS_CONFIG[track.status]?.label ||
                 STATUS_CONFIG[TrackStatus.Error].label}
             </span>
           </div>

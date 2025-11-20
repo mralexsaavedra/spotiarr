@@ -30,7 +30,7 @@ class ApiClient {
       const text = await response.text();
       if (!text) return undefined as unknown as T;
       return JSON.parse(text) as T;
-    } catch (err) {
+    } catch {
       return undefined as unknown as T;
     }
   }

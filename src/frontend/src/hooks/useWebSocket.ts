@@ -9,6 +9,12 @@ let socket: Socket | null = null;
 export const useWebSocket = () => {
   const queryClient = useQueryClient();
 
+  const isTrackPayload = (v: unknown): v is { track?: Track; playlistId?: number } => {
+    if (typeof v !== 'object' || v === null) return false;
+    const obj = v as Record<string, unknown>;
+    return Object.prototype.hasOwnProperty.call(obj, 'track') || Object.prototype.hasOwnProperty.call(obj, 'playlistId');
+  };
+
   useEffect(() => {
     // Connect to WebSocket
     socket = io('http://localhost:3000', {
@@ -36,32 +42,44 @@ export const useWebSocket = () => {
     });
 
     // Track events
-    socket.on('trackNew', (payload: any) => {
+    socket.on('trackNew', (payload: unknown) => {
       // backend may emit { track, playlistId } or the track object directly
-      const track: Track = payload.track ?? payload;
-      const playlistId = payload.playlistId ?? track.playlistId;
-      if (!playlistId) return;
+      if (isTrackPayload(payload)) {
+        const track = (payload as { track?: Track }).track ?? (payload as unknown as Track);
+        const playlistId = (payload as { playlistId?: number }).playlistId ?? track.playlistId;
+        if (!playlistId) return;
 
-      queryClient.setQueryData<Track[]>(['tracks', playlistId], (old = []) => [
-        ...old,
-        track,
-      ]);
-    });
-
-    socket.on('trackUpdate', (payload: any) => {
-      const track: Track = payload.track ?? payload;
-      const playlistId = payload.playlistId ?? track.playlistId;
-
-      if (playlistId) {
-        queryClient.setQueryData<Track[]>(['tracks', playlistId], (old = []) =>
-          old.map((t) => (t.id === track.id ? track : t)),
-        );
-        queryClient.invalidateQueries({ queryKey: ['tracks', playlistId] });
+        queryClient.setQueryData<Track[]>(['tracks', playlistId], (old = []) => [
+          ...old,
+          track,
+        ]);
         return;
       }
 
+      // fallback: treat payload as Track
+      const track = payload as Track;
+      const playlistId = (track as Track).playlistId;
+      if (!playlistId) return;
+      queryClient.setQueryData<Track[]>(['tracks', playlistId], (old = []) => [...old, track]);
+    });
+
+    socket.on('trackUpdate', (payload: unknown) => {
+      if (isTrackPayload(payload)) {
+        const track = (payload as { track?: Track }).track ?? (payload as unknown as Track);
+        const playlistId = (payload as { playlistId?: number }).playlistId ?? track.playlistId;
+
+        if (playlistId) {
+          queryClient.setQueryData<Track[]>(['tracks', playlistId], (old = []) =>
+            old.map((t) => (t.id === track.id ? track : t)),
+          );
+          queryClient.invalidateQueries({ queryKey: ['tracks', playlistId] });
+          return;
+        }
+      }
+
       // If playlistId is missing, update any tracks list where this track exists
-      const playlists = queryClient.getQueryData<any[]>(['playlists']) || [];
+      const track = payload as Track;
+      const playlists = queryClient.getQueryData<Playlist[]>(['playlists']) || [];
       playlists.forEach((pl) => {
         if (!pl?.id) return;
         queryClient.setQueryData<Track[]>(['tracks', pl.id], (old = []) =>
