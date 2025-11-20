@@ -52,29 +52,28 @@ function validateEnvironment(): void {
 async function bootstrap() {
   validateEnvironment();
 
+  // Create downloads directory if it doesn't exist
+  const folderName = resolve(
+    __dirname,
+    process.env[EnvironmentEnum.DOWNLOADS_PATH],
+  );
+  if (!fs.existsSync(folderName)) {
+    fs.mkdirSync(folderName, { recursive: true });
+  }
+
+  // Start Redis server if configured (for Docker simplicity)
+  // Note: Ideally Redis should run in a separate container
+  try {
+    if (Boolean(process.env[EnvironmentEnum.REDIS_RUN])) {
+      exec(`redis-server --port ${process.env.REDIS_PORT}`);
+    }
+  } catch (e) {
+    console.error('Unable to start Redis server from app');
+    console.error(e);
+  }
+
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
-
-if (!process.env[EnvironmentEnum.DOWNLOADS_PATH]) {
-  throw new Error('DOWNLOADS_PATH environment variable is missing');
-}
-const folderName = resolve(
-  __dirname,
-  process.env[EnvironmentEnum.DOWNLOADS_PATH],
-);
-if (!fs.existsSync(folderName)) {
-  fs.mkdirSync(folderName);
-}
-
-try {
-  // not good idea, but I want to keep simple Dockerfile, I know ideally should be in another container and used docker compose
-  if (Boolean(process.env[EnvironmentEnum.REDIS_RUN])) {
-    exec(`redis-server --port ${process.env.REDIS_PORT}`);
-  }
-} catch (e) {
-  console.log('Unable to run redis server form app');
-  console.log(e);
-}
