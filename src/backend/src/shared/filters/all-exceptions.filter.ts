@@ -37,13 +37,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       error = exception.name;
     }
 
-    // Log del error
     this.logger.error(
       `${request.method} ${request.url}`,
       exception instanceof Error ? exception.stack : String(exception),
     );
 
-    // Respuesta estandarizada
+    // Standardized response
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
