@@ -201,7 +201,7 @@ SpotiArr can be also build from source files on your own.
 
    # Option 2: Start separately in different terminals
    pnpm start:be  # Backend at http://localhost:3000
-   pnpm start:fe  # Frontend at http://localhost:4200
+   pnpm start:fe  # Frontend at http://localhost:5173
    ```
 
 8. **Build for production**:
