@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as fs from 'fs';
 import { resolve } from 'path';
-import { exec } from 'child_process';
 import { EnvironmentEnum } from './environmentEnum';
 
 /**
@@ -59,17 +58,6 @@ async function bootstrap() {
   );
   if (!fs.existsSync(folderName)) {
     fs.mkdirSync(folderName, { recursive: true });
-  }
-
-  // Start Redis server if configured (for Docker simplicity)
-  // Note: Ideally Redis should run in a separate container
-  try {
-    if (Boolean(process.env[EnvironmentEnum.REDIS_RUN])) {
-      exec(`redis-server --port ${process.env.REDIS_PORT}`);
-    }
-  } catch (e) {
-    console.error('Unable to start Redis server from app');
-    console.error(e);
   }
 
   const app = await NestFactory.create(AppModule);
