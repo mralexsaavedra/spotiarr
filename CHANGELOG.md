@@ -31,11 +31,18 @@ Initial public release of SpotiArr - Self-hosted Spotify downloader with Jellyfi
 - **DTOs with Validation**: Created `CreatePlaylistDto`, `UpdatePlaylistDto`, `CreateTrackDto`, and `UpdateTrackDto` with class-validator decorators for automatic input validation
 - **Global Exception Filter**: Centralized error handling with `AllExceptionsFilter` providing standardized error responses with timestamps, paths, and detailed logging
 - **WebSocket Gateways**: Separated WebSocket logic into dedicated `PlaylistGateway` and `TrackGateway` classes for better separation of concerns
+- **Global ValidationPipe**: Added automatic DTO validation with `transform`, `whitelist`, and `forbidNonWhitelisted` options in `main.ts`
 - **Repository Pattern**: Implemented `IPlaylistRepository`/`PlaylistRepository` and `ITrackRepository`/`TrackRepository` to abstract TypeORM operations from business logic
-- **TrackFileHelper**: Extracted file naming and path logic into dedicated helper class for better reusability and testing
-- **Global ValidationPipe**: Added automatic DTO validation with `transform`, `whitelist`, and `forbidNonWhitelisted` options
-- **Layered Architecture**: Introduced proper separation with Controllers → Services → Repositories → Entities
+- **TrackFileHelper**: Extracted file naming and path logic (`getTrackFileName()`, `getFolderName()`) into dedicated helper class for better reusability and testing
+- **Use Cases Pattern**:
+  - `CreatePlaylistUseCase`: Encapsulates complete playlist creation workflow including Spotify integration, track fetching, and parallel track processing
+  - `SearchTrackOnYoutubeUseCase`: Encapsulates YouTube search logic with status management, error handling, and download queue integration
+  - `DownloadTrackUseCase`: Encapsulates complete download workflow including validation, YouTube download, cover art embedding, album/artist/playlist cover saving, and M3U generation
+  - Services simplified to thin orchestration layers, reducing complexity by ~270 lines across multiple methods
+- **Layered Architecture**: Clean separation with Controllers → Services (orchestration) → Use Cases (business logic) → Repositories (data access) → Entities
 - **Error Handling**: Standardized error handling across all services using `HttpException`, `Logger`, and proper error typing
+- **Testability**: Business logic isolated in use cases, making unit testing straightforward without mocking complex dependencies
+- **Maintainability**: Single Responsibility Principle applied - each use case handles one specific business operation
 
 ### 🔧 Development Features
 
