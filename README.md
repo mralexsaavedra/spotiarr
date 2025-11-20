@@ -138,6 +138,7 @@ SpotiArr can be also build from source files on your own.
 - pnpm v9+ (`npm install -g pnpm`)
 - Redis (for queue management)
 - FFmpeg (for audio processing)
+- yt-dlp (for downloading from YouTube)
 - Python 3.11 or 3.12 (required for native module compilation)
 
 #### Process
@@ -158,13 +159,19 @@ SpotiArr can be also build from source files on your own.
    # 1. Add your Spotify credentials
    # 2. Change REDIS_HOST=redis to REDIS_HOST=localhost (important!)
    ```
-6. **Start Redis** (required):
+6. **Install system dependencies**:
    ```bash
-   # Option 1: Using Homebrew
-   brew install redis
+   # macOS (Homebrew)
+   brew install redis ffmpeg yt-dlp
    brew services start redis
    
-   # Option 2: Using Docker
+   # Linux (Ubuntu/Debian)
+   sudo apt update
+   sudo apt install redis-server ffmpeg
+   pip install yt-dlp
+   sudo systemctl start redis
+   
+   # Or use Docker for Redis
    docker run -d -p 6379:6379 --name redis redis:7-alpine
    ```
 7. **Start development servers**:
@@ -202,6 +209,12 @@ SpotiArr can be also build from source files on your own.
 - Ubuntu/Debian: `sudo apt install ffmpeg`
 - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
 
+**Issue: yt-dlp not found**
+- The application auto-detects yt-dlp from your PATH
+- macOS: `brew install yt-dlp`
+- Linux: `pip install yt-dlp` or `sudo apt install yt-dlp`
+- If needed, set `YT_DLP_PATH` in `.env` to specify a custom location
+
 ### Environment variables
 
 Some behaviour and settings of SpotiArr can be configured using environment variables and `.env` file.
@@ -220,6 +233,7 @@ Some behaviour and settings of SpotiArr can be configured using environment vari
  SPOTIFY_CLIENT_SECRET| your_client_secret                          | Client Secret of your Spotify application (required)                                                                                                              |
  YT_DOWNLOADS_PER_MINUTE | 3                                           | Set the maximum number of YouTube downloads started per minute                                                                                                  |
  YT_COOKIES           |                                             | Allows you to pass your YouTube cookies to bypass some download restrictions. See [below](#how-to-get-your-youtube-cookies) for instructions.                   |
+ YT_DLP_PATH          |                                             | Custom path to yt-dlp binary (auto-detected from PATH if not set)                                                                                                |
  M3U_GENERATION_ENABLED | `true` | Enable/disable automatic M3U playlist generation. When enabled, M3U8 playlist files are automatically created for Spotify playlists (not for albums or single tracks). These playlists are compatible with Jellyfin, VLC, and other M3U-compatible players. |
 
 

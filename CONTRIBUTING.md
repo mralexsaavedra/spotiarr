@@ -11,6 +11,7 @@ Thank you for considering contributing to SpotiArr! This document provides guide
 - **Python**: 3.11 or 3.12 (required for native module compilation)
 - **Redis**: Required for queue management
 - **FFmpeg**: Required for audio processing
+- **yt-dlp**: Required for downloading from YouTube
 
 ### Initial Setup
 
@@ -42,12 +43,18 @@ cp .env.example src/backend/.env
 # 2. Change REDIS_HOST=redis to REDIS_HOST=localhost (REQUIRED for local dev)
 ```
 
-5. Start Redis (required):
+5. Install system dependencies:
 ```bash
-# Using Homebrew
-brew install redis && brew services start redis
+# macOS (Homebrew)
+brew install redis ffmpeg yt-dlp
+brew services start redis
 
-# OR using Docker
+# Linux (Ubuntu/Debian)
+sudo apt install redis-server ffmpeg
+pip install yt-dlp
+sudo systemctl start redis
+
+# OR use Docker for Redis
 docker run -d -p 6379:6379 --name redis redis:7-alpine
 ```
 

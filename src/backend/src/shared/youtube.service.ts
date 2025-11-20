@@ -7,6 +7,7 @@ import { YtDlp } from 'ytdlp-nodejs';
 import * as yts from 'yt-search';
 import * as fs from 'fs';
 import { join } from 'path';
+import { execSync } from 'child_process';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const NodeID3 = require('node-id3');
 
@@ -18,8 +19,20 @@ const HEADERS = {
 @Injectable()
 export class YoutubeService {
   private readonly logger = new Logger(TrackService.name);
+  private readonly ytDlpPath: string;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {
+    // Auto-detect yt-dlp path or use environment variable
+    try {
+      this.ytDlpPath =
+        this.configService.get<string>('YT_DLP_PATH') ||
+        execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
+      this.logger.log(`Using yt-dlp from: ${this.ytDlpPath}`);
+    } catch (error) {
+      this.logger.warn('yt-dlp not found in PATH, will try default location');
+      this.ytDlpPath = 'yt-dlp';
+    }
+  }
 
   async findOnYoutubeOne(artist: string, name: string): Promise<string> {
     this.logger.debug(`Searching ${artist} - ${name} on YT`);
@@ -36,7 +49,9 @@ export class YoutubeService {
       this.logger.error('youtubeUrl is null or undefined');
       throw Error('youtubeUrl is null or undefined');
     }
-    const ytdlp = new YtDlp();
+    const ytdlp = new YtDlp({
+      binaryPath: this.ytDlpPath,
+    });
     await ytdlp.downloadAsync(track.youtubeUrl, {
       format: {
         filter: 'audioonly',

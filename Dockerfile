@@ -25,8 +25,8 @@ FROM node:23.10.0-alpine
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
-# Install runtime dependencies (ffmpeg for audio processing)
-RUN apk add --no-cache ffmpeg
+# Install runtime dependencies
+RUN apk add --no-cache ffmpeg yt-dlp python3
 
 WORKDIR /spotiarr
 
