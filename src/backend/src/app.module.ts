@@ -15,7 +15,13 @@ import { M3uService } from './shared/m3u.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [
+        resolve(process.cwd(), '.env'),
+        resolve(process.cwd(), '../../.env'),
+      ],
+    }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
