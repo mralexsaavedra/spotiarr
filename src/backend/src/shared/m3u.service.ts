@@ -53,7 +53,7 @@ export class M3uService {
       // Write the M3U8 file
       fs.writeFileSync(m3uFilePath, m3uContent, 'utf-8');
 
-      this.logger.log(
+      this.logger.debug(
         `M3U playlist generated: ${m3uFilePath} (${completedTracks.length} tracks)`,
       );
     } catch (error) {

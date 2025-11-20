@@ -170,7 +170,7 @@ export class DownloadTrackUseCase {
         );
 
         if (this.m3uService.isPlaylistComplete(playlistTracks)) {
-          this.logger.log(
+          this.logger.debug(
             `🎉 Playlist "${track.playlist.name}" fully completed! M3U file updated.`,
           );
         }

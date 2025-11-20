@@ -26,7 +26,7 @@ export class YoutubeService {
       this.ytDlpPath =
         this.configService.get<string>('YT_DLP_PATH') ||
         execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
-      this.logger.log(`Using yt-dlp from: ${this.ytDlpPath}`);
+      this.logger.debug(`Using yt-dlp from: ${this.ytDlpPath}`);
     } catch {
       this.logger.warn('yt-dlp not found in PATH, will try default location');
       this.ytDlpPath = 'yt-dlp';
@@ -130,7 +130,7 @@ export class YoutubeService {
       // Save cover.jpg
       fs.writeFileSync(coverFile, imageBuffer);
 
-      this.logger.log(`✓ Cover art saved in ${directory}`);
+      this.logger.debug(`✓ Cover art saved in ${directory}`);
     } catch (error) {
       this.logger.error(
         `Failed to save cover art in ${directory}: ${error.message}`,
