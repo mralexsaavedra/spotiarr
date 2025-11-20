@@ -1,51 +1,77 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. Dates are displayed in UTC.
+All notable changes to this project will be documented in this file.
 
-## [0.1.0] - 2025-01-XX
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### ⚠️ Breaking Changes
+## [0.1.0] - 2025-11-20
 
-- Upgraded from Node.js 18 to **Node.js 23.10.0** (requires Node.js >=23.0.0)
-- Migrated from npm to **pnpm** package manager (requires pnpm >=9.0.0)
-- Changed database driver from `sqlite3` to `better-sqlite3` for Node.js 23 compatibility
+Initial public release of SpotiArr - Self-hosted Spotify downloader with Jellyfin/Plex integration.
 
-### 🚀 Features
+### 🎯 Core Features
 
-- Added `pnpm dev` command to run backend and frontend concurrently
-- Improved Docker build with multi-stage optimization
-- Added GitHub Actions workflow for automated Docker builds on version tags
-- Multi-platform Docker images (linux/amd64, linux/arm64)
+- **Playlist Management**: Sync Spotify playlists via URL, automatic track discovery
+- **Download System**: Parallel track downloads with BullMQ queues and Redis
+- **Real-time Updates**: WebSocket integration for live download progress
+- **Media Server Integration**: Automatic M3U playlist generation for Jellyfin/Plex
+- **Web Interface**: Modern Angular 19 frontend with real-time status updates
+- **Docker Support**: Complete Docker Compose setup for production deployment
 
-### 🔧 Improvements
+### 🛠️ Technical Stack
 
-- Updated all package.json scripts to use pnpm
-- Configured pnpm workspaces for monorepo management
-- Standardized TypeScript version to ~5.6.3 across all packages
-- Added comprehensive troubleshooting section to README
-- Improved development documentation with project structure and workflow
+- **Backend**: NestJS with TypeORM, BullMQ, Socket.io, better-sqlite3
+- **Frontend**: Angular 19 (standalone components), Tailwind CSS, Elf state management
+- **Runtime**: Node.js 23.10.0, pnpm 10.20.0
+- **Infrastructure**: Docker multi-stage builds, Redis for job queues
+- **Download Tools**: yt-dlp with auto-detection, ffmpeg for audio processing
 
-### 🗑️ Removed
+### 🔧 Development Features
 
-- Removed `release-it` and related release automation tools
-- Removed `auto-changelog` dependency
-- Removed `commitizen` and conventional commit tooling
-- Cleaned up unused npm scripts (changelog, commit)
+- **Pre-commit Hooks**: Automatic linting with husky + lint-staged
+- **Code Quality**: ESLint + Prettier configured across all workspaces
+- **Monorepo**: pnpm workspaces for backend and frontend
+- **Scripts**: Format, lint, build, and dev commands for all workspaces
+- **Hot Reload**: Concurrent backend/frontend development with `pnpm dev`
 
-### 📦 Dependencies
+### 📦 Dependencies Optimized
 
-- Updated to better-sqlite3 v12.4.1
-- Added concurrently for parallel dev server execution
-- Updated Dockerfile to use Node.js 23-alpine with pnpm
+- Removed 9 unused dependencies (fluent-ffmpeg, rxjs, test tools, build tools)
+- Upgraded TypeScript ESLint to v8 for TypeScript 5.6 support
+- Consolidated testing infrastructure (removed Jest, Karma, Jasmine)
 
-### 🐛 Bug Fixes
+### 🐳 Docker & DevOps
 
-- Fixed native module compilation with Python 3.11/3.12 requirement
-- Resolved TypeScript version conflicts between Angular and backend
+- Multi-stage Dockerfile with Node.js 23-alpine
+- Complete Docker Compose setup (main, override, dev configurations)
+- GitHub Actions workflow for automated Docker Hub publishing
+- Multi-platform support (linux/amd64, linux/arm64)
 
 ### 📚 Documentation
 
-- Complete README overhaul with modern setup instructions
-- Added detailed troubleshooting for better-sqlite3, Redis, and FFmpeg
-- Added development section with available scripts and workflow
+- Comprehensive README with installation and usage guides
+- CONTRIBUTING guide with development setup and best practices
+- Jellyfin setup guide for media server integration
+- Troubleshooting sections for common issues (yt-dlp, Redis, FFmpeg, SQLite)
+
+### 🎨 UI/UX
+
+- Custom favicon and app icons (multiple sizes for all platforms)
+- PWA manifest with SpotiArr branding
+- Responsive design with Tailwind CSS
+- Real-time progress tracking for downloads
+
+### 🔐 Configuration
+
+- Single `.env` file for all configuration (consolidated from 3 files)
+- Environment variable validation
+- Auto-detection of yt-dlp binary path
+- Configurable download paths and Redis connection
+
+### 📝 Project Metadata
+
+- Updated project description: "Lidarr-inspired music automation"
+- Proper LICENSE (MIT)
+- Comprehensive keywords for discoverability
+- Repository metadata and contribution guidelines
 - Updated all documentation from npm to pnpm commands
