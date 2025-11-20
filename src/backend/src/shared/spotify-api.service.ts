@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+
+// CommonJS packages without ESM support
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const fetch = require('isomorphic-unfetch');
 // eslint-disable-next-line @typescript-eslint/no-require-imports

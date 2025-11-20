@@ -8,8 +8,7 @@ import * as yts from 'yt-search';
 import * as fs from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const NodeID3 = require('node-id3');
+import * as NodeID3 from 'node-id3';
 
 const HEADERS = {
   'User-Agent':
