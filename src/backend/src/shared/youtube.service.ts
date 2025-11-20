@@ -7,7 +7,7 @@ import { YtDlp } from 'ytdlp-nodejs';
 import * as yts from 'yt-search';
 import * as fs from 'fs';
 import { join } from 'path';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const NodeID3 = require('node-id3');
 
 const HEADERS = {

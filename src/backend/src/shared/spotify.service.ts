@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TrackService } from '../track/track.service';
 import { SpotifyApiService } from './spotify-api.service';
 import { SpotifyUrlHelper, SpotifyUrlType } from './spotify-url.helper';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fetch = require('isomorphic-unfetch');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { getDetails } = require('spotify-url-info')(fetch);
 
 @Injectable()

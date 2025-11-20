@@ -5,9 +5,6 @@ import {version} from '../../../package.json';
   providedIn: 'root'
 })
 export class VersionService {
-
-  constructor() { }
-
   getVersion(): string {
     return version;
   }

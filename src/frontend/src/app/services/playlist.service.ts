@@ -108,7 +108,7 @@ export class PlaylistService {
   private deleteIfStatusEquals$(id: number, status2Filter: PlaylistStatusEnum): Observable<void> {
     return combineLatest([of(id), this.getStatus$(id)]).pipe(
       first(),
-      filter(([_, status]) => status === status2Filter),
+      filter(([, status]) => status === status2Filter),
       switchMap(([id]) => this.delete$(id)),
     );
   }

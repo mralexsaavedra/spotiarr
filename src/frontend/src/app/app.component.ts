@@ -56,7 +56,7 @@ export class AppComponent {
   }
 
   deleteCompleted(): void {
-    this.playlistService.deleteAllByStatus(PlaylistStatusEnum.Completed);
+    void this.playlistService.deleteAllByStatus(PlaylistStatusEnum.Completed);
   }
 
   deleteFailed(): void {
