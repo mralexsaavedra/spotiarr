@@ -26,6 +26,17 @@ Initial public release of SpotiArr - Self-hosted Spotify downloader with Jellyfi
 - **Infrastructure**: Docker multi-stage builds, Redis for job queues
 - **Download Tools**: yt-dlp with auto-detection, ffmpeg for audio processing
 
+### 🏗️ Architecture & Code Quality
+
+- **DTOs with Validation**: Created `CreatePlaylistDto`, `UpdatePlaylistDto`, `CreateTrackDto`, and `UpdateTrackDto` with class-validator decorators for automatic input validation
+- **Global Exception Filter**: Centralized error handling with `AllExceptionsFilter` providing standardized error responses with timestamps, paths, and detailed logging
+- **WebSocket Gateways**: Separated WebSocket logic into dedicated `PlaylistGateway` and `TrackGateway` classes for better separation of concerns
+- **Repository Pattern**: Implemented `IPlaylistRepository`/`PlaylistRepository` and `ITrackRepository`/`TrackRepository` to abstract TypeORM operations from business logic
+- **TrackFileHelper**: Extracted file naming and path logic into dedicated helper class for better reusability and testing
+- **Global ValidationPipe**: Added automatic DTO validation with `transform`, `whitelist`, and `forbidNonWhitelisted` options
+- **Layered Architecture**: Introduced proper separation with Controllers → Services → Repositories → Entities
+- **Error Handling**: Standardized error handling across all services using `HttpException`, `Logger`, and proper error typing
+
 ### 🔧 Development Features
 
 - **Pre-commit Hooks**: Automatic linting with husky + lint-staged
@@ -34,11 +45,12 @@ Initial public release of SpotiArr - Self-hosted Spotify downloader with Jellyfi
 - **Scripts**: Format, lint, build, and dev commands for all workspaces
 - **Hot Reload**: Concurrent backend/frontend development with `pnpm dev`
 
-### 📦 Dependencies Optimized
+### 📦 Dependencies
 
-- Removed 9 unused dependencies (fluent-ffmpeg, rxjs, test tools, build tools)
-- Upgraded TypeScript ESLint to v8 for TypeScript 5.6 support
-- Consolidated testing infrastructure (removed Jest, Karma, Jasmine)
+- **Added**: `class-validator@^0.14.2`, `class-transformer@^0.5.1` for DTO validation
+- **Optimized**: Removed 9 unused dependencies (fluent-ffmpeg, rxjs, test tools, build tools)
+- **Upgraded**: TypeScript ESLint to v8 for TypeScript 5.6 support
+- **Consolidated**: Testing infrastructure (removed Jest, Karma, Jasmine)
 
 ### 🐳 Docker & DevOps
 
