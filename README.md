@@ -79,7 +79,6 @@ Then open http://localhost:3000 in your browser!
       - [Troubleshooting](#troubleshooting)
     - [Environment variables](#environment-variables)
     - [How to get your YouTube cookies (using browser dev tools):](#how-to-get-your-youtube-cookies-using-browser-dev-tools)
-    - [🎵 M3U Playlist Generation](#-m3u-playlist-generation)
   - [📺 Jellyfin Integration](#-jellyfin-integration)
   - [🛠️ Development](#️-development)
     - [Project Structure](#project-structure)
@@ -271,10 +270,6 @@ Some behaviour and settings of SpotiArr can be configured using environment vari
 5. Copy all the cookies (name=value) and join them with a semicolon and a space, like:
    VISITOR_INFO1_LIVE=xxxx; YSC=xxxx; SID=xxxx; ...
 6. Paste this string into the YT_COOKIES environment variable (in your .env or Docker config).
-
-### 🎵 M3U Playlist Generation
-
-SpotiArr automatically generates M3U8 playlist files when downloading playlists from Spotify.
 
 ## 📺 Jellyfin Integration
 
