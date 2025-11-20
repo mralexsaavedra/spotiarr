@@ -41,4 +41,4 @@ COPY --from=builder /spotiarr/src/backend/package.json ./src/backend/package.jso
 RUN pnpm install --prod --frozen-lockfile
 
 EXPOSE 3000
-CMD ["node", "dist/backend/main.js"]
+CMD ["pnpm", "start"]
