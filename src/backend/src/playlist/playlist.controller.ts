@@ -6,9 +6,12 @@ import {
   Param,
   Post,
   Put,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { PlaylistService } from './playlist.service';
 import { PlaylistEntity } from './playlist.entity';
+import { CreatePlaylistDto, UpdatePlaylistDto } from './playlist.dto';
 
 @Controller('playlist')
 export class PlaylistController {
@@ -20,14 +23,16 @@ export class PlaylistController {
   }
 
   @Post()
-  async create(@Body() playlist: PlaylistEntity): Promise<void> {
-    await this.service.create(playlist);
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async create(@Body() playlist: CreatePlaylistDto): Promise<void> {
+    await this.service.create(playlist as PlaylistEntity);
   }
 
   @Put(':id')
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   update(
     @Param('id') id: number,
-    @Body() playlist: Partial<PlaylistEntity>,
+    @Body() playlist: UpdatePlaylistDto,
   ): Promise<void> {
     return this.service.update(id, playlist);
   }

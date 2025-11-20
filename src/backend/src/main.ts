@@ -1,5 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
 import * as fs from 'fs';
 import { resolve } from 'path';
 import { EnvironmentEnum } from './environmentEnum';
@@ -61,6 +63,19 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create(AppModule);
+
+  // Global Exception Filter
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Global Validation Pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+
   app.setGlobalPrefix('api');
   await app.listen(process.env.PORT || 3000);
 }

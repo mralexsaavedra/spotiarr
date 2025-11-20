@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlaylistEntity } from './playlist.entity';
 import { PlaylistService } from './playlist.service';
 import { PlaylistController } from './playlist.controller';
+import { PlaylistGateway } from './playlist.gateway';
 import { TrackModule } from '../track/track.module';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from '../shared/shared.module';
@@ -14,7 +15,7 @@ import { SharedModule } from '../shared/shared.module';
     TrackModule,
     SharedModule,
   ],
-  providers: [PlaylistService],
+  providers: [PlaylistService, PlaylistGateway],
   controllers: [PlaylistController],
   exports: [PlaylistService],
 })

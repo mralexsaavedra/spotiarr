@@ -1,27 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PlaylistEntity } from './playlist.entity';
 import { TrackService } from '../track/track.service';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io';
 import { Interval } from '@nestjs/schedule';
 import { TrackStatusEnum } from '../track/track.entity';
 import { UtilsService } from '../shared/utils.service';
 import { SpotifyService } from '../shared/spotify.service';
 import { SpotifyUrlHelper, SpotifyUrlType } from '../shared/spotify-url.helper';
+import { PlaylistGateway } from './playlist.gateway';
 
-enum WsPlaylistOperation {
-  New = 'playlistNew',
-  Update = 'playlistUpdate',
-  Delete = 'playlistDelete',
-}
-
-@WebSocketGateway()
 @Injectable()
 export class PlaylistService {
-  @WebSocketServer() io: Server;
-  private readonly logger = new Logger(TrackService.name);
+  private readonly logger = new Logger(PlaylistService.name);
 
   constructor(
     @InjectRepository(PlaylistEntity)
@@ -29,6 +20,7 @@ export class PlaylistService {
     private readonly trackService: TrackService,
     private readonly utilsService: UtilsService,
     private readonly spotifyService: SpotifyService,
+    private readonly playlistGateway: PlaylistGateway,
   ) {}
 
   findAll(
@@ -44,7 +36,7 @@ export class PlaylistService {
 
   async remove(id: number): Promise<void> {
     await this.repository.delete(id);
-    this.io.emit(WsPlaylistOperation.Delete, { id });
+    this.playlistGateway.emitDelete(id);
   }
 
   async create(playlist: PlaylistEntity): Promise<void> {
@@ -78,9 +70,15 @@ export class PlaylistService {
         type: detail.type,
         artistImageUrl: artistImageUrl,
       };
-    } catch (err) {
-      this.logger.error(`Error getting playlist details: ${err}`);
-      playlist2Save = { ...playlist, error: String(err) };
+    } catch (error) {
+      this.logger.error(
+        `Error getting playlist details: ${playlist.spotifyUrl}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      playlist2Save = {
+        ...playlist,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
     const savedPlaylist = await this.save(playlist2Save);
 
@@ -165,14 +163,14 @@ export class PlaylistService {
 
   async save(playlist: PlaylistEntity): Promise<PlaylistEntity> {
     const savedPlaylist = await this.repository.save(playlist);
-    this.io.emit(WsPlaylistOperation.New, savedPlaylist);
+    this.playlistGateway.emitNew(savedPlaylist);
     return savedPlaylist;
   }
 
   async update(id: number, playlist: Partial<PlaylistEntity>): Promise<void> {
     await this.repository.update(id, playlist);
     const dbPlaylist = await this.findOne(id);
-    this.io.emit(WsPlaylistOperation.Update, dbPlaylist);
+    this.playlistGateway.emitUpdate(dbPlaylist);
   }
 
   async retryFailedOfPlaylist(id: number): Promise<void> {
@@ -193,8 +191,15 @@ export class PlaylistService {
         tracks = await this.spotifyService.getPlaylistTracks(
           playlist.spotifyUrl,
         );
-      } catch (err) {
-        await this.update(playlist.id, { ...playlist, error: String(err) });
+      } catch (error) {
+        this.logger.error(
+          `Error checking active playlist: ${playlist.name}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+        await this.update(playlist.id, {
+          ...playlist,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
 
       // Detect if it's a playlist, album, or individual track

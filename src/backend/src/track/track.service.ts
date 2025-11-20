@@ -1,11 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TrackEntity, TrackStatusEnum } from './track.entity';
 import { PlaylistEntity } from '../playlist/playlist.entity';
 import { ConfigService } from '@nestjs/config';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io';
 import { EnvironmentEnum } from '../environmentEnum';
 import { UtilsService } from '../shared/utils.service';
 import { Queue } from 'bullmq';
@@ -13,19 +11,12 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { YoutubeService } from '../shared/youtube.service';
 import { M3uService } from '../shared/m3u.service';
 import { SpotifyUrlHelper } from '../shared/spotify-url.helper';
+import { TrackGateway } from './track.gateway';
 import * as fs from 'fs';
 import * as path from 'path';
 
-enum WsTrackOperation {
-  New = 'trackNew',
-  Update = 'trackUpdate',
-  Delete = 'trackDelete',
-}
-
-@WebSocketGateway()
 @Injectable()
 export class TrackService {
-  @WebSocketServer() io: Server;
   private readonly logger = new Logger(TrackService.name);
 
   constructor(
@@ -37,6 +28,7 @@ export class TrackService {
     private readonly utilsService: UtilsService,
     private readonly youtubeService: YoutubeService,
     private readonly m3uService: M3uService,
+    private readonly trackGateway: TrackGateway,
   ) {}
 
   getAll(
@@ -56,7 +48,7 @@ export class TrackService {
 
   async remove(id: number): Promise<void> {
     await this.repository.delete(id);
-    this.io.emit(WsTrackOperation.Delete, { id });
+    this.trackGateway.emitDelete(id);
   }
 
   async create(track: TrackEntity, playlist?: PlaylistEntity): Promise<void> {
@@ -64,15 +56,12 @@ export class TrackService {
     await this.trackSearchQueue.add('', savedTrack, {
       jobId: `id-${savedTrack.id}`,
     });
-    this.io.emit(WsTrackOperation.New, {
-      track: savedTrack,
-      playlistId: playlist.id,
-    });
+    this.trackGateway.emitNew(savedTrack, playlist.id);
   }
 
   async update(id: number, track: TrackEntity): Promise<void> {
     await this.repository.update(id, track);
-    this.io.emit(WsTrackOperation.Update, track);
+    this.trackGateway.emitUpdate(track);
   }
 
   async retry(id: number): Promise<void> {
@@ -96,11 +85,14 @@ export class TrackService {
         track.name,
       );
       updatedTrack = { ...track, youtubeUrl, status: TrackStatusEnum.Queued };
-    } catch (err) {
-      this.logger.error(err);
+    } catch (error) {
+      this.logger.error(
+        `Failed to find track on YouTube: ${track.artist} - ${track.name}`,
+        error instanceof Error ? error.stack : String(error),
+      );
       updatedTrack = {
         ...track,
-        error: String(err),
+        error: error instanceof Error ? error.message : String(error),
         status: TrackStatusEnum.Error,
       };
     }
@@ -120,10 +112,9 @@ export class TrackService {
       !track.playlist ||
       !track.playlist.coverUrl
     ) {
-      this.logger.error(
-        `Track or playlist field is null or undefined: name=${track.name}, artist=${track.artist}, playlist=${track.playlist ? 'ok' : 'null'}, coverUrl=${track.playlist?.coverUrl}`,
-      );
-      return;
+      const errorMsg = `Track or playlist field is null or undefined: name=${track.name}, artist=${track.artist}, playlist=${track.playlist ? 'ok' : 'null'}, coverUrl=${track.playlist?.coverUrl}`;
+      this.logger.error(errorMsg);
+      throw new HttpException(errorMsg, HttpStatus.BAD_REQUEST);
     }
     await this.update(track.id, {
       ...track,
@@ -179,8 +170,11 @@ export class TrackService {
         }
       }
     } catch (err) {
-      this.logger.error(err);
-      error = String(err);
+      this.logger.error(
+        `Failed to download track: ${track.artist} - ${track.name}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+      error = err instanceof Error ? err.message : String(err);
     }
     const updatedTrack = {
       ...track,
@@ -224,7 +218,10 @@ export class TrackService {
           }
         }
       } catch (err) {
-        this.logger.error(`Failed to generate M3U: ${err.message}`);
+        this.logger.error(
+          'Failed to generate M3U file',
+          err instanceof Error ? err.stack : String(err),
+        );
       }
     }
   }
