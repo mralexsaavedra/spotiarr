@@ -46,27 +46,7 @@
   - `DOWNLOADS_PATH` (requerido)
 - **Implementación**: Crear función en `main.ts` que valide antes de bootstrap
 
-### 5. Añadir endpoint /api/health
-
-- **Estado**: Pendiente
-- **Descripción**: Crear health check endpoint para monitoreo de producción
-- **Checks a incluir**:
-  - Estado de Redis (conexión activa)
-  - Estado de base de datos SQLite
-  - Espacio en disco disponible
-  - Versión de la aplicación
-- **Respuesta esperada**:
-  ```json
-  {
-    "status": "healthy",
-    "version": "0.1.0",
-    "redis": "connected",
-    "database": "connected",
-    "diskSpace": "available"
-  }
-  ```
-
-### 6. Implementar logging estructurado
+### 5. Implementar logging estructurado
 
 - **Estado**: Pendiente
 - **Descripción**: Añadir Winston o Pino para logging profesional
@@ -77,7 +57,7 @@
   - Logs diferentes para desarrollo y producción
 - **Dependencias**: `winston` o `pino` + `pino-pretty`
 
-### 7. Añadir rate limiting
+### 6. Añadir rate limiting
 
 - **Estado**: Pendiente
 - **Descripción**: Implementar @nestjs/throttler para proteger endpoints
@@ -89,7 +69,7 @@
 
 ## 🟢 Opcionales (UX/DX)
 
-### 8. Crear favicon personalizado
+### 7. Crear favicon personalizado
 
 - **Estado**: ✅ Completado
 - **Descripción**: Generar favicon.ico basado en logo.svg
@@ -104,7 +84,7 @@
   - `android-chrome-192x192.png`, `android-chrome-512x512.png`
   - `site.webmanifest` actualizado con metadata de SpotiArr
 
-### 9. Crear script de pre-commit con linting
+### 8. Crear script de pre-commit con linting
 
 - **Estado**: ✅ Completado
 - **Descripción**: Configurar husky + lint-staged para linting automático
