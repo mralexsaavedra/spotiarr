@@ -73,7 +73,7 @@ export const App = () => {
   return (
     <div className="flex min-h-screen bg-white dark:bg-spotify-black text-black dark:text-white">
       {/* Sidebar */}
-      <aside className="w-64 bg-spotify-gray-light dark:bg-spotify-gray-dark flex flex-col py-8 px-6 border-r border-spotify-gray-medium dark:border-spotify-gray-medium">
+      <aside className="w-64 bg-spotify-gray-light dark:bg-spotify-gray-dark flex flex-col py-8 px-6 border-r border-spotify-gray-medium dark:border-spotify-gray-medium h-screen fixed top-0 left-0 overflow-y-auto z-20">
         <div className="flex items-center gap-3 mb-8">
           <img src="/logo.svg" alt="SpotiArr Logo" className="w-10 h-10" />
           <span className="text-2xl font-black tracking-tight">SpotiArr</span>
@@ -113,7 +113,7 @@ export const App = () => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col bg-white dark:bg-spotify-black">
+      <main className="flex-1 flex flex-col bg-white dark:bg-spotify-black ml-64">
         {/* Header */}
         <header className="bg-white dark:bg-spotify-black border-b border-spotify-gray-medium dark:border-spotify-gray-medium px-8 py-6 flex items-center justify-between">
           <div>
