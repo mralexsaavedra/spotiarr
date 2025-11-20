@@ -154,8 +154,9 @@ SpotiArr can be also build from source files on your own.
    # Copy template to backend
    cp .env.example src/backend/.env
    
-   # Edit src/backend/.env with your credentials
-   # Change REDIS_HOST=redis to REDIS_HOST=localhost for local development
+   # Edit src/backend/.env:
+   # 1. Add your Spotify credentials
+   # 2. Change REDIS_HOST=redis to REDIS_HOST=localhost (important!)
    ```
 6. **Start Redis** (required):
    ```bash

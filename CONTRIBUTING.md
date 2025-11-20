@@ -38,8 +38,8 @@ cd ../../../../../
 cp .env.example src/backend/.env
 
 # Edit src/backend/.env:
-# - Add your Spotify credentials
-# - Change REDIS_HOST=redis to REDIS_HOST=localhost
+# 1. Add your Spotify credentials (REQUIRED)
+# 2. Change REDIS_HOST=redis to REDIS_HOST=localhost (REQUIRED for local dev)
 ```
 
 5. Start Redis (required):
