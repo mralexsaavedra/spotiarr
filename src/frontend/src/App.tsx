@@ -122,7 +122,7 @@ export const App = () => {
           </div>
           <div className="flex gap-3">
             <input
-              className="px-4 py-2 rounded-full bg-spotify-gray-light dark:bg-spotify-gray-dark border border-spotify-gray-medium dark:border-spotify-gray-medium text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-spotify-green placeholder-spotify-gray-dark dark:placeholder-spotify-gray-light"
+              className="px-4 py-2 rounded-full bg-spotify-gray-light dark:bg-spotify-gray-dark border border-spotify-gray-medium dark:border-spotify-gray-medium text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-spotify-green placeholder-spotify-gray-dark dark:placeholder-spotify-gray-light w-96 max-w-full"
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
