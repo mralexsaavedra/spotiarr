@@ -22,7 +22,7 @@ Initial public release of SpotiArr - Self-hosted Spotify downloader with Jellyfi
 
 - **Backend**: NestJS with TypeORM, BullMQ, Socket.io, better-sqlite3
 - **Frontend**: Angular 19 (standalone components), Tailwind CSS, Elf state management
-- **Runtime**: Node.js 23.10.0, pnpm 10.20.0
+- **Runtime**: Node.js 24 LTS, pnpm 10.20.0
 - **Infrastructure**: Docker multi-stage builds, Redis for job queues
 - **Download Tools**: yt-dlp with auto-detection, ffmpeg for audio processing
 

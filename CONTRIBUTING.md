@@ -6,7 +6,7 @@ Thank you for considering contributing to SpotiArr! This document provides guide
 
 ### Prerequisites
 
-- **Node.js**: v23.10.0 or higher (use nvm: `nvm use`)
+- **Node.js**: v24 LTS or higher (use nvm: `nvm use`)
 - **pnpm**: v9.0.0 or higher (`npm install -g pnpm`)
 - **Python**: 3.11 or 3.12 (required for native module compilation)
 - **Redis**: Required for queue management

@@ -1,4 +1,4 @@
-FROM node:23.10.0-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
@@ -20,7 +20,7 @@ COPY . .
 # Build the project
 RUN pnpm run build
 
-FROM node:23.10.0-alpine
+FROM node:24-alpine
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate

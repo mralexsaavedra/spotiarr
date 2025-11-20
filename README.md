@@ -144,7 +144,7 @@ SpotiArr can be also build from source files on your own.
 
 #### Requirements
 
-- Node.js v23.10.0 (use `nvm` to install: `nvm install 23.10.0`)
+- Node.js v24 LTS (use `nvm` to install: `nvm install 24`)
 - pnpm v9+ (`npm install -g pnpm`)
 - Redis (for queue management)
 - FFmpeg (for audio processing)
@@ -153,7 +153,7 @@ SpotiArr can be also build from source files on your own.
 
 #### Process
 
-1. **Install Node.js v23.10.0**: `nvm install && nvm use`
+1. **Install Node.js v24 LTS**: `nvm install && nvm use`
 2. **Install pnpm globally** (if not installed): `npm install -g pnpm`
 3. **Clone the repository**:
    ```bash
