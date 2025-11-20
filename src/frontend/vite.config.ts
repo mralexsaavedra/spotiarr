@@ -22,7 +22,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist/browser',
+    outDir: 'dist',
     emptyOutDir: true,
   },
 });
