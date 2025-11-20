@@ -11,8 +11,8 @@ interface Props {
 }
 
 export const PlaylistBox = ({ playlist }: Props) => {
-  const { updatePlaylist, deletePlaylist } = usePlaylists();
-  const { tracks, retryTrack } = useTracks(playlist.id);
+  const { updatePlaylist, deletePlaylist, retryFailedTracks } = usePlaylists();
+  const { tracks } = useTracks(playlist.id);
   const { collapsedPlaylists, togglePlaylistCollapse } = useUIStore();
 
   const isCollapsed = collapsedPlaylists.has(playlist.id);
@@ -41,9 +41,13 @@ export const PlaylistBox = ({ playlist }: Props) => {
     deletePlaylist.mutate(playlist.id);
   };
 
+  const failedTracks = tracks.filter((t) => t.status === TrackStatus.Error);
+
   const handleRetryFailed = () => {
-    const failedTracks = tracks.filter((t) => t.status === TrackStatus.Error);
-    failedTracks.forEach((track) => retryTrack.mutate(track.id));
+    if (!failedTracks.length || !Number.isFinite(playlist.id)) {
+      return;
+    }
+    retryFailedTracks.mutate(playlist.id);
   };
 
   const getStatusClass = () => {
@@ -66,7 +70,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
           <i
             className={clsx(
               "cursor-pointer fa-solid text-spotify-green text-lg hover:scale-110 transition-transform",
-              isCollapsed ? "fa-caret-right" : "fa-caret-down",
+              isCollapsed ?  "fa-caret-down": "fa-caret-right",
             )}
             onClick={handleToggleCollapse}
           />
@@ -106,9 +110,19 @@ export const PlaylistBox = ({ playlist }: Props) => {
             onClick={handleToggleActive}
           />
           <i
-            className="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all"
-            title="Retry download failed tracks"
-            onClick={handleRetryFailed}
+            className={clsx(
+              "fa-solid fa-repeat transition-all",
+              failedTracks.length
+                ? "cursor-pointer hover:text-spotify-green hover:scale-110"
+                : "cursor-not-allowed text-spotify-gray-light/60",
+              retryFailedTracks.isPending && "animate-pulse text-spotify-green",
+            )}
+            title={
+              failedTracks.length
+                ? "Reintentar descargas fallidas"
+                : "No hay descargas fallidas que reintentar"
+            }
+            onClick={failedTracks.length ? handleRetryFailed : undefined}
           />
           <i
             className="fa-solid fa-xmark cursor-pointer hover:text-red-500 hover:scale-110 transition-all"

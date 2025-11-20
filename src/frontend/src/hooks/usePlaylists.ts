@@ -63,6 +63,13 @@ export const usePlaylists = () => {
     },
   });
 
+  const retryFailedTracks = useMutation({
+    mutationFn: (playlistId: number) => api.retryFailedTracks(playlistId),
+    onSuccess: (_data, playlistId) => {
+      queryClient.invalidateQueries({ queryKey: ['tracks', playlistId] });
+    },
+  });
+
   return {
     playlists,
     isLoading,
@@ -70,5 +77,6 @@ export const usePlaylists = () => {
     createPlaylist,
     updatePlaylist,
     deletePlaylist,
+    retryFailedTracks,
   };
 };

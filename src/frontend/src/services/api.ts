@@ -54,6 +54,12 @@ class ApiClient {
     });
   }
 
+  async retryFailedTracks(playlistId: number): Promise<void> {
+    return this.request<void>(`/playlist/retry/${playlistId}`, {
+      method: 'GET',
+    });
+  }
+
   async deletePlaylist(id: number): Promise<void> {
     return this.request<void>(`/playlist/${id}`, {
       method: 'DELETE',
