@@ -6,7 +6,7 @@
 ![spotiarr logo](assets/logo.svg)
 # SpotiArr - Self-hosted Spotify Downloader
 
-> **A powerful, self-hosted solution for downloading and organizing your Spotify music library with seamless Jellyfin integration.**
+> **Lidarr-inspired music automation. Download and organize your Spotify playlists with smart file management for Jellyfin/Plex integration.**
 
 SpotiArr bridges the gap between Spotify and your personal media server. Download tracks, albums, and entire playlists with automatic metadata tagging, smart folder organization, and native Jellyfin compatibility. Perfect for music enthusiasts who want complete control over their music collection.
 
