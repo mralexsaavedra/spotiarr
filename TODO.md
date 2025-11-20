@@ -3,12 +3,14 @@
 ## 🔴 Críticas (Prioridad Alta)
 
 ### 1. Verificar instalación de dependencias TypeScript
-- **Estado**: Pendiente
+
+- **Estado**: ✅ Completado
 - **Descripción**: Ejecutar `pnpm install` en src/backend para resolver errores de @nestjs/typeorm y @nestjs/bullmq
 - **Comando**: `cd src/backend && pnpm install`
 
 ### 2. Configurar GitHub Actions Secrets
-- **Estado**: Pendiente
+
+- **Estado**: ✅ Completado
 - **Descripción**: Añadir DOCKER_USERNAME y DOCKER_PASSWORD en GitHub repository settings
 - **Pasos**:
   1. Ir a: https://github.com/mralexsaavedra/spotiarr/settings/secrets/actions
@@ -16,6 +18,7 @@
   3. Añadir `DOCKER_PASSWORD` con tu token de Docker Hub
 
 ### 3. Actualizar CHANGELOG.md v0.1.0
+
 - **Estado**: Pendiente
 - **Descripción**: Documentar todas las mejoras recientes
 - **Incluir**:
@@ -32,6 +35,7 @@
 ## 🟡 Importantes (Mejoras de Producción)
 
 ### 4. Crear script de validación de .env
+
 - **Estado**: Pendiente
 - **Descripción**: Implementar validación al inicio que verifique variables requeridas
 - **Variables a validar**:
@@ -43,6 +47,7 @@
 - **Implementación**: Crear función en `main.ts` que valide antes de bootstrap
 
 ### 5. Añadir endpoint /api/health
+
 - **Estado**: Pendiente
 - **Descripción**: Crear health check endpoint para monitoreo de producción
 - **Checks a incluir**:
@@ -62,6 +67,7 @@
   ```
 
 ### 6. Implementar logging estructurado
+
 - **Estado**: Pendiente
 - **Descripción**: Añadir Winston o Pino para logging profesional
 - **Características**:
@@ -72,6 +78,7 @@
 - **Dependencias**: `winston` o `pino` + `pino-pretty`
 
 ### 7. Añadir rate limiting
+
 - **Estado**: Pendiente
 - **Descripción**: Implementar @nestjs/throttler para proteger endpoints
 - **Configuración sugerida**:
@@ -83,6 +90,7 @@
 ## 🟢 Opcionales (UX/DX)
 
 ### 8. Crear favicon personalizado
+
 - **Estado**: Pendiente
 - **Descripción**: Generar favicon.ico basado en logo.svg
 - **Tareas**:
@@ -92,7 +100,8 @@
 - **Herramientas**: https://realfavicongenerator.net/
 
 ### 9. Crear script de pre-commit con linting
-- **Estado**: Pendiente
+
+- **Estado**: ✅ Completado
 - **Descripción**: Configurar husky + lint-staged para linting automático
 - **Configuración**:
   - Ejecutar ESLint en archivos .ts modificados

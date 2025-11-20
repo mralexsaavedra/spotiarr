@@ -33,9 +33,13 @@
     "build:be": "pnpm --filter backend run build",
     "build:fe": "pnpm --filter frontend run build",
     "start": "pnpm --filter backend run start:prod",
-    "lint": "pnpm --filter backend lint && pnpm --filter frontend lint"
+    "lint": "pnpm --filter backend lint && pnpm --filter frontend lint",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.6.2"
   }
 }

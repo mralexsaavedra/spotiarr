@@ -1,0 +1,5 @@
+{
+  "src/backend/**/*.ts": ["eslint --fix"],
+  "src/frontend/**/*.ts": ["eslint --fix"],
+  "*.{json,md,yml,yaml}": ["prettier --write --ignore-path .gitignore"]
+}
