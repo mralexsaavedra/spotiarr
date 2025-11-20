@@ -28,7 +28,7 @@ export class YoutubeService {
         this.configService.get<string>('YT_DLP_PATH') ||
         execSync('which yt-dlp', { encoding: 'utf-8' }).trim();
       this.logger.log(`Using yt-dlp from: ${this.ytDlpPath}`);
-    } catch (error) {
+    } catch {
       this.logger.warn('yt-dlp not found in PATH, will try default location');
       this.ytDlpPath = 'yt-dlp';
     }

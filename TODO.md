@@ -36,15 +36,20 @@
 
 ### 4. Crear script de validación de .env
 
-- **Estado**: Pendiente
+- **Estado**: ✅ Completado
 - **Descripción**: Implementar validación al inicio que verifique variables requeridas
-- **Variables a validar**:
+- **Variables validadas**:
   - `SPOTIFY_CLIENT_ID` (requerido)
   - `SPOTIFY_CLIENT_SECRET` (requerido)
   - `REDIS_HOST` (requerido)
   - `REDIS_PORT` (requerido)
   - `DOWNLOADS_PATH` (requerido)
-- **Implementación**: Crear función en `main.ts` que valide antes de bootstrap
+- **Implementación**: Función `validateEnvironment()` en `main.ts` que ejecuta antes de bootstrap
+- **Características**:
+  - Mensajes de error claros con descripción de cada variable
+  - Referencia a .env.example para ayuda
+  - Exit code 1 si falta alguna variable
+  - Mensaje de éxito con ✅ si todo está correcto
 
 ### 5. Implementar logging estructurado
 
