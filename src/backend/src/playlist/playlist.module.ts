@@ -4,6 +4,7 @@ import { PlaylistEntity } from './playlist.entity';
 import { PlaylistService } from './playlist.service';
 import { PlaylistController } from './playlist.controller';
 import { PlaylistGateway } from './playlist.gateway';
+import { PlaylistRepository } from './playlist.repository';
 import { TrackModule } from '../track/track.module';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from '../shared/shared.module';
@@ -15,7 +16,7 @@ import { SharedModule } from '../shared/shared.module';
     TrackModule,
     SharedModule,
   ],
-  providers: [PlaylistService, PlaylistGateway],
+  providers: [PlaylistService, PlaylistRepository, PlaylistGateway],
   controllers: [PlaylistController],
   exports: [PlaylistService],
 })

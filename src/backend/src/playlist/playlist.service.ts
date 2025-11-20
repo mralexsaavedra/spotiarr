@@ -1,6 +1,4 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { PlaylistEntity } from './playlist.entity';
 import { TrackService } from '../track/track.service';
 import { Interval } from '@nestjs/schedule';
@@ -9,14 +7,14 @@ import { UtilsService } from '../shared/utils.service';
 import { SpotifyService } from '../shared/spotify.service';
 import { SpotifyUrlHelper, SpotifyUrlType } from '../shared/spotify-url.helper';
 import { PlaylistGateway } from './playlist.gateway';
+import { PlaylistRepository } from './playlist.repository';
 
 @Injectable()
 export class PlaylistService {
   private readonly logger = new Logger(PlaylistService.name);
 
   constructor(
-    @InjectRepository(PlaylistEntity)
-    private repository: Repository<PlaylistEntity>,
+    private readonly repository: PlaylistRepository,
     private readonly trackService: TrackService,
     private readonly utilsService: UtilsService,
     private readonly spotifyService: SpotifyService,
@@ -27,11 +25,11 @@ export class PlaylistService {
     relations: Record<string, boolean> = { tracks: true },
     where?: Partial<PlaylistEntity>,
   ): Promise<PlaylistEntity[]> {
-    return this.repository.find({ where, relations });
+    return this.repository.findAll(relations, where);
   }
 
   findOne(id: number): Promise<PlaylistEntity | null> {
-    return this.repository.findOneBy({ id });
+    return this.repository.findOne(id);
   }
 
   async remove(id: number): Promise<void> {

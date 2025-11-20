@@ -4,6 +4,7 @@ import { TrackEntity } from './track.entity';
 import { TrackService } from './track.service';
 import { TrackController } from './track.controller';
 import { TrackGateway } from './track.gateway';
+import { TrackRepository } from './track.repository';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from '../shared/shared.module';
 import { BullModule } from '@nestjs/bullmq';
@@ -23,6 +24,7 @@ import { M3uService } from '../shared/m3u.service';
   ],
   providers: [
     TrackService,
+    TrackRepository,
     TrackGateway,
     TrackDownloadProcessor,
     TrackSearchProcessor,

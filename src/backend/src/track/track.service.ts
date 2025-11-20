@@ -1,10 +1,6 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { TrackEntity, TrackStatusEnum } from './track.entity';
 import { PlaylistEntity } from '../playlist/playlist.entity';
-import { ConfigService } from '@nestjs/config';
-import { EnvironmentEnum } from '../environmentEnum';
 import { UtilsService } from '../shared/utils.service';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -12,6 +8,8 @@ import { YoutubeService } from '../shared/youtube.service';
 import { M3uService } from '../shared/m3u.service';
 import { SpotifyUrlHelper } from '../shared/spotify-url.helper';
 import { TrackGateway } from './track.gateway';
+import { TrackRepository } from './track.repository';
+import { TrackFileHelper } from '../shared/track-file.helper';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -20,30 +18,29 @@ export class TrackService {
   private readonly logger = new Logger(TrackService.name);
 
   constructor(
-    @InjectRepository(TrackEntity)
-    private repository: Repository<TrackEntity>,
+    private readonly repository: TrackRepository,
     @InjectQueue('track-download-processor') private trackDownloadQueue: Queue,
     @InjectQueue('track-search-processor') private trackSearchQueue: Queue,
-    private readonly configService: ConfigService,
     private readonly utilsService: UtilsService,
     private readonly youtubeService: YoutubeService,
     private readonly m3uService: M3uService,
     private readonly trackGateway: TrackGateway,
+    private readonly trackFileHelper: TrackFileHelper,
   ) {}
 
   getAll(
     where?: { [key: string]: any },
     relations: Record<string, boolean> = {},
   ): Promise<TrackEntity[]> {
-    return this.repository.find({ where, relations });
+    return this.repository.findAll(where, relations);
   }
 
   getAllByPlaylist(id: number): Promise<TrackEntity[]> {
-    return this.repository.find({ where: { playlist: { id } } });
+    return this.repository.findAllByPlaylist(id);
   }
 
   get(id: number): Promise<TrackEntity | null> {
-    return this.repository.findOne({ where: { id }, relations: ['playlist'] });
+    return this.repository.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
@@ -227,39 +224,10 @@ export class TrackService {
   }
 
   getTrackFileName(track: TrackEntity): string {
-    const format = this.configService.get<string>(EnvironmentEnum.FORMAT);
-    const trackName = track.name || 'Unknown Track';
-    const trackNumber = track.trackNumber ?? 1;
-    const artistName = track.artist || 'Unknown Artist';
-
-    // Check if this track belongs to a Spotify playlist
-    const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist?.spotifyUrl);
-
-    if (isPlaylist) {
-      // For playlists: keep all artists in the filename
-      const playlistName = track.playlist?.name || 'Unknown Playlist';
-      return this.utilsService.getPlaylistTrackFilePath(
-        playlistName,
-        artistName,
-        trackName,
-        trackNumber,
-        format,
-      );
-    } else {
-      // For albums/tracks: artist is already the primary artist from Spotify
-      const albumName = track.album || track.playlist?.name || 'Unknown Album';
-      return this.utilsService.getTrackFilePath(
-        artistName,
-        albumName,
-        trackName,
-        trackNumber,
-        format,
-      );
-    }
+    return this.trackFileHelper.getTrackFileName(track);
   }
 
   getFolderName(track: TrackEntity): string {
-    // Use Jellyfin-compatible structure
-    return this.getTrackFileName(track);
+    return this.trackFileHelper.getFolderName(track);
   }
 }
