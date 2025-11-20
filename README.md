@@ -38,7 +38,6 @@ SpotiArr bridges the gap between Spotify and your personal media server. Downloa
 
 - Native Jellyfin compatibility
 - Works with Navidrome, Plex, and other media servers
-- \*ARR ecosystem ready (Radarr, Sonarr, Lidarr patterns)
 - Docker support for easy deployment
 
 **Tech Stack:** NestJS (Backend) + Angular 19 (Frontend) + Tailwind CSS + SQLite + Redis
