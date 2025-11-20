@@ -10,7 +10,7 @@ export class TrackDownloadProcessor extends WorkerHost {
   }
 
   async process(job: Job<TrackEntity, void>): Promise<void> {
-    const maxPerMinute = Number(process.env.YT_DOWNLOADS_PER_MINUTE || 3);
+    const maxPerMinute = Number(process.env.YT_DOWNLOADS_PER_MINUTE || 10);
     const sleepMs = Math.floor(60000 / maxPerMinute);
     await new Promise((res) => setTimeout(res, sleepMs));
     await this.trackService.downloadFromYoutube(job.data);

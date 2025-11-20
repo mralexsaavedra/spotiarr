@@ -19,7 +19,9 @@ export class TrackGateway {
   }
 
   emitUpdate(track: TrackEntity): void {
-    this.io.emit(WsTrackOperation.Update, track);
+    const playlistId =
+      (track.playlist && track.playlist.id) || (track as any).playlistId;
+    this.io.emit(WsTrackOperation.Update, { track, playlistId });
   }
 
   emitDelete(id: number): void {
