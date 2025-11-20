@@ -28,7 +28,7 @@
   "scripts": {
     "dev": "concurrently \"pnpm start:be\" \"pnpm start:fe\"",
     "start:be": "pnpm --filter backend run start:dev",
-    "start:fe": "pnpm --filter frontend run start",
+    "start:fe": "pnpm --filter frontend run dev",
     "build": "pnpm run build:be && pnpm run build:fe",
     "build:be": "pnpm --filter backend run build",
     "build:fe": "pnpm --filter frontend run build",

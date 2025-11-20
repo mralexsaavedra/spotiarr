@@ -1,0 +1,124 @@
+import { usePlaylists } from "@/hooks/usePlaylists";
+import { useTracks } from "@/hooks/useTracks";
+import { TrackStatus } from "@/types/track";
+import { useUIStore } from "@/store/useUIStore";
+import type { Playlist } from "@/types/playlist";
+import clsx from "clsx";
+import { TrackList } from "./TrackList";
+
+interface Props {
+  playlist: Playlist;
+}
+
+export const PlaylistBox = ({ playlist }: Props) => {
+  const { updatePlaylist, deletePlaylist } = usePlaylists();
+  const { tracks, retryTrack } = useTracks(playlist.id);
+  const { collapsedPlaylists, togglePlaylistCollapse } = useUIStore();
+
+  const isCollapsed = collapsedPlaylists.has(playlist.id);
+
+  const completedCount = tracks.filter((t) => t.status === TrackStatus.Completed).length;
+  const totalCount = tracks.length;
+
+  const handleToggleCollapse = () => {
+    togglePlaylistCollapse(playlist.id);
+  };
+
+  const handleToggleActive = () => {
+    updatePlaylist.mutate({ id: playlist.id, data: { active: !playlist.active } });
+  };
+
+  const handleDelete = () => {
+    if (!Number.isFinite(playlist.id)) {
+      console.warn('Attempted delete playlist with invalid id', playlist.id);
+      return;
+    }
+    deletePlaylist.mutate(playlist.id);
+  };
+
+  const handleRetryFailed = () => {
+    const failedTracks = tracks.filter((t) => t.status === TrackStatus.Error);
+    failedTracks.forEach((track) => retryTrack.mutate(track.id));
+  };
+
+  const getStatusClass = () => {
+    if (playlist.error) return "border-red-500";
+    if (playlist.active) return "border-spotify-green";
+    if (completedCount === totalCount && totalCount > 0)
+      return "border-green-500";
+    return "";
+  };
+
+  return (
+    <article
+      className={clsx(
+        "border-2 dark:border-spotify-gray-medium rounded-xl mb-4 overflow-hidden bg-gray-50 dark:bg-spotify-gray-medium hover:border-spotify-green transition-all",
+        getStatusClass(),
+      )}
+    >
+      <div className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-spotify-gray-dark dark:to-spotify-gray-medium px-5 py-4 flex justify-between items-center border-b-2 dark:border-spotify-gray-dark">
+        <span className="flex items-center gap-3">
+          <i
+            className={clsx(
+              "cursor-pointer fa-solid text-spotify-green text-lg hover:scale-110 transition-transform",
+              isCollapsed ? "fa-caret-right" : "fa-caret-down",
+            )}
+            onClick={handleToggleCollapse}
+          />
+          {playlist.error ? (
+            <span className="text-base font-semibold text-red-500 dark:text-red-400">
+              {playlist.error}
+            </span>
+          ) : (
+            <span className="text-base font-bold dark:text-white">
+              {playlist.name || "Unnamed Playlist"}
+            </span>
+          )}
+          <a
+            href={playlist.spotifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-spotify-green hover:text-spotify-green-light hover:scale-110 transition-all"
+            title="Open in Spotify"
+          >
+            <i className="fa-brands fa-spotify text-lg" />
+          </a>
+        </span>
+
+        <span className="flex items-center gap-3 text-spotify-gray-light dark:text-spotify-gray-light">
+          <i
+            className={clsx(
+              "fa-solid cursor-pointer hover:text-spotify-green hover:scale-110 transition-all",
+              playlist.active
+                ? "fa-toggle-on text-spotify-green"
+                : "fa-toggle-off",
+            )}
+            title={
+              playlist.active
+                ? "[ON]: Unsubscribe from playlist changes?"
+                : "[OFF]: Subscribe to playlist changes?"
+            }
+            onClick={handleToggleActive}
+          />
+          <i
+            className="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all"
+            title="Retry download failed tracks"
+            onClick={handleRetryFailed}
+          />
+          <i
+            className="fa-solid fa-xmark cursor-pointer hover:text-red-500 hover:scale-110 transition-all"
+            title="Remove playlist from list"
+            onClick={() => playlist.id != null && handleDelete()}
+          />
+          {!playlist.error && (
+            <span className="text-sm font-bold bg-spotify-gray-dark dark:bg-black px-3 py-1 rounded-full">
+              {completedCount}/{totalCount}
+            </span>
+          )}
+        </span>
+      </div>
+
+      {isCollapsed && <TrackList playlistId={playlist.id} />}
+    </article>
+  );
+};
