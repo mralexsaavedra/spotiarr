@@ -30,18 +30,9 @@ import { M3uService } from './shared/m3u.service';
       }),
       inject: [ConfigService],
     }),
-    ServeStaticModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => [
-        {
-          rootPath: resolve(
-            __dirname,
-            configService.get<string>(EnvironmentEnum.FE_PATH),
-          ),
-          exclude: ['/api/(.*)'],
-        },
-      ],
-      inject: [ConfigService],
+    ServeStaticModule.forRoot({
+      rootPath: resolve(__dirname, '../../../dist/frontend/browser'),
+      exclude: ['/api/(.*)'],
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
