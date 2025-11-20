@@ -17,18 +17,11 @@ import { M3uService } from './shared/m3u.service';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        type: 'better-sqlite3',
-        database: resolve(
-          __dirname,
-          configService.get<string>(EnvironmentEnum.DB_PATH),
-        ),
-        entities: [TrackEntity, PlaylistEntity],
-        synchronize: true,
-      }),
-      inject: [ConfigService],
+    TypeOrmModule.forRoot({
+      type: 'better-sqlite3',
+      database: resolve(process.cwd(), 'config/db.sqlite'),
+      entities: [TrackEntity, PlaylistEntity],
+      synchronize: true,
     }),
     ServeStaticModule.forRoot({
       rootPath: resolve(process.cwd(), 'dist/frontend/browser'),
