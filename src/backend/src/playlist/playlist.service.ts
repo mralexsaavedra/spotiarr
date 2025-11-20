@@ -3,11 +3,11 @@ import { PlaylistEntity } from './playlist.entity';
 import { TrackService } from '../track/track.service';
 import { Interval } from '@nestjs/schedule';
 import { TrackStatusEnum } from '../track/track.entity';
-import { UtilsService } from '../shared/utils.service';
 import { SpotifyService } from '../shared/spotify.service';
 import { SpotifyUrlHelper, SpotifyUrlType } from '../shared/spotify-url.helper';
 import { PlaylistGateway } from './playlist.gateway';
 import { PlaylistRepository } from './playlist.repository';
+import { CreatePlaylistUseCase } from './use-cases/create-playlist.use-case';
 
 @Injectable()
 export class PlaylistService {
@@ -16,9 +16,9 @@ export class PlaylistService {
   constructor(
     private readonly repository: PlaylistRepository,
     private readonly trackService: TrackService,
-    private readonly utilsService: UtilsService,
     private readonly spotifyService: SpotifyService,
     private readonly playlistGateway: PlaylistGateway,
+    private readonly createPlaylistUseCase: CreatePlaylistUseCase,
   ) {}
 
   findAll(
@@ -38,125 +38,7 @@ export class PlaylistService {
   }
 
   async create(playlist: PlaylistEntity): Promise<void> {
-    let detail: { tracks: any; name: any; image: any; type: any };
-    let playlist2Save: PlaylistEntity;
-    try {
-      detail = await this.spotifyService.getPlaylistDetail(playlist.spotifyUrl);
-      this.logger.debug(
-        `Playlist detail retrieved with ${detail.tracks?.length || 0} tracks`,
-      );
-
-      // For tracks and albums, format name as "Artist - Title"
-      let displayName = detail.name;
-      if (
-        (detail.type === 'track' || detail.type === 'album') &&
-        detail.tracks?.length > 0
-      ) {
-        const firstTrack = detail.tracks[0];
-        if (firstTrack.artist && detail.name) {
-          displayName = `${firstTrack.artist} - ${detail.name}`;
-        }
-      }
-
-      // Get artist image from first track if available (for albums/tracks)
-      const artistImageUrl = detail.tracks?.[0]?.primaryArtistImage || null;
-
-      playlist2Save = {
-        ...playlist,
-        name: displayName,
-        coverUrl: detail.image,
-        type: detail.type,
-        artistImageUrl: artistImageUrl,
-      };
-    } catch (error) {
-      this.logger.error(
-        `Error getting playlist details: ${playlist.spotifyUrl}`,
-        error instanceof Error ? error.stack : String(error),
-      );
-      playlist2Save = {
-        ...playlist,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-    const savedPlaylist = await this.save(playlist2Save);
-
-    if (detail?.tracks && detail.tracks.length > 0) {
-      this.logger.debug(
-        `Starting to process ${detail.tracks.length} tracks for playlist ${savedPlaylist.name}`,
-      );
-
-      let processedCount = 0;
-      let skippedCount = 0;
-      let errorCount = 0;
-
-      // Detect if it's a playlist, album, or individual track
-      const urlType = SpotifyUrlHelper.getUrlType(savedPlaylist.spotifyUrl);
-      const isTrack = urlType === SpotifyUrlType.Track;
-      const isAlbum = urlType === SpotifyUrlType.Album;
-
-      for (const track of detail.tracks) {
-        try {
-          if (!track.artist || !track.name) {
-            this.logger.warn(
-              `Skipping track ${processedCount + skippedCount + 1}: Missing artist or name information`,
-            );
-            skippedCount++;
-            continue;
-          }
-
-          if (track.unavailable === true) {
-            this.logger.warn(
-              `Skipping unavailable track ${processedCount + skippedCount + 1}: ${track.artist} - ${track.name}`,
-            );
-            skippedCount++;
-            continue;
-          }
-
-          // For albums/tracks: use primaryArtist from Spotify if available
-          // For playlists: use the full artist string
-          const artistToUse =
-            (isAlbum || isTrack) && track.primaryArtist
-              ? track.primaryArtist
-              : track.artist;
-
-          await this.trackService.create(
-            {
-              artist: artistToUse,
-              name: track.name,
-              album: track.album ?? (isTrack ? 'Singles' : savedPlaylist.name),
-              albumYear: track.albumYear,
-              trackNumber: track.trackNumber ?? processedCount + 1,
-              spotifyUrl: track.previewUrl || null,
-              artists: track.artists,
-              trackUrl: track.trackUrl,
-            },
-            savedPlaylist,
-          );
-
-          processedCount++;
-
-          if (processedCount % 100 === 0) {
-            this.logger.debug(
-              `Processed ${processedCount} tracks so far for playlist ${savedPlaylist.name}`,
-            );
-          }
-        } catch (error) {
-          this.logger.error(
-            `Error creating track "${
-              track?.artist || 'Unknown'
-            } - ${track?.name || 'Unknown'}": ${error.message}`,
-          );
-          errorCount++;
-        }
-      }
-
-      this.logger.debug(
-        `Finished processing playlist ${savedPlaylist.name}: ` +
-          `${processedCount} tracks processed, ${skippedCount} skipped, ${errorCount} errors`,
-      );
-    } else {
-      this.logger.warn(`No tracks found for playlist ${savedPlaylist.name}`);
-    }
+    return this.createPlaylistUseCase.execute(playlist);
   }
 
   async save(playlist: PlaylistEntity): Promise<PlaylistEntity> {
