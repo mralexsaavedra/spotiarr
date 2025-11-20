@@ -38,8 +38,6 @@ services:
     env_file:
       - .env
     environment:
-      # Override for Docker
-      - REDIS_HOST=redis
       - NODE_ENV=development
     depends_on:
       redis:

@@ -40,9 +40,6 @@ services:
       - ./downloads:/spotiarr/dist/backend/downloads
     env_file:
       - .env
-    environment:
-      # Override for Docker
-      - REDIS_HOST=redis
     deploy:
       resources:
         limits:
