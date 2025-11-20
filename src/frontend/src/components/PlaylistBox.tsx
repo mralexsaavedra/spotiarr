@@ -17,7 +17,9 @@ export const PlaylistBox = ({ playlist }: Props) => {
 
   const isCollapsed = collapsedPlaylists.has(playlist.id);
 
-  const completedCount = tracks.filter((t) => t.status === TrackStatus.Completed).length;
+  const completedCount = tracks.filter(
+    (t) => t.status === TrackStatus.Completed,
+  ).length;
   const totalCount = tracks.length;
 
   const handleToggleCollapse = () => {
@@ -25,12 +27,15 @@ export const PlaylistBox = ({ playlist }: Props) => {
   };
 
   const handleToggleActive = () => {
-    updatePlaylist.mutate({ id: playlist.id, data: { active: !playlist.active } });
+    updatePlaylist.mutate({
+      id: playlist.id,
+      data: { active: !playlist.active },
+    });
   };
 
   const handleDelete = () => {
     if (!Number.isFinite(playlist.id)) {
-      console.warn('Attempted delete playlist with invalid id', playlist.id);
+      console.warn("Attempted delete playlist with invalid id", playlist.id);
       return;
     }
     deletePlaylist.mutate(playlist.id);

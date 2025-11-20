@@ -38,7 +38,7 @@ export const TrackList = ({ playlistId }: Props) => {
 
   const handleRetry = (trackId: number) => {
     if (!Number.isFinite(trackId)) {
-      console.warn('Attempted retry with invalid track id', trackId);
+      console.warn("Attempted retry with invalid track id", trackId);
       return;
     }
     retryTrack.mutate(trackId);
@@ -46,7 +46,7 @@ export const TrackList = ({ playlistId }: Props) => {
 
   const handleDelete = (trackId: number) => {
     if (!Number.isFinite(trackId)) {
-      console.warn('Attempted delete with invalid track id', trackId);
+      console.warn("Attempted delete with invalid track id", trackId);
       return;
     }
     deleteTrack.mutate(trackId);

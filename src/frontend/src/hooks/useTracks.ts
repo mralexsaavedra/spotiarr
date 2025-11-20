@@ -15,49 +15,63 @@ export const useTracks = (playlistId: number) => {
     {
       mutationFn: (trackId: number) => api.retryTrack(trackId),
       onMutate: async (trackId: number) => {
-      await queryClient.cancelQueries({ queryKey: ['tracks', playlistId] });
-        const previous = queryClient.getQueryData<Track[]>(['tracks', playlistId]);
+        await queryClient.cancelQueries({ queryKey: ['tracks', playlistId] });
+        const previous = queryClient.getQueryData<Track[]>([
+          'tracks',
+          playlistId,
+        ]);
 
-        queryClient.setQueryData<Track[] | undefined>(['tracks', playlistId], (old = []) =>
-          old.map((t) => (t.id === trackId ? { ...t, status: TrackStatus.Searching } : t)),
+        queryClient.setQueryData<Track[] | undefined>(
+          ['tracks', playlistId],
+          (old = []) =>
+            old.map((t) =>
+              t.id === trackId ? { ...t, status: TrackStatus.Searching } : t,
+            ),
         );
 
         return { previous };
-    },
+      },
       onError: (_err, _variables, context) => {
         if (context?.previous) {
           queryClient.setQueryData(['tracks', playlistId], context.previous);
         }
       },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tracks', playlistId] });
-    },
-    }
-  );
-
-  const deleteTrack = useMutation<void, unknown, number, { previous?: Track[] }>(
-    {
-      mutationFn: (trackId: number) => api.deleteTrack(trackId),
-      onMutate: async (trackId: number) => {
-      await queryClient.cancelQueries({ queryKey: ['tracks', playlistId] });
-        const previous = queryClient.getQueryData<Track[]>(['tracks', playlistId]);
-
-        queryClient.setQueryData<Track[] | undefined>(['tracks', playlistId], (old = []) =>
-          old.filter((t) => t.id !== trackId),
-        );
-
-        return { previous };
-    },
-      onError: (_err, _variables, context) => {
-        if (context?.previous) {
-          queryClient.setQueryData(['tracks', playlistId], context.previous);
-        }
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['tracks', playlistId] });
       },
+    },
+  );
+
+  const deleteTrack = useMutation<
+    void,
+    unknown,
+    number,
+    { previous?: Track[] }
+  >({
+    mutationFn: (trackId: number) => api.deleteTrack(trackId),
+    onMutate: async (trackId: number) => {
+      await queryClient.cancelQueries({ queryKey: ['tracks', playlistId] });
+      const previous = queryClient.getQueryData<Track[]>([
+        'tracks',
+        playlistId,
+      ]);
+
+      queryClient.setQueryData<Track[] | undefined>(
+        ['tracks', playlistId],
+        (old = []) => old.filter((t) => t.id !== trackId),
+      );
+
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['tracks', playlistId], context.previous);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tracks', playlistId] });
     },
-    }
-  );
+  });
 
   return {
     tracks,
