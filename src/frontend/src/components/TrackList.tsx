@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { TrackStatus } from "@/types/track";
 import clsx from "clsx";
@@ -36,21 +37,27 @@ const STATUS_CONFIG: Record<number, { label: string; className: string }> = {
 export const TrackList = ({ playlistId }: Props) => {
   const { tracks, retryTrack, deleteTrack } = useTracks(playlistId);
 
-  const handleRetry = (trackId: number) => {
-    if (!Number.isFinite(trackId)) {
-      console.warn("Attempted retry with invalid track id", trackId);
-      return;
-    }
-    retryTrack.mutate(trackId);
-  };
+  const handleRetry = useCallback(
+    (trackId: number) => {
+      if (!Number.isFinite(trackId)) {
+        console.warn("Attempted retry with invalid track id", trackId);
+        return;
+      }
+      retryTrack.mutate(trackId);
+    },
+    [retryTrack],
+  );
 
-  const handleDelete = (trackId: number) => {
-    if (!Number.isFinite(trackId)) {
-      console.warn("Attempted delete with invalid track id", trackId);
-      return;
-    }
-    deleteTrack.mutate(trackId);
-  };
+  const handleDelete = useCallback(
+    (trackId: number) => {
+      if (!Number.isFinite(trackId)) {
+        console.warn("Attempted delete with invalid track id", trackId);
+        return;
+      }
+      deleteTrack.mutate(trackId);
+    },
+    [deleteTrack],
+  );
 
   if (tracks.length === 0) {
     return (

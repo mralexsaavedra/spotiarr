@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { usePlaylists } from "@/hooks/usePlaylists";
 import { useTracks } from "@/hooks/useTracks";
 import { TrackStatus } from "@/types/track";
@@ -17,52 +18,56 @@ export const PlaylistBox = ({ playlist }: Props) => {
 
   const isCollapsed = collapsedPlaylists.has(playlist.id);
 
-  const completedCount = tracks.filter(
-    (t) => t.status === TrackStatus.Completed,
-  ).length;
-  const totalCount = tracks.length;
+  const completedCount = useMemo(
+    () =>
+      tracks.filter((t) => t.status === TrackStatus.Completed).length,
+    [tracks],
+  );
+  const totalCount = useMemo(() => tracks.length, [tracks]);
+  const failedTracks = useMemo(
+    () => tracks.filter((t) => t.status === TrackStatus.Error),
+    [tracks],
+  );
 
-  const handleToggleCollapse = () => {
+  const handleToggleCollapse = useCallback(() => {
     togglePlaylistCollapse(playlist.id);
-  };
+  }, [playlist.id, togglePlaylistCollapse]);
 
-  const handleToggleActive = () => {
+  const handleToggleActive = useCallback(() => {
     updatePlaylist.mutate({
       id: playlist.id,
       data: { active: !playlist.active },
     });
-  };
+  }, [playlist.active, playlist.id, updatePlaylist]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!Number.isFinite(playlist.id)) {
       console.warn("Attempted delete playlist with invalid id", playlist.id);
       return;
     }
     deletePlaylist.mutate(playlist.id);
-  };
+  }, [deletePlaylist, playlist.id]);
 
-  const failedTracks = tracks.filter((t) => t.status === TrackStatus.Error);
-
-  const handleRetryFailed = () => {
+  const handleRetryFailed = useCallback(() => {
     if (!failedTracks.length || !Number.isFinite(playlist.id)) {
       return;
     }
     retryFailedTracks.mutate(playlist.id);
-  };
+  }, [failedTracks.length, playlist.id, retryFailedTracks]);
 
-  const getStatusClass = () => {
+  const statusClass = useMemo(() => {
     if (playlist.error) return "border-red-500";
     if (playlist.active) return "border-spotify-green";
     if (completedCount === totalCount && totalCount > 0)
       return "border-green-500";
     return "";
-  };
+  }, [completedCount, playlist.active, playlist.error, totalCount]);
 
   return (
     <article
       className={clsx(
         "border-2 dark:border-spotify-gray-medium rounded-xl mb-4 overflow-hidden bg-gray-50 dark:bg-spotify-gray-medium hover:border-spotify-green transition-all",
-        getStatusClass(),
+        statusClass,
       )}
     >
       <div className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-spotify-gray-dark dark:to-spotify-gray-medium px-5 py-4 flex justify-between items-center border-b-2 dark:border-spotify-gray-dark">
