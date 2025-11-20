@@ -31,7 +31,7 @@ import { M3uService } from './shared/m3u.service';
       inject: [ConfigService],
     }),
     ServeStaticModule.forRoot({
-      rootPath: resolve(__dirname, '../../../dist/frontend/browser'),
+      rootPath: resolve(process.cwd(), 'dist/frontend/browser'),
       exclude: ['/api/(.*)'],
     }),
     BullModule.forRootAsync({
