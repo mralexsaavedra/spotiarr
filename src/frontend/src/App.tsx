@@ -79,17 +79,17 @@ export const App = () => {
           <span className="text-2xl font-black tracking-tight">SpotiArr</span>
         </div>
         <nav className="flex flex-col gap-4">
-          <a href="#" className="flex items-center gap-2 text-spotify-gray-dark dark:text-spotify-gray-light hover:text-spotify-green font-semibold transition">
-            <i className="fa-solid fa-house" />
-            <span>Home</span>
+          <a href="#" className="group flex items-center gap-2 text-spotify-gray-dark dark:text-spotify-gray-light font-semibold transition">
+            <i className="fa-solid fa-house group-hover:text-spotify-green group-hover:dark:text-spotify-green transition" />
+            <span className="group-hover:text-spotify-green group-hover:dark:text-spotify-green transition">Home</span>
           </a>
-          <a href="#" className="flex items-center gap-2 text-spotify-gray-dark dark:text-spotify-gray-light hover:text-spotify-green font-semibold transition">
-            <i className="fa-solid fa-list" />
-            <span>Playlists</span>
+          <a href="#" className="group flex items-center gap-2 text-spotify-gray-dark dark:text-spotify-gray-light font-semibold transition">
+            <i className="fa-solid fa-list group-hover:text-spotify-green group-hover:dark:text-spotify-green transition" />
+            <span className="group-hover:text-spotify-green group-hover:dark:text-spotify-green transition">Playlists</span>
           </a>
-          <a href="#" className="flex items-center gap-2 text-spotify-gray-dark dark:text-spotify-gray-light hover:text-spotify-green font-semibold transition">
-            <i className="fa-solid fa-download" />
-            <span>Downloads</span>
+          <a href="#" className="group flex items-center gap-2 text-spotify-gray-dark dark:text-spotify-gray-light font-semibold transition">
+            <i className="fa-solid fa-download group-hover:text-spotify-green group-hover:dark:text-spotify-green transition" />
+            <span className="group-hover:text-spotify-green group-hover:dark:text-spotify-green transition">Downloads</span>
           </a>
         </nav>
         <div className="mt-auto pt-8">
