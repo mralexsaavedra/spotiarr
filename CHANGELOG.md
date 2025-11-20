@@ -42,7 +42,7 @@ Initial public release of SpotiArr - Self-hosted Spotify downloader with Jellyfi
 
 ### 🐳 Docker & DevOps
 
-- Multi-stage Dockerfile with Node.js 23-alpine
+- Multi-stage Dockerfile with Node.js 24-alpine
 - Complete Docker Compose setup (main, override, dev configurations)
 - GitHub Actions workflow for automated Docker Hub publishing
 - Multi-platform support (linux/amd64, linux/arm64)
