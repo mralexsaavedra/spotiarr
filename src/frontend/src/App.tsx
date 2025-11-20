@@ -93,9 +93,20 @@ export const App = () => {
           </a>
         </nav>
         <div className="mt-auto pt-8">
-          <button onClick={toggleDarkMode} className="w-full px-4 py-2 rounded-full bg-spotify-gray-light dark:bg-spotify-gray-medium hover:bg-spotify-gray-medium/80 transition text-black dark:text-white" title="Toggle theme">
-            <i className={`fa-solid ${isDarkMode ? "fa-sun" : "fa-moon"}`} />
-            <span className="ml-2">{isDarkMode ? "Light" : "Dark"} mode</span>
+          <button
+            onClick={toggleDarkMode}
+            className={
+              `w-full px-4 py-2 rounded-full border border-spotify-gray-medium dark:border-spotify-gray-light bg-spotify-gray-light dark:bg-spotify-gray-medium transition flex items-center justify-center gap-2 hover:bg-spotify-green/20 hover:border-spotify-green dark:hover:bg-spotify-green/30`
+            }
+            title="Toggle theme"
+          >
+            <i
+              className={`fa-solid ${isDarkMode ? "fa-sun" : "fa-moon"}`}
+              style={{ color: isDarkMode ? '#FFD700' : '#282828' }}
+            />
+            <span className={isDarkMode ? "text-white" : "text-black font-semibold"}>
+              {isDarkMode ? "Light" : "Dark"} mode
+            </span>
           </button>
           <div className="mt-4 text-xs text-spotify-gray-dark dark:text-spotify-gray-light">v{version}</div>
         </div>
