@@ -7,7 +7,7 @@ Thank you for considering contributing to SpotiArr! This document provides guide
 ### Prerequisites
 
 - **Node.js**: v24 LTS or higher (use nvm: `nvm use`)
-- **pnpm**: v9.0.0 or higher (`npm install -g pnpm`)
+- **pnpm**: v9.0.0 or higher (use corepack: `corepack enable` or install globally: `npm install -g pnpm`)
 - **Python**: 3.11 or 3.12 (required for native module compilation)
 - **Redis**: Required for queue management
 - **FFmpeg**: Required for audio processing
@@ -31,9 +31,10 @@ pnpm install
 3. If you encounter issues with `better-sqlite3` compilation:
 
 ```bash
-cd node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3
-PYTHON=$(which python3.11) npm run build-release
-cd ../../../../../
+# Ensure Python 3.11 or 3.12 is installed
+pnpm rebuild better-sqlite3
+# If still failing:
+pnpm rebuild better-sqlite3 --config.ignore-scripts=false
 ```
 
 4. Create and configure `.env` file:
@@ -136,11 +137,19 @@ Run linting:
 pnpm lint
 ```
 
+Format code:
+
+```bash
+pnpm format
+```
+
 Test the application manually:
 
 ```bash
 pnpm dev
 ```
+
+**Note**: Pre-commit hooks will automatically run linting and formatting on staged files before each commit.
 
 ### 4. Commit Your Changes
 
@@ -206,6 +215,8 @@ Create a Pull Request on GitHub with:
 
 - [ ] Code follows project style guidelines
 - [ ] Linting passes (`pnpm lint`)
+- [ ] Code is formatted (`pnpm format`)
+- [ ] Pre-commit hooks pass successfully
 - [ ] No console.log or debug code left in
 - [ ] Documentation updated if needed
 - [ ] Commits are clean and well-described
