@@ -60,6 +60,3 @@ Dockerfile
 # CI/CD
 .github/
 
-# Other
-.netlify
-.angular/

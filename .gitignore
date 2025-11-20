@@ -58,10 +58,6 @@ Thumbs.db
 *.sublime-workspace
 *.sublime-project
 
-# Angular
-.angular/
-.sass-cache/
-
 # Temporary files
 .temp/
 .tmp/
