@@ -91,13 +91,18 @@
 
 ### 8. Crear favicon personalizado
 
-- **Estado**: Pendiente
+- **Estado**: ✅ Completado
 - **Descripción**: Generar favicon.ico basado en logo.svg
 - **Tareas**:
   - Convertir `assets/logo.svg` a favicon.ico (múltiples tamaños)
   - Añadir a `src/frontend/public/favicon.ico`
   - Verificar que `index.html` lo referencie correctamente
 - **Herramientas**: https://realfavicongenerator.net/
+- **Archivos añadidos**:
+  - `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`
+  - `apple-touch-icon.png`
+  - `android-chrome-192x192.png`, `android-chrome-512x512.png`
+  - `site.webmanifest` actualizado con metadata de SpotiArr
 
 ### 9. Crear script de pre-commit con linting
 
