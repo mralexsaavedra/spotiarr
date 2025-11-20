@@ -51,7 +51,7 @@ SpotiArr bridges the gap between Spotify and your personal media server. Downloa
 ```bash
 # Using Docker (recommended)
 docker run -d -p 3000:3000 \
-  -v /path/to/music:/spotiarr/backend/downloads \
+  -v /path/to/music:/spotiarr/downloads \
   -e SPOTIFY_CLIENT_ID=your_client_id \
   -e SPOTIFY_CLIENT_SECRET=your_client_secret \
   mralexandersaavedra/spotiarr:latest
@@ -73,14 +73,20 @@ Then open http://localhost:3000 in your browser!
     - [Spotify App Configuration](#spotify-app-configuration)
     - [Docker](#docker)
       - [Docker command](#docker-command)
-      - [Docker compose](#docker-compose)
+      - [Docker compose (Recommended)](#docker-compose-recommended)
     - [Build from source](#build-from-source)
       - [Requirements](#requirements)
       - [Process](#process)
+      - [Troubleshooting](#troubleshooting)
     - [Environment variables](#environment-variables)
     - [How to get your YouTube cookies (using browser dev tools):](#how-to-get-your-youtube-cookies-using-browser-dev-tools)
     - [🎵 M3U Playlist Generation](#-m3u-playlist-generation)
   - [📺 Jellyfin Integration](#-jellyfin-integration)
+  - [🛠️ Development](#️-development)
+    - [Project Structure](#project-structure)
+    - [Tech Stack](#tech-stack)
+    - [Available Scripts](#available-scripts)
+    - [Development Workflow](#development-workflow)
   - [🤝 Contributing](#-contributing)
   - [📝 Changelog](#-changelog)
   - [💬 Support](#-support)
@@ -112,7 +118,7 @@ For detailed configuration, see available [environment variables](#environment-v
 
 ```shell
 docker run -d -p 3000:3000 \
-  -v /path/to/downloads:/spotiarr/backend/downloads \
+  -v /path/to/downloads:/spotiarr/downloads \
   -e SPOTIFY_CLIENT_ID=your_client_id \
   -e SPOTIFY_CLIENT_SECRET=your_client_secret \
   mralexandersaavedra/spotiarr:latest
@@ -218,6 +224,7 @@ SpotiArr can be also build from source files on your own.
 
 - Ensure Python 3.11 or 3.12 is installed (Python 3.13+ won't work)
 - Run: `pnpm rebuild better-sqlite3`
+- If still failing, try: `pnpm rebuild better-sqlite3 --config.ignore-scripts=false`
 
 **Issue: Redis connection errors**
 
