@@ -70,14 +70,13 @@ export const PlaylistBox = ({ playlist }: Props) => {
         statusClass
       )}
     >
-      <div className="flex items-center justify-between px-6 py-5 border-b border-spotify-gray-light dark:border-spotify-gray-dark">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-spotify-gray-light dark:border-spotify-gray-dark cursor-pointer select-none" onClick={handleToggleCollapse}>
         <div className="flex items-center gap-4">
           <i
             className={clsx(
-              "cursor-pointer fa-solid text-spotify-green text-xl hover:scale-110 transition-transform",
+              "fa-solid text-spotify-green text-xl hover:scale-110 transition-transform",
               isCollapsed ? "fa-caret-down" : "fa-caret-right"
             )}
-            onClick={handleToggleCollapse}
           />
           <div>
             <div className="flex items-center gap-2">
@@ -90,6 +89,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
                 rel="noopener noreferrer"
                 className="text-spotify-green hover:text-spotify-green-light hover:scale-110 transition-all"
                 title="Open in Spotify"
+                onClick={e => e.stopPropagation()}
               >
                 <i className="fa-brands fa-spotify text-lg" />
               </a>
@@ -104,7 +104,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4" onClick={e => e.stopPropagation()}>
           <i
             className={clsx(
               "fa-solid cursor-pointer text-2xl hover:text-spotify-green hover:scale-110 transition-all",
