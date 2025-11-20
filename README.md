@@ -118,11 +118,16 @@ A complete `docker-compose.yml` is included in the repository with Redis:
 cp .env.example .env
 
 # 2. Edit .env with your Spotify credentials
-# 3. Start services
+# REDIS_HOST=redis (already set for Docker)
+
+# 3. Start services (uses DockerHub image)
 docker-compose up -d
+
+# OR for local development (builds from source)
+docker-compose -f docker-compose.dev.yml up -d
 ```
 
-See the included `docker-compose.yml` for full configuration with Redis, volumes, and all environment variables.
+The compose file includes Redis, resource limits, health checks, and persistent volumes.
 
 ### Build from source
 

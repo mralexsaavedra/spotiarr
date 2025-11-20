@@ -35,35 +35,11 @@ services:
       - ./downloads:/spotiarr/dist/backend/downloads
       # Development: mount source for hot reload (optional)
       # - ./src:/spotiarr/src
+    env_file:
+      - .env
     environment:
-      # Database
-      - DB_PATH=./config/db.sqlite
-
-      # Paths
-      - FE_PATH=../frontend/browser
-      - DOWNLOADS_PATH=./downloads
-
-      # Server
-      - PORT=3000
-      - FORMAT=mp3
-
-      # Redis
+      # Override for Docker
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_RUN=false
-
-      # Spotify API (REQUIRED - Replace with your credentials)
-      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-your_client_id}
-      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-your_client_secret}
-
-      # YouTube
-      - YT_COOKIES=${YT_COOKIES:-}
-      - YT_DOWNLOADS_PER_MINUTE=3
-
-      # M3U Playlist Generation
-      - M3U_GENERATION_ENABLED=true
-
-      # Development
       - NODE_ENV=development
     depends_on:
       redis:
