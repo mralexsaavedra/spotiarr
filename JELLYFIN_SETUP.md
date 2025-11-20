@@ -191,7 +191,7 @@ downloads/                          # Jellyfin music library
 The music structure is controlled by:
 
 ```env
-DOWNLOADS_PATH=./downloads  # Base path where Music/ and Playlists/ folders are created
+DOWNLOADS_PATH=./downloads  # Base path for downloads (relative to project root)
 FORMAT=mp3                   # Audio format (mp3, m4a, etc.)
 M3U_GENERATION_ENABLED=true  # Enable/disable M3U playlist generation
 ```
