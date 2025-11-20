@@ -69,18 +69,17 @@ export const TrackList = ({ playlistId }: Props) => {
   }
 
   return (
-    <div>
+    <div className="space-y-2">
       {tracks.map((track) => {
         const artists = track.artists ?? [];
-
         return (
           <div
             key={track.id}
-            className="flex justify-between items-center px-5 py-3 border-b dark:border-spotify-gray-dark hover:bg-gray-100 dark:hover:bg-spotify-gray-dark transition-all group"
+            className="flex justify-between items-center rounded-xl bg-spotify-gray-light dark:bg-spotify-gray-dark px-6 py-4 shadow-sm border border-spotify-gray-light dark:border-spotify-gray-medium hover:border-spotify-green hover:bg-spotify-gray-medium transition-all group"
           >
-            <div className="flex items-center gap-3 dark:text-white flex-wrap">
-              <span className="font-medium flex items-center gap-2 flex-wrap text-sm sm:text-base">
-                <span className="text-spotify-gray-light flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="font-semibold flex items-center gap-2 text-base text-black dark:text-white">
+                <span className="text-spotify-gray-light flex items-center gap-1">
                   {artists.length
                     ? artists.map((artist, index) => (
                         <span key={`${artist.name}-${index}`} className="flex items-center gap-1">
@@ -109,31 +108,29 @@ export const TrackList = ({ playlistId }: Props) => {
                     href={track.trackUrl || track.spotifyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-black dark:text-white hover:text-spotify-green hover:underline decoration-spotify-green decoration-2 underline-offset-4 transition-colors"
+                    className="text-white hover:text-spotify-green hover:underline decoration-spotify-green decoration-2 underline-offset-4 transition-colors"
                   >
                     {track.name}
                   </a>
                 ) : (
-                  <span className="text-black dark:text-white">{track.name}</span>
+                  <span className="text-white">{track.name}</span>
                 )}
               </span>
-
               {track.youtubeUrl && (
                 <a
                   href={track.youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-red-500 hover:text-red-600 hover:scale-110 transition-all"
+                  className="text-red-500 hover:text-red-600 hover:scale-110 transition-all ml-2"
                   title="View on YouTube"
                 >
                   <i className="fa-brands fa-youtube" />
                 </a>
               )}
-
               {track.status === TrackStatus.Completed && (
                 <a
                   href={`/api/track/download/${track.id}`}
-                  className="text-blue-500 hover:text-blue-600 hover:scale-110 transition-all"
+                  className="text-blue-500 hover:text-blue-600 hover:scale-110 transition-all ml-2"
                   title="Download file"
                   download
                 >
@@ -141,8 +138,7 @@ export const TrackList = ({ playlistId }: Props) => {
                 </a>
               )}
             </div>
-
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {track.status === TrackStatus.Error && (
                 <i
                   className="fa-solid fa-repeat cursor-pointer hover:text-spotify-green hover:scale-110 transition-all text-spotify-gray-light"
@@ -158,13 +154,10 @@ export const TrackList = ({ playlistId }: Props) => {
               <span
                 className={clsx(
                   "inline-block px-3 py-1 text-xs font-bold rounded-full border",
-                  // defensive: fallback to Error class if unknown
-                  STATUS_CONFIG[track.status]?.className ||
-                    STATUS_CONFIG[TrackStatus.Error].className,
+                  STATUS_CONFIG[track.status]?.className || STATUS_CONFIG[TrackStatus.Error].className,
                 )}
               >
-                {STATUS_CONFIG[track.status]?.label ||
-                  STATUS_CONFIG[TrackStatus.Error].label}
+                {STATUS_CONFIG[track.status]?.label || STATUS_CONFIG[TrackStatus.Error].label}
               </span>
             </div>
           </div>
