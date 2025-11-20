@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePlaylists } from "./hooks/usePlaylists";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useUIStore } from "./store/useUIStore";
 import { PlaylistStatusEnum, type Playlist } from "./types/playlist";
+import { TrackStatus } from "./types/track";
 import { api } from "./services/api";
 import { PlaylistBox } from "./components/PlaylistBox";
 
@@ -27,30 +28,53 @@ export const App = () => {
     }
   }, [isDarkMode]);
 
+  const getPlaylistStatus = useCallback((playlist: Playlist): PlaylistStatusEnum => {
+    if (playlist.error) return PlaylistStatusEnum.Error;
+
+    const tracks = playlist.tracks ?? [];
+    const hasTracks = tracks.length > 0;
+    const completedTracks = tracks.filter(
+      (track) => track.status === TrackStatus.Completed,
+    ).length;
+    const failedTracks = tracks.filter(
+      (track) => track.status === TrackStatus.Error,
+    ).length;
+
+    if (hasTracks && completedTracks === tracks.length) {
+      return PlaylistStatusEnum.Completed;
+    }
+
+    if (failedTracks > 0) {
+      return PlaylistStatusEnum.Warning;
+    }
+
+    if (playlist.active) return PlaylistStatusEnum.Subscribed;
+
+    return PlaylistStatusEnum.InProgress;
+  }, []);
+
   const handleDownload = () => {
     if (!url.trim()) return;
     createPlaylist.mutate(url);
     setUrl("");
   };
 
-  const handleDeleteCompleted = () => {
+  const handleDeleteCompleted = useCallback(() => {
     playlists
       .filter((p) => getPlaylistStatus(p) === PlaylistStatusEnum.Completed)
       .forEach((p) => deletePlaylist.mutate(p.id));
-  };
+  }, [deletePlaylist, getPlaylistStatus, playlists]);
 
-  const handleDeleteFailed = () => {
+  const handleDeleteFailed = useCallback(() => {
     playlists
-      .filter((p) => p.error)
+      .filter((p) => {
+        if (p.error) return true;
+        return (p.tracks ?? []).some(
+          (track) => track.status === TrackStatus.Error,
+        );
+      })
       .forEach((p) => deletePlaylist.mutate(p.id));
-  };
-
-  const getPlaylistStatus = (playlist: Playlist): PlaylistStatusEnum => {
-    if (playlist.error) return PlaylistStatusEnum.Error;
-    if (playlist.active) return PlaylistStatusEnum.Subscribed;
-    // Add more status logic as needed
-    return PlaylistStatusEnum.InProgress;
-  };
+  }, [deletePlaylist, playlists]);
 
   return (
     <>

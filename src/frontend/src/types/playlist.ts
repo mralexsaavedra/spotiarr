@@ -1,3 +1,5 @@
+import type { Track } from "./track";
+
 export interface Playlist {
   id: number;
   name?: string;
@@ -9,6 +11,7 @@ export interface Playlist {
   coverUrl?: string;
   artistImageUrl?: string;
   collapsed?: boolean; // UI state
+  tracks?: Track[];
 }
 
 export enum PlaylistStatusEnum {

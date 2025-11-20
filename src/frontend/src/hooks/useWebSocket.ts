@@ -26,6 +26,19 @@ export const useWebSocket = () => {
       transports: ['websocket'],
     });
 
+    const updatePlaylistTracks = (
+      playlistId: number,
+      updater: (tracks: Track[]) => Track[],
+    ) => {
+      queryClient.setQueryData<Playlist[]>(['playlists'], (old = []) =>
+        old.map((playlist) =>
+          playlist.id === playlistId
+            ? { ...playlist, tracks: updater(playlist.tracks ?? []) }
+            : playlist,
+        ),
+      );
+    };
+
     // Playlist events
     socket.on('playlistNew', (playlist: Playlist) => {
       queryClient.setQueryData<Playlist[]>(['playlists'], (old = []) => [
@@ -60,6 +73,10 @@ export const useWebSocket = () => {
           ['tracks', playlistId],
           (old = []) => [...old, track],
         );
+        updatePlaylistTracks(playlistId, (tracks) => {
+          const exists = tracks.some((t) => t.id === track.id);
+          return exists ? tracks : [...tracks, track];
+        });
         return;
       }
 
@@ -71,6 +88,10 @@ export const useWebSocket = () => {
         ...old,
         track,
       ]);
+      updatePlaylistTracks(playlistId, (tracks) => {
+        const exists = tracks.some((t) => t.id === track.id);
+        return exists ? tracks : [...tracks, track];
+      });
     });
 
     socket.on('trackUpdate', (payload: unknown) => {
@@ -86,6 +107,9 @@ export const useWebSocket = () => {
             (old = []) => old.map((t) => (t.id === track.id ? track : t)),
           );
           queryClient.invalidateQueries({ queryKey: ['tracks', playlistId] });
+          updatePlaylistTracks(playlistId, (tracks) =>
+            tracks.map((t) => (t.id === track.id ? track : t)),
+          );
           return;
         }
       }
@@ -100,6 +124,9 @@ export const useWebSocket = () => {
           old.map((t) => (t.id === track.id ? track : t)),
         );
         queryClient.invalidateQueries({ queryKey: ['tracks', pl.id] });
+        updatePlaylistTracks(pl.id, (tracks) =>
+          tracks.map((t) => (t.id === track.id ? track : t)),
+        );
       });
     });
 
@@ -110,6 +137,9 @@ export const useWebSocket = () => {
       playlists.forEach((pl) => {
         if (pl.id) {
           queryClient.setQueryData<Track[]>(['tracks', pl.id], (tracks = []) =>
+            tracks.filter((t) => t.id !== trackId),
+          );
+          updatePlaylistTracks(pl.id, (tracks) =>
             tracks.filter((t) => t.id !== trackId),
           );
         }
