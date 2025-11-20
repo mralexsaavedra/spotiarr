@@ -75,7 +75,7 @@ export const TrackList = ({ playlistId }: Props) => {
         return (
           <div
             key={track.id}
-            className="flex justify-between items-center rounded-xl bg-white dark:bg-spotify-gray-dark px-6 py-4 shadow-sm border border-spotify-gray-light dark:border-spotify-gray-medium hover:border-spotify-green hover:bg-spotify-gray-light dark:hover:bg-spotify-gray-medium transition-all group"
+            className="flex justify-between items-center rounded-xl bg-neutral-100 dark:bg-spotify-gray-dark px-6 py-4 shadow-sm border border-spotify-gray-light dark:border-spotify-gray-medium hover:border-spotify-green hover:bg-neutral-200 dark:hover:bg-spotify-gray-medium transition-all group"
           >
             <div className="flex items-center gap-4 flex-wrap">
               <span className="font-semibold flex items-center gap-2 text-base text-black dark:text-white">
