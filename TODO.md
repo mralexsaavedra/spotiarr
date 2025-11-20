@@ -91,16 +91,7 @@
   - Verificar que `index.html` lo referencie correctamente
 - **Herramientas**: https://realfavicongenerator.net/
 
-### 9. Añadir variable NODE_ENV al .env.example
-- **Estado**: Pendiente
-- **Descripción**: Documentar NODE_ENV para diferenciar entornos
-- **Valores**: `development`, `production`
-- **Uso**:
-  - Cambiar nivel de logs según entorno
-  - Habilitar/deshabilitar dev tools
-  - Ajustar configuración de CORS
-
-### 10. Crear script de pre-commit con linting
+### 9. Crear script de pre-commit con linting
 - **Estado**: Pendiente
 - **Descripción**: Configurar husky + lint-staged para linting automático
 - **Configuración**:

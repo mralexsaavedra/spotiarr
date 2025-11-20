@@ -37,8 +37,6 @@ services:
       # - ./src:/spotiarr/src
     env_file:
       - .env
-    environment:
-      - NODE_ENV=development
     depends_on:
       redis:
         condition: service_healthy
