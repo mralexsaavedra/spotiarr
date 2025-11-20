@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PlaylistEntity } from './playlist.entity';
 import { TrackService } from '../track/track.service';
 import { Interval } from '@nestjs/schedule';

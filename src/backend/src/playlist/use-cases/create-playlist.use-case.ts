@@ -4,7 +4,10 @@ import { PlaylistRepository } from '../playlist.repository';
 import { PlaylistGateway } from '../playlist.gateway';
 import { SpotifyService } from '../../shared/spotify.service';
 import { TrackService } from '../../track/track.service';
-import { SpotifyUrlHelper, SpotifyUrlType } from '../../shared/spotify-url.helper';
+import {
+  SpotifyUrlHelper,
+  SpotifyUrlType,
+} from '../../shared/spotify-url.helper';
 
 @Injectable()
 export class CreatePlaylistUseCase {

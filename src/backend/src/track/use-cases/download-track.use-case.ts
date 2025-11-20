@@ -147,9 +147,7 @@ export class DownloadTrackUseCase {
         track.playlist.id,
       );
 
-      const isPlaylist = SpotifyUrlHelper.isPlaylist(
-        track.playlist.spotifyUrl,
-      );
+      const isPlaylist = SpotifyUrlHelper.isPlaylist(track.playlist.spotifyUrl);
       const hasMultipleTracks = playlistTracks.length > 1;
 
       if (isPlaylist && hasMultipleTracks) {

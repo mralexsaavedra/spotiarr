@@ -80,7 +80,7 @@ Or run them separately:
 # Terminal 1 - Backend (http://localhost:3000)
 pnpm start:be
 
-# Terminal 2 - Frontend (http://localhost:4200)
+# Terminal 2 - Frontend (http://localhost:5173)
 pnpm start:fe
 ```
 
@@ -95,7 +95,7 @@ spotiarr/
 │   │   │   ├── track/    # Track download & search
 │   │   │   └── shared/   # Shared services (Spotify, YouTube)
 │   │   └── package.json
-│   └── frontend/         # Angular frontend
+│   └── frontend/         # React 18 + Vite frontend
 │       ├── src/
 │       │   └── app/
 │       │       ├── components/
@@ -193,13 +193,13 @@ Create a Pull Request on GitHub with:
 - Use async/await over callbacks
 - Add JSDoc comments for public APIs
 
-### Angular Components
+### Frontend Components (React)
 
-- One component per file
-- Use OnPush change detection when possible
-- Unsubscribe from observables in `ngOnDestroy`
-- Use Angular services for business logic
-- Follow Angular style guide conventions
+- One component per file (prefer `tsx`)
+- Use functional components and hooks (no class components)
+- Use `useEffect`/`useMemo`/`useCallback` thoughtfully and keep components small
+- Use TanStack Query for server state and Zustand for UI state
+- Co-locate types and hooks with components when it improves readability
 
 ### NestJS Services
 

@@ -23,7 +23,7 @@
 - **Descripción**: Documentar el primer release público v0.1.0
 - **Incluido**:
   - Core features (playlist management, downloads, WebSocket, M3U)
-  - Technical stack completo (NestJS, Angular 19, Redis, SQLite)
+  - Technical stack completo (NestJS, React 18 + Vite, Redis, SQLite)
   - Development features (pre-commit hooks, linting, formatting)
   - Dependencias optimizadas (eliminación de 9 paquetes no usados)
   - Docker & DevOps (multi-stage builds, GitHub Actions)

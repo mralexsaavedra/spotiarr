@@ -40,7 +40,7 @@ SpotiArr bridges the gap between Spotify and your personal media server. Downloa
 - Works with Navidrome, Plex, and other media servers
 - Docker support for easy deployment
 
-**Tech Stack:** NestJS (Backend) + Angular 19 (Frontend) + Tailwind CSS + SQLite + Redis
+**Tech Stack:** NestJS (Backend) + React 18 + Vite (Frontend) + Tailwind CSS + SQLite + Redis
 
 > [!IMPORTANT]
 > **Legal Notice:** This tool is intended for personal use only. Download only music you have legal rights to access. The author is not responsible for any misuse of this software.
@@ -294,7 +294,7 @@ spotiarr/
 │   │   │   ├── playlist/ # Playlist management
 │   │   │   ├── track/    # Track downloads & processing
 │   │   │   └── shared/   # Shared services (Spotify, YouTube, etc.)
-│   └── frontend/         # Angular 19 frontend
+│   └── frontend/         # React 18 + Vite frontend
 ├── assets/               # Static assets (logo, etc.)
 └── dist/                 # Build output
 ```
@@ -302,7 +302,7 @@ spotiarr/
 ### Tech Stack
 
 - **Backend**: NestJS, TypeORM, BullMQ, better-sqlite3
-- **Frontend**: Angular 19, Tailwind CSS, RxJS
+- **Frontend**: React 18 + Vite, Tailwind CSS, TanStack Query
 - **Processing**: FFmpeg, ytdlp-nodejs
 - **Storage**: SQLite, Redis
 

@@ -15,13 +15,13 @@ Initial public release of SpotiArr - Self-hosted Spotify downloader with Jellyfi
 - **Download System**: Parallel track downloads with BullMQ queues and Redis
 - **Real-time Updates**: WebSocket integration for live download progress
 - **Media Server Integration**: Automatic M3U playlist generation for Jellyfin/Plex
-- **Web Interface**: Modern Angular 19 frontend with real-time status updates
+- **Web Interface**: Modern React 18 + Vite frontend with real-time status updates
 - **Docker Support**: Complete Docker Compose setup for production deployment
 
 ### 🛠️ Technical Stack
 
 - **Backend**: NestJS with TypeORM, BullMQ, Socket.io, better-sqlite3
-- **Frontend**: Angular 19 (standalone components), Tailwind CSS, Elf state management
+- **Frontend**: React 18 + Vite, Tailwind CSS, TanStack Query
 - **Runtime**: Node.js 24 LTS, pnpm 10.20.0
 - **Infrastructure**: Docker multi-stage builds, Redis for job queues
 - **Download Tools**: yt-dlp with auto-detection, ffmpeg for audio processing

@@ -1,7 +1,6 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "type": "module",
   "description": "SpotiArr Frontend",
   "author": "Alexander Saavedra <mralexsaavedra@gmail.com>",
   "license": "MIT",
