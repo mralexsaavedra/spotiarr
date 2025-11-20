@@ -1,7 +1,7 @@
 FROM node:23.10.0-alpine AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
@@ -23,10 +23,10 @@ RUN pnpm run build
 FROM node:23.10.0-alpine
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
-# Install runtime dependencies
-RUN apk add --no-cache ffmpeg redis python3
+# Install runtime dependencies (ffmpeg for audio processing)
+RUN apk add --no-cache ffmpeg
 
 WORKDIR /spotiarr
 
@@ -36,7 +36,6 @@ COPY --from=builder /spotiarr/package.json ./package.json
 COPY --from=builder /spotiarr/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder /spotiarr/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /spotiarr/src/backend/package.json ./src/backend/package.json
-COPY --from=builder /spotiarr/src/backend/.env.docker ./dist/backend/.env
 
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile

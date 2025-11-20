@@ -5,7 +5,7 @@ networks:
 services:
   redis:
     image: redis:7-alpine
-    container_name: spotiarr-redis
+    container_name: spotiarr-redis-dev
     restart: unless-stopped
     networks:
       - spotiarr-network
@@ -18,18 +18,13 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-        reservations:
-          cpus: "0.1"
-          memory: 64M
 
   spotiarr:
-    image: mralexandersaavedra/spotiarr:latest
-    container_name: spotiarr
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: spotiarr:dev
+    container_name: spotiarr-dev
     restart: unless-stopped
     networks:
       - spotiarr-network
@@ -38,14 +33,8 @@ services:
     volumes:
       - ./config:/spotiarr/dist/backend/config
       - ./downloads:/spotiarr/dist/backend/downloads
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2G
-        reservations:
-          cpus: "0.5"
-          memory: 512M
+      # Development: mount source for hot reload (optional)
+      # - ./src:/spotiarr/src
     environment:
       # Database
       - DB_PATH=./config/db.sqlite
@@ -73,6 +62,9 @@ services:
 
       # M3U Playlist Generation
       - M3U_GENERATION_ENABLED=true
+
+      # Development
+      - NODE_ENV=development
     depends_on:
       redis:
         condition: service_healthy
