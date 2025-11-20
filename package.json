@@ -32,7 +32,7 @@
     "build": "pnpm run build:be && pnpm run build:fe",
     "build:be": "pnpm --filter backend run build",
     "build:fe": "pnpm --filter frontend run build",
-    "start": "node dist/backend/main",
+    "start": "NODE_PATH=src/backend/node_modules node dist/backend/main",
     "lint": "pnpm --filter backend lint && pnpm --filter frontend lint",
     "format": "prettier --write \"*.{json,md,yml,yaml}\" && pnpm --filter backend format && pnpm --filter frontend format",
     "prepare": "husky"
