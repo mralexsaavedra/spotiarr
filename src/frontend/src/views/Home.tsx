@@ -15,10 +15,10 @@ export const Home = () => {
 
   const { playlists, createPlaylist, deletePlaylist } = usePlaylists();
   const { isDarkMode, toggleDarkMode } = useUIStore();
-  
+
   useWebSocket();
 
-  const {pathname} = useLocation();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     api.getVersion().then((data) => setVersion(data.version));
@@ -32,26 +32,33 @@ export const Home = () => {
     }
   }, [isDarkMode]);
 
-  const getPlaylistStatus = useCallback((playlist: Playlist): PlaylistStatusEnum => {
-    if (playlist.error) return PlaylistStatusEnum.Error;
-    
-    const tracks = playlist.tracks ?? [];
-    const hasTracks = tracks.length > 0;
-    const completedTracks = tracks.filter((track) => track.status === TrackStatus.Completed).length;
-    const failedTracks = tracks.filter((track) => track.status === TrackStatus.Error).length;
-    
-    if (hasTracks && completedTracks === tracks.length) {
-      return PlaylistStatusEnum.Completed;
-    }
-    
-    if (failedTracks > 0) {
-      return PlaylistStatusEnum.Warning;
-    }
-    
-    if (playlist.active) return PlaylistStatusEnum.Subscribed;
-    
-    return PlaylistStatusEnum.InProgress;
-  }, []);
+  const getPlaylistStatus = useCallback(
+    (playlist: Playlist): PlaylistStatusEnum => {
+      if (playlist.error) return PlaylistStatusEnum.Error;
+
+      const tracks = playlist.tracks ?? [];
+      const hasTracks = tracks.length > 0;
+      const completedTracks = tracks.filter(
+        (track) => track.status === TrackStatus.Completed,
+      ).length;
+      const failedTracks = tracks.filter(
+        (track) => track.status === TrackStatus.Error,
+      ).length;
+
+      if (hasTracks && completedTracks === tracks.length) {
+        return PlaylistStatusEnum.Completed;
+      }
+
+      if (failedTracks > 0) {
+        return PlaylistStatusEnum.Warning;
+      }
+
+      if (playlist.active) return PlaylistStatusEnum.Subscribed;
+
+      return PlaylistStatusEnum.InProgress;
+    },
+    [],
+  );
 
   const handleDownload = () => {
     if (!url.trim()) return;
@@ -61,29 +68,43 @@ export const Home = () => {
   };
 
   const handleDeleteCompleted = useCallback(() => {
-    playlists.filter((p) => getPlaylistStatus(p) === PlaylistStatusEnum.Completed).forEach((p) => deletePlaylist.mutate(p.id));
+    playlists
+      .filter((p) => getPlaylistStatus(p) === PlaylistStatusEnum.Completed)
+      .forEach((p) => deletePlaylist.mutate(p.id));
   }, [deletePlaylist, getPlaylistStatus, playlists]);
 
   const handleDeleteFailed = useCallback(() => {
-    playlists.filter((p) => {
-      if (p.error) return true;
+    playlists
+      .filter((p) => {
+        if (p.error) return true;
 
-      return (p.tracks ?? []).some((track) => track.status === TrackStatus.Error);
-    })
-    .forEach((p) => deletePlaylist.mutate(p.id));
+        return (p.tracks ?? []).some(
+          (track) => track.status === TrackStatus.Error,
+        );
+      })
+      .forEach((p) => deletePlaylist.mutate(p.id));
   }, [deletePlaylist, playlists]);
 
   // Layout base tipo Spotify
   return (
     <div className="flex min-h-screen bg-white dark:bg-spotify-black text-black dark:text-white">
-      <Sidebar pathname={pathname} version={version} toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />
+      <Sidebar
+        pathname={pathname}
+        version={version}
+        toggleDarkMode={toggleDarkMode}
+        isDarkMode={isDarkMode}
+      />
 
       <main className="flex-1 flex flex-col bg-white dark:bg-spotify-black ml-64">
         {/* Header */}
         <header className="bg-white dark:bg-spotify-black border-b border-spotify-gray-medium dark:border-spotify-gray-medium px-8 py-6 flex items-center justify-between">
           <div>
-            <p className="text-2xl font-bold text-black dark:text-white">Your personal Spotify downloader</p>
-            <p className="text-sm text-spotify-gray-dark dark:text-spotify-gray-light">Media server integration & real-time updates</p>
+            <p className="text-2xl font-bold text-black dark:text-white">
+              Your personal Spotify downloader
+            </p>
+            <p className="text-sm text-spotify-gray-dark dark:text-spotify-gray-light">
+              Media server integration & real-time updates
+            </p>
           </div>
           <div className="flex gap-3">
             <input
@@ -109,12 +130,22 @@ export const Home = () => {
         <section className="flex-1 bg-white dark:bg-spotify-black px-8 py-8">
           <div className="bg-spotify-gray-light dark:bg-spotify-gray-dark rounded-2xl shadow-xl p-6">
             <div className="flex justify-between items-center mb-6">
-              <p className="text-2xl font-bold text-black dark:text-white">Your Downloads</p>
+              <p className="text-2xl font-bold text-black dark:text-white">
+                Your Downloads
+              </p>
               <div className="flex gap-3">
-                <button className="px-4 py-2 bg-spotify-green/10 border-2 border-spotify-green text-spotify-green font-semibold rounded-full hover:bg-spotify-green hover:text-black transition-all" title="Remove completed from list" onClick={handleDeleteCompleted}>
+                <button
+                  className="px-4 py-2 bg-spotify-green/10 border-2 border-spotify-green text-spotify-green font-semibold rounded-full hover:bg-spotify-green hover:text-black transition-all"
+                  title="Remove completed from list"
+                  onClick={handleDeleteCompleted}
+                >
                   <i className="fa-solid fa-check" />
                 </button>
-                <button className="px-4 py-2 bg-red-500/10 border-2 border-red-500 text-red-500 font-semibold rounded-full hover:bg-red-500 hover:text-white transition-all" title="Remove failed from list" onClick={handleDeleteFailed}>
+                <button
+                  className="px-4 py-2 bg-red-500/10 border-2 border-red-500 text-red-500 font-semibold rounded-full hover:bg-red-500 hover:text-white transition-all"
+                  title="Remove failed from list"
+                  onClick={handleDeleteFailed}
+                >
                   <i className="fa-solid fa-xmark" />
                 </button>
               </div>

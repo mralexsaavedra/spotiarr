@@ -82,7 +82,10 @@ export const TrackList = ({ playlistId }: Props) => {
                 <span className="text-spotify-gray-dark dark:text-spotify-gray-light flex items-center gap-1">
                   {artists.length
                     ? artists.map((artist, index) => (
-                        <span key={`${artist.name}-${index}`} className="flex items-center gap-1">
+                        <span
+                          key={`${artist.name}-${index}`}
+                          className="flex items-center gap-1"
+                        >
                           {artist.url ? (
                             <a
                               href={artist.url}
@@ -102,7 +105,9 @@ export const TrackList = ({ playlistId }: Props) => {
                       ))
                     : track.artist}
                 </span>
-                <span className="text-spotify-gray-dark dark:text-spotify-gray-light">•</span>
+                <span className="text-spotify-gray-dark dark:text-spotify-gray-light">
+                  •
+                </span>
                 {track.trackUrl || track.spotifyUrl ? (
                   <a
                     href={track.trackUrl || track.spotifyUrl}
@@ -113,7 +118,9 @@ export const TrackList = ({ playlistId }: Props) => {
                     {track.name}
                   </a>
                 ) : (
-                  <span className="text-black dark:text-white">{track.name}</span>
+                  <span className="text-black dark:text-white">
+                    {track.name}
+                  </span>
                 )}
               </span>
               {track.youtubeUrl && (
@@ -154,10 +161,12 @@ export const TrackList = ({ playlistId }: Props) => {
               <span
                 className={clsx(
                   "inline-block px-3 py-1 text-xs font-bold rounded-full border",
-                  STATUS_CONFIG[track.status]?.className || STATUS_CONFIG[TrackStatus.Error].className,
+                  STATUS_CONFIG[track.status]?.className ||
+                    STATUS_CONFIG[TrackStatus.Error].className,
                 )}
               >
-                {STATUS_CONFIG[track.status]?.label || STATUS_CONFIG[TrackStatus.Error].label}
+                {STATUS_CONFIG[track.status]?.label ||
+                  STATUS_CONFIG[TrackStatus.Error].label}
               </span>
             </div>
           </div>

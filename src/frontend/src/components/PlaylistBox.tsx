@@ -19,8 +19,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
   const isCollapsed = collapsedPlaylists.has(playlist.id);
 
   const completedCount = useMemo(
-    () =>
-      tracks.filter((t) => t.status === TrackStatus.Completed).length,
+    () => tracks.filter((t) => t.status === TrackStatus.Completed).length,
     [tracks],
   );
   const totalCount = useMemo(() => tracks.length, [tracks]);
@@ -67,15 +66,18 @@ export const PlaylistBox = ({ playlist }: Props) => {
     <article
       className={clsx(
         "mb-6 rounded-2xl shadow-lg border border-spotify-gray-light dark:border-spotify-gray-dark bg-white dark:bg-spotify-black hover:border-spotify-green transition-all",
-        statusClass
+        statusClass,
       )}
     >
-      <div className="flex items-center justify-between px-6 py-5 border-b border-spotify-gray-light dark:border-spotify-gray-dark cursor-pointer select-none" onClick={handleToggleCollapse}>
+      <div
+        className="flex items-center justify-between px-6 py-5 border-b border-spotify-gray-light dark:border-spotify-gray-dark cursor-pointer select-none"
+        onClick={handleToggleCollapse}
+      >
         <div className="flex items-center gap-4">
           <i
             className={clsx(
               "fa-solid text-spotify-green text-xl hover:scale-110 transition-transform",
-              isCollapsed ? "fa-caret-down" : "fa-caret-right"
+              isCollapsed ? "fa-caret-down" : "fa-caret-right",
             )}
           />
           <div>
@@ -89,7 +91,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
                 rel="noopener noreferrer"
                 className="text-spotify-green hover:text-spotify-green-light hover:scale-110 transition-all"
                 title="Open in Spotify"
-                onClick={e => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
                 <i className="fa-brands fa-spotify text-lg" />
               </a>
@@ -104,22 +106,37 @@ export const PlaylistBox = ({ playlist }: Props) => {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-4" onClick={e => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-4"
+          onClick={(e) => e.stopPropagation()}
+        >
           <i
             className={clsx(
               "fa-solid cursor-pointer text-2xl hover:text-spotify-green hover:scale-110 transition-all",
-              playlist.active ? "fa-toggle-on text-spotify-green" : "fa-toggle-off"
+              playlist.active
+                ? "fa-toggle-on text-spotify-green"
+                : "fa-toggle-off",
             )}
-            title={playlist.active ? "[ON]: Unsubscribe from playlist changes?" : "[OFF]: Subscribe to playlist changes?"}
+            title={
+              playlist.active
+                ? "[ON]: Unsubscribe from playlist changes?"
+                : "[OFF]: Subscribe to playlist changes?"
+            }
             onClick={handleToggleActive}
           />
           <i
             className={clsx(
               "fa-solid fa-repeat text-xl transition-all",
-              failedTracks.length ? "cursor-pointer hover:text-spotify-green hover:scale-110" : "cursor-not-allowed text-spotify-gray-light/60",
-              retryFailedTracks.isPending && "animate-pulse text-spotify-green"
+              failedTracks.length
+                ? "cursor-pointer hover:text-spotify-green hover:scale-110"
+                : "cursor-not-allowed text-spotify-gray-light/60",
+              retryFailedTracks.isPending && "animate-pulse text-spotify-green",
             )}
-            title={failedTracks.length ? "Reintentar descargas fallidas" : "No hay descargas fallidas que reintentar"}
+            title={
+              failedTracks.length
+                ? "Reintentar descargas fallidas"
+                : "No hay descargas fallidas que reintentar"
+            }
             onClick={failedTracks.length ? handleRetryFailed : undefined}
           />
           <i
