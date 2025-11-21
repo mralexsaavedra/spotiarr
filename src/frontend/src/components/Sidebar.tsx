@@ -63,16 +63,12 @@ export const Sidebar = ({
           className={`fa-solid ${isDarkMode ? "fa-sun" : "fa-moon"}`}
           style={{ color: isDarkMode ? "#FFD700" : "#282828" }}
         />
-        <span
-          className={isDarkMode ? "text-white" : "text-black font-semibold"}
-        >
+        <span className={isDarkMode ? "text-white" : "text-black font-semibold"}>
           {isDarkMode ? "Light" : "Dark"} mode
         </span>
       </button>
 
-      <div className="mt-4 text-xs text-spotify-gray-dark dark:text-spotify-gray-light">
-        v{version}
-      </div>
+      <div className="mt-4 text-xs text-spotify-gray-dark dark:text-spotify-gray-light">v{version}</div>
     </div>
   </aside>
 );

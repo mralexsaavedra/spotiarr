@@ -1,10 +1,10 @@
-import { useCallback, useMemo } from "react";
 import { usePlaylists } from "@/hooks/usePlaylists";
 import { useTracks } from "@/hooks/useTracks";
-import { TrackStatus } from "@/types/track";
 import { useUIStore } from "@/store/useUIStore";
 import type { Playlist } from "@/types/playlist";
+import { TrackStatus } from "@/types/track";
 import clsx from "clsx";
+import { useCallback, useMemo } from "react";
 import { TrackList } from "./TrackList";
 
 interface Props {
@@ -18,15 +18,9 @@ export const PlaylistBox = ({ playlist }: Props) => {
 
   const isCollapsed = collapsedPlaylists.has(playlist.id);
 
-  const completedCount = useMemo(
-    () => tracks.filter((t) => t.status === TrackStatus.Completed).length,
-    [tracks],
-  );
+  const completedCount = useMemo(() => tracks.filter((t) => t.status === TrackStatus.Completed).length, [tracks]);
   const totalCount = useMemo(() => tracks.length, [tracks]);
-  const failedTracks = useMemo(
-    () => tracks.filter((t) => t.status === TrackStatus.Error),
-    [tracks],
-  );
+  const failedTracks = useMemo(() => tracks.filter((t) => t.status === TrackStatus.Error), [tracks]);
 
   const handleToggleCollapse = useCallback(() => {
     togglePlaylistCollapse(playlist.id);
@@ -57,8 +51,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
   const statusClass = useMemo(() => {
     if (playlist.error) return "border-red-500";
     if (playlist.active) return "border-spotify-green";
-    if (completedCount === totalCount && totalCount > 0)
-      return "border-green-500";
+    if (completedCount === totalCount && totalCount > 0) return "border-green-500";
     return "";
   }, [completedCount, playlist.active, playlist.error, totalCount]);
 
@@ -96,9 +89,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
                 <i className="fa-brands fa-spotify text-lg" />
               </a>
               {playlist.error && (
-                <span className="ml-2 text-sm font-semibold text-red-500 dark:text-red-400">
-                  {playlist.error}
-                </span>
+                <span className="ml-2 text-sm font-semibold text-red-500 dark:text-red-400">{playlist.error}</span>
               )}
             </div>
             <span className="text-xs text-spotify-gray-dark dark:text-spotify-gray-light">
@@ -106,21 +97,14 @@ export const PlaylistBox = ({ playlist }: Props) => {
             </span>
           </div>
         </div>
-        <div
-          className="flex items-center gap-4"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
           <i
             className={clsx(
               "fa-solid cursor-pointer text-2xl hover:text-spotify-green hover:scale-110 transition-all",
-              playlist.active
-                ? "fa-toggle-on text-spotify-green"
-                : "fa-toggle-off",
+              playlist.active ? "fa-toggle-on text-spotify-green" : "fa-toggle-off",
             )}
             title={
-              playlist.active
-                ? "[ON]: Unsubscribe from playlist changes?"
-                : "[OFF]: Subscribe to playlist changes?"
+              playlist.active ? "[ON]: Unsubscribe from playlist changes?" : "[OFF]: Subscribe to playlist changes?"
             }
             onClick={handleToggleActive}
           />
@@ -132,11 +116,7 @@ export const PlaylistBox = ({ playlist }: Props) => {
                 : "cursor-not-allowed text-spotify-gray-light/60",
               retryFailedTracks.isPending && "animate-pulse text-spotify-green",
             )}
-            title={
-              failedTracks.length
-                ? "Reintentar descargas fallidas"
-                : "No hay descargas fallidas que reintentar"
-            }
+            title={failedTracks.length ? "Reintentar descargas fallidas" : "No hay descargas fallidas que reintentar"}
             onClick={failedTracks.length ? handleRetryFailed : undefined}
           />
           <i
