@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { usePlaylists } from "./hooks/usePlaylists";
-import { useWebSocket } from "./hooks/useWebSocket";
-import { useUIStore } from "./store/useUIStore";
-import { PlaylistStatusEnum, type Playlist } from "./types/playlist";
-import { TrackStatus } from "./types/track";
-import { api } from "./services/api";
-import { PlaylistBox } from "./components/PlaylistBox";
-import { Sidebar } from "./components/Sidebar";
+import { usePlaylists } from "../hooks/usePlaylists";
+import { useWebSocket } from "../hooks/useWebSocket";
+import { useUIStore } from "../store/useUIStore";
+import { PlaylistStatusEnum, type Playlist } from "../types/playlist";
+import { TrackStatus } from "../types/track";
+import { api } from "../services/api";
+import { PlaylistBox } from "../components/PlaylistBox";
+import { Sidebar } from "../components/Sidebar";
+import { useLocation } from "react-router-dom";
 
-export const App = () => {
+export const Home = () => {
   const [url, setUrl] = useState("");
   const [version, setVersion] = useState("");
 
@@ -16,6 +17,8 @@ export const App = () => {
   const { isDarkMode, toggleDarkMode } = useUIStore();
   
   useWebSocket();
+
+  const {pathname} = useLocation();
 
   useEffect(() => {
     api.getVersion().then((data) => setVersion(data.version));
@@ -73,7 +76,7 @@ export const App = () => {
   // Layout base tipo Spotify
   return (
     <div className="flex min-h-screen bg-white dark:bg-spotify-black text-black dark:text-white">
-      <Sidebar version={version} toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />
+      <Sidebar pathname={pathname} version={version} toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />
 
       <main className="flex-1 flex flex-col bg-white dark:bg-spotify-black ml-64">
         {/* Header */}
