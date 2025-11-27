@@ -22,6 +22,9 @@ RUN pnpm install --frozen-lockfile
 # Copy all source files
 COPY src/ ./src/
 
+# Generate Prisma Client
+RUN pnpm --filter backend prisma:generate
+
 # Build all packages
 RUN pnpm run build
 
@@ -44,8 +47,11 @@ COPY --from=builder /spotiarr/src/ ./src/
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile
 
+# Generate Prisma Client for production
+RUN pnpm --filter backend prisma:generate
+
 # Default downloads path inside the container; can be overridden by env if needed
 ENV DOWNLOADS_PATH=/downloads
 
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["sh", "-c", "pnpm --filter backend prisma:migrate:deploy && pnpm start"]

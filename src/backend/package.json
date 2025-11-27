@@ -11,7 +11,8 @@
     "lint": "spotiarr-lint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\"",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

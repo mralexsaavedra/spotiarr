@@ -22,17 +22,17 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🎵 **Smart Downloads** | Paste any Spotify URL (track/album/playlist) and download with metadata |
-| 🔄 **Auto-Sync Playlists** | Subscribe to playlists for automatic updates when new tracks are added |
-| 📁 **Jellyfin-Ready** | Organized folder structure (`Playlists/`, `Artist/Album/`) + M3U generation |
-| 🎨 **Modern UI** | Spotify-inspired dark theme with real-time progress tracking |
-| 🏷️ **Rich Metadata** | Automatic tagging (artist, album, year, cover art embedded + saved) |
-| 🚫 **Duplicate Detection** | Smart checks to avoid re-downloading existing tracks |
-| 🐳 **Docker First** | One-command deployment with Redis included |
+| Feature                    | Description                                                                 |
+| -------------------------- | --------------------------------------------------------------------------- |
+| 🎵 **Smart Downloads**     | Paste any Spotify URL (track/album/playlist) and download with metadata     |
+| 🔄 **Auto-Sync Playlists** | Subscribe to playlists for automatic updates when new tracks are added      |
+| 📁 **Jellyfin-Ready**      | Organized folder structure (`Playlists/`, `Artist/Album/`) + M3U generation |
+| 🎨 **Modern UI**           | Spotify-inspired dark theme with real-time progress tracking                |
+| 🏷️ **Rich Metadata**       | Automatic tagging (artist, album, year, cover art embedded + saved)         |
+| 🚫 **Duplicate Detection** | Smart checks to avoid re-downloading existing tracks                        |
+| 🐳 **Docker First**        | One-command deployment with Redis included                                  |
 
-**Stack:** Express + React 18 + Vite + Tailwind + SQLite + Redis + BullMQ
+**Stack:** Express + Prisma + React 18 + Vite + Tailwind + SQLite + Redis + BullMQ
 
 > [!IMPORTANT]  
 > **Legal Notice:** Personal use only. Download music you have legal rights to access. The author is not responsible for misuse.
@@ -106,14 +106,14 @@ pnpm dev  # Backend (3000) + Frontend (5173)
 
 ### Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `SPOTIFY_CLIENT_ID` | ✅ | - | Spotify app Client ID |
-| `SPOTIFY_CLIENT_SECRET` | ✅ | - | Spotify app Client Secret |
-| `SPOTIFY_REDIRECT_URI` | ❌ | `http://127.0.0.1:3000/api/auth/spotify/callback` | OAuth callback |
-| `REDIS_HOST` | ❌ | `localhost` | Redis hostname (`redis` for Docker) |
-| `REDIS_PORT` | ❌ | `6379` | Redis port |
-| `YT_COOKIES` | ❌ | - | YouTube cookies for yt-dlp ([how to get](#youtube-cookies)) |
+| Variable                | Required | Default                                           | Description                                                 |
+| ----------------------- | -------- | ------------------------------------------------- | ----------------------------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | ✅       | -                                                 | Spotify app Client ID                                       |
+| `SPOTIFY_CLIENT_SECRET` | ✅       | -                                                 | Spotify app Client Secret                                   |
+| `SPOTIFY_REDIRECT_URI`  | ❌       | `http://127.0.0.1:3000/api/auth/spotify/callback` | OAuth callback                                              |
+| `REDIS_HOST`            | ❌       | `localhost`                                       | Redis hostname (`redis` for Docker)                         |
+| `REDIS_PORT`            | ❌       | `6379`                                            | Redis port                                                  |
+| `YT_COOKIES`            | ❌       | -                                                 | YouTube cookies for yt-dlp ([how to get](#youtube-cookies)) |
 
 ### In-App Settings
 
@@ -164,6 +164,7 @@ downloads/
 Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, and guidelines.
 
 **Quick commands:**
+
 ```bash
 pnpm dev       # Backend + frontend
 pnpm lint      # ESLint + Prettier
@@ -171,7 +172,8 @@ pnpm build     # Production build
 ```
 
 **Architecture:**
-- **Backend:** Express + TypeORM + BullMQ + SQLite
+
+- **Backend:** Express + Prisma + BullMQ + SQLite
 - **Frontend:** React 18 + Vite + TanStack Query + Tailwind + Zustand
 - **Queue:** Redis + BullMQ for download jobs
 - **Processing:** FFmpeg + yt-dlp
