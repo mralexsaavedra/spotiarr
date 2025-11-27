@@ -1,9 +1,9 @@
 import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { EmptyHistory } from "../components/EmptyHistory";
-import { HistoryItem } from "../components/HistoryItem";
-import { Loading } from "../components/Loading";
-import { PageHeader } from "../components/PageHeader";
+import { Loading } from "../components/atoms/Loading";
+import { PageHeader } from "../components/atoms/PageHeader";
+import { EmptyHistory } from "../components/molecules/EmptyHistory";
+import { HistoryItem } from "../components/molecules/HistoryItem";
 import { useRecreatePlaylistMutation } from "../hooks/mutations/useRecreatePlaylistMutation";
 import { useDownloadHistoryQuery } from "../hooks/queries/useDownloadHistoryQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";

@@ -1,9 +1,9 @@
 import { FC } from "react";
 import { Outlet } from "react-router-dom";
-import { Header } from "../components/Header";
-import { Sidebar } from "../components/Sidebar";
-import { Path } from "../routes/routes";
-import { useUIStore } from "../store/useUIStore";
+import { Path } from "../../routes/routes";
+import { useUIStore } from "../../store/useUIStore";
+import { Header } from "../organisms/Header";
+import { Sidebar } from "../organisms/Sidebar";
 
 interface AppLayoutProps {
   pathname: Path;

@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
-import { Path } from "../routes/routes";
+import { Path } from "../../routes/routes";
 
 interface NavItem {
   label: string;

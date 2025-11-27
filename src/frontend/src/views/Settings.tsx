@@ -1,10 +1,10 @@
 import { SettingMetadata } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
-import { Button } from "../components/Button";
-import { PageHeader } from "../components/PageHeader";
-import { SettingInput } from "../components/SettingInput";
-import { SettingSelect } from "../components/SettingSelect";
-import { SettingToggle } from "../components/SettingToggle";
+import { Button } from "../components/atoms/Button";
+import { PageHeader } from "../components/atoms/PageHeader";
+import { SettingInput } from "../components/molecules/SettingInput";
+import { SettingSelect } from "../components/molecules/SettingSelect";
+import { SettingToggle } from "../components/molecules/SettingToggle";
 import { useSettingsForm } from "../hooks/useSettingsForm";
 
 export const Settings: FC = () => {

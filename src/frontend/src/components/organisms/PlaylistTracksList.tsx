@@ -1,9 +1,9 @@
 import { FC } from "react";
-import { Track } from "../types/track";
-import { EmptyPlaylistTracks } from "./EmptyPlaylistTracks";
-import { TrackActions } from "./TrackActions";
-import { TrackListItem } from "./TrackListItem";
-import { TrackStatusBadge } from "./TrackStatusBadge";
+import { Track } from "../../types/track";
+import { TrackStatusBadge } from "../atoms/TrackStatusBadge";
+import { EmptyPlaylistTracks } from "../molecules/EmptyPlaylistTracks";
+import { TrackActions } from "../molecules/TrackActions";
+import { TrackListItem } from "../molecules/TrackListItem";
 
 interface PlaylistTracksListProps {
   tracks: Track[];

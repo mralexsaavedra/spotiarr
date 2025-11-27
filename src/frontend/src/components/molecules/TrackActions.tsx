@@ -1,5 +1,5 @@
 import { FC, useCallback } from "react";
-import { TrackStatus } from "../types/track";
+import { TrackStatus } from "../../types/track";
 
 interface TrackActionsProps {
   trackId: string | null;

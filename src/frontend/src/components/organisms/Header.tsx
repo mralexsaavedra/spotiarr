@@ -1,6 +1,6 @@
 import { ChangeEvent, FC, KeyboardEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { useCreatePlaylistFromUrl } from "../hooks/useCreatePlaylistFromUrl";
+import { useCreatePlaylistFromUrl } from "../../hooks/useCreatePlaylistFromUrl";
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
@@ -82,7 +82,6 @@ export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
         )}
       </div>
 
-      {/* Mobile input (below header) */}
       <div className="md:hidden mt-3">
         <div className="relative">
           <input

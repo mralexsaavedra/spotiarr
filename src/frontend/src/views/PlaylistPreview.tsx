@@ -1,12 +1,12 @@
 import { FC, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loading } from "../components/Loading";
-import { PreviewActions } from "../components/PreviewActions";
-import { PreviewError } from "../components/PreviewError";
-import { TrackListItem } from "../components/TrackListItem";
+import { Loading } from "../components/atoms/Loading";
+import { PlaylistLayout } from "../components/layouts/PlaylistLayout";
+import { PreviewActions } from "../components/molecules/PreviewActions";
+import { PreviewError } from "../components/molecules/PreviewError";
+import { TrackListItem } from "../components/molecules/TrackListItem";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
-import { PlaylistLayout } from "../layouts/PlaylistLayout";
 import { Path } from "../routes/routes";
 import { formatDuration } from "../utils/date";
 

@@ -1,11 +1,11 @@
 import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ConnectSpotifyPrompt } from "../components/ConnectSpotifyPrompt";
-import { EmptyReleases } from "../components/EmptyReleases";
-import { Loading } from "../components/Loading";
-import { PageHeader } from "../components/PageHeader";
-import { RateLimitedMessage } from "../components/RateLimitedMessage";
-import { ReleaseCard } from "../components/ReleaseCard";
+import { Loading } from "../components/atoms/Loading";
+import { PageHeader } from "../components/atoms/PageHeader";
+import { EmptyReleases } from "../components/molecules/EmptyReleases";
+import { RateLimitedMessage } from "../components/molecules/RateLimitedMessage";
+import { ConnectSpotifyPrompt } from "../components/organisms/ConnectSpotifyPrompt";
+import { ReleaseCard } from "../components/organisms/ReleaseCard";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useReleasesQuery } from "../hooks/queries/useReleasesQuery";

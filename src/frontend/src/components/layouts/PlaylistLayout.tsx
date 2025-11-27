@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { Loading } from "../components/Loading";
+import { Loading } from "../atoms/Loading";
 
 interface PlaylistLayoutProps {
   coverUrl: string | null;

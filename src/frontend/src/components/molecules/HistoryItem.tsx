@@ -1,6 +1,6 @@
 import { FC, MouseEvent, useCallback } from "react";
-import { formatRelativeDate } from "../utils/date";
-import { Button } from "./Button";
+import { formatRelativeDate } from "../../utils/date";
+import { Button } from "../atoms/Button";
 
 interface HistoryItemProps {
   playlistName: string;

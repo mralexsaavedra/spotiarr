@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Route, Routes } from "react-router-dom";
-import { AppLayout } from "../layouts/AppLayout";
+import { AppLayout } from "../components/layouts/AppLayout";
 import { History } from "../views/History";
 import { Home } from "../views/Home";
 import { PlaylistDetail } from "../views/PlaylistDetail";

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { PlaylistList } from "../components/PlaylistList";
+import { PlaylistList } from "../components/organisms/PlaylistList";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { shouldClearPlaylist } from "../utils/playlist";

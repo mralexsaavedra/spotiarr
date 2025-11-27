@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { TrackStatus } from "../types/track";
+import { TrackStatus } from "../../types/track";
 
 interface TrackStatusBadgeProps {
   status: TrackStatus;

@@ -1,6 +1,6 @@
 import { FC } from "react";
-import type { Playlist } from "../types/playlist";
-import { Button } from "./Button";
+import type { Playlist } from "../../types/playlist";
+import { Button } from "../atoms/Button";
 import { PlaylistCard } from "./PlaylistCard";
 
 interface PlaylistListProps {

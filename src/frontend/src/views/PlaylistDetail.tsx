@@ -1,8 +1,9 @@
 import { FC, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PlaylistActions } from "../components/PlaylistActions";
-import { PlaylistNotFound } from "../components/PlaylistNotFound";
-import { PlaylistTracksList } from "../components/PlaylistTracksList";
+import { PlaylistLayout } from "../components/layouts/PlaylistLayout";
+import { PlaylistActions } from "../components/molecules/PlaylistActions";
+import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
+import { PlaylistTracksList } from "../components/organisms/PlaylistTracksList";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { useDeleteTrackMutation } from "../hooks/mutations/useDeleteTrackMutation";
 import { useRetryFailedTracksMutation } from "../hooks/mutations/useRetryFailedTracksMutation";
@@ -10,7 +11,6 @@ import { useRetryTrackMutation } from "../hooks/mutations/useRetryTrackMutation"
 import { useUpdatePlaylistMutation } from "../hooks/mutations/useUpdatePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useTracksQuery } from "../hooks/queries/useTracksQuery";
-import { PlaylistLayout } from "../layouts/PlaylistLayout";
 import { Path } from "../routes/routes";
 import { TrackStatus } from "../types/track";
 
