@@ -296,8 +296,6 @@ SpotiArr organizes your music library following Jellyfin's recommended structure
 - **Cover Art:** Automatically saved as `cover.jpg` in each folder
 - **M3U Files:** Generated for playlists for easy import
 
-For detailed setup instructions, see [JELLYFIN_SETUP.md](JELLYFIN_SETUP.md)
-
 ## 🛠️ Development
 
 ### Project Structure
@@ -356,8 +354,6 @@ If you encounter any issues or have questions:
 
 - Open an [issue](https://github.com/mralexsaavedra/spotiarr/issues)
 - Check existing issues for solutions
-- Read the [Jellyfin Integration Guide](JELLYFIN_SETUP.md)
-
 ## ⭐ Show Your Support
 
 If you find SpotiArr useful, please consider giving it a star on GitHub! It helps the project gain visibility and encourages further development.
