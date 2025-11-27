@@ -2,9 +2,7 @@ import { FC, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PlaylistActions } from "../components/PlaylistActions";
 import { PlaylistNotFound } from "../components/PlaylistNotFound";
-import { TrackActions } from "../components/TrackActions";
-import { TrackListItem } from "../components/TrackListItem";
-import { TrackStatusBadge } from "../components/TrackStatusBadge";
+import { PlaylistTracksList } from "../components/PlaylistTracksList";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { useDeleteTrackMutation } from "../hooks/mutations/useDeleteTrackMutation";
 import { useRetryFailedTracksMutation } from "../hooks/mutations/useRetryFailedTracksMutation";
@@ -102,30 +100,11 @@ export const PlaylistDetail: FC = () => {
         />
       }
     >
-      {tracks.length > 0 && (
-        <div className="space-y-1">
-          {tracks.map((track, index) => (
-            <TrackListItem
-              key={track.id}
-              index={index}
-              name={track.name}
-              trackUrl={track.trackUrl}
-              artists={track.artists || track.artist}
-              actions={
-                <>
-                  <TrackStatusBadge status={track.status} />
-                  <TrackActions
-                    trackId={track.id}
-                    status={track.status}
-                    onRetry={handleRetryTrack}
-                    onDelete={handleDeleteTrack}
-                  />
-                </>
-              }
-            />
-          ))}
-        </div>
-      )}
+      <PlaylistTracksList
+        tracks={tracks}
+        onRetryTrack={handleRetryTrack}
+        onDeleteTrack={handleDeleteTrack}
+      />
     </PlaylistLayout>
   );
 };
