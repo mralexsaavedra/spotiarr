@@ -1,8 +1,8 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
-import { emitSseEvent } from "routes/events.routes";
-import { SettingsService } from "services/settings.service";
-import { YoutubeService } from "services/youtube.service";
-import { getTrackDownloadQueue } from "setup/queues";
+import { emitSseEvent } from "../../routes/events.routes";
+import { SettingsService } from "../../services/settings.service";
+import { YoutubeService } from "../../services/youtube.service";
+import { getTrackDownloadQueue } from "../../setup/queues";
 import { TrackRepository } from "./track.repository";
 
 export class SearchTrackOnYoutubeUseCase {

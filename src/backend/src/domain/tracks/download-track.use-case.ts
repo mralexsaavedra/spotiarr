@@ -1,12 +1,12 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
-import { TrackFileHelper } from "helpers/track-file.helper";
 import * as path from "path";
-import { PrismaHistoryRepository } from "repositories/prisma-history.repository";
-import { emitSseEvent } from "routes/events.routes";
-import { M3uService } from "services/m3u.service";
-import { UtilsService } from "services/utils.service";
-import { YoutubeService } from "services/youtube.service";
+import { TrackFileHelper } from "../../helpers/track-file.helper";
+import { PrismaHistoryRepository } from "../../repositories/prisma-history.repository";
+import { emitSseEvent } from "../../routes/events.routes";
+import { M3uService } from "../../services/m3u.service";
+import { UtilsService } from "../../services/utils.service";
+import { YoutubeService } from "../../services/youtube.service";
 import { TrackRepository } from "./track.repository";
 
 export class DownloadTrackUseCase {

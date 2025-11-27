@@ -1,6 +1,6 @@
 import { type ITrack } from "@spotiarr/shared";
-import { DownloadTrackUseCase } from "domain/tracks/download-track.use-case";
-import { SearchTrackOnYoutubeUseCase } from "domain/tracks/search-track-on-youtube.use-case";
+import { DownloadTrackUseCase } from "../domain/tracks/download-track.use-case";
+import { SearchTrackOnYoutubeUseCase } from "../domain/tracks/search-track-on-youtube.use-case";
 import { TrackUseCases } from "../domain/tracks/track.use-cases";
 import { TrackFileHelper } from "../helpers/track-file.helper";
 import { PrismaTrackRepository } from "../repositories/prisma-track.repository";

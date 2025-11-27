@@ -8,7 +8,16 @@ import routes from "./routes";
 export const app: Express = express();
 
 // Security middleware
-app.use(helmet());
+const cspDirectives = helmet.contentSecurityPolicy.getDefaultDirectives();
+cspDirectives["img-src"] = ["'self'", "data:", "https:"];
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: cspDirectives,
+    },
+  }),
+);
 app.use(cors());
 
 // Body parsing
