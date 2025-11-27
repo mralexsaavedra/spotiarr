@@ -2,7 +2,7 @@ import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { emitSseEvent } from "../../routes/events.routes";
 import { SettingsService } from "../../services/settings.service";
 import { YoutubeService } from "../../services/youtube.service";
-import { getTrackDownloadQueue } from "../../setup/queues";
+import type { TrackQueueService } from "./track-queue.service";
 import { TrackRepository } from "./track.repository";
 
 export class SearchTrackOnYoutubeUseCase {
@@ -10,6 +10,7 @@ export class SearchTrackOnYoutubeUseCase {
     private readonly trackRepository: TrackRepository,
     private readonly youtubeService: YoutubeService,
     private readonly settingsService: SettingsService,
+    private readonly queueService: TrackQueueService,
   ) {}
 
   async execute(track: ITrack): Promise<void> {
@@ -54,18 +55,7 @@ export class SearchTrackOnYoutubeUseCase {
     if (updatedTrack.youtubeUrl && updatedTrack.status === TrackStatusEnum.Queued) {
       const maxRetries = await this.settingsService.getNumber("DOWNLOAD_MAX_RETRIES");
       const safeMaxRetries = maxRetries >= 1 && maxRetries <= 10 ? maxRetries : 3;
-
-      const jobId = `download-${updatedTrack.id}-${Date.now()}`;
-      await getTrackDownloadQueue().add("download-track", updatedTrack, {
-        jobId,
-        attempts: safeMaxRetries,
-        backoff: {
-          type: "exponential",
-          delay: 5000,
-        },
-        removeOnComplete: true,
-        removeOnFail: false,
-      });
+      await this.queueService.enqueueDownloadTrack(updatedTrack, { maxRetries: safeMaxRetries });
     }
   }
 }

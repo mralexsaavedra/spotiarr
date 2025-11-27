@@ -4,6 +4,7 @@ import { SearchTrackOnYoutubeUseCase } from "../domain/tracks/search-track-on-yo
 import { TrackUseCases } from "../domain/tracks/track.use-cases";
 import { TrackFileHelper } from "../helpers/track-file.helper";
 import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
+import { BullMqTrackQueueService } from "./bullmq-track-queue.service";
 import { M3uService } from "./m3u.service";
 import { SettingsService } from "./settings.service";
 import { UtilsService } from "./utils.service";
@@ -18,7 +19,8 @@ export class TrackService {
 
   constructor() {
     this.repository = new PrismaTrackRepository();
-    this.useCases = new TrackUseCases({ repository: this.repository });
+    const queueService = new BullMqTrackQueueService();
+    this.useCases = new TrackUseCases({ repository: this.repository, queueService });
     this.trackFileHelper = new TrackFileHelper();
 
     const youtubeService = new YoutubeService();
@@ -30,6 +32,7 @@ export class TrackService {
       this.repository,
       youtubeService,
       settingsService,
+      queueService,
     );
 
     this.downloadTrackUseCase = new DownloadTrackUseCase(

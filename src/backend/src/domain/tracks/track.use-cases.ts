@@ -1,10 +1,11 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { AppError } from "../../middleware/error-handler";
-import { getTrackSearchQueue } from "../../setup/queues";
+import type { TrackQueueService } from "./track-queue.service";
 import type { TrackRepository } from "./track.repository";
 
 export interface TrackUseCaseDependencies {
   repository: TrackRepository;
+  queueService: TrackQueueService;
 }
 
 export class TrackUseCases {
@@ -33,10 +34,7 @@ export class TrackUseCases {
 
   async create(track: Partial<ITrack>): Promise<void> {
     const savedTrack = await this.deps.repository.save(track as ITrack);
-
-    await getTrackSearchQueue().add("search-track", savedTrack, {
-      jobId: `id-${savedTrack.id}`,
-    });
+    await this.deps.queueService.enqueueSearchTrack(savedTrack);
   }
 
   async update(id: string, track: Partial<ITrack>): Promise<void> {
@@ -48,11 +46,7 @@ export class TrackUseCases {
     if (!track) {
       throw new AppError(404, "track_not_found");
     }
-
-    await getTrackSearchQueue().add("search-track", track, {
-      jobId: `id-${id}`,
-    });
-
+    await this.deps.queueService.enqueueSearchTrack(track);
     await this.update(id, { status: TrackStatusEnum.New });
   }
 }
