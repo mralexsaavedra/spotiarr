@@ -1,11 +1,12 @@
-import type { IPlaylist } from "@spotiarr/shared";
+import type { Playlist, Track as DbTrack, Prisma } from "@prisma/client";
+import type { IPlaylist, TrackArtist } from "@spotiarr/shared";
 import type { PlaylistRepository } from "../domain/playlists/playlist.repository";
 import { prisma } from "../setup/prisma";
 
 export class PrismaPlaylistRepository implements PlaylistRepository {
   async findAll(includesTracks = false, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {
     const playlists = await prisma.playlist.findMany({
-      where: where as any,
+      where: where as Prisma.PlaylistWhereInput | undefined,
       include: { tracks: includesTracks },
     });
     return playlists.map(this.mapToIPlaylist);
@@ -54,33 +55,37 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
     await prisma.playlist.delete({ where: { id } });
   }
 
-  private mapToIPlaylist(playlist: any): IPlaylist {
+  private mapToIPlaylist(playlist: Playlist & { tracks?: DbTrack[] }): IPlaylist {
     return {
       id: playlist.id,
-      name: playlist.name,
-      type: playlist.type,
+      name: playlist.name ?? undefined,
+      type: (playlist.type as IPlaylist["type"]) ?? undefined,
       spotifyUrl: playlist.spotifyUrl,
-      error: playlist.error,
+      error: playlist.error ?? undefined,
       subscribed: playlist.subscribed,
       createdAt: playlist.createdAt ? Number(playlist.createdAt) : undefined,
-      coverUrl: playlist.coverUrl,
-      artistImageUrl: playlist.artistImageUrl,
-      tracks: playlist.tracks?.map((track: any) => ({
+      coverUrl: playlist.coverUrl ?? undefined,
+      artistImageUrl: playlist.artistImageUrl ?? undefined,
+      tracks: playlist.tracks?.map((track) => ({
         id: track.id,
         name: track.name,
         artist: track.artist,
-        album: track.album,
-        albumYear: track.albumYear,
-        trackNumber: track.trackNumber,
-        spotifyUrl: track.spotifyUrl,
-        trackUrl: track.trackUrl,
-        artists: track.artists,
-        youtubeUrl: track.youtubeUrl,
-        status: track.status,
-        error: track.error,
+        album: track.album ?? undefined,
+        albumYear: track.albumYear ?? undefined,
+        trackNumber: track.trackNumber ?? undefined,
+        spotifyUrl: track.spotifyUrl ?? undefined,
+        trackUrl: track.trackUrl ?? undefined,
+        artists: track.artists ? (track.artists as unknown as TrackArtist[]) : undefined,
+        youtubeUrl: track.youtubeUrl ?? undefined,
+        status: track.status as unknown as IPlaylist["tracks"] extends (infer T)[] | undefined
+          ? T extends { status?: infer S }
+            ? S
+            : undefined
+          : undefined,
+        error: track.error ?? undefined,
         createdAt: track.createdAt ? Number(track.createdAt) : undefined,
         completedAt: track.completedAt ? Number(track.completedAt) : undefined,
-        playlistId: track.playlistId,
+        playlistId: track.playlistId ?? undefined,
       })),
     };
   }

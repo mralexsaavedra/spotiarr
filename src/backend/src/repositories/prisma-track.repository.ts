@@ -1,11 +1,12 @@
-import type { ITrack } from "@spotiarr/shared";
+import type { Prisma, Track as DbTrack } from "@prisma/client";
+import type { ITrack, TrackArtist, TrackStatusEnum } from "@spotiarr/shared";
 import type { TrackRepository } from "../domain/tracks/track.repository";
 import { prisma } from "../setup/prisma";
 
 export class PrismaTrackRepository implements TrackRepository {
   async findAll(where?: Partial<ITrack>): Promise<ITrack[]> {
     const tracks = await prisma.track.findMany({
-      where: where as any,
+      where: where as Prisma.TrackWhereInput | undefined,
       include: { playlist: true },
     });
     return tracks.map(this.mapToITrack);
@@ -43,7 +44,7 @@ export class PrismaTrackRepository implements TrackRepository {
         trackNumber: track.trackNumber,
         spotifyUrl: track.spotifyUrl,
         trackUrl: track.trackUrl,
-        artists: track.artists as any,
+        artists: (track.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput,
         youtubeUrl: track.youtubeUrl,
         status: track.status || "New",
         error: track.error,
@@ -66,7 +67,10 @@ export class PrismaTrackRepository implements TrackRepository {
         trackNumber: track.trackNumber,
         spotifyUrl: track.spotifyUrl,
         trackUrl: track.trackUrl,
-        artists: track.artists as any,
+        artists:
+          track.artists !== undefined
+            ? ((track.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput)
+            : undefined,
         youtubeUrl: track.youtubeUrl,
         status: track.status,
         error: track.error,
@@ -83,23 +87,23 @@ export class PrismaTrackRepository implements TrackRepository {
     await prisma.track.deleteMany({ where: { id: { in: ids } } });
   }
 
-  private mapToITrack(track: any): ITrack {
+  private mapToITrack(track: DbTrack): ITrack {
     return {
       id: track.id,
       name: track.name,
       artist: track.artist,
-      album: track.album,
-      albumYear: track.albumYear,
-      trackNumber: track.trackNumber,
-      spotifyUrl: track.spotifyUrl,
-      trackUrl: track.trackUrl,
-      artists: track.artists,
-      youtubeUrl: track.youtubeUrl,
-      status: track.status,
-      error: track.error,
+      album: track.album ?? undefined,
+      albumYear: track.albumYear ?? undefined,
+      trackNumber: track.trackNumber ?? undefined,
+      spotifyUrl: track.spotifyUrl ?? undefined,
+      trackUrl: track.trackUrl ?? undefined,
+      artists: track.artists ? (track.artists as unknown as TrackArtist[]) : undefined,
+      youtubeUrl: track.youtubeUrl ?? undefined,
+      status: track.status as TrackStatusEnum,
+      error: track.error ?? undefined,
       createdAt: track.createdAt ? Number(track.createdAt) : undefined,
       completedAt: track.completedAt ? Number(track.completedAt) : undefined,
-      playlistId: track.playlistId,
+      playlistId: track.playlistId ?? undefined,
     };
   }
 }
