@@ -44,9 +44,9 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     label: "New releases lookback period (days)",
     description: "How far back to look for new releases.",
   },
-  RELEASES_MAX_FOLLOWED_ARTISTS: {
-    key: "RELEASES_MAX_FOLLOWED_ARTISTS",
-    defaultValue: "100",
+  FOLLOWED_ARTISTS_MAX: {
+    key: "FOLLOWED_ARTISTS_MAX",
+    defaultValue: "200",
     type: "number",
     component: "input",
     section: "Releases",
@@ -54,7 +54,7 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     max: 300,
     label: "Maximum followed artists",
     description:
-      "Maximum number of followed artists to check for new releases. Higher values may slow down the releases feed and increase API usage.",
+      "Maximum number of followed artists to consider across releases and artists views. Higher values may slow down the releases feed and increase API usage.",
   },
   RELEASES_CACHE_MINUTES: {
     key: "RELEASES_CACHE_MINUTES",

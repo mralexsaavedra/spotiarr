@@ -80,6 +80,8 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
+const FOLLOWED_ARTISTS_MAX_KEY = "FOLLOWED_ARTISTS_MAX";
+
 export class SpotifyApiService {
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
@@ -646,7 +648,7 @@ export class SpotifyApiService {
     try {
       const artists: SpotifyArtistFull[] = [];
       let after: string | undefined;
-      const maxArtists = await this.settingsService.getNumber("RELEASES_MAX_FOLLOWED_ARTISTS");
+      const maxArtists = await this.settingsService.getNumber(FOLLOWED_ARTISTS_MAX_KEY);
       const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
 
       do {
@@ -780,7 +782,7 @@ export class SpotifyApiService {
     try {
       const artists: SpotifyArtistFull[] = [];
       let after: string | undefined;
-      const maxArtists = await this.settingsService.getNumber("RELEASES_MAX_FOLLOWED_ARTISTS");
+      const maxArtists = await this.settingsService.getNumber("FOLLOWED_ARTISTS_MAX");
       const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
 
       do {
