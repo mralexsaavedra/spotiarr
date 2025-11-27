@@ -17,7 +17,6 @@
   "dependencies": {
     "@prisma/client": "^6.0.0",
     "@spotiarr/shared": "workspace:*",
-    "better-sqlite3": "^12.4.6",
     "bullmq": "^5.64.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
