@@ -30,42 +30,33 @@ export const History: FC = () => {
     [recreatePlaylist, navigate],
   );
 
-  if (isLoading) {
-    return (
-      <section className="w-full bg-background px-4 md:px-8 py-6">
-        <PageHeader title="Download History" />
-        <Loading message="Loading history..." />
-      </section>
-    );
-  }
-
-  if (playlists.length === 0) {
-    return (
-      <section className="w-full bg-background px-4 md:px-8 py-6">
-        <PageHeader title="Download History" />
-        <EmptyHistory />
-      </section>
-    );
-  }
-
   return (
     <section className="w-full bg-background px-4 md:px-8 py-6">
       <div className="max-w-full">
         <PageHeader title="Download History" />
-        <div className="space-y-3">
-          {playlists.map((playlist) => (
-            <HistoryItem
-              key={playlist.playlistId ?? playlist.playlistSpotifyUrl ?? playlist.playlistName}
-              playlistName={playlist.playlistName}
-              playlistSpotifyUrl={playlist.playlistSpotifyUrl}
-              trackCount={playlist.trackCount}
-              lastCompletedAt={playlist.lastCompletedAt}
-              isRecreating={recreatePlaylist.isPending}
-              isDisabled={activePlaylists.some((p) => p.spotifyUrl === playlist.playlistSpotifyUrl)}
-              onRecreate={handleRecreatePlaylistClick}
-            />
-          ))}
-        </div>
+
+        {isLoading ? (
+          <Loading message="Loading history..." />
+        ) : playlists.length === 0 ? (
+          <EmptyHistory />
+        ) : (
+          <div className="space-y-3">
+            {playlists.map((playlist) => (
+              <HistoryItem
+                key={playlist.playlistId ?? playlist.playlistSpotifyUrl ?? playlist.playlistName}
+                playlistName={playlist.playlistName}
+                playlistSpotifyUrl={playlist.playlistSpotifyUrl}
+                trackCount={playlist.trackCount}
+                lastCompletedAt={playlist.lastCompletedAt}
+                isRecreating={recreatePlaylist.isPending}
+                isDisabled={activePlaylists.some(
+                  (p) => p.spotifyUrl === playlist.playlistSpotifyUrl,
+                )}
+                onRecreate={handleRecreatePlaylistClick}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

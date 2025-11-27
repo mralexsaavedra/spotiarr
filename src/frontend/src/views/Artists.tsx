@@ -25,15 +25,6 @@ export const Artists: FC = () => {
     setSearch(event.target.value);
   }, []);
 
-  if (isLoading) {
-    return (
-      <section className="flex-1 bg-background px-4 md:px-8 py-6">
-        <PageHeader title="Followed Artists" />
-        <Loading message="Loading artists..." />
-      </section>
-    );
-  }
-
   if (error === "missing_user_access_token") {
     return (
       <section className="flex-1 bg-background px-4 md:px-8 py-6">
@@ -41,29 +32,6 @@ export const Artists: FC = () => {
       </section>
     );
   }
-
-  if (error === "spotify_rate_limited") {
-    return (
-      <section className="flex-1 bg-background px-4 md:px-8 py-6">
-        <PageHeader title="Followed Artists" />
-        <div className="text-text-secondary flex items-center gap-2">
-          <i className="fa-solid fa-hourglass-half" /> Spotify rate limited. Please try again later.
-        </div>
-      </section>
-    );
-  }
-
-  if (error || filteredArtists.length === 0) {
-    return (
-      <section className="flex-1 bg-background px-4 md:px-8 py-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-          <PageHeader title="Followed Artists" />
-        </div>
-        <div className="text-text-secondary">No followed artists found.</div>
-      </section>
-    );
-  }
-
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
@@ -77,17 +45,30 @@ export const Artists: FC = () => {
           className="w-full md:w-64"
         />
       </div>
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {filteredArtists.map((artist) => (
-          <ArtistCard
-            key={artist.id}
-            id={artist.id}
-            name={artist.name}
-            image={artist.image}
-            spotifyUrl={artist.spotifyUrl}
-          />
-        ))}
-      </div>
+
+      {isLoading ? (
+        <Loading message="Loading artists..." />
+      ) : error === "spotify_rate_limited" ? (
+        <div className="text-text-secondary flex items-center gap-2">
+          <i className="fa-solid fa-hourglass-half" /> Spotify rate limited. Please try again later.
+        </div>
+      ) : error ? (
+        <div className="text-text-secondary">Failed to load artists. Please try again later.</div>
+      ) : filteredArtists.length === 0 ? (
+        <div className="text-text-secondary">No followed artists found.</div>
+      ) : (
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {filteredArtists.map((artist) => (
+            <ArtistCard
+              key={artist.id}
+              id={artist.id}
+              name={artist.name}
+              image={artist.image}
+              spotifyUrl={artist.spotifyUrl}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 };
