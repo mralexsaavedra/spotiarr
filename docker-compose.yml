@@ -1,0 +1,41 @@
+networks:
+  spotiarr-network:
+    driver: bridge
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: spotiarr-redis
+    restart: unless-stopped
+    networks:
+      - spotiarr-network
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  spotiarr:
+    image: mralexandersaavedra/spotiarr:latest
+    container_name: spotiarr
+    restart: unless-stopped
+    networks:
+      - spotiarr-network
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/spotiarr/config
+      - ./downloads:/downloads
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis-data:
+    driver: local

@@ -1,0 +1,61 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
+import { Worker } from "bullmq";
+import { TrackEntity } from "../entities/track.entity";
+import { TrackRepository } from "../repositories/track.repository";
+import { emitSseEvent } from "../routes/events.routes";
+import { SettingsService } from "../services/settings.service";
+import { TrackService } from "../services/track.service";
+import { EnvironmentEnum } from "../setup/environment";
+
+const trackService = new TrackService();
+const settingsService = new SettingsService();
+const trackRepository = new TrackRepository();
+
+export const trackDownloadWorker = new Worker(
+  "track-download-processor",
+  async (job) => {
+    const track: TrackEntity = job.data;
+    const maxPerMinute = await settingsService.getNumber("YT_DOWNLOADS_PER_MINUTE");
+    const sleepMs = Math.floor(60000 / maxPerMinute);
+
+    await new Promise((resolve) => setTimeout(resolve, sleepMs));
+    await trackService.downloadFromYoutube(track);
+  },
+  {
+    connection: {
+      host: process.env[EnvironmentEnum.REDIS_HOST] || "localhost",
+      port: parseInt(process.env[EnvironmentEnum.REDIS_PORT] || "6379"),
+    },
+  },
+);
+
+trackDownloadWorker.on("completed", (job) => {
+  console.log(`[TrackDownloadWorker] Job ${job.id} completed`);
+});
+
+trackDownloadWorker.on("failed", async (job, err) => {
+  console.error(`[TrackDownloadWorker] Job ${job?.id} failed:`, err);
+
+  if (job?.data?.id) {
+    const track: TrackEntity = job.data;
+    const trackId = track.id;
+
+    if (!trackId) {
+      console.error("Cannot update track status: track.id is undefined");
+      return;
+    }
+
+    try {
+      await trackRepository.update(trackId, {
+        ...track,
+        status: TrackStatusEnum.Error,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      emitSseEvent("playlists-updated");
+    } catch (updateError) {
+      console.error(`Failed to update track ${trackId} status after job failure:`, updateError);
+    }
+  }
+});
+
+console.log("✅ Track download worker initialized");

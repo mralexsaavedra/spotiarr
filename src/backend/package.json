@@ -1,0 +1,44 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "description": "SpotiArr Backend",
+  "author": "Alexander Saavedra <mralexsaavedra@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch --tsconfig ./tsconfig.dev.json src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "spotiarr-lint src --fix",
+    "format": "prettier --write \"src/**/*.{ts,json}\""
+  },
+  "dependencies": {
+    "@spotiarr/shared": "workspace:*",
+    "better-sqlite3": "^12.4.6",
+    "bullmq": "^5.64.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "node-cron": "^4.2.1",
+    "node-id3": "^0.2.9",
+    "reflect-metadata": "^0.2.0",
+    "typeorm": "^0.3.27",
+    "yt-search": "^2.12.1",
+    "ytdlp-nodejs": "^2.3.5"
+  },
+  "devDependencies": {
+    "@spotiarr/eslint-config": "workspace:*",
+    "@spotiarr/prettier-config": "workspace:*",
+    "@spotiarr/tsconfig": "workspace:*",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.7.0"
+  }
+}

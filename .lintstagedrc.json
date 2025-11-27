@@ -1,0 +1,9 @@
+{
+  "src/backend/**/*.ts": ["pnpm --filter backend lint"],
+  "src/frontend/**/*.ts": ["pnpm --filter frontend lint"],
+  "src/shared/**/*.ts": ["pnpm --filter shared lint"],
+  "src/backend/src/**/*.{ts,json}": ["pnpm --filter backend format"],
+  "src/frontend/src/**/*.{ts,tsx,css,json}": ["pnpm --filter frontend format"],
+  "src/shared/src/**/*.{ts,json}": ["pnpm --filter shared format"],
+  "*.{json,md,yml,yaml}": ["pnpm prettier --write --ignore-path .gitignore"]
+}

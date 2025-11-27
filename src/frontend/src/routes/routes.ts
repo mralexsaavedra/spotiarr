@@ -1,0 +1,8 @@
+export enum Path {
+  HOME = "/",
+  PLAYLIST_DETAIL = "/playlist/:id",
+  PLAYLIST_PREVIEW = "/preview",
+  HISTORY = "/history",
+  SETTINGS = "/settings",
+  RELEASES = "/releases",
+}

@@ -1,0 +1,7 @@
+packages:
+  - "src/backend"
+  - "src/frontend"
+  - "src/shared"
+  - "src/prettier-config"
+  - "src/eslint-config"
+  - "src/tsconfig"

@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+out-tsc/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+src/backend/.env
+
+# Git
+.git/
+.github/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Tests (no longer exist but just in case)
+**/*.spec.ts
+**/*.test.ts
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+.temp/
+.tmp/
+*.tmp
+
+# Logs
+logs/
+*.log
+
+# Database (runtime only)
+**/*.sqlite
+**/*.sqlite-*
+config/
+downloads/
+
+# Docker
+docker-compose*.yml
+.dockerignore
+Dockerfile
+
+# CI/CD
+.github/
+

@@ -1,0 +1,11 @@
+{
+  "name": "@spotiarr/prettier-config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.cjs",
+  "description": "Shared Prettier configuration for SpotiArr",
+  "license": "MIT",
+  "peerDependencies": {
+    "prettier": ">=3"
+  }
+}

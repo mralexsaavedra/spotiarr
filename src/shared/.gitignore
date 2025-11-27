@@ -1,0 +1,6 @@
+# Compiled TypeScript files in src directory
+# These should only exist in dist/
+src/**/*.js
+src/**/*.d.ts
+src/**/*.js.map
+src/**/*.d.ts.map

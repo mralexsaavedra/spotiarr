@@ -1,0 +1,4 @@
+services:
+  spotiarr:
+    build: .
+    image: spotiarr:local

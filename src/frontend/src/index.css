@@ -1,0 +1,11 @@
+@import "@fortawesome/fontawesome-free/css/all.css";
+@import "./styles/fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  padding: 0;
+  margin: 0;
+}

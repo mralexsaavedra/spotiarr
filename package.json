@@ -1,0 +1,51 @@
+{
+  "name": "spotiarr",
+  "version": "0.1.0",
+  "description": "Self-hosted Spotify downloader with Jellyfin/Plex integration. Lidarr-inspired music automation.",
+  "keywords": [
+    "spotify",
+    "downloader",
+    "self-hosted",
+    "media-server",
+    "jellyfin",
+    "plex",
+    "music",
+    "automation",
+    "lidarr-alternative"
+  ],
+  "author": "Alexander Saavedra <mralexsaavedra@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mralexsaavedra/spotiarr.git"
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
+  "packageManager": "pnpm@10.20.0",
+  "scripts": {
+    "dev": "concurrently \"pnpm start:be\" \"pnpm start:fe\"",
+    "start:be": "pnpm --filter backend run dev",
+    "start:fe": "pnpm --filter frontend run dev",
+    "build": "pnpm -r --filter='./src/*' run build",
+    "start": "node src/backend/dist/index.js",
+    "lint": "pnpm -r --filter='./src/*' --if-present run lint",
+    "format": "pnpm -r --filter='./src/*' --if-present run format",
+    "clean": "pnpm -r --filter='./src/*' --if-present run clean && rm -rf src/*/dist",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.6.2"
+  }
+}
