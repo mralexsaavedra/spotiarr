@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./config/db.sqlite"
+}
+
+model Playlist {
+  id               String    @id @default(uuid())
+  name             String?
+  type             String?
+  spotifyUrl       String
+  error            String?
+  subscribed       Boolean   @default(false)
+  createdAt        BigInt   @default(0)
+  coverUrl         String?
+  artistImageUrl   String?
+  tracks           Track[]
+  downloadHistory  DownloadHistory[]
+}
+
+model Track {
+  id                    String    @id @default(uuid())
+  artist                String
+  name                  String
+  album                 String?
+  albumYear             Int?
+  trackNumber           Int?
+  spotifyUrl            String?
+  trackUrl              String?
+  albumCoverUrl         String?
+  primaryArtistImageUrl String?
+  artists               Json?
+  youtubeUrl            String?
+  status                String   @default("New")
+  error                 String?
+  createdAt             BigInt  @default(0)
+  completedAt           BigInt?
+
+  playlistId            String?
+  playlist              Playlist? @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  downloadHistory       DownloadHistory[]
+}
+
+model Setting {
+  id        String @id @default(uuid())
+  key       String
+  value     String
+  updatedAt BigInt @default(0)
+
+  @@unique([key])
+}
+
+model DownloadHistory {
+  id                String    @id @default(uuid())
+  playlistId        String?
+  trackId           String?
+  playlist          Playlist? @relation(fields: [playlistId], references: [id], onDelete: SetNull)
+  track             Track?    @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  playlistName      String
+  playlistSpotifyUrl String?
+  trackName         String
+  artist            String
+  album             String?
+  trackUrl          String?
+  completedAt       BigInt
+  createdAt         BigInt @default(0)
+}

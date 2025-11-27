@@ -1,11 +1,9 @@
 import * as fs from "fs";
 import { createServer } from "http";
 import { resolve } from "path";
-import "reflect-metadata";
 import { app } from "./app";
 import "./env";
 import { startScheduledJobs } from "./jobs";
-import { initializeDatabase } from "./setup/database";
 import { validateEnvironment } from "./setup/environment";
 import { initializeQueues } from "./setup/queues";
 
@@ -23,9 +21,6 @@ async function bootstrap() {
     fs.mkdirSync(downloadsPath, { recursive: true });
     console.log(`✅ Created downloads directory: ${downloadsPath}`);
   }
-
-  // Initialize database
-  await initializeDatabase();
 
   // Initialize BullMQ queues
   initializeQueues();

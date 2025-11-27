@@ -1,13 +1,13 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import cron from "node-cron";
-import { TrackRepository } from "../repositories/track.repository";
+import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
 import { emitSseEvent } from "../routes/events.routes";
 import { PlaylistService } from "../services/playlist.service";
 import { SettingsService } from "../services/settings.service";
 
 const playlistService = new PlaylistService();
 const settingsService = new SettingsService();
-const trackRepository = new TrackRepository();
+const trackRepository = new PrismaTrackRepository();
 
 let lastPlaylistCheckTimestamp = 0;
 let lastStuckTracksCleanupTimestamp = 0;
@@ -48,7 +48,7 @@ export const cleanStuckTracksJob = cron.schedule("* * * * *", async () => {
 
     const allTracks = await trackRepository.findAll();
     const stuckTracks = allTracks.filter(
-      (track) =>
+      (track: ITrack) =>
         (track.status === TrackStatusEnum.Queued ||
           track.status === TrackStatusEnum.Downloading ||
           track.status === TrackStatusEnum.Searching) &&

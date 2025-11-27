@@ -1,5 +1,4 @@
-import type { PlaylistHistory } from "@spotiarr/shared";
-import type { DownloadHistoryEntity } from "../../entities/download-history.entity";
+import type { PlaylistHistory, DownloadHistoryItem } from "@spotiarr/shared";
 import type { HistoryRepository } from "./history.repository";
 
 export interface HistoryUseCaseDependencies {
@@ -39,7 +38,7 @@ export class HistoryUseCases {
     };
   }
 
-  private processHistoryEntry(entry: DownloadHistoryEntity, maps: DeduplicationMaps): void {
+  private processHistoryEntry(entry: DownloadHistoryItem, maps: DeduplicationMaps): void {
     const identifiers = this.extractIdentifiers(entry);
     const key = this.resolvePlaylistKey(identifiers, maps);
     const existing = maps.playlists.get(key);
@@ -51,9 +50,9 @@ export class HistoryUseCases {
     }
   }
 
-  private extractIdentifiers(entry: DownloadHistoryEntity): PlaylistIdentifiers {
+  private extractIdentifiers(entry: DownloadHistoryItem): PlaylistIdentifiers {
     return {
-      id: entry.playlist?.id ?? null,
+      id: entry.playlistId,
       url: this.normalizeSpotifyUrl(entry.playlistSpotifyUrl),
     };
   }
@@ -94,7 +93,7 @@ export class HistoryUseCases {
 
   private createNewPlaylist(
     key: string,
-    entry: DownloadHistoryEntity,
+    entry: DownloadHistoryItem,
     identifiers: PlaylistIdentifiers,
     maps: DeduplicationMaps,
   ): void {
@@ -109,7 +108,7 @@ export class HistoryUseCases {
 
   private updateExistingPlaylist(
     existing: PlaylistHistory,
-    entry: DownloadHistoryEntity,
+    entry: DownloadHistoryItem,
     identifiers: PlaylistIdentifiers,
     key: string,
     maps: DeduplicationMaps,

@@ -227,7 +227,14 @@ export class SpotifyApiService {
 
   private async getUserAccessToken(): Promise<string> {
     const accessTokenKey = "spotify_user_access_token";
-    const fromSettings = await this.settingsService.getString(accessTokenKey);
+    let fromSettings: string | undefined;
+
+    try {
+      fromSettings = await this.settingsService.getString(accessTokenKey);
+    } catch {
+      fromSettings = undefined;
+    }
+
     const token = fromSettings ?? process.env.SPOTIFY_USER_ACCESS_TOKEN;
 
     if (!token) {

@@ -1,10 +1,9 @@
-import { SUPPORTED_AUDIO_FORMATS, SupportedAudioFormat } from "@spotiarr/shared";
+import { SUPPORTED_AUDIO_FORMATS, SupportedAudioFormat, type ITrack } from "@spotiarr/shared";
 import { execSync } from "child_process";
 import * as fs from "fs";
 import * as NodeID3 from "node-id3";
 import { join } from "path";
 import { YtDlp } from "ytdlp-nodejs";
-import { TrackEntity } from "../entities/track.entity";
 import { SettingsService } from "./settings.service";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -50,7 +49,7 @@ export class YoutubeService {
     return url;
   }
 
-  async downloadAndFormat(track: TrackEntity, output: string): Promise<void> {
+  async downloadAndFormat(track: ITrack, output: string): Promise<void> {
     console.debug(`Downloading ${track.artist} - ${track.name} (${track.youtubeUrl}) from YT`);
     if (!track.youtubeUrl) {
       console.error("youtubeUrl is null or undefined");

@@ -1,5 +1,4 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
-import { TrackEntity } from "../../entities/track.entity";
+import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { AppError } from "../../middleware/error-handler";
 import { getTrackSearchQueue } from "../../setup/queues";
 import type { TrackRepository } from "./track.repository";
@@ -11,15 +10,15 @@ export interface TrackUseCaseDependencies {
 export class TrackUseCases {
   constructor(private readonly deps: TrackUseCaseDependencies) {}
 
-  getAll(where?: Partial<TrackEntity>): Promise<TrackEntity[]> {
+  getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
     return this.deps.repository.findAll(where);
   }
 
-  getAllByPlaylist(id: string): Promise<TrackEntity[]> {
+  getAllByPlaylist(id: string): Promise<ITrack[]> {
     return this.deps.repository.findAllByPlaylist(id);
   }
 
-  get(id: string): Promise<TrackEntity | null> {
+  get(id: string): Promise<ITrack | null> {
     return this.deps.repository.findOne(id);
   }
 
@@ -32,18 +31,15 @@ export class TrackUseCases {
     await this.deps.repository.delete(id);
   }
 
-  async create(track: Partial<TrackEntity>, playlist?: TrackEntity["playlist"]): Promise<void> {
-    const savedTrack = await this.deps.repository.save({
-      ...(track as TrackEntity),
-      playlist,
-    });
+  async create(track: Partial<ITrack>): Promise<void> {
+    const savedTrack = await this.deps.repository.save(track as ITrack);
 
     await getTrackSearchQueue().add("search-track", savedTrack, {
       jobId: `id-${savedTrack.id}`,
     });
   }
 
-  async update(id: string, track: Partial<TrackEntity>): Promise<void> {
+  async update(id: string, track: Partial<ITrack>): Promise<void> {
     await this.deps.repository.update(id, track);
   }
 

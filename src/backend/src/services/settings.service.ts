@@ -1,11 +1,11 @@
 import { SETTINGS_METADATA } from "../constants/settings-metadata";
-import { SettingRepository } from "../repositories/setting.repository";
+import { PrismaSettingsRepository } from "../repositories/prisma-settings.repository";
 
 export class SettingsService {
-  private readonly repo: SettingRepository;
+  private readonly repo: PrismaSettingsRepository;
 
   constructor() {
-    this.repo = new SettingRepository();
+    this.repo = new PrismaSettingsRepository();
   }
 
   async getString(key: string, fallback?: string): Promise<string> {

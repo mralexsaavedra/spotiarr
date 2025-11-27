@@ -1,18 +1,13 @@
-import type { PlaylistEntity } from "../../entities/playlist.entity";
+import type { IPlaylist } from "@spotiarr/shared";
 
-// Domain-level repository interface for playlists. This is intentionally
-// infrastructure-agnostic and does not depend on TypeORM specifics.
 export interface PlaylistRepository {
-  findAll(
-    relations?: Record<string, boolean>,
-    where?: Partial<PlaylistEntity>,
-  ): Promise<PlaylistEntity[]>;
+  findAll(includesTracks?: boolean, where?: Partial<IPlaylist>): Promise<IPlaylist[]>;
 
-  findOne(id: string): Promise<PlaylistEntity | null>;
+  findOne(id: string): Promise<IPlaylist | null>;
 
-  save(playlist: PlaylistEntity): Promise<PlaylistEntity>;
+  save(playlist: IPlaylist): Promise<IPlaylist>;
 
-  update(id: string, playlist: Partial<PlaylistEntity>): Promise<void>;
+  update(id: string, playlist: Partial<IPlaylist>): Promise<void>;
 
   delete(id: string): Promise<void>;
 }

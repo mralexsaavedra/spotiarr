@@ -1,10 +1,10 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { asyncHandler } from "../middleware/async-handler";
-import { TrackRepository } from "../repositories/track.repository";
+import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
 import { TrackService } from "../services/track.service";
 
 const router: ExpressRouter = Router();
-const trackRepository = new TrackRepository();
+const trackRepository = new PrismaTrackRepository();
 const trackService = new TrackService();
 
 // GET /api/track/playlist/:id - Get all tracks by playlist

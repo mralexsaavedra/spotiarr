@@ -1,24 +1,23 @@
+import { type ITrack } from "@spotiarr/shared";
 import { DownloadTrackUseCase } from "domain/tracks/download-track.use-case";
 import { SearchTrackOnYoutubeUseCase } from "domain/tracks/search-track-on-youtube.use-case";
 import { TrackUseCases } from "../domain/tracks/track.use-cases";
-import { PlaylistEntity } from "../entities/playlist.entity";
-import { TrackEntity } from "../entities/track.entity";
 import { TrackFileHelper } from "../helpers/track-file.helper";
-import { TrackRepository } from "../repositories/track.repository";
+import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
 import { M3uService } from "./m3u.service";
 import { SettingsService } from "./settings.service";
 import { UtilsService } from "./utils.service";
 import { YoutubeService } from "./youtube.service";
 
 export class TrackService {
-  private readonly repository: TrackRepository;
+  private readonly repository: PrismaTrackRepository;
   private readonly useCases: TrackUseCases;
   private readonly trackFileHelper: TrackFileHelper;
   private readonly searchTrackOnYoutubeUseCase: SearchTrackOnYoutubeUseCase;
   private readonly downloadTrackUseCase: DownloadTrackUseCase;
 
   constructor() {
-    this.repository = new TrackRepository();
+    this.repository = new PrismaTrackRepository();
     this.useCases = new TrackUseCases({ repository: this.repository });
     this.trackFileHelper = new TrackFileHelper();
 
@@ -42,15 +41,15 @@ export class TrackService {
     );
   }
 
-  getAll(where?: Partial<TrackEntity>): Promise<TrackEntity[]> {
+  getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
     return this.useCases.getAll(where);
   }
 
-  getAllByPlaylist(id: string): Promise<TrackEntity[]> {
+  getAllByPlaylist(id: string): Promise<ITrack[]> {
     return this.useCases.getAllByPlaylist(id);
   }
 
-  get(id: string): Promise<TrackEntity | null> {
+  get(id: string): Promise<ITrack | null> {
     return this.useCases.get(id);
   }
 
@@ -58,11 +57,11 @@ export class TrackService {
     await this.useCases.remove(id);
   }
 
-  async create(track: Partial<TrackEntity>, playlist?: PlaylistEntity): Promise<void> {
-    await this.useCases.create(track, playlist);
+  async create(track: Partial<ITrack>): Promise<void> {
+    await this.useCases.create(track);
   }
 
-  async update(id: string, track: Partial<TrackEntity>): Promise<void> {
+  async update(id: string, track: Partial<ITrack>): Promise<void> {
     await this.useCases.update(id, track);
   }
 
@@ -70,19 +69,19 @@ export class TrackService {
     await this.useCases.retry(id);
   }
 
-  async findOnYoutube(track: TrackEntity): Promise<void> {
+  async findOnYoutube(track: ITrack): Promise<void> {
     return this.searchTrackOnYoutubeUseCase.execute(track);
   }
 
-  async downloadFromYoutube(track: TrackEntity): Promise<void> {
+  async downloadFromYoutube(track: ITrack): Promise<void> {
     return this.downloadTrackUseCase.execute(track);
   }
 
-  getTrackFileName(track: TrackEntity): Promise<string> {
+  getTrackFileName(track: ITrack): Promise<string> {
     return this.trackFileHelper.getTrackFileName(track);
   }
 
-  getFolderName(track: TrackEntity): Promise<string> {
+  getFolderName(track: ITrack): Promise<string> {
     return this.trackFileHelper.getFolderName(track);
   }
 }

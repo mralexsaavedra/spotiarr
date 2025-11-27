@@ -1,5 +1,5 @@
+import { type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
-import { TrackEntity } from "../entities/track.entity";
 import { SettingsService } from "../services/settings.service";
 import { TrackService } from "../services/track.service";
 import { EnvironmentEnum } from "../setup/environment";
@@ -10,7 +10,7 @@ const settingsService = new SettingsService();
 export const trackSearchWorker = new Worker(
   "track-search-processor",
   async (job) => {
-    const track: TrackEntity = job.data;
+    const track: ITrack = job.data;
     await trackService.findOnYoutube(track);
   },
   {

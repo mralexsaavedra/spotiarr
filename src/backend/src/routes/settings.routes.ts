@@ -3,10 +3,10 @@ import { Router, type Router as ExpressRouter } from "express";
 import { SETTINGS_METADATA } from "../constants/settings-metadata";
 import { SettingsUseCases } from "../domain/settings/settings.use-cases";
 import { asyncHandler } from "../middleware/async-handler";
-import { SettingRepository } from "../repositories/setting.repository";
+import { PrismaSettingsRepository } from "../repositories/prisma-settings.repository";
 
 const router: ExpressRouter = Router();
-const settingsUseCases = new SettingsUseCases({ repository: new SettingRepository() });
+const settingsUseCases = new SettingsUseCases({ repository: new PrismaSettingsRepository() });
 
 const UI_SUPPORTED_FORMATS: SupportedAudioFormat[] = ["mp3", "m4a"];
 

@@ -1,9 +1,9 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { asyncHandler } from "../middleware/async-handler";
-import { SettingRepository } from "../repositories/setting.repository";
+import { PrismaSettingsRepository } from "../repositories/prisma-settings.repository";
 
 const router: ExpressRouter = Router();
-const settingsRepository = new SettingRepository();
+const settingsRepository = new PrismaSettingsRepository();
 const SCOPES = ["user-follow-read"].join(" ");
 
 // GET /api/auth/spotify/login - Redirect user to Spotify authorization page

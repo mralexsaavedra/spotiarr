@@ -1,8 +1,7 @@
-import type { SettingEntity } from "../../entities/setting.entity";
+import type { SettingItem } from "@spotiarr/shared";
 
-// Domain-level repository interface for settings. Infrastructure-agnostic.
 export interface SettingsRepository {
-  findAll(): Promise<SettingEntity[]>;
+  findAll(): Promise<SettingItem[]>;
 
   get(key: string): Promise<string | undefined>;
 

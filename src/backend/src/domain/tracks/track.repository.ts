@@ -1,19 +1,17 @@
-import type { TrackEntity } from "../../entities/track.entity";
+import type { ITrack } from "@spotiarr/shared";
 
-// Domain-level repository interface for tracks. This is intentionally
-// infrastructure-agnostic and does not depend on TypeORM specifics.
 export interface TrackRepository {
-  findAll(where?: Partial<TrackEntity>): Promise<TrackEntity[]>;
+  findAll(where?: Partial<ITrack>): Promise<ITrack[]>;
 
-  findAllByPlaylist(playlistId: string): Promise<TrackEntity[]>;
+  findAllByPlaylist(playlistId: string): Promise<ITrack[]>;
 
-  findOne(id: string): Promise<TrackEntity | null>;
+  findOne(id: string): Promise<ITrack | null>;
 
-  findOneWithPlaylist(id: string): Promise<TrackEntity | null>;
+  findOneWithPlaylist(id: string): Promise<ITrack | null>;
 
-  save(track: TrackEntity): Promise<TrackEntity>;
+  save(track: ITrack): Promise<ITrack>;
 
-  update(id: string, track: Partial<TrackEntity>): Promise<void>;
+  update(id: string, track: Partial<ITrack>): Promise<void>;
 
   delete(id: string): Promise<void>;
 

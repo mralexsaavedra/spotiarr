@@ -1,10 +1,9 @@
-import { PlaylistTypeEnum } from "@spotiarr/shared";
-import { PlaylistEntity } from "../../entities/playlist.entity";
+import { PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../helpers/spotify-url.helper";
-import { PlaylistRepository } from "../../repositories/playlist.repository";
 import { SettingsService } from "../../services/settings.service";
 import { SpotifyService } from "../../services/spotify.service";
 import { TrackService } from "../../services/track.service";
+import type { PlaylistRepository } from "../playlists/playlist.repository";
 
 interface PlaylistTrackDetail {
   artist: string;
@@ -36,9 +35,9 @@ export class CreatePlaylistUseCase {
     private readonly settingsService: SettingsService,
   ) {}
 
-  async execute(playlist: PlaylistEntity): Promise<PlaylistEntity> {
+  async execute(playlist: IPlaylist): Promise<IPlaylist> {
     let detail: PlaylistDetail | undefined;
-    let playlist2Save: PlaylistEntity;
+    let playlist2Save: IPlaylist;
 
     // Step 1: Fetch playlist details from Spotify
     try {
@@ -96,10 +95,7 @@ export class CreatePlaylistUseCase {
     return savedPlaylist;
   }
 
-  private async processTracks(
-    playlist: PlaylistEntity,
-    tracks: PlaylistTrackDetail[],
-  ): Promise<void> {
+  private async processTracks(playlist: IPlaylist, tracks: PlaylistTrackDetail[]): Promise<void> {
     console.debug(`Starting to process ${tracks.length} tracks for playlist ${playlist.name}`);
 
     let processedCount = 0;
@@ -136,21 +132,17 @@ export class CreatePlaylistUseCase {
 
         const useSinglesFallback = isTrack || isArtist;
 
-        await this.trackService.create(
-          {
-            artist: artistToUse,
-            name: track.name,
-            album: track.album ?? (useSinglesFallback ? "Singles" : playlist.name),
-            albumYear: track.albumYear,
-            trackNumber: track.trackNumber ?? processedCount + 1,
-            spotifyUrl: track.previewUrl ?? undefined,
-            albumCoverUrl: track.albumCoverUrl,
-            primaryArtistImageUrl: track.primaryArtistImage ?? undefined,
-            artists: track.artists,
-            trackUrl: track.trackUrl,
-          },
-          playlist,
-        );
+        await this.trackService.create({
+          artist: artistToUse,
+          name: track.name,
+          album: track.album ?? (useSinglesFallback ? "Singles" : playlist.name),
+          albumYear: track.albumYear,
+          trackNumber: track.trackNumber ?? processedCount + 1,
+          spotifyUrl: track.previewUrl ?? undefined,
+          artists: track.artists,
+          trackUrl: track.trackUrl,
+          playlistId: playlist.id,
+        });
 
         processedCount++;
 

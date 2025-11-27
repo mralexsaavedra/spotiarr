@@ -1,5 +1,4 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
-import { PlaylistEntity } from "../../entities/playlist.entity";
+import { TrackStatusEnum, type IPlaylist } from "@spotiarr/shared";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../helpers/spotify-url.helper";
 import { AppError } from "../../middleware/error-handler";
 import type { PlaylistTrack, SpotifyService } from "../../services/spotify.service";
@@ -22,14 +21,11 @@ export interface PlaylistUseCaseDependencies {
 export class PlaylistUseCases {
   constructor(private readonly deps: PlaylistUseCaseDependencies) {}
 
-  findAll(
-    relations: Record<string, boolean> = { tracks: true },
-    where?: Partial<PlaylistEntity>,
-  ): Promise<PlaylistEntity[]> {
-    return this.deps.repository.findAll(relations, where);
+  findAll(includesTracks = true, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {
+    return this.deps.repository.findAll(includesTracks, where);
   }
 
-  findOne(id: string): Promise<PlaylistEntity | null> {
+  findOne(id: string): Promise<IPlaylist | null> {
     return this.deps.repository.findOne(id);
   }
 
@@ -43,9 +39,8 @@ export class PlaylistUseCases {
     this.deps.emitEvent("playlists-updated");
   }
 
-  async create(playlist: PlaylistEntity): Promise<PlaylistEntity> {
-    // Prevent creating duplicate playlists for the same Spotify URL.
-    const existing = await this.deps.repository.findAll({}, { spotifyUrl: playlist.spotifyUrl });
+  async create(playlist: IPlaylist): Promise<IPlaylist> {
+    const existing = await this.deps.repository.findAll(false, { spotifyUrl: playlist.spotifyUrl });
     if (existing.length > 0) {
       throw new AppError(409, "playlist_already_exists");
     }
@@ -55,13 +50,13 @@ export class PlaylistUseCases {
     return created;
   }
 
-  async save(playlist: PlaylistEntity): Promise<PlaylistEntity> {
+  async save(playlist: IPlaylist): Promise<IPlaylist> {
     const savedPlaylist = await this.deps.repository.save(playlist);
     this.deps.emitEvent("playlists-updated");
     return savedPlaylist;
   }
 
-  async update(id: string, playlist: Partial<PlaylistEntity>): Promise<void> {
+  async update(id: string, playlist: Partial<IPlaylist>): Promise<void> {
     const existing = await this.deps.repository.findOne(id);
     if (!existing) {
       throw new AppError(404, "playlist_not_found");
@@ -86,7 +81,7 @@ export class PlaylistUseCases {
   }
 
   async checkSubscribedPlaylists(): Promise<void> {
-    const subscribedPlaylists = await this.findAll({}, { subscribed: true });
+    const subscribedPlaylists = await this.findAll(false, { subscribed: true });
     for (const playlist of subscribedPlaylists) {
       let tracks: PlaylistTrack[] = [];
       try {
@@ -126,12 +121,12 @@ export class PlaylistUseCases {
             artist: track2Save.artist,
             name: track2Save.name,
             spotifyUrl: track2Save.spotifyUrl ?? undefined,
-            playlist: { id: playlist.id } as PlaylistEntity,
+            playlistId: playlist.id,
           })
         ).length;
 
         if (!isExist) {
-          await this.deps.trackService.create(track2Save, playlist);
+          await this.deps.trackService.create({ ...track2Save, playlistId: playlist.id });
         }
       }
     }

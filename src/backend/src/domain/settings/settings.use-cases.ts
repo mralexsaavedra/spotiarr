@@ -1,4 +1,4 @@
-import type { SettingEntity } from "../../entities/setting.entity";
+import type { SettingItem } from "@spotiarr/shared";
 import type { SettingsRepository } from "./settings.repository";
 
 export interface SettingsUseCaseDependencies {
@@ -8,7 +8,7 @@ export interface SettingsUseCaseDependencies {
 export class SettingsUseCases {
   constructor(private readonly deps: SettingsUseCaseDependencies) {}
 
-  getAll(): Promise<SettingEntity[]> {
+  getAll(): Promise<SettingItem[]> {
     return this.deps.repository.findAll();
   }
 

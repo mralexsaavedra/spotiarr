@@ -1,8 +1,6 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { TrackStatusEnum, type IPlaylist, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
-import { PlaylistEntity } from "../entities/playlist.entity";
-import { TrackEntity } from "../entities/track.entity";
 import { SettingsService } from "./settings.service";
 
 export class M3uService {
@@ -19,8 +17,8 @@ export class M3uService {
    * @param playlistFolderPath - Path to the playlist folder
    */
   async generateM3uFile(
-    playlist: PlaylistEntity,
-    tracks: TrackEntity[],
+    playlist: IPlaylist,
+    tracks: ITrack[],
     playlistFolderPath: string,
   ): Promise<void> {
     try {
@@ -58,7 +56,7 @@ export class M3uService {
   /**
    * Builds the M3U file content in Extended M3U format
    */
-  private buildM3uContent(playlist: PlaylistEntity, tracks: TrackEntity[], format: string): string {
+  private buildM3uContent(playlist: IPlaylist, tracks: ITrack[], format: string): string {
     const lines: string[] = [];
 
     // Header - Extended M3U indicator
@@ -94,7 +92,7 @@ export class M3uService {
    * Gets the track file name following Jellyfin structure
    * Only used for playlists (M3U files are only generated for playlists)
    */
-  private getTrackFileName(track: TrackEntity, format: string): string {
+  private getTrackFileName(track: ITrack, format: string): string {
     const artistName = this.sanitizeFileName(track.artist || "Unknown Artist");
     const trackName = this.sanitizeFileName(track.name || "Unknown Track");
     const trackNumber = String(track.trackNumber ?? 1).padStart(2, "0");
@@ -117,7 +115,7 @@ export class M3uService {
   /**
    * Counts how many tracks are completed
    */
-  getCompletedTracksCount(tracks: TrackEntity[]): number {
+  getCompletedTracksCount(tracks: ITrack[]): number {
     return tracks.filter((track) => track.status === TrackStatusEnum.Completed).length;
   }
 }

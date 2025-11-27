@@ -1,5 +1,4 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
-import { TrackEntity } from "entities/track.entity";
+import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { emitSseEvent } from "routes/events.routes";
 import { SettingsService } from "services/settings.service";
 import { YoutubeService } from "services/youtube.service";
@@ -13,7 +12,7 @@ export class SearchTrackOnYoutubeUseCase {
     private readonly settingsService: SettingsService,
   ) {}
 
-  async execute(track: TrackEntity): Promise<void> {
+  async execute(track: ITrack): Promise<void> {
     if (!track.id) {
       return;
     }
@@ -29,7 +28,7 @@ export class SearchTrackOnYoutubeUseCase {
     });
     emitSseEvent("playlists-updated");
 
-    let updatedTrack: TrackEntity;
+    let updatedTrack: ITrack;
 
     try {
       const youtubeUrl = await this.youtubeService.findOnYoutubeOne(
