@@ -8,9 +8,9 @@ export const Home = () => {
   const { data: playlists = [] } = usePlaylistsQuery();
   const deletePlaylist = useDeletePlaylistMutation();
 
-  const handleOnClearAll = useCallback(() => {
+  const handleClearAll = useCallback(() => {
     playlists.filter((p) => shouldClearPlaylist(p)).forEach((p) => deletePlaylist.mutate(p.id));
   }, [deletePlaylist, playlists]);
 
-  return <PlaylistList onClearAll={handleOnClearAll} playlists={playlists} />;
+  return <PlaylistList onClearAll={handleClearAll} playlists={playlists} />;
 };
