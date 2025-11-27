@@ -1,6 +1,7 @@
 import { FC, ChangeEventHandler, useCallback, useMemo, useState } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
+import { SearchInput } from "../components/molecules/SearchInput";
 import { ArtistCard } from "../components/organisms/ArtistCard";
 import { ConnectSpotifyPrompt } from "../components/organisms/ConnectSpotifyPrompt";
 import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuery";
@@ -69,15 +70,12 @@ export const Artists: FC = () => {
         <div className="md:-mb-6">
           <PageHeader title="Followed Artists" />
         </div>
-        <div className="w-full md:w-64">
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search artists..."
-            className="w-full rounded-md bg-background-elevated border border-border px-3 py-2 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Search artists..."
+          className="w-full md:w-64"
+        />
       </div>
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {filteredArtists.map((artist) => (
