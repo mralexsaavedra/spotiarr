@@ -22,10 +22,7 @@ RUN pnpm install --frozen-lockfile
 # Copy all source files
 COPY src/ ./src/
 
-# Generate Prisma Client
-RUN pnpm --filter backend prisma:generate
-
-# Build all packages
+# Build all packages (backend build runs prisma:generate internally)
 RUN pnpm run build
 
 FROM node:24-alpine

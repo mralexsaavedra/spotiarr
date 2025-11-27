@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch --tsconfig ./tsconfig.dev.json src/index.ts",
-    "build": "tsc",
+    "build": "pnpm prisma:generate && tsc",
     "start": "node dist/index.js",
     "lint": "spotiarr-lint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\"",
