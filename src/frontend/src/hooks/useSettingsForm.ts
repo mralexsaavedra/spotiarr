@@ -1,5 +1,13 @@
 import { SettingMetadata, SettingSection } from "@spotiarr/shared";
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useUpdateSettingsMutation } from "./mutations/useUpdateSettingsMutation";
 import { useSettingsMetadataQuery } from "./queries/useSettingsMetadataQuery";
 import { useSettingsQuery } from "./queries/useSettingsQuery";
@@ -57,9 +65,7 @@ export const useSettingsForm = () => {
 
   const handleChange = useCallback((key: string) => {
     return (
-      event:
-        | ChangeEvent<HTMLInputElement | HTMLSelectElement>
-        | React.MouseEvent<HTMLButtonElement>,
+      event: ChangeEvent<HTMLInputElement | HTMLSelectElement> | MouseEvent<HTMLButtonElement>,
     ) => {
       if ("target" in event && event.target && "value" in event.target) {
         const target = event.target as HTMLInputElement | HTMLSelectElement;

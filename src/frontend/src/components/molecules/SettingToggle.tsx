@@ -1,11 +1,11 @@
-import { FC } from "react";
+import { FC, MouseEvent } from "react";
 
 interface SettingToggleProps {
   id: string;
   label: string;
   description: string;
   value: boolean;
-  onChange: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onChange: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const SettingToggle: FC<SettingToggleProps> = ({
