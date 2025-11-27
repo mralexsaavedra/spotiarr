@@ -66,7 +66,9 @@ export const Artists: FC = () => {
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-        <PageHeader title="Followed Artists" />
+        <div className="md:-mb-6">
+          <PageHeader title="Followed Artists" />
+        </div>
         <div className="w-full md:w-64">
           <input
             type="text"
