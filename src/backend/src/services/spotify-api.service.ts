@@ -820,7 +820,9 @@ export class SpotifyApiService {
 
       const sliced = artists.slice(0, maxArtists);
 
-      const mapped = sliced.map((artist) => ({
+      const sorted = sliced.sort((a, b) => a.name.localeCompare(b.name));
+
+      const mapped = sorted.map((artist) => ({
         id: artist.id,
         name: artist.name,
         image: artist.images?.[0]?.url ?? null,
