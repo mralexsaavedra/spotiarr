@@ -192,11 +192,11 @@ class ApiClient {
         errorCode = (data as ApiErrorShape).error;
       }
 
-      if (response.status === 400 && errorCode === "missing_user_access_token") {
+      if (errorCode === "missing_user_access_token") {
         throw new Error("missing_user_access_token");
       }
 
-      if (response.status === 503 && errorCode === "spotify_rate_limited") {
+      if (errorCode === "spotify_rate_limited") {
         throw new Error("spotify_rate_limited");
       }
 
@@ -224,17 +224,17 @@ class ApiClient {
     const data = text ? (JSON.parse(text) as unknown) : undefined;
 
     if (!response.ok) {
-      let errorCode: string | undefined;
+      let errorCode: ApiErrorCode | undefined;
 
       if (typeof data === "object" && data !== null && "error" in data) {
-        errorCode = (data as { error?: string }).error;
+        errorCode = (data as ApiErrorShape).error;
       }
 
-      if (response.status === 400 && errorCode === "missing_user_access_token") {
+      if (errorCode === "missing_user_access_token") {
         throw new Error("missing_user_access_token");
       }
 
-      if (response.status === 503 && errorCode === "spotify_rate_limited") {
+      if (errorCode === "spotify_rate_limited") {
         throw new Error("spotify_rate_limited");
       }
 
