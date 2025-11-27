@@ -12,6 +12,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Home", icon: "fa-house", to: Path.HOME },
   { label: "History", icon: "fa-clock-rotate-left", to: Path.HISTORY },
   { label: "Releases", icon: "fa-bell", to: Path.RELEASES },
+  { label: "Artists", icon: "fa-user-group", to: Path.ARTISTS },
   { label: "Settings", icon: "fa-sliders", to: Path.SETTINGS },
 ];
 

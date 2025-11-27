@@ -205,6 +205,49 @@ class ApiClient {
 
     return data as ArtistRelease[];
   }
+
+  async getFollowedArtists(): Promise<
+    {
+      id: string;
+      name: string;
+      image: string | null;
+      spotifyUrl: string | null;
+    }[]
+  > {
+    const response = await fetch(`${API_BASE}/feed/artists`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const text = await response.text();
+    const data = text ? (JSON.parse(text) as unknown) : undefined;
+
+    if (!response.ok) {
+      let errorCode: string | undefined;
+
+      if (typeof data === "object" && data !== null && "error" in data) {
+        errorCode = (data as { error?: string }).error;
+      }
+
+      if (response.status === 400 && errorCode === "missing_user_access_token") {
+        throw new Error("missing_user_access_token");
+      }
+
+      if (response.status === 503 && errorCode === "spotify_rate_limited") {
+        throw new Error("spotify_rate_limited");
+      }
+
+      throw new Error("failed_to_fetch_followed_artists");
+    }
+
+    return data as {
+      id: string;
+      name: string;
+      image: string | null;
+      spotifyUrl: string | null;
+    }[];
+  }
 }
 
 export const api = new ApiClient();

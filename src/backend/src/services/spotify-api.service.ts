@@ -647,11 +647,12 @@ export class SpotifyApiService {
       const artists: SpotifyArtistFull[] = [];
       let after: string | undefined;
       const maxArtists = await this.settingsService.getNumber("RELEASES_MAX_FOLLOWED_ARTISTS");
+      const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
 
       do {
         const url = new URL("https://api.spotify.com/v1/me/following");
         url.searchParams.set("type", "artist");
-        url.searchParams.set("limit", "50");
+        url.searchParams.set("limit", pageLimit.toString());
         if (after) {
           url.searchParams.set("after", after);
         }
@@ -750,6 +751,86 @@ export class SpotifyApiService {
       return recent;
     } catch (error) {
       this.log(`Failed to get followed artists releases: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  async getFollowedArtists(): Promise<
+    {
+      id: string;
+      name: string;
+      image: string | null;
+      spotifyUrl: string | null;
+    }[]
+  > {
+    const cacheKey = this.getCacheKey("getFollowedArtists");
+    const cached = await this.getFromCache<
+      {
+        id: string;
+        name: string;
+        image: string | null;
+        spotifyUrl: string | null;
+      }[]
+    >(cacheKey);
+    if (cached) {
+      this.log("Returning cached followed artists list");
+      return cached;
+    }
+
+    try {
+      const artists: SpotifyArtistFull[] = [];
+      let after: string | undefined;
+      const maxArtists = await this.settingsService.getNumber("RELEASES_MAX_FOLLOWED_ARTISTS");
+      const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
+
+      do {
+        const url = new URL("https://api.spotify.com/v1/me/following");
+        url.searchParams.set("type", "artist");
+        url.searchParams.set("limit", pageLimit.toString());
+        if (after) {
+          url.searchParams.set("after", after);
+        }
+
+        const response = await this.fetchWithUserToken(url.toString());
+
+        if (!response.ok) {
+          const errorText = await response.text();
+
+          if (response.status === 429) {
+            const rateError = new Error(
+              `Spotify rate limit exceeded while fetching followed artists: ${errorText}`,
+            ) as Error & { code?: string; status?: number };
+            rateError.code = "SPOTIFY_RATE_LIMITED";
+            rateError.status = 429;
+            throw rateError;
+          }
+
+          throw new Error(`Failed to fetch followed artists: ${response.status} ${errorText}`);
+        }
+
+        const data = (await response.json()) as SpotifyFollowedArtistsResponse;
+        const pageArtists = data.artists?.items ?? [];
+        artists.push(...pageArtists);
+        after = data.artists?.cursors?.after;
+
+        if (artists.length >= maxArtists) {
+          break;
+        }
+      } while (after);
+
+      const sliced = artists.slice(0, maxArtists);
+
+      const mapped = sliced.map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+        image: artist.images?.[0]?.url ?? null,
+        spotifyUrl: artist.external_urls?.spotify ?? null,
+      }));
+
+      this.setCache(cacheKey, mapped);
+      return mapped;
+    } catch (error) {
+      this.log(`Failed to get followed artists list: ${(error as Error).message}`);
       throw error;
     }
   }

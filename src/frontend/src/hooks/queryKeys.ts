@@ -14,3 +14,5 @@ export const SETTINGS_METADATA_QUERY_KEY = ["settingsMetadata"] as const;
 export const SUPPORTED_FORMATS_QUERY_KEY = ["supportedFormats"] as const;
 
 export const RELEASES_QUERY_KEY = ["releases"] as const;
+
+export const FOLLOWED_ARTISTS_QUERY_KEY = ["followed-artists"] as const;

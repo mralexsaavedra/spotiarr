@@ -5,4 +5,5 @@ export enum Path {
   HISTORY = "/history",
   SETTINGS = "/settings",
   RELEASES = "/releases",
+  ARTISTS = "/artists",
 }

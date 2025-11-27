@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Route, Routes } from "react-router-dom";
 import { AppLayout } from "../components/layouts/AppLayout";
+import { Artists } from "../views/Artists";
 import { History } from "../views/History";
 import { Home } from "../views/Home";
 import { PlaylistDetail } from "../views/PlaylistDetail";
@@ -22,6 +23,7 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
       <Route path={Path.PLAYLIST_PREVIEW} element={<PlaylistPreview />} />
       <Route path={Path.HISTORY} element={<History />} />
       <Route path={Path.RELEASES} element={<Releases />} />
+      <Route path={Path.ARTISTS} element={<Artists />} />
       <Route path={Path.SETTINGS} element={<Settings />} />
     </Route>
   </Routes>
