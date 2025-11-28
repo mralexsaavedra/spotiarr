@@ -19,10 +19,10 @@ export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
   return (
     <article
       key={id}
-      className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-all cursor-pointer flex flex-col items-center text-center"
+      className="group p-3 rounded-md hover:bg-white/10 transition-colors cursor-pointer flex flex-col gap-3"
       onClick={handleCardClick}
     >
-      <div className="relative w-24 h-24 mb-3 rounded-full overflow-hidden bg-background-hover shadow-lg">
+      <div className="w-full aspect-square rounded-full overflow-hidden bg-zinc-800 shadow-lg relative">
         {image ? (
           <img
             src={image}
@@ -31,11 +31,14 @@ export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <i className="fa-solid fa-user text-3xl text-text-secondary" />
+            <i className="fa-solid fa-user text-4xl text-zinc-600" />
           </div>
         )}
       </div>
-      <h3 className="font-semibold text-sm text-text-primary truncate w-full">{name}</h3>
+      <div className="flex flex-col min-w-0">
+        <h3 className="font-bold text-base text-white truncate">{name}</h3>
+        <p className="text-sm text-zinc-400">Artista</p>
+      </div>
     </article>
   );
 };
