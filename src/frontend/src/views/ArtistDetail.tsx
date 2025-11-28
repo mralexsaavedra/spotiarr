@@ -151,19 +151,19 @@ export const ArtistDetail: FC = () => {
       <div className="px-6 md:px-8 pb-10 bg-gradient-to-b from-[#121212] to-black min-h-[50vh]">
         {/* Action Buttons */}
         <div className="flex items-center gap-4 py-6">
-          {/* Download Button */}
+          {/* Download Button (Circular) */}
           <Button
             variant="primary"
             size="lg"
-            className="!rounded-full !px-8"
+            className="!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg hover:scale-105 transition-transform"
             onClick={handleArtistDownload}
             disabled={!artist?.spotifyUrl}
-            icon="fa-download"
+            title="Download All"
           >
-            Download
+            <i className="fa-solid fa-download text-xl" />
           </Button>
 
-          {/* Spotify Link Button */}
+          {/* Spotify Link Button (Pill) */}
           {artist?.spotifyUrl && (
             <a
               href={artist.spotifyUrl}
@@ -173,11 +173,11 @@ export const ArtistDetail: FC = () => {
             >
               <Button
                 variant="secondary"
-                size="lg"
-                className="!rounded-full !px-4"
-                title="Open in Spotify"
+                size="md"
+                className="!rounded-full !px-6 border border-zinc-600 hover:border-white"
+                icon="fa-brands fa-spotify"
               >
-                <i className="fa-brands fa-spotify text-xl" />
+                Open in Spotify
               </Button>
             </a>
           )}
