@@ -1,6 +1,5 @@
 import { FC } from "react";
 import { Track } from "../../types/track";
-import { TrackStatusBadge } from "../atoms/TrackStatusBadge";
 import { EmptyPlaylistTracks } from "../molecules/EmptyPlaylistTracks";
 
 interface PlaylistTracksListProps {
@@ -36,6 +35,15 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({ tracks, onRetr
                 >
                   <i className="fa-solid fa-rotate-right" />
                 </button>
+              ) : track.status === "downloading" ? (
+                <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />
+              ) : track.status === "queued" ? (
+                <i className="fa-regular fa-clock text-text-secondary" title="Queued" />
+              ) : track.status === "searching" ? (
+                <i
+                  className="fa-solid fa-magnifying-glass text-text-secondary"
+                  title="Searching..."
+                />
               ) : (
                 <span>{index + 1}</span>
               )}
@@ -99,8 +107,6 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({ tracks, onRetr
 
             {/* Duration & Actions */}
             <div className="flex items-center justify-end gap-4">
-              <TrackStatusBadge status={track.status} />
-
               <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right">
                 {track.durationMs
                   ? new Date(track.durationMs).toISOString().substr(14, 5)
