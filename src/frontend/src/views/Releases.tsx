@@ -1,4 +1,4 @@
-import { FC, MouseEvent, useCallback } from "react";
+import { FC, MouseEvent, memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
@@ -10,6 +10,68 @@ import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistM
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useReleasesQuery } from "../hooks/queries/useReleasesQuery";
 import { Path } from "../routes/routes";
+
+interface ReleaseItemProps {
+  release: {
+    albumId: string;
+    artistId: string;
+    albumName: string;
+    artistName: string;
+    coverUrl?: string | null;
+    releaseDate?: string | null;
+    spotifyUrl?: string | null;
+  };
+  isDownloaded: boolean;
+  onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
+  onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
+  onSpotifyLinkClick: (e: MouseEvent) => void;
+}
+
+const ReleaseItem = memo(
+  ({
+    release,
+    isDownloaded,
+    onReleaseClick,
+    onDownloadRelease,
+    onSpotifyLinkClick,
+  }: ReleaseItemProps) => {
+    const handleCardClick = useCallback(() => {
+      onReleaseClick(release);
+    }, [onReleaseClick, release]);
+
+    const handleDownloadClick = useCallback(
+      (e: MouseEvent<HTMLButtonElement>) => {
+        if (release.spotifyUrl) {
+          onDownloadRelease(e, release.spotifyUrl);
+        }
+      },
+      [onDownloadRelease, release.spotifyUrl],
+    );
+
+    const handleSpotifyLinkClick = useCallback(
+      (e: MouseEvent<HTMLAnchorElement>) => {
+        onSpotifyLinkClick(e);
+      },
+      [onSpotifyLinkClick],
+    );
+
+    return (
+      <ReleaseCard
+        albumId={release.albumId}
+        artistId={release.artistId}
+        albumName={release.albumName}
+        artistName={release.artistName}
+        coverUrl={release.coverUrl}
+        releaseDate={release.releaseDate}
+        spotifyUrl={release.spotifyUrl}
+        isDownloaded={isDownloaded}
+        onCardClick={handleCardClick}
+        onDownloadClick={handleDownloadClick}
+        onSpotifyLinkClick={handleSpotifyLinkClick}
+      />
+    );
+  },
+);
 
 export const Releases: FC = () => {
   const navigate = useNavigate();
@@ -79,18 +141,12 @@ export const Releases: FC = () => {
             const isDownloaded = playlists.some((p) => p.spotifyUrl === release.spotifyUrl);
 
             return (
-              <ReleaseCard
+              <ReleaseItem
                 key={`${release.albumId}-${release.artistId}`}
-                albumId={release.albumId}
-                artistId={release.artistId}
-                albumName={release.albumName}
-                artistName={release.artistName}
-                coverUrl={release.coverUrl}
-                releaseDate={release.releaseDate}
-                spotifyUrl={release.spotifyUrl}
+                release={release}
                 isDownloaded={isDownloaded}
-                onCardClick={() => handleReleaseClick(release)}
-                onDownloadClick={(e) => handleDownloadRelease(e, release.spotifyUrl!)}
+                onReleaseClick={handleReleaseClick}
+                onDownloadRelease={handleDownloadRelease}
                 onSpotifyLinkClick={handleSpotifyLinkClick}
               />
             );
