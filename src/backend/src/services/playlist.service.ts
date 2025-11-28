@@ -76,7 +76,7 @@ export class PlaylistService {
         name: track.name,
         artists: track.artists?.map((a) => a.name) || [track.artist],
         album: track.album || "Unknown Album",
-        duration: 0, // Duration not available in preview
+        duration: track.durationMs || 0,
       })),
       totalTracks: details.tracks.length,
     };
