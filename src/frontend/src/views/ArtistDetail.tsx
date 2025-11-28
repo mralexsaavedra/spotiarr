@@ -4,10 +4,14 @@ import { Button } from "../components/atoms/Button";
 import { TrackList } from "../components/molecules/TrackList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
+import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
+import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
   const { artist, isLoading, error } = useArtistDetailQuery(id || null);
+  const { data: playlists } = usePlaylistsQuery();
+  const { data: downloadTracks } = useDownloadTracksQuery();
   const createPlaylistMutation = useCreatePlaylistMutation();
 
   const hasArtist = !!artist && !!id && !error;
@@ -30,6 +34,33 @@ export const ArtistDetail: FC = () => {
         ? new Intl.NumberFormat("en-US").format(artist.followers)
         : null,
     [artist?.followers],
+  );
+
+  const isArtistDownloaded = useMemo(() => {
+    if (!artist?.spotifyUrl) return false;
+    const url = artist.spotifyUrl;
+
+    // Check active playlists
+    const isActive = playlists?.some((p) => p.spotifyUrl === url);
+    if (isActive) return true;
+
+    // Check history (if artist was downloaded as a playlist)
+    // Note: downloadTracks contains individual tracks, but we can check if any track belongs to a playlist with this URL
+    const isHistory = downloadTracks?.some((t) => t.playlistSpotifyUrl === url);
+    return !!isHistory;
+  }, [artist?.spotifyUrl, playlists, downloadTracks]);
+
+  const isTrackDownloaded = useCallback(
+    (url: string) => {
+      // Check active playlists
+      const isActive = playlists?.some((p) => p.tracks?.some((t) => t.trackUrl === url));
+      if (isActive) return true;
+
+      // Check history
+      const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
+      return !!isHistory;
+    },
+    [playlists, downloadTracks],
   );
 
   const handleDownload = useCallback(
@@ -98,12 +129,18 @@ export const ArtistDetail: FC = () => {
           <Button
             variant="primary"
             size="lg"
-            className="!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg hover:scale-105 transition-transform"
+            className={`!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
+              isArtistDownloaded ? "bg-green-500 hover:bg-green-600" : "hover:scale-105"
+            }`}
             onClick={handleArtistDownload}
-            disabled={!artist?.spotifyUrl}
-            title="Download All"
+            disabled={!artist?.spotifyUrl || isArtistDownloaded}
+            title={isArtistDownloaded ? "Artist Downloaded" : "Download All"}
           >
-            <i className="fa-solid fa-download text-xl" />
+            {isArtistDownloaded ? (
+              <i className="fa-solid fa-check text-xl" />
+            ) : (
+              <i className="fa-solid fa-download text-xl" />
+            )}
           </Button>
 
           {/* Spotify Link Button (Pill) */}
@@ -130,7 +167,11 @@ export const ArtistDetail: FC = () => {
         <div className="mt-4">
           <h2 className="text-2xl font-bold mb-4">Popular</h2>
 
-          <TrackList tracks={artist?.topTracks || []} onDownload={handleDownload} />
+          <TrackList
+            tracks={artist?.topTracks || []}
+            onDownload={handleDownload}
+            isTrackDownloaded={isTrackDownloaded}
+          />
         </div>
       </div>
     </div>

@@ -30,6 +30,10 @@ export class HistoryUseCases {
     return this.sortPlaylistsByDate(maps.playlists);
   }
 
+  async getRecentTracks(limit = 1000): Promise<DownloadHistoryItem[]> {
+    return this.deps.repository.findAll(limit);
+  }
+
   private initializeDeduplicationMaps(): DeduplicationMaps {
     return {
       playlists: new Map(),

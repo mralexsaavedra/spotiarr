@@ -8,6 +8,7 @@ import type {
   SettingItem,
   SettingMetadata,
   SupportedAudioFormat,
+  DownloadHistoryItem,
 } from "@spotiarr/shared";
 import type { Playlist } from "../types/playlist";
 import type { Track } from "../types/track";
@@ -147,6 +148,11 @@ class ApiClient {
   // History endpoints
   async getDownloadHistory(): Promise<PlaylistHistory[]> {
     const response = await this.request<{ data: PlaylistHistory[] }>("/history/downloads");
+    return response.data;
+  }
+
+  async getDownloadTracks(): Promise<DownloadHistoryItem[]> {
+    const response = await this.request<{ data: DownloadHistoryItem[] }>("/history/tracks");
     return response.data;
   }
 

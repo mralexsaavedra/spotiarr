@@ -15,4 +15,13 @@ router.get(
   }),
 );
 
+// GET /api/history/tracks - Get recent completed download tracks
+router.get(
+  "/tracks",
+  asyncHandler(async (_req, res) => {
+    const items = await historyUseCases.getRecentTracks();
+    res.json({ data: items });
+  }),
+);
+
 export default router;
