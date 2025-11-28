@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
+import { DetailLayout } from "../components/layouts/DetailLayout";
 import { PreviewError } from "../components/molecules/PreviewError";
 import { PlaylistTracksList } from "../components/organisms/PlaylistTracksList";
 import { PlaylistDetailSkeleton } from "../components/skeletons/PlaylistDetailSkeleton";
@@ -44,17 +45,99 @@ export const PlaylistPreview: FC = () => {
     return previewData.tracks.map((t, i) => ({
       id: `preview-${i}`,
       name: t.name,
-      artist: t.artists.join(", "),
-      artists: t.artists.map((a) => ({ name: a })),
+      artist: t.artists.map((a) => a.name).join(", "),
+      artists: t.artists.map((a) => ({ name: a.name, url: a.url })),
       album: t.album,
       durationMs: t.duration,
       status: TrackStatus.New,
+      trackUrl: t.trackUrl,
+      albumUrl: t.albumUrl,
     }));
   }, [previewData]);
 
   const handleRetryTrack = useCallback(() => {
     // No-op for preview
   }, []);
+
+  const displayTitle = useMemo(() => {
+    if (!previewData) return "Preview";
+
+    if (previewData.type === "album") {
+      if (previewData.tracks.length > 0 && previewData.tracks[0].album) {
+        return previewData.tracks[0].album;
+      }
+      const parts = (previewData.name || "").split(" - ");
+      return parts.length > 1 ? parts.slice(1).join(" - ") : previewData.name;
+    }
+
+    if (previewData.type === "track") {
+      if (previewData.tracks.length > 0 && previewData.tracks[0].name) {
+        return previewData.tracks[0].name;
+      }
+      const parts = (previewData.name || "").split(" - ");
+      return parts.length > 1 ? parts.slice(1).join(" - ") : previewData.name;
+    }
+
+    return previewData.name;
+  }, [previewData]);
+
+  const renderMetadata = useMemo(() => {
+    if (!previewData) return null;
+
+    const firstTrack = previewData.tracks[0];
+    // previewData.tracks already has artists as objects {name, url}
+    const artists = firstTrack?.artists || [];
+
+    const renderArtists = () => (
+      <span className="font-bold text-white">
+        {artists.map((artist, i) => (
+          <span key={`${artist.name}-${i}`}>
+            {artist.url ? (
+              <a
+                href={artist.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {artist.name}
+              </a>
+            ) : (
+              artist.name
+            )}
+            {i < artists.length - 1 && ", "}
+          </span>
+        ))}
+      </span>
+    );
+
+    if (previewData.type === "album" && artists.length > 0) {
+      return renderArtists();
+    }
+
+    if (previewData.type === "track" && artists.length > 0) {
+      return (
+        <>
+          {renderArtists()}
+          <span className="text-text-primary">•</span>
+          {firstTrack?.albumUrl ? (
+            <a
+              href={firstTrack.albumUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white hover:underline transition-colors"
+            >
+              {firstTrack?.album || "Unknown Album"}
+            </a>
+          ) : (
+            <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
+          )}
+        </>
+      );
+    }
+
+    return <span className="font-bold">SpotiArr</span>;
+  }, [previewData]);
 
   if (!spotifyUrl) {
     return null;
@@ -69,50 +152,20 @@ export const PlaylistPreview: FC = () => {
   }
 
   return (
-    <div className="flex-1 bg-background overflow-y-auto h-full text-text-primary">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-zinc-800/80 to-background px-6 md:px-8 py-6">
-        <div className="flex flex-col md:flex-row gap-6 items-end">
-          {/* Cover Image */}
-          <div className="w-48 h-48 md:w-60 md:h-60 shadow-2xl flex-shrink-0">
-            {previewData.coverUrl ? (
-              <img
-                src={previewData.coverUrl}
-                alt={previewData.name}
-                className="w-full h-full object-cover shadow-lg"
-              />
-            ) : (
-              <div className="w-full h-full bg-background-elevated flex items-center justify-center">
-                <i className="fa-solid fa-music text-6xl text-text-secondary" />
-              </div>
-            )}
-          </div>
-
-          {/* Metadata */}
-          <div className="flex-1 min-w-0 space-y-2 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-text-primary">
-              Preview
-            </span>
-            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-md break-words">
-              {previewData.name}
-            </h1>
-            {previewData.description && (
-              <p className="text-text-secondary text-sm font-medium mt-4 line-clamp-2">
-                {previewData.description}
-              </p>
-            )}
-
-            <div className="flex items-center gap-1 text-sm font-medium text-text-primary mt-2">
-              <span className="font-bold">SpotiArr</span>
-              <span className="text-text-secondary">•</span>
-              <span className="text-text-secondary">{previewData.totalTracks} songs</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Bar */}
-      <div className="px-6 md:px-8 py-6 bg-gradient-to-b from-black/20 to-background">
+    <DetailLayout
+      imageUrl={previewData.coverUrl || null}
+      fallbackIconClass="fa-solid fa-music"
+      typeLabel={previewData.type}
+      title={displayTitle}
+      description={previewData.description}
+      meta={
+        <>
+          {renderMetadata}
+          <span className="text-text-secondary">•</span>
+          <span className="text-text-secondary">{previewData.totalTracks} songs</span>
+        </>
+      }
+      actions={
         <div className="flex items-center gap-4">
           <Button
             variant="primary"
@@ -136,22 +189,19 @@ export const PlaylistPreview: FC = () => {
             </Button>
           </a>
         </div>
-      </div>
-
-      {/* Tracks List */}
-      <div className="px-6 md:px-8 pb-8">
-        {/* Table Header */}
-        <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 px-4 py-2 border-b border-white/10 text-text-secondary text-sm uppercase tracking-wider mb-4 sticky top-0 bg-background z-10">
-          <div className="text-center">#</div>
-          <div>Title</div>
-          <div className="hidden md:block">Album</div>
-          <div className="text-right">
-            <i className="fa-regular fa-clock" />
-          </div>
+      }
+    >
+      {/* Table Header */}
+      <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 px-4 py-2 border-b border-white/10 text-text-secondary text-sm uppercase tracking-wider mb-4 sticky top-0 bg-background z-10">
+        <div className="text-center">#</div>
+        <div>Title</div>
+        <div className="hidden md:block">Album</div>
+        <div className="text-right">
+          <i className="fa-regular fa-clock" />
         </div>
-
-        <PlaylistTracksList tracks={tracks} onRetryTrack={handleRetryTrack} />
       </div>
-    </div>
+
+      <PlaylistTracksList tracks={tracks} onRetryTrack={handleRetryTrack} />
+    </DetailLayout>
   );
 };

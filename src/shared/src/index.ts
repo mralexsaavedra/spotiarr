@@ -142,14 +142,17 @@ export interface PlaylistHistory {
 
 export interface PlaylistPreview {
   name: string;
+  type: string;
   description: string | null;
   coverUrl: string | null;
   totalTracks: number;
   tracks: Array<{
     name: string;
-    artists: string[];
+    artists: { name: string; url?: string }[];
     album: string;
     duration: number;
+    trackUrl?: string;
+    albumUrl?: string;
   }>;
 }
 

@@ -537,6 +537,7 @@ export class SpotifyApiService {
       const albumData = (await albumResponse.json()) as SpotifyAlbum;
       const albumName = albumData.name;
       const albumCoverUrl = albumData.images?.[0]?.url;
+      const albumUrl = albumData.external_urls?.spotify;
 
       // Get artist image (all tracks in album have same primary artist)
       const firstArtistId = data.items[0]?.artists[0]?.id;
@@ -557,6 +558,7 @@ export class SpotifyApiService {
         })),
         trackUrl: track.external_urls?.spotify,
         album: albumName,
+        albumUrl,
         albumCoverUrl,
         albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,
