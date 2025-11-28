@@ -167,10 +167,6 @@ export const PlaylistDetail: FC = () => {
     return <PlaylistNotFound onGoHome={handleGoHome} />;
   }
 
-  const description = `${completedCount} downloaded (${
-    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
-  }%)`;
-
   return (
     <div className="flex-1 bg-background overflow-y-auto h-full text-text-primary">
       {/* Header */}
@@ -199,7 +195,24 @@ export const PlaylistDetail: FC = () => {
             <h1 className="text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-md break-words">
               {displayTitle}
             </h1>
-            <p className="text-text-secondary text-sm font-medium mt-4">{description}</p>
+            <div className="mt-4 max-w-md">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
+                <span>
+                  {completedCount} / {totalCount} downloaded
+                </span>
+                <span>{totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 transition-all duration-500 ease-out rounded-full"
+                  style={{
+                    width: `${
+                      totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
 
             <div className="flex items-center gap-1 text-sm font-medium text-text-primary mt-2">
               {renderMetadata}
