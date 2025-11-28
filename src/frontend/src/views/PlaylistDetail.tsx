@@ -1,6 +1,6 @@
 import { FC, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PlaylistLayout } from "../components/layouts/PlaylistLayout";
+import { DetailLayout } from "../components/layouts/DetailLayout";
 import { PlaylistActions } from "../components/molecules/PlaylistActions";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { PlaylistTracksList } from "../components/organisms/PlaylistTracksList";
@@ -81,13 +81,25 @@ export const PlaylistDetail: FC = () => {
     return <PlaylistNotFound onGoHome={handleGoHome} />;
   }
 
+  const description = `${completedCount} downloaded (${
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+  }%)`;
+
+  const meta = (
+    <span>
+      {totalCount} {totalCount === 1 ? "track" : "tracks"}
+    </span>
+  );
+
   return (
-    <PlaylistLayout
-      coverUrl={playlist.coverUrl || null}
-      name={playlist.name || "Unnamed Playlist"}
-      description={`${completedCount} downloaded (${totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%)`}
-      totalTracks={totalCount}
-      type="Playlist"
+    <DetailLayout
+      imageUrl={playlist.coverUrl || null}
+      fallbackIconClass="fa-solid fa-music"
+      imageShape="square"
+      typeLabel="Playlist"
+      title={playlist.name || "Unnamed Playlist"}
+      description={description}
+      meta={meta}
       spotifyUrl={playlist.spotifyUrl}
       actions={
         <PlaylistActions
@@ -105,6 +117,6 @@ export const PlaylistDetail: FC = () => {
         onRetryTrack={handleRetryTrack}
         onDeleteTrack={handleDeleteTrack}
       />
-    </PlaylistLayout>
+    </DetailLayout>
   );
 };

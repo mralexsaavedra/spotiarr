@@ -1,7 +1,6 @@
-import { FC, useCallback, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loading } from "../components/atoms/Loading";
-import { PlaylistLayout } from "../components/layouts/PlaylistLayout";
+import { DetailLayout } from "../components/layouts/DetailLayout";
 import { PreviewActions } from "../components/molecules/PreviewActions";
 import { PreviewError } from "../components/molecules/PreviewError";
 import { TrackListItem } from "../components/molecules/TrackListItem";
@@ -34,30 +33,35 @@ export const PlaylistPreview: FC = () => {
     });
   }, [spotifyUrl, createPlaylist, navigate]);
 
+  useEffect(() => {
+    if (!spotifyUrl) {
+      navigate(Path.HOME);
+    }
+  }, [spotifyUrl, navigate]);
+
   if (!spotifyUrl) {
-    navigate(Path.HOME);
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <section className="flex-1 bg-background">
-        <Loading message="Loading preview..." />
-      </section>
-    );
-  }
-
-  if (error || !previewData) {
+  if (error || (!previewData && !isLoading)) {
     return <PreviewError error={error} onGoBack={handleGoBack} />;
   }
 
   return (
-    <PlaylistLayout
-      coverUrl={previewData.coverUrl}
-      name={previewData.name}
-      description={previewData.description}
-      totalTracks={previewData.totalTracks}
-      type="Preview"
+    <DetailLayout
+      imageUrl={previewData?.coverUrl ?? null}
+      fallbackIconClass="fa-solid fa-music"
+      imageShape="square"
+      typeLabel="Preview"
+      title={previewData?.name || "Preview"}
+      description={previewData?.description}
+      meta={
+        previewData ? (
+          <span>
+            {previewData.totalTracks} {previewData.totalTracks === 1 ? "track" : "tracks"}
+          </span>
+        ) : null
+      }
       spotifyUrl={spotifyUrl}
       actions={
         <PreviewActions
@@ -66,24 +70,28 @@ export const PlaylistPreview: FC = () => {
           onGoBack={handleGoBack}
         />
       }
+      isLoading={isLoading}
+      emptyMessage={isLoading ? "Loading preview..." : undefined}
     >
-      <div className="space-y-1">
-        {previewData.tracks.map((track, index) => (
-          <TrackListItem
-            key={`${track.name}-${index}`}
-            index={index}
-            name={track.name}
-            artists={track.artists.join(", ")}
-            actions={
-              track.duration > 0 ? (
-                <span className="text-text-secondary text-sm">
-                  {formatDuration(track.duration)}
-                </span>
-              ) : undefined
-            }
-          />
-        ))}
-      </div>
-    </PlaylistLayout>
+      {previewData && (
+        <div className="space-y-1">
+          {previewData.tracks.map((track, index) => (
+            <TrackListItem
+              key={`${track.name}-${index}`}
+              index={index}
+              name={track.name}
+              artists={track.artists.join(", ")}
+              actions={
+                track.duration > 0 ? (
+                  <span className="text-text-secondary text-sm">
+                    {formatDuration(track.duration)}
+                  </span>
+                ) : undefined
+              }
+            />
+          ))}
+        </div>
+      )}
+    </DetailLayout>
   );
 };
