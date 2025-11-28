@@ -47,20 +47,21 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </a>
       )}
 
+      <div className="flex-1" />
+
       {hasFailed && (
         <Button
-          variant="secondary"
+          variant="ghost"
           size="lg"
           icon="fa-repeat"
-          disabled={isRetrying}
+          loading={isRetrying}
           onClick={onRetryFailed}
+          className="text-text-secondary hover:text-text-primary hover:bg-white/10"
           title="Retry failed downloads"
         >
-          Retry Failed
+          <span className="hidden sm:inline">Retry Failed</span>
         </Button>
       )}
-
-      <div className="flex-1" />
 
       <Button
         variant="ghost"
