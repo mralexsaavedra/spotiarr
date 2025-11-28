@@ -18,6 +18,7 @@ interface PlaylistTrackDetail {
   artists?: { name: string; url: string | undefined }[];
   trackUrl?: string;
   albumUrl?: string;
+  durationMs?: number;
   unavailable?: boolean;
 }
 
@@ -143,6 +144,7 @@ export class CreatePlaylistUseCase {
           artists: track.artists,
           trackUrl: track.trackUrl,
           albumUrl: track.albumUrl,
+          durationMs: track.durationMs,
           playlistId: playlist.id,
         });
 

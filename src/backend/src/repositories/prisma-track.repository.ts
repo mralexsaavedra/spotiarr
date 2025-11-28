@@ -43,6 +43,7 @@ export class PrismaTrackRepository implements TrackRepository {
         albumUrl: track.albumUrl ?? null,
         albumYear: track.albumYear,
         trackNumber: track.trackNumber,
+        durationMs: track.durationMs,
         spotifyUrl: track.spotifyUrl,
         trackUrl: track.trackUrl,
         artists: (track.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput,
@@ -67,6 +68,7 @@ export class PrismaTrackRepository implements TrackRepository {
         albumUrl: track.albumUrl ?? null,
         albumYear: track.albumYear,
         trackNumber: track.trackNumber,
+        durationMs: track.durationMs,
         spotifyUrl: track.spotifyUrl,
         trackUrl: track.trackUrl,
         artists:
@@ -98,6 +100,7 @@ export class PrismaTrackRepository implements TrackRepository {
       albumUrl: track.albumUrl ?? undefined,
       albumYear: track.albumYear ?? undefined,
       trackNumber: track.trackNumber ?? undefined,
+      durationMs: track.durationMs ?? undefined,
       spotifyUrl: track.spotifyUrl ?? undefined,
       trackUrl: track.trackUrl ?? undefined,
       artists: track.artists ? (track.artists as unknown as TrackArtist[]) : undefined,

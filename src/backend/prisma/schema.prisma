@@ -28,6 +28,7 @@ model Track {
   album                 String?
   albumYear             Int?
   trackNumber           Int?
+  durationMs            Int?
   spotifyUrl            String?
   trackUrl              String?
   albumUrl              String?

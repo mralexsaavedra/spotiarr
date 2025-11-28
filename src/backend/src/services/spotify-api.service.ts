@@ -455,6 +455,7 @@ export class SpotifyApiService {
     albumYear: number | undefined;
     trackNumber: number | undefined;
     previewUrl: string | null | undefined;
+    durationMs: number | undefined;
   }> {
     try {
       const response = await this.fetchWithAppToken(`https://api.spotify.com/v1/tracks/${trackId}`);
@@ -492,6 +493,7 @@ export class SpotifyApiService {
         albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,
         previewUrl: track.preview_url,
+        durationMs: track.duration_ms,
       };
     } catch (error) {
       this.log(`Failed to get track details: ${(error as Error).message}`);
@@ -515,6 +517,7 @@ export class SpotifyApiService {
       albumYear: number | undefined;
       trackNumber: number | undefined;
       previewUrl: string | null | undefined;
+      durationMs: number | undefined;
     }[]
   > {
     try {
@@ -558,6 +561,7 @@ export class SpotifyApiService {
         albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,
         previewUrl: track.preview_url,
+        durationMs: track.duration_ms,
       }));
     } catch (error) {
       this.log(`Failed to get album tracks: ${(error as Error).message}`);
@@ -957,6 +961,7 @@ export class SpotifyApiService {
                 albumYear: albumYear,
                 trackNumber: item.track.track_number,
                 previewUrl: item.track.preview_url,
+                durationMs: item.track.duration_ms,
               };
             })
             .filter((track: NormalizedTrack | null) => track !== null) as typeof allTracks;

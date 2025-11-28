@@ -22,12 +22,11 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({ tracks, onRetr
         return (
           <div
             key={track.id}
-            className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors"
+            className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors"
           >
             {/* Index */}
             <div className="text-text-secondary text-sm text-center w-4">
-              <span className="group-hover:hidden">{index + 1}</span>
-              <i className="hidden group-hover:block fa-solid fa-play text-xs text-white" />
+              <span>{index + 1}</span>
             </div>
 
             {/* Title & Artist */}
@@ -71,20 +70,33 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({ tracks, onRetr
 
             {/* Album */}
             <div className="hidden md:block text-text-secondary text-sm truncate">
-              {track.album || "Unknown Album"}
+              {track.albumUrl ? (
+                <a
+                  href={track.albumUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-text-primary hover:underline transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {track.album || "Unknown Album"}
+                </a>
+              ) : (
+                <span>{track.album || "Unknown Album"}</span>
+              )}
             </div>
 
             {/* Duration & Actions */}
             <div className="flex items-center justify-end gap-4">
-              <div className="text-text-secondary text-sm tabular-nums">
-                {/* We don't have duration in Track interface yet, so using placeholder or if available */}
-                {/* Assuming durationMs might be added later, for now just status/actions */}
-              </div>
-
               <TrackStatusBadge status={track.status} />
 
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                 <TrackActions trackId={track.id} status={track.status} onRetry={onRetryTrack} />
+              </div>
+
+              <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right">
+                {track.durationMs
+                  ? new Date(track.durationMs).toISOString().substr(14, 5)
+                  : "--:--"}
               </div>
             </div>
           </div>
