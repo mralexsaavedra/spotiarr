@@ -144,14 +144,12 @@ export const PlaylistDetail: FC = () => {
               href={firstTrack.albumUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-text-secondary hover:underline hover:text-text-primary transition-colors"
+              className="font-medium text-white hover:underline transition-colors"
             >
               {firstTrack?.album || "Unknown Album"}
             </a>
           ) : (
-            <span className="font-medium text-text-secondary">
-              {firstTrack?.album || "Unknown Album"}
-            </span>
+            <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
           )}
         </>
       );
@@ -205,8 +203,8 @@ export const PlaylistDetail: FC = () => {
 
             <div className="flex items-center gap-1 text-sm font-medium text-text-primary mt-2">
               {renderMetadata}
-              <span className="text-text-primary">•</span>
-              <span>{totalCount} songs</span>
+              <span className="text-text-secondary">•</span>
+              <span className="text-text-secondary">{totalCount} songs</span>
             </div>
           </div>
         </div>
