@@ -90,9 +90,12 @@ export class DownloadTrackUseCase {
 
   private async downloadAndProcessTrack(track: ITrack): Promise<void> {
     let playlistName: string | undefined;
+    let playlistCoverUrl: string | undefined;
+
     if (track.playlistId) {
       const playlist = await this.playlistRepository.findOne(track.playlistId);
       playlistName = playlist?.name;
+      playlistCoverUrl = playlist?.coverUrl;
     }
 
     const trackFilePath = await this.trackFileHelper.getFolderName(track, playlistName);
@@ -105,24 +108,33 @@ export class DownloadTrackUseCase {
 
     await this.youtubeService.downloadAndFormat(track, trackFilePath);
 
-    // Fetch cover image from Spotify if available
-    let coverUrl = "";
-    if (track.spotifyUrl) {
+    // Fetch specific track cover image (Album Cover) from Spotify
+    let trackCoverUrl = "";
+    const urlToUse = track.spotifyUrl || track.trackUrl;
+
+    if (urlToUse) {
       try {
-        const details = await this.spotifyService.getPlaylistDetail(track.spotifyUrl);
-        coverUrl = details.image;
+        const details = await this.spotifyService.getPlaylistDetail(urlToUse);
+        trackCoverUrl = details.image;
       } catch (e) {
         console.warn(`Failed to fetch cover for track ${track.name}`, e);
       }
     }
 
+    // Embed ID3 cover (prefer specific track cover)
     await this.youtubeService.addImage(
       trackFilePath,
-      coverUrl,
+      trackCoverUrl || playlistCoverUrl || "",
       track.name,
       track.artist,
       track.albumYear,
     );
+
+    // Save folder cover.jpg (prefer playlist/artist/album cover for the folder)
+    const folderCoverUrl = playlistCoverUrl || trackCoverUrl;
+    if (folderCoverUrl) {
+      await this.youtubeService.saveCoverArt(trackDirectory, folderCoverUrl);
+    }
   }
 
   private async generateM3uIfNeeded(track: ITrack): Promise<void> {
