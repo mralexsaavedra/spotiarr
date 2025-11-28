@@ -88,7 +88,7 @@ export const ArtistDetail: FC = () => {
 
             <div className="hidden md:grid grid-cols-[40px,minmax(0,2fr),80px] px-3 pb-1 text-xs uppercase tracking-wide text-text-secondary/80">
               <span className="text-right">#</span>
-              <span>Title</span>
+              <span className="pl-3">Title</span>
               <span className="text-right">
                 <i className="fa-regular fa-clock" />
               </span>
@@ -98,20 +98,20 @@ export const ArtistDetail: FC = () => {
               {artist.topTracks.map((track, index) => (
                 <div
                   key={`${track.trackUrl ?? track.name}-${index}`}
-                  className="flex items-center justify-between gap-3 px-3 py-2 rounded-md hover:bg-background-elevated transition-colors"
+                  className="grid grid-cols-[40px,minmax(0,2fr),80px] items-center gap-3 px-3 py-2 rounded-md hover:bg-background-elevated transition-colors"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-text-secondary w-6 text-right">{index + 1}</span>
+                  <span className="text-sm text-text-secondary text-right">{index + 1}</span>
 
+                  <div className="grid grid-cols-[auto,minmax(0,1fr)] gap-3 min-w-0 items-center">
                     {track.albumCoverUrl && (
                       <img
                         src={track.albumCoverUrl}
                         alt={track.album ?? track.name}
-                        className="w-10 h-10 rounded-sm object-cover flex-shrink-0"
+                        className="w-10 h-10 rounded-sm object-cover"
                       />
                     )}
 
-                    <div className="flex flex-col min-w-0">
+                    <div className="grid gap-0.5 min-w-0">
                       {track.trackUrl ? (
                         <a
                           href={track.trackUrl}
@@ -127,45 +127,31 @@ export const ArtistDetail: FC = () => {
                       )}
 
                       <span className="text-xs text-text-secondary truncate">
-                        {track.artists
-                          .map((artistInfo, idx) => {
-                            if (artistInfo.url) {
-                              return (
-                                <a
-                                  key={`${artistInfo.name}-${idx}`}
-                                  href={artistInfo.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="hover:underline"
-                                  onClick={(event) => event.stopPropagation()}
-                                >
-                                  {artistInfo.name}
-                                </a>
-                              );
-                            }
-
-                            return <span key={`${artistInfo.name}-${idx}`}>{artistInfo.name}</span>;
-                          })
-                          .reduce<React.ReactNode[]>((acc, node, idx) => {
-                            if (idx > 0) {
-                              acc.push(
-                                <span key={`sep-${idx}`} className="mx-0.5">
-                                  ,
-                                </span>,
-                              );
-                            }
-                            acc.push(node);
-                            return acc;
-                          }, [])}
+                        {track.artists.map((artistInfo, idx) => (
+                          <span key={`${artistInfo.name}-${idx}`}>
+                            {idx > 0 && <span className="mx-0.5">,</span>}
+                            {artistInfo.url ? (
+                              <a
+                                href={artistInfo.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:underline"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                {artistInfo.name}
+                              </a>
+                            ) : (
+                              <span>{artistInfo.name}</span>
+                            )}
+                          </span>
+                        ))}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="text-xs text-text-secondary text-right">
                     {track.durationMs != null && track.durationMs > 0 && (
-                      <span className="text-xs text-text-secondary">
-                        {formatDuration(track.durationMs)}
-                      </span>
+                      <span>{formatDuration(track.durationMs)}</span>
                     )}
                   </div>
                 </div>
