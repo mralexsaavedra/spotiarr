@@ -86,6 +86,14 @@ export const ArtistDetail: FC = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-text-primary">Popular</h2>
 
+            <div className="hidden md:grid grid-cols-[40px,minmax(0,2fr),80px] px-3 pb-1 text-xs uppercase tracking-wide text-text-secondary/80">
+              <span className="text-right">#</span>
+              <span>Title</span>
+              <span className="text-right">
+                <i className="fa-regular fa-clock" />
+              </span>
+            </div>
+
             <div className="space-y-1">
               {artist.topTracks.map((track, index) => (
                 <div
