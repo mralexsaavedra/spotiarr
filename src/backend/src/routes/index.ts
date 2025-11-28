@@ -1,4 +1,5 @@
 import { Router, type Router as ExpressRouter } from "express";
+import artistRoutes from "./artist.routes";
 import authRoutes from "./auth.routes";
 import eventsRoutes from "./events.routes";
 import feedRoutes from "./feed.routes";
@@ -16,6 +17,7 @@ router.use("/history", historyRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/events", eventsRoutes);
 router.use("/feed", feedRoutes);
+router.use("/artist", artistRoutes);
 router.use("/auth", authRoutes);
 
 export default router;

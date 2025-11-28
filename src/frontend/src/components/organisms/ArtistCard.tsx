@@ -1,4 +1,6 @@
 import { FC, MouseEvent, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Path } from "../../routes/routes";
 
 interface ArtistCardProps {
   id: string;
@@ -8,11 +10,11 @@ interface ArtistCardProps {
 }
 
 export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image, spotifyUrl }) => {
+  const navigate = useNavigate();
+
   const handleCardClick = useCallback(() => {
-    if (spotifyUrl) {
-      window.open(spotifyUrl, "_blank", "noopener,noreferrer");
-    }
-  }, [spotifyUrl]);
+    navigate(Path.ARTIST_DETAIL.replace(":id", id));
+  }, [id, navigate]);
 
   const handleSpotifyClick = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {

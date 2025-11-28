@@ -248,6 +248,71 @@ class ApiClient {
       spotifyUrl: string | null;
     }[];
   }
+
+  async getArtistDetail(artistId: string): Promise<{
+    id: string;
+    name: string;
+    image: string | null;
+    topTracks: {
+      name: string;
+      artist: string;
+      primaryArtist: string | undefined;
+      primaryArtistImage: string | null;
+      artists: { name: string; url: string | undefined }[];
+      trackUrl: string | undefined;
+      album: string | undefined;
+      albumCoverUrl: string | undefined;
+      albumYear: number | undefined;
+      trackNumber: number;
+      previewUrl: string | null | undefined;
+    }[];
+  }> {
+    const response = await fetch(`${API_BASE}/artist/${artistId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const text = await response.text();
+    const data = text ? (JSON.parse(text) as unknown) : undefined;
+
+    if (!response.ok) {
+      let errorCode: ApiErrorCode | undefined;
+
+      if (typeof data === "object" && data !== null && "error" in data) {
+        errorCode = (data as ApiErrorShape).error;
+      }
+
+      if (errorCode === "missing_user_access_token") {
+        throw new Error("missing_user_access_token");
+      }
+
+      if (errorCode === "spotify_rate_limited") {
+        throw new Error("spotify_rate_limited");
+      }
+
+      throw new Error("failed_to_fetch_artist_detail");
+    }
+
+    return data as {
+      id: string;
+      name: string;
+      image: string | null;
+      topTracks: {
+        name: string;
+        artist: string;
+        primaryArtist: string | undefined;
+        primaryArtistImage: string | null;
+        artists: { name: string; url: string | undefined }[];
+        trackUrl: string | undefined;
+        album: string | undefined;
+        albumCoverUrl: string | undefined;
+        albumYear: number | undefined;
+        trackNumber: number;
+        previewUrl: string | null | undefined;
+      }[];
+    };
+  }
 }
 
 export const api = new ApiClient();

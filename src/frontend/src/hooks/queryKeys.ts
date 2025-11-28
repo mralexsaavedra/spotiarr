@@ -16,3 +16,5 @@ export const SUPPORTED_FORMATS_QUERY_KEY = ["supportedFormats"] as const;
 export const RELEASES_QUERY_KEY = ["releases"] as const;
 
 export const FOLLOWED_ARTISTS_QUERY_KEY = ["followed-artists"] as const;
+
+export const artistDetailQueryKey = (artistId: string) => ["artist-detail", artistId] as const;
