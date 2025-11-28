@@ -1,25 +1,7 @@
+import type { ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { artistDetailQueryKey } from "../queryKeys";
-
-interface ArtistDetail {
-  id: string;
-  name: string;
-  image: string | null;
-  topTracks: {
-    name: string;
-    artist: string;
-    primaryArtist: string | undefined;
-    primaryArtistImage: string | null;
-    artists: { name: string; url: string | undefined }[];
-    trackUrl: string | undefined;
-    album: string | undefined;
-    albumCoverUrl: string | undefined;
-    albumYear: number | undefined;
-    trackNumber: number;
-    previewUrl: string | null | undefined;
-  }[];
-}
 
 interface UseArtistDetailState {
   artist: ArtistDetail | null;

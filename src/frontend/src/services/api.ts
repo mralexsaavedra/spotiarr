@@ -1,6 +1,7 @@
 import type {
   ApiErrorCode,
   ApiErrorShape,
+  ArtistDetail,
   ArtistRelease,
   PlaylistHistory,
   PlaylistPreview,
@@ -249,24 +250,7 @@ class ApiClient {
     }[];
   }
 
-  async getArtistDetail(artistId: string): Promise<{
-    id: string;
-    name: string;
-    image: string | null;
-    topTracks: {
-      name: string;
-      artist: string;
-      primaryArtist: string | undefined;
-      primaryArtistImage: string | null;
-      artists: { name: string; url: string | undefined }[];
-      trackUrl: string | undefined;
-      album: string | undefined;
-      albumCoverUrl: string | undefined;
-      albumYear: number | undefined;
-      trackNumber: number;
-      previewUrl: string | null | undefined;
-    }[];
-  }> {
+  async getArtistDetail(artistId: string): Promise<ArtistDetail> {
     const response = await fetch(`${API_BASE}/artist/${artistId}`, {
       headers: {
         "Content-Type": "application/json",
@@ -294,24 +278,7 @@ class ApiClient {
       throw new Error("failed_to_fetch_artist_detail");
     }
 
-    return data as {
-      id: string;
-      name: string;
-      image: string | null;
-      topTracks: {
-        name: string;
-        artist: string;
-        primaryArtist: string | undefined;
-        primaryArtistImage: string | null;
-        artists: { name: string; url: string | undefined }[];
-        trackUrl: string | undefined;
-        album: string | undefined;
-        albumCoverUrl: string | undefined;
-        albumYear: number | undefined;
-        trackNumber: number;
-        previewUrl: string | null | undefined;
-      }[];
-    };
+    return data as ArtistDetail;
   }
 }
 
