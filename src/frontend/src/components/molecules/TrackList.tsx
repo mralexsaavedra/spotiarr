@@ -41,14 +41,14 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, isTrackDownl
               data-url={track.trackUrl}
               className={`flex items-center justify-center w-4 text-base font-medium transition-colors ${
                 isDownloaded
-                  ? "text-primary cursor-default"
+                  ? "text-zinc-400 cursor-default"
                   : "text-zinc-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               }`}
               disabled={!track.trackUrl || isDownloaded}
               title={isDownloaded ? "Downloaded" : "Download"}
             >
               {isDownloaded ? (
-                <i className="fa-solid fa-check text-sm" />
+                <span>{index + 1}</span>
               ) : (
                 <>
                   <span className="group-hover:hidden">{index + 1}</span>
@@ -71,9 +71,7 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, isTrackDownl
                   href={track.trackUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-base font-medium truncate hover:underline ${
-                    isDownloaded ? "text-primary" : "text-white"
-                  }`}
+                  className="text-base font-medium truncate hover:underline text-white"
                 >
                   {track.name}
                 </a>
@@ -82,6 +80,7 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, isTrackDownl
 
             {/* Duration */}
             <div className="flex items-center justify-end gap-4 text-sm text-zinc-400">
+              {isDownloaded && <i className="fa-solid fa-circle-check text-green-500 text-base" />}
               <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
             </div>
           </div>
