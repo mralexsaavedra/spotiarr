@@ -3,7 +3,6 @@ import { Track } from "../../types/track";
 import { TrackStatusBadge } from "../atoms/TrackStatusBadge";
 import { EmptyPlaylistTracks } from "../molecules/EmptyPlaylistTracks";
 import { TrackActions } from "../molecules/TrackActions";
-import { TrackListItem } from "../molecules/TrackListItem";
 
 interface PlaylistTracksListProps {
   tracks: Track[];
@@ -22,26 +21,85 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
 
   return (
     <div className="space-y-1">
-      {tracks.map((track, index) => (
-        <TrackListItem
-          key={track.id}
-          index={index}
-          name={track.name}
-          trackUrl={track.trackUrl}
-          artists={track.artists || track.artist}
-          actions={
-            <>
+      {tracks.map((track, index) => {
+        const artists = track.artists || [{ name: track.artist }];
+
+        return (
+          <div
+            key={track.id}
+            className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors"
+          >
+            {/* Index */}
+            <div className="text-text-secondary text-sm text-center w-4">
+              <span className="group-hover:hidden">{index + 1}</span>
+              <i className="hidden group-hover:block fa-solid fa-play text-xs text-white" />
+            </div>
+
+            {/* Title & Artist */}
+            <div className="flex flex-col min-w-0">
+              <div className="text-text-primary font-medium truncate">
+                {track.trackUrl ? (
+                  <a
+                    href={track.trackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {track.name}
+                  </a>
+                ) : (
+                  <span>{track.name}</span>
+                )}
+              </div>
+              <div className="text-text-secondary text-sm truncate">
+                {artists.map((artist, i) => (
+                  <span key={`${artist.name}-${i}`}>
+                    {artist.url ? (
+                      <a
+                        href={artist.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-text-primary transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {artist.name}
+                      </a>
+                    ) : (
+                      <span>{artist.name}</span>
+                    )}
+                    {i < artists.length - 1 && <span>, </span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Album */}
+            <div className="hidden md:block text-text-secondary text-sm truncate">
+              {track.album || "Unknown Album"}
+            </div>
+
+            {/* Duration & Actions */}
+            <div className="flex items-center justify-end gap-4">
+              <div className="text-text-secondary text-sm tabular-nums">
+                {/* We don't have duration in Track interface yet, so using placeholder or if available */}
+                {/* Assuming durationMs might be added later, for now just status/actions */}
+              </div>
+
               <TrackStatusBadge status={track.status} />
-              <TrackActions
-                trackId={track.id}
-                status={track.status}
-                onRetry={onRetryTrack}
-                onDelete={onDeleteTrack}
-              />
-            </>
-          }
-        />
-      ))}
+
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <TrackActions
+                  trackId={track.id}
+                  status={track.status}
+                  onRetry={onRetryTrack}
+                  onDelete={onDeleteTrack}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
