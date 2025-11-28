@@ -8,10 +8,6 @@ export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
   const { artist, isLoading, error } = useArtistDetailQuery(id || null);
 
-  if (!id) {
-    return null;
-  }
-
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
       <PageHeader title="Artist" />
@@ -24,7 +20,7 @@ export const ArtistDetail: FC = () => {
         <div className="text-text-secondary flex items-center gap-2">
           <i className="fa-solid fa-hourglass-half" /> Spotify rate limited. Please try again later.
         </div>
-      ) : error || !artist ? (
+      ) : error || !artist || !id ? (
         <div className="text-text-secondary">Failed to load artist details.</div>
       ) : (
         <div>
