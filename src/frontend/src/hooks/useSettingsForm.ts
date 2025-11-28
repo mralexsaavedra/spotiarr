@@ -15,9 +15,9 @@ import { useSupportedFormatsQuery } from "./queries/useSupportedFormatsQuery";
 
 export const useSettingsForm = () => {
   const { data: settingsData = [], isLoading: settingsLoading } = useSettingsQuery();
-  const updateSettings = useUpdateSettingsMutation();
   const { data: metadata = {}, isLoading: metadataLoading } = useSettingsMetadataQuery();
   const { data: availableFormats = ["mp3"] } = useSupportedFormatsQuery();
+  const updateSettings = useUpdateSettingsMutation();
 
   const [values, setValues] = useState<Record<string, string>>({});
 

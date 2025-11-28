@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { api } from "../../services/api";
 import { FOLLOWED_ARTISTS_QUERY_KEY } from "../queryKeys";
+import { mapSpotifyError } from "../utils/mapSpotifyError";
 import { useSettingsQuery } from "./useSettingsQuery";
 
 interface FollowedArtist {
@@ -35,14 +36,7 @@ export const useFollowedArtistsQuery = (): UseFollowedArtistsState => {
     staleTime: 1000 * 60 * cacheMinutes,
   });
 
-  let mappedError: UseFollowedArtistsState["error"] = null;
-  if (error instanceof Error && error.message === "missing_user_access_token") {
-    mappedError = "missing_user_access_token";
-  } else if (error instanceof Error && error.message === "spotify_rate_limited") {
-    mappedError = "spotify_rate_limited";
-  } else if (error) {
-    mappedError = "failed_to_fetch_followed_artists";
-  }
+  const mappedError = mapSpotifyError(error, "failed_to_fetch_followed_artists");
 
   return {
     artists: data ?? null,

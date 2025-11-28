@@ -2,6 +2,7 @@ import type { ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { artistDetailQueryKey } from "../queryKeys";
+import { mapSpotifyError } from "../utils/mapSpotifyError";
 
 interface UseArtistDetailState {
   artist: ArtistDetail | null;
@@ -20,14 +21,7 @@ export const useArtistDetailQuery = (artistId: string | null): UseArtistDetailSt
     enabled: !!artistId,
   });
 
-  let mappedError: UseArtistDetailState["error"] = null;
-  if (error instanceof Error && error.message === "missing_user_access_token") {
-    mappedError = "missing_user_access_token";
-  } else if (error instanceof Error && error.message === "spotify_rate_limited") {
-    mappedError = "spotify_rate_limited";
-  } else if (error) {
-    mappedError = "failed_to_fetch_artist_detail";
-  }
+  const mappedError = mapSpotifyError(error, "failed_to_fetch_artist_detail");
 
   return {
     artist: data ?? null,
