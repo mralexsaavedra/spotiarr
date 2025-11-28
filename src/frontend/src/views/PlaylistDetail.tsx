@@ -49,7 +49,7 @@ export const PlaylistDetail: FC = () => {
       }
       // Fallback: try to strip artist from name
       const parts = (playlist.name || "").split(" - ");
-      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name;
+      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name || "Unnamed Playlist";
     }
 
     if (playlist.type === PlaylistTypeEnum.Track) {
@@ -58,7 +58,7 @@ export const PlaylistDetail: FC = () => {
       }
       // Fallback
       const parts = (playlist.name || "").split(" - ");
-      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name;
+      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name || "Unnamed Playlist";
     }
 
     return playlist.name || "Unnamed Playlist";
