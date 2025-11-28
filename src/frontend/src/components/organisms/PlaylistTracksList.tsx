@@ -7,14 +7,9 @@ import { TrackActions } from "../molecules/TrackActions";
 interface PlaylistTracksListProps {
   tracks: Track[];
   onRetryTrack: (trackId: string) => void;
-  onDeleteTrack: (trackId: string) => void;
 }
 
-export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
-  tracks,
-  onRetryTrack,
-  onDeleteTrack,
-}) => {
+export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({ tracks, onRetryTrack }) => {
   if (tracks.length === 0) {
     return <EmptyPlaylistTracks />;
   }
@@ -89,12 +84,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
               <TrackStatusBadge status={track.status} />
 
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                <TrackActions
-                  trackId={track.id}
-                  status={track.status}
-                  onRetry={onRetryTrack}
-                  onDelete={onDeleteTrack}
-                />
+                <TrackActions trackId={track.id} status={track.status} onRetry={onRetryTrack} />
               </div>
             </div>
           </div>

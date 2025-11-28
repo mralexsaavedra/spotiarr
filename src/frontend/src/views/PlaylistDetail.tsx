@@ -6,7 +6,6 @@ import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { PlaylistTracksList } from "../components/organisms/PlaylistTracksList";
 import { PlaylistDetailSkeleton } from "../components/skeletons/PlaylistDetailSkeleton";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
-import { useDeleteTrackMutation } from "../hooks/mutations/useDeleteTrackMutation";
 import { useRetryFailedTracksMutation } from "../hooks/mutations/useRetryFailedTracksMutation";
 import { useRetryTrackMutation } from "../hooks/mutations/useRetryTrackMutation";
 import { useUpdatePlaylistMutation } from "../hooks/mutations/useUpdatePlaylistMutation";
@@ -24,8 +23,7 @@ export const PlaylistDetail: FC = () => {
   const deletePlaylist = useDeletePlaylistMutation();
   const retryFailedTracks = useRetryFailedTracksMutation();
   const { data: tracks = [] } = useTracksQuery(id || "");
-  const retryTrack = useRetryTrackMutation(id || "");
-  const deleteTrack = useDeleteTrackMutation(id || "");
+  const { mutate: retryTrack } = useRetryTrackMutation(id || "");
 
   const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
 
@@ -97,16 +95,9 @@ export const PlaylistDetail: FC = () => {
 
   const handleRetryTrack = useCallback(
     (trackId: string) => {
-      retryTrack.mutate(trackId);
+      retryTrack(trackId);
     },
     [retryTrack],
-  );
-
-  const handleDeleteTrack = useCallback(
-    (trackId: string) => {
-      deleteTrack.mutate(trackId);
-    },
-    [deleteTrack],
   );
 
   const renderMetadata = useMemo(() => {
@@ -216,20 +207,6 @@ export const PlaylistDetail: FC = () => {
               {renderMetadata}
               <span className="text-text-primary">•</span>
               <span>{totalCount} songs</span>
-              {playlist.spotifyUrl && (
-                <>
-                  <span className="text-text-primary">•</span>
-                  <a
-                    href={playlist.spotifyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline flex items-center gap-1"
-                  >
-                    <i className="fa-brands fa-spotify" />
-                    Open in Spotify
-                  </a>
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -244,6 +221,7 @@ export const PlaylistDetail: FC = () => {
           onToggleSubscription={handleToggleActive}
           onRetryFailed={handleRetryFailed}
           onDelete={handleDelete}
+          spotifyUrl={playlist.spotifyUrl}
         />
       </div>
 
@@ -259,11 +237,7 @@ export const PlaylistDetail: FC = () => {
           </div>
         </div>
 
-        <PlaylistTracksList
-          tracks={tracks}
-          onRetryTrack={handleRetryTrack}
-          onDeleteTrack={handleDeleteTrack}
-        />
+        <PlaylistTracksList tracks={tracks} onRetryTrack={handleRetryTrack} />
       </div>
     </div>
   );

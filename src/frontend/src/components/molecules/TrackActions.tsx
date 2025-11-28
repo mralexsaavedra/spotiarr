@@ -5,17 +5,12 @@ interface TrackActionsProps {
   trackId: string | null;
   status: TrackStatus;
   onRetry: (trackId: string) => void;
-  onDelete: (trackId: string) => void;
 }
 
-export const TrackActions: FC<TrackActionsProps> = ({ trackId, status, onRetry, onDelete }) => {
+export const TrackActions: FC<TrackActionsProps> = ({ trackId, status, onRetry }) => {
   const handleRetry = useCallback(() => {
     if (trackId) onRetry(trackId);
   }, [trackId, onRetry]);
-
-  const handleDelete = useCallback(() => {
-    if (trackId) onDelete(trackId);
-  }, [trackId, onDelete]);
 
   if (!trackId) return null;
 
@@ -30,13 +25,6 @@ export const TrackActions: FC<TrackActionsProps> = ({ trackId, status, onRetry, 
           <i className="fa-solid fa-repeat" />
         </button>
       )}
-      <button
-        className="text-text-secondary hover:text-red-400 transition-colors"
-        title="Remove track"
-        onClick={handleDelete}
-      >
-        <i className="fa-solid fa-xmark" />
-      </button>
     </div>
   );
 };
