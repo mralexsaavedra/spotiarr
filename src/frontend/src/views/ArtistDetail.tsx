@@ -1,7 +1,6 @@
 import { FC } from "react";
 import { useParams } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
-import { PageHeader } from "../components/atoms/PageHeader";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
 
 export const ArtistDetail: FC = () => {
@@ -10,8 +9,6 @@ export const ArtistDetail: FC = () => {
 
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
-      <PageHeader title="Artist" />
-
       {isLoading ? (
         <Loading message="Loading artist..." />
       ) : error === "missing_user_access_token" ? (
