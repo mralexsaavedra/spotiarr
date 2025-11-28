@@ -137,14 +137,6 @@ export const ArtistDetail: FC = () => {
 
         {/* Content */}
         <div className="absolute bottom-0 left-0 w-full p-6 md:p-8 z-10">
-          {/* Verified Badge */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="bg-[#3d91f4] text-white text-[10px] p-0.5 rounded-full w-5 h-5 flex items-center justify-center">
-              <i className="fa-solid fa-check" />
-            </span>
-            <span className="text-sm font-medium">Verified Artist</span>
-          </div>
-
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 drop-shadow-lg">
             {artist?.name || "Artist"}
           </h1>
