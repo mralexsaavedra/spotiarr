@@ -9,7 +9,7 @@ export class PrismaTrackRepository implements TrackRepository {
       where: where as Prisma.TrackWhereInput | undefined,
       include: { playlist: true },
     });
-    return tracks.map(this.mapToITrack);
+    return tracks.map((t) => this.mapToITrack(t));
   }
 
   async findAllByPlaylist(playlistId: string): Promise<ITrack[]> {
@@ -17,7 +17,7 @@ export class PrismaTrackRepository implements TrackRepository {
       where: { playlistId },
       include: { playlist: true },
     });
-    return tracks.map(this.mapToITrack);
+    return tracks.map((t) => this.mapToITrack(t));
   }
 
   async findOne(id: string): Promise<ITrack | null> {
@@ -40,6 +40,7 @@ export class PrismaTrackRepository implements TrackRepository {
         name: track.name,
         artist: track.artist,
         album: track.album,
+        albumUrl: track.albumUrl ?? null,
         albumYear: track.albumYear,
         trackNumber: track.trackNumber,
         spotifyUrl: track.spotifyUrl,
@@ -63,6 +64,7 @@ export class PrismaTrackRepository implements TrackRepository {
         name: track.name,
         artist: track.artist,
         album: track.album,
+        albumUrl: track.albumUrl ?? null,
         albumYear: track.albumYear,
         trackNumber: track.trackNumber,
         spotifyUrl: track.spotifyUrl,
@@ -93,6 +95,7 @@ export class PrismaTrackRepository implements TrackRepository {
       name: track.name,
       artist: track.artist,
       album: track.album ?? undefined,
+      albumUrl: track.albumUrl ?? undefined,
       albumYear: track.albumYear ?? undefined,
       trackNumber: track.trackNumber ?? undefined,
       spotifyUrl: track.spotifyUrl ?? undefined,

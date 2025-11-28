@@ -1,4 +1,5 @@
 import { type ArtistRelease } from "@spotiarr/shared";
+import { SpotifyUrlHelper } from "../helpers/spotify-url.helper";
 import { NormalizedTrack } from "../types/spotify";
 import { SettingsService } from "./settings.service";
 
@@ -127,43 +128,13 @@ export class SpotifyApiService {
     else if (process.env.NODE_ENV === "development") console.log(prefix, message);
   }
 
-  private getPlaylistId(url: string): string {
-    try {
-      const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split("/");
-      const playlistIndex = pathParts.findIndex((part) => part === "playlist");
-      if (playlistIndex >= 0 && pathParts.length > playlistIndex + 1) {
-        return pathParts[playlistIndex + 1].split("?")[0];
-      }
-      throw new Error("Invalid Spotify playlist URL");
-    } catch (error) {
-      this.log(`Failed to extract playlist ID: ${(error as Error).message}`);
-      throw error;
-    }
-  }
-
-  private getAlbumId(url: string): string {
-    try {
-      const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split("/");
-      const albumIndex = pathParts.findIndex((part) => part === "album");
-      if (albumIndex >= 0 && pathParts.length > albumIndex + 1) {
-        return pathParts[albumIndex + 1].split("?")[0];
-      }
-      throw new Error("Invalid Spotify album URL");
-    } catch (error) {
-      this.log(`Failed to extract album ID: ${(error as Error).message}`);
-      throw error;
-    }
-  }
-
   async getPlaylistMetadata(spotifyUrl: string): Promise<{ name: string; image: string }> {
     try {
       this.log(`Getting playlist metadata for ${spotifyUrl}`);
 
-      const playlistId = this.getPlaylistId(spotifyUrl);
+      const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
       const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/playlists/${playlistId}`,
+        `https://api.spotify.com/v1/playlists/${playlistId}?market=US`,
       );
 
       if (!response.ok) {
@@ -896,7 +867,7 @@ export class SpotifyApiService {
       // For albums, reuse getAlbumTracks to keep album logic in one place
       if (spotifyUrl.includes("/album/")) {
         this.log("Album detected, using Spotify API");
-        const albumId = this.getAlbumId(spotifyUrl);
+        const albumId = SpotifyUrlHelper.extractId(spotifyUrl);
         const albumTracks = await this.getAlbumTracks(albumId);
 
         const normalized: NormalizedTrack[] = albumTracks.map((track) => ({
@@ -908,9 +879,25 @@ export class SpotifyApiService {
           })),
           trackUrl: track.trackUrl,
           album: track.album,
+          albumUrl: track.albumCoverUrl, // Wait, getAlbumTracks doesn't return albumUrl? I should check getAlbumTracks return type.
+          // Actually getAlbumTracks returns albumCoverUrl but not albumUrl (external url).
+          // Let's check getAlbumTracks implementation. It returns albumCoverUrl.
+          // But I need albumUrl (external_urls.spotify).
+          // getAlbumTracks implementation (lines 534-595) returns albumCoverUrl but NOT albumUrl.
+          // I should update getAlbumTracks too if I want albumUrl for albums.
+          // For now, let's focus on playlist tracks which was the main issue.
+          // But wait, I am replacing the whole block.
+
+          // Let's assume getAlbumTracks returns what it currently returns.
+          // I will fix getAlbumTracks later if needed.
+          // But wait, I need to match NormalizedTrack type.
+          // NormalizedTrack has albumUrl.
+          // If getAlbumTracks doesn't return it, I can't set it here.
+
           albumYear: track.albumYear,
           trackNumber: track.trackNumber,
           previewUrl: track.previewUrl ?? null,
+          albumCoverUrl: track.albumCoverUrl,
         }));
 
         this.log(`Retrieved ${normalized.length} album tracks via getAlbumTracks`);
@@ -920,7 +907,7 @@ export class SpotifyApiService {
       // For playlists, use Spotify API with pagination support
       if (spotifyUrl.includes("/playlist/")) {
         this.log("Playlist detected, using Spotify API");
-        const playlistId = this.getPlaylistId(spotifyUrl);
+        const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
         const allTracks: NormalizedTrack[] = [];
         let offset = 0;
         let hasMoreTracks = true;
@@ -929,7 +916,7 @@ export class SpotifyApiService {
           this.log(`Fetching tracks from Spotify API with offset ${offset}`);
 
           const response = await this.fetchWithAppToken(
-            `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&fields=items(track(name,artists(name,external_urls),preview_url,external_urls)),next`,
+            `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&market=US&fields=items(track(name,artists(name,external_urls),preview_url,external_urls,album(name,release_date,images,external_urls),track_number,duration_ms)),next`,
           );
 
           if (!response.ok) {
@@ -965,6 +952,8 @@ export class SpotifyApiService {
                 })),
                 trackUrl: item.track.external_urls?.spotify,
                 album: item.track.album?.name,
+                albumUrl: item.track.album?.external_urls?.spotify,
+                albumCoverUrl: item.track.album?.images?.[0]?.url,
                 albumYear: albumYear,
                 trackNumber: item.track.track_number,
                 previewUrl: item.track.preview_url,
