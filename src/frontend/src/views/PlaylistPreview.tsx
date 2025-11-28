@@ -59,6 +59,19 @@ export const PlaylistPreview: FC = () => {
     // No-op for preview
   }, []);
 
+  const handleDownloadTrack = useCallback(
+    (track: Track) => {
+      if (track.trackUrl) {
+        createPlaylist.mutate(track.trackUrl, {
+          onSuccess: () => {
+            navigate(Path.HOME);
+          },
+        });
+      }
+    },
+    [createPlaylist, navigate],
+  );
+
   const displayTitle = useMemo(() => {
     if (!previewData) return "Preview";
 
@@ -201,7 +214,11 @@ export const PlaylistPreview: FC = () => {
         </div>
       </div>
 
-      <PlaylistTracksList tracks={tracks} onRetryTrack={handleRetryTrack} />
+      <PlaylistTracksList
+        tracks={tracks}
+        onRetryTrack={handleRetryTrack}
+        onDownloadTrack={handleDownloadTrack}
+      />
     </DetailLayout>
   );
 };
