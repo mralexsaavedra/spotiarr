@@ -3,8 +3,10 @@ import * as fs from "fs";
 import * as path from "path";
 import { TrackFileHelper } from "../../helpers/track-file.helper";
 import { PrismaHistoryRepository } from "../../repositories/prisma-history.repository";
+import { PrismaPlaylistRepository } from "../../repositories/prisma-playlist.repository";
 import { emitSseEvent } from "../../routes/events.routes";
 import { M3uService } from "../../services/m3u.service";
+import { SpotifyService } from "../../services/spotify.service";
 import { UtilsService } from "../../services/utils.service";
 import { YoutubeService } from "../../services/youtube.service";
 import { TrackRepository } from "./track.repository";
@@ -16,6 +18,8 @@ export class DownloadTrackUseCase {
     private readonly m3uService: M3uService,
     private readonly utilsService: UtilsService,
     private readonly trackFileHelper: TrackFileHelper,
+    private readonly playlistRepository: PrismaPlaylistRepository,
+    private readonly spotifyService: SpotifyService,
     private readonly downloadHistoryRepository: PrismaHistoryRepository = new PrismaHistoryRepository(),
   ) {}
 
@@ -85,7 +89,13 @@ export class DownloadTrackUseCase {
   }
 
   private async downloadAndProcessTrack(track: ITrack): Promise<void> {
-    const trackFilePath = await this.trackFileHelper.getFolderName(track);
+    let playlistName: string | undefined;
+    if (track.playlistId) {
+      const playlist = await this.playlistRepository.findOne(track.playlistId);
+      playlistName = playlist?.name;
+    }
+
+    const trackFilePath = await this.trackFileHelper.getFolderName(track, playlistName);
     const trackDirectory = path.dirname(trackFilePath);
 
     // Create directory structure
@@ -95,9 +105,20 @@ export class DownloadTrackUseCase {
 
     await this.youtubeService.downloadAndFormat(track, trackFilePath);
 
+    // Fetch cover image from Spotify if available
+    let coverUrl = "";
+    if (track.spotifyUrl) {
+      try {
+        const details = await this.spotifyService.getPlaylistDetail(track.spotifyUrl);
+        coverUrl = details.image;
+      } catch (e) {
+        console.warn(`Failed to fetch cover for track ${track.name}`, e);
+      }
+    }
+
     await this.youtubeService.addImage(
       trackFilePath,
-      "",
+      coverUrl,
       track.name,
       track.artist,
       track.albumYear,
@@ -108,13 +129,18 @@ export class DownloadTrackUseCase {
     if (!track.playlistId) return;
 
     try {
+      const playlist = await this.playlistRepository.findOne(track.playlistId);
+      if (!playlist || !playlist.name) return;
+
       const playlistTracks = await this.trackRepository.findAllByPlaylist(track.playlistId);
-      const hasMultipleTracks = playlistTracks.length > 1;
+      const hasMultipleTracks = playlistTracks.length > 0;
 
       if (hasMultipleTracks) {
+        const playlistFolderPath = this.utilsService.getPlaylistFolderPath(playlist.name);
+        await this.m3uService.generateM3uFile(playlist, playlistTracks, playlistFolderPath);
+
         const completedCount = this.m3uService.getCompletedTracksCount(playlistTracks);
         const totalCount = playlistTracks.length;
-
         console.debug(`Playlist: ${completedCount}/${totalCount} tracks completed`);
       }
     } catch (err) {

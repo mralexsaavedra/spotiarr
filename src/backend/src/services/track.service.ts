@@ -3,10 +3,13 @@ import { DownloadTrackUseCase } from "../domain/tracks/download-track.use-case";
 import { SearchTrackOnYoutubeUseCase } from "../domain/tracks/search-track-on-youtube.use-case";
 import { TrackUseCases } from "../domain/tracks/track.use-cases";
 import { TrackFileHelper } from "../helpers/track-file.helper";
+import { PrismaPlaylistRepository } from "../repositories/prisma-playlist.repository";
 import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
 import { BullMqTrackQueueService } from "./bullmq-track-queue.service";
 import { M3uService } from "./m3u.service";
 import { SettingsService } from "./settings.service";
+import { SpotifyApiService } from "./spotify-api.service";
+import { SpotifyService } from "./spotify.service";
 import { UtilsService } from "./utils.service";
 import { YoutubeService } from "./youtube.service";
 
@@ -27,6 +30,9 @@ export class TrackService {
     const m3uService = new M3uService();
     const utilsService = new UtilsService();
     const settingsService = new SettingsService();
+    const playlistRepository = new PrismaPlaylistRepository();
+    const spotifyApiService = new SpotifyApiService();
+    const spotifyService = new SpotifyService(spotifyApiService);
 
     this.searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
       this.repository,
@@ -41,6 +47,8 @@ export class TrackService {
       m3uService,
       utilsService,
       this.trackFileHelper,
+      playlistRepository,
+      spotifyService,
     );
   }
 
