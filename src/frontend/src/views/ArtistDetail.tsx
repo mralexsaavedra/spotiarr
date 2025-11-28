@@ -103,8 +103,52 @@ export const ArtistDetail: FC = () => {
                     )}
 
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm text-text-primary truncate">{track.name}</span>
-                      <span className="text-xs text-text-secondary truncate">{track.artist}</span>
+                      {track.trackUrl ? (
+                        <a
+                          href={track.trackUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-text-primary truncate hover:underline"
+                          title="Open track in Spotify"
+                        >
+                          {track.name}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-text-primary truncate">{track.name}</span>
+                      )}
+
+                      <span className="text-xs text-text-secondary truncate">
+                        {track.artists
+                          .map((artistInfo, idx) => {
+                            if (artistInfo.url) {
+                              return (
+                                <a
+                                  key={`${artistInfo.name}-${idx}`}
+                                  href={artistInfo.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:underline"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  {artistInfo.name}
+                                </a>
+                              );
+                            }
+
+                            return <span key={`${artistInfo.name}-${idx}`}>{artistInfo.name}</span>;
+                          })
+                          .reduce<React.ReactNode[]>((acc, node, idx) => {
+                            if (idx > 0) {
+                              acc.push(
+                                <span key={`sep-${idx}`} className="mx-0.5">
+                                  ,
+                                </span>,
+                              );
+                            }
+                            acc.push(node);
+                            return acc;
+                          }, [])}
+                      </span>
                     </div>
                   </div>
 
@@ -113,17 +157,6 @@ export const ArtistDetail: FC = () => {
                       <span className="hidden sm:inline text-xs text-text-secondary truncate max-w-[160px]">
                         {track.album}
                       </span>
-                    )}
-                    {track.trackUrl && (
-                      <a
-                        href={track.trackUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary-light transition-colors text-sm"
-                        title="Open track in Spotify"
-                      >
-                        <i className="fa-brands fa-spotify" />
-                      </a>
                     )}
                   </div>
                 </div>
