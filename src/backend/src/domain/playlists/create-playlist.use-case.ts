@@ -17,6 +17,7 @@ interface PlaylistTrackDetail {
   primaryArtistImage?: string | null;
   artists?: { name: string; url: string | undefined }[];
   trackUrl?: string;
+  albumUrl?: string;
   unavailable?: boolean;
 }
 
@@ -141,6 +142,7 @@ export class CreatePlaylistUseCase {
           spotifyUrl: track.previewUrl ?? undefined,
           artists: track.artists,
           trackUrl: track.trackUrl,
+          albumUrl: track.albumUrl,
           playlistId: playlist.id,
         });
 

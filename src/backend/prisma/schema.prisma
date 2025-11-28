@@ -30,6 +30,7 @@ model Track {
   trackNumber           Int?
   spotifyUrl            String?
   trackUrl              String?
+  albumUrl              String?
   albumCoverUrl         String?
   primaryArtistImageUrl String?
   artists               Json?

@@ -479,6 +479,7 @@ export class SpotifyApiService {
     artists: { name: string; url: string | undefined }[];
     trackUrl: string | undefined;
     album: string | undefined;
+    albumUrl: string | undefined;
     albumCoverUrl: string | undefined;
     albumYear: number | undefined;
     trackNumber: number | undefined;
@@ -515,6 +516,7 @@ export class SpotifyApiService {
         })),
         trackUrl: track.external_urls?.spotify,
         album: track.album?.name,
+        albumUrl: track.album?.external_urls?.spotify,
         albumCoverUrl,
         albumYear: albumYear, // Year of the album
         trackNumber: track.track_number,

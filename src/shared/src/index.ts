@@ -57,6 +57,7 @@ export interface ITrack {
   trackNumber?: number;
   spotifyUrl?: string;
   trackUrl?: string;
+  albumUrl?: string;
   artists?: TrackArtist[];
   youtubeUrl?: string;
   status?: TrackStatusEnum;

@@ -1,3 +1,4 @@
+import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PlaylistActions } from "../components/molecules/PlaylistActions";
@@ -38,6 +39,37 @@ export const PlaylistDetail: FC = () => {
     };
   }, [tracks]);
 
+  const displayTitle = useMemo(() => {
+    if (!playlist) return "Unnamed Playlist";
+
+    // For Album and Track types, the backend stores "Artist - Name"
+    // We want to display just "Name"
+    if (playlist.type === PlaylistTypeEnum.Album) {
+      if (tracks.length > 0 && tracks[0].album) {
+        return tracks[0].album;
+      }
+      // Fallback: try to strip artist from name
+      const parts = (playlist.name || "").split(" - ");
+      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name;
+    }
+
+    if (playlist.type === PlaylistTypeEnum.Track) {
+      if (tracks.length > 0 && tracks[0].name) {
+        return tracks[0].name;
+      }
+      // Fallback
+      const parts = (playlist.name || "").split(" - ");
+      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name;
+    }
+
+    return playlist.name || "Unnamed Playlist";
+  }, [playlist, tracks]);
+
+  const typeLabel = useMemo(() => {
+    if (!playlist?.type) return "Playlist";
+    return playlist.type.charAt(0).toUpperCase() + playlist.type.slice(1);
+  }, [playlist?.type]);
+
   const handleGoHome = useCallback(() => {
     navigate(Path.HOME);
   }, [navigate]);
@@ -77,6 +109,67 @@ export const PlaylistDetail: FC = () => {
     [deleteTrack],
   );
 
+  const renderMetadata = useMemo(() => {
+    if (!playlist) return null;
+
+    const firstTrack = tracks[0];
+    const artists =
+      firstTrack?.artists || (firstTrack?.artist ? [{ name: firstTrack.artist }] : []);
+
+    const renderArtists = () => (
+      <span className="font-bold text-white">
+        {artists.map((artist, i) => (
+          <span key={`${artist.name}-${i}`}>
+            {artist.url ? (
+              <a
+                href={artist.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {artist.name}
+              </a>
+            ) : (
+              artist.name
+            )}
+            {i < artists.length - 1 && ", "}
+          </span>
+        ))}
+      </span>
+    );
+
+    if (playlist.type === PlaylistTypeEnum.Album && artists.length > 0) {
+      return renderArtists();
+    }
+
+    if (playlist.type === PlaylistTypeEnum.Track && artists.length > 0) {
+      return (
+        <>
+          {renderArtists()}
+          <span className="text-text-primary">•</span>
+          {firstTrack?.albumUrl ? (
+            <a
+              href={firstTrack.albumUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-text-secondary hover:underline hover:text-text-primary transition-colors"
+            >
+              {firstTrack?.album || "Unknown Album"}
+            </a>
+          ) : (
+            <span className="font-medium text-text-secondary">
+              {firstTrack?.album || "Unknown Album"}
+            </span>
+          )}
+        </>
+      );
+    }
+
+    // Default for Playlist and Artist types
+    return <span className="font-bold">SpotiArr</span>;
+  }, [playlist, tracks]);
+
   if (!playlist) {
     // If we are still loading playlists, show skeleton
     if (playlists.length === 0) {
@@ -112,15 +205,15 @@ export const PlaylistDetail: FC = () => {
           {/* Metadata */}
           <div className="flex-1 min-w-0 space-y-2 mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-text-primary">
-              Playlist
+              {typeLabel}
             </span>
             <h1 className="text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-md break-words">
-              {playlist.name || "Unnamed Playlist"}
+              {displayTitle}
             </h1>
             <p className="text-text-secondary text-sm font-medium mt-4">{description}</p>
 
             <div className="flex items-center gap-1 text-sm font-medium text-text-primary mt-2">
-              <span className="font-bold">SpotiArr</span>
+              {renderMetadata}
               <span className="text-text-primary">•</span>
               <span>{totalCount} songs</span>
               {playlist.spotifyUrl && (
