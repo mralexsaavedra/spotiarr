@@ -2,7 +2,6 @@ import { FC } from "react";
 import { Track } from "../../types/track";
 import { TrackStatusBadge } from "../atoms/TrackStatusBadge";
 import { EmptyPlaylistTracks } from "../molecules/EmptyPlaylistTracks";
-import { TrackActions } from "../molecules/TrackActions";
 
 interface PlaylistTracksListProps {
   tracks: Track[];
@@ -25,8 +24,21 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({ tracks, onRetr
             className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors"
           >
             {/* Index */}
-            <div className="text-text-secondary text-sm text-center w-4">
-              <span>{index + 1}</span>
+            <div className="text-text-secondary text-sm text-center w-4 flex justify-center">
+              {track.status === "error" ? (
+                <button
+                  className="text-red-500 hover:text-red-400 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRetryTrack(track.id);
+                  }}
+                  title="Retry download"
+                >
+                  <i className="fa-solid fa-rotate-right" />
+                </button>
+              ) : (
+                <span>{index + 1}</span>
+              )}
             </div>
 
             {/* Title & Artist */}
@@ -88,10 +100,6 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({ tracks, onRetr
             {/* Duration & Actions */}
             <div className="flex items-center justify-end gap-4">
               <TrackStatusBadge status={track.status} />
-
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                <TrackActions trackId={track.id} status={track.status} onRetry={onRetryTrack} />
-              </div>
 
               <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right">
                 {track.durationMs
