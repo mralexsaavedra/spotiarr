@@ -45,9 +45,7 @@ const PlaylistTrackItem = memo(
       <div className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
         {/* Index */}
         <div className="text-text-secondary text-sm text-center w-4 flex justify-center">
-          {track.status === "completed" ? (
-            <i className="fa-solid fa-check text-primary" title="Downloaded" />
-          ) : track.status === "error" ? (
+          {track.status === "error" ? (
             <button
               className="text-red-500 hover:text-red-400 transition-colors"
               onClick={handleRetry}
@@ -63,8 +61,14 @@ const PlaylistTrackItem = memo(
             <i className="fa-solid fa-magnifying-glass text-text-secondary" title="Searching..." />
           ) : (
             <>
-              <span className={onDownloadTrack ? "group-hover:hidden" : ""}>{index + 1}</span>
-              {onDownloadTrack && (
+              <span
+                className={
+                  onDownloadTrack && track.status !== "completed" ? "group-hover:hidden" : ""
+                }
+              >
+                {index + 1}
+              </span>
+              {onDownloadTrack && track.status !== "completed" && (
                 <button
                   className="hidden group-hover:block text-text-secondary hover:text-white transition-colors"
                   onClick={handleDownload}
@@ -135,7 +139,10 @@ const PlaylistTrackItem = memo(
 
         {/* Duration & Actions */}
         <div className="flex items-center justify-end gap-4">
-          <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right">
+          <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right flex items-center justify-end gap-2">
+            {track.status === "completed" && (
+              <i className="fa-solid fa-circle-check text-green-500 text-base" title="Downloaded" />
+            )}
             {track.durationMs ? new Date(track.durationMs).toISOString().substr(14, 5) : "--:--"}
           </div>
         </div>

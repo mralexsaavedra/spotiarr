@@ -6,7 +6,9 @@ import { PreviewError } from "../components/molecules/PreviewError";
 import { PlaylistTracksList } from "../components/organisms/PlaylistTracksList";
 import { PlaylistDetailSkeleton } from "../components/skeletons/PlaylistDetailSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
+import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
+import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { Path } from "../routes/routes";
 import { Track, TrackStatus } from "../types/track";
 
@@ -19,6 +21,8 @@ export const PlaylistPreview: FC = () => {
   const spotifyUrl = useMemo(() => searchParams.get("url"), [searchParams]);
 
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
+  const { data: playlists } = usePlaylistsQuery();
+  const { data: downloadTracks } = useDownloadTracksQuery();
 
   const handleGoBack = useCallback(() => {
     navigate(Path.RELEASES);
@@ -27,12 +31,8 @@ export const PlaylistPreview: FC = () => {
   const handleDownload = useCallback(() => {
     if (!spotifyUrl) return;
 
-    createPlaylist.mutate(spotifyUrl, {
-      onSuccess: () => {
-        navigate(Path.HOME);
-      },
-    });
-  }, [spotifyUrl, createPlaylist, navigate]);
+    createPlaylist.mutate(spotifyUrl);
+  }, [spotifyUrl, createPlaylist]);
 
   useEffect(() => {
     if (!spotifyUrl) {
@@ -42,18 +42,39 @@ export const PlaylistPreview: FC = () => {
 
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
-    return previewData.tracks.map((t, i) => ({
-      id: `preview-${i}`,
-      name: t.name,
-      artist: t.artists.map((a) => a.name).join(", "),
-      artists: t.artists.map((a) => ({ name: a.name, url: a.url })),
-      album: t.album,
-      durationMs: t.duration,
-      status: TrackStatus.New,
-      trackUrl: t.trackUrl,
-      albumUrl: t.albumUrl,
-    }));
-  }, [previewData]);
+    return previewData.tracks.map((t, i) => {
+      let status = TrackStatus.New;
+
+      // Check active playlists
+      const activePlaylist = playlists?.find((p) =>
+        p.tracks?.some((at) => at.trackUrl === t.trackUrl),
+      );
+      if (activePlaylist) {
+        const activeTrack = activePlaylist.tracks?.find((at) => at.trackUrl === t.trackUrl);
+        if (activeTrack) {
+          status = activeTrack.status;
+        }
+      } else {
+        // Check history
+        const isHistory = downloadTracks?.some((dt) => dt.trackUrl === t.trackUrl);
+        if (isHistory) {
+          status = TrackStatus.Completed;
+        }
+      }
+
+      return {
+        id: `preview-${i}`,
+        name: t.name,
+        artist: t.artists.map((a) => a.name).join(", "),
+        artists: t.artists.map((a) => ({ name: a.name, url: a.url })),
+        album: t.album,
+        durationMs: t.duration,
+        status: status,
+        trackUrl: t.trackUrl,
+        albumUrl: t.albumUrl,
+      };
+    });
+  }, [previewData, playlists, downloadTracks]);
 
   const handleRetryTrack = useCallback(() => {
     // No-op for preview
@@ -62,14 +83,10 @@ export const PlaylistPreview: FC = () => {
   const handleDownloadTrack = useCallback(
     (track: Track) => {
       if (track.trackUrl) {
-        createPlaylist.mutate(track.trackUrl, {
-          onSuccess: () => {
-            navigate(Path.HOME);
-          },
-        });
+        createPlaylist.mutate(track.trackUrl);
       }
     },
-    [createPlaylist, navigate],
+    [createPlaylist],
   );
 
   const displayTitle = useMemo(() => {
@@ -164,13 +181,40 @@ export const PlaylistPreview: FC = () => {
     return <PreviewError error={error} onGoBack={handleGoBack} />;
   }
 
+  const totalCount = tracks.length;
+  const completedCount = tracks.filter((t) => t.status === TrackStatus.Completed).length;
+
+  const description = useMemo(() => {
+    if (completedCount > 0) {
+      return (
+        <div className="mt-4 max-w-md">
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
+            <span>
+              {completedCount} / {totalCount} downloaded
+            </span>
+            <span>{totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-500 transition-all duration-500 ease-out rounded-full"
+              style={{
+                width: `${totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%`,
+              }}
+            />
+          </div>
+        </div>
+      );
+    }
+    return previewData?.description;
+  }, [completedCount, totalCount, previewData?.description]);
+
   return (
     <DetailLayout
       imageUrl={previewData.coverUrl || null}
       fallbackIconClass="fa-solid fa-music"
       typeLabel={previewData.type}
       title={displayTitle}
-      description={previewData.description}
+      description={description}
       meta={
         <>
           {renderMetadata}
