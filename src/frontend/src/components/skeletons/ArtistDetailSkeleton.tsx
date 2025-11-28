@@ -3,7 +3,7 @@ import { Skeleton } from "../atoms/Skeleton";
 
 export const ArtistDetailSkeleton: FC = () => {
   return (
-    <div className="flex-1 bg-[#121212] overflow-y-auto h-full">
+    <div className="flex-1 bg-background overflow-y-auto h-full">
       {/* Header Skeleton */}
       <div className="relative w-full h-[40vh] min-h-[340px] max-h-[500px] bg-zinc-900">
         <div className="absolute bottom-0 left-0 w-full p-6 md:p-8 z-10">
@@ -13,7 +13,7 @@ export const ArtistDetailSkeleton: FC = () => {
       </div>
 
       {/* Action Bar & Content Skeleton */}
-      <div className="px-6 md:px-8 pb-10 bg-gradient-to-b from-[#121212] to-black min-h-[50vh]">
+      <div className="px-6 md:px-8 pb-10 bg-gradient-to-b from-background to-black min-h-[50vh]">
         {/* Action Buttons */}
         <div className="flex items-center gap-4 py-6">
           <Skeleton className="w-14 h-14 rounded-full" />

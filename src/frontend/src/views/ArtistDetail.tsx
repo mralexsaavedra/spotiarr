@@ -89,7 +89,7 @@ export const ArtistDetail: FC = () => {
   }
 
   return (
-    <div className="flex-1 bg-[#121212] overflow-y-auto h-full text-white">
+    <div className="flex-1 bg-background overflow-y-auto h-full text-white">
       {/* Header */}
       <header className="relative w-full h-[40vh] min-h-[340px] max-h-[500px]">
         {/* Background Image */}
@@ -98,11 +98,11 @@ export const ArtistDetail: FC = () => {
             className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${artist.image})` }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#121212]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-background" />
           </div>
         ) : (
           <div className="absolute inset-0 bg-zinc-800">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#121212]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
           </div>
         )}
 
@@ -119,7 +119,7 @@ export const ArtistDetail: FC = () => {
       </header>
 
       {/* Action Bar & Content */}
-      <div className="px-6 md:px-8 pb-10 bg-gradient-to-b from-[#121212] to-black min-h-[50vh]">
+      <div className="px-6 md:px-8 pb-10 bg-gradient-to-b from-background to-black min-h-[50vh]">
         {/* Action Buttons */}
         <div className="flex items-center gap-4 py-6">
           {/* Download Button (Circular) */}

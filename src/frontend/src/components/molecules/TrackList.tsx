@@ -19,7 +19,11 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, isTrackDownl
     [onDownload],
   );
 
-  if (!tracks.length) return null;
+  if (!tracks.length) {
+    return (
+      <div className="flex items-center justify-center py-8 text-zinc-400">No tracks found.</div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
