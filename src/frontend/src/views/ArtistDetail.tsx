@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { useParams } from "react-router-dom";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
+import { formatDuration } from "../utils/date";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -153,9 +154,9 @@ export const ArtistDetail: FC = () => {
                   </div>
 
                   <div className="flex items-center gap-3 min-w-0">
-                    {track.album && (
-                      <span className="hidden sm:inline text-xs text-text-secondary truncate max-w-[160px]">
-                        {track.album}
+                    {track.durationMs != null && track.durationMs > 0 && (
+                      <span className="text-xs text-text-secondary">
+                        {formatDuration(track.durationMs)}
                       </span>
                     )}
                   </div>

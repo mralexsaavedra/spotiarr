@@ -162,6 +162,7 @@ export interface ArtistTopTrack {
   albumYear?: number;
   trackNumber: number;
   previewUrl?: string | null;
+  durationMs?: number;
 }
 
 export interface ArtistDetail {

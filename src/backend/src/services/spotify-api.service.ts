@@ -33,6 +33,7 @@ interface SpotifyTrack {
   preview_url?: string | null;
   external_urls?: SpotifyExternalUrls;
   track_number?: number;
+  duration_ms?: number;
 }
 
 interface SpotifyAlbumTracksResponse {
@@ -610,6 +611,7 @@ export class SpotifyApiService {
       albumYear: number | undefined;
       trackNumber: number;
       previewUrl: string | null | undefined;
+      durationMs: number | undefined;
     }[]
   > {
     try {
@@ -665,6 +667,7 @@ export class SpotifyApiService {
             albumYear,
             trackNumber: track.track_number ?? index + 1,
             previewUrl: track.preview_url,
+            durationMs: track.duration_ms,
           };
         }),
       );
