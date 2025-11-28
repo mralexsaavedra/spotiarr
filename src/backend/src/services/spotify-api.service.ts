@@ -354,7 +354,7 @@ export class SpotifyApiService {
 
     // First attempt with current token
     const initialToken = await this.getUserAccessToken();
-    let response = await makeRequest(initialToken);
+    const response = await makeRequest(initialToken);
 
     if (response.status !== 401) {
       return response;
@@ -366,15 +366,19 @@ export class SpotifyApiService {
       return response;
     }
 
-    const newToken = await this.getUserAccessToken();
-    response = await makeRequest(newToken);
     return response;
   }
 
+  /**
+   * Get artist metadata (including followers, genres, popularity) from Spotify API
+   */
   private async getArtistRaw(artistId: string): Promise<{
     name?: string;
     images?: SpotifyImage[];
     external_urls?: SpotifyExternalUrls;
+    followers?: { total?: number };
+    genres?: string[];
+    popularity?: number;
   } | null> {
     try {
       const response = await this.fetchWithAppToken(
@@ -390,7 +394,11 @@ export class SpotifyApiService {
         name?: string;
         images?: SpotifyImage[];
         external_urls?: SpotifyExternalUrls;
+        followers?: { total?: number };
+        genres?: string[];
+        popularity?: number;
       };
+
       return artist;
     } catch (error) {
       this.log(`Failed to fetch artist data: ${(error as Error).message}`);
@@ -421,21 +429,41 @@ export class SpotifyApiService {
     name: string;
     image: string | null;
     spotifyUrl: string | null;
+    followers: number | null;
+    popularity: number | null;
+    genres: string[];
   }> {
     try {
       const artist = await this.getArtistRaw(artistId);
       if (!artist || !artist.name) {
-        return { name: "Unknown Artist", image: null, spotifyUrl: null };
+        return {
+          name: "Unknown Artist",
+          image: null,
+          spotifyUrl: null,
+          followers: null,
+          popularity: null,
+          genres: [],
+        };
       }
 
       return {
         name: artist.name,
         image: artist.images?.[0]?.url || null,
         spotifyUrl: artist.external_urls?.spotify || null,
+        followers: artist.followers?.total ?? null,
+        popularity: artist.popularity ?? null,
+        genres: artist.genres ?? [],
       };
     } catch (error) {
       this.log(`Failed to get artist details: ${(error as Error).message}`);
-      return { name: "Unknown Artist", image: null, spotifyUrl: null };
+      return {
+        name: "Unknown Artist",
+        image: null,
+        spotifyUrl: null,
+        followers: null,
+        popularity: null,
+        genres: [],
+      };
     }
   }
 

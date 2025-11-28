@@ -26,6 +26,9 @@ router.get(
         name: details.name,
         image: details.image,
         spotifyUrl: details.spotifyUrl,
+        followers: details.followers,
+        popularity: details.popularity,
+        genres: details.genres,
         topTracks,
       });
     } catch (error) {

@@ -19,6 +19,13 @@ export const ArtistDetail: FC = () => {
 
   const isEmptyState = !hasArtist && !isLoading && !!statusMessage;
 
+  const followersText =
+    artist?.followers && artist.followers > 0
+      ? new Intl.NumberFormat("en-US").format(artist.followers)
+      : null;
+
+  const genresText = artist?.genres && artist.genres.length > 0 ? artist.genres[0] : null;
+
   return (
     <section className="flex-1 bg-background overflow-y-auto">
       <header className="relative h-52 sm:h-64 md:h-80 lg:h-96">
@@ -37,6 +44,14 @@ export const ArtistDetail: FC = () => {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white break-words">
               {artist?.name || "Artist"}
             </h1>
+
+            {(genresText || followersText) && (
+              <p className="text-sm text-text-secondary max-w-xl">
+                {genresText && <span>{genresText}</span>}
+                {genresText && followersText && <span className="mx-1">•</span>}
+                {followersText && <span>{followersText} followers</span>}
+              </p>
+            )}
 
             {statusMessage && (
               <p className="text-sm text-text-secondary max-w-xl">{statusMessage}</p>

@@ -169,6 +169,9 @@ export interface ArtistDetail {
   name: string;
   image: string | null;
   spotifyUrl?: string | null;
+  followers?: number | null;
+  popularity?: number | null;
+  genres?: string[];
   topTracks: ArtistTopTrack[];
 }
 
