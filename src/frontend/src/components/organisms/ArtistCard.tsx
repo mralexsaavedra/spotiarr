@@ -1,4 +1,4 @@
-import { FC, MouseEvent, useCallback } from "react";
+import { FC, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
 
@@ -9,22 +9,12 @@ interface ArtistCardProps {
   spotifyUrl: string | null;
 }
 
-export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image, spotifyUrl }) => {
+export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
   const navigate = useNavigate();
 
   const handleCardClick = useCallback(() => {
     navigate(Path.ARTIST_DETAIL.replace(":id", id));
   }, [id, navigate]);
-
-  const handleSpotifyClick = useCallback(
-    (e: MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      if (spotifyUrl) {
-        window.open(spotifyUrl, "_blank", "noopener,noreferrer");
-      }
-    },
-    [spotifyUrl],
-  );
 
   return (
     <article
@@ -46,16 +36,6 @@ export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image, spotifyUrl })
         )}
       </div>
       <h3 className="font-semibold text-sm text-text-primary truncate w-full">{name}</h3>
-      {spotifyUrl && (
-        <button
-          type="button"
-          className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:text-primary-light transition-colors"
-          onClick={handleSpotifyClick}
-        >
-          <i className="fa-brands fa-spotify" />
-          <span>Open in Spotify</span>
-        </button>
-      )}
     </article>
   );
 };
