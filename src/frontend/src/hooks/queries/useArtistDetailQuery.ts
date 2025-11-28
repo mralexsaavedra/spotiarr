@@ -1,8 +1,8 @@
 import type { ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
+import { mapSpotifyError } from "../../utils/spotify";
 import { artistDetailQueryKey } from "../queryKeys";
-import { mapSpotifyError } from "../utils/mapSpotifyError";
 
 interface UseArtistDetailState {
   artist: ArtistDetail | null;
