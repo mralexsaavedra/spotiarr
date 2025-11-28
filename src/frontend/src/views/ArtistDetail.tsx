@@ -2,6 +2,7 @@ import { FC, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { TrackList } from "../components/molecules/TrackList";
+import { ArtistDetailSkeleton } from "../components/skeletons/ArtistDetailSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
 import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
@@ -76,11 +77,7 @@ export const ArtistDetail: FC = () => {
   }, [handleDownload, artist?.spotifyUrl]);
 
   if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-[#121212] text-white">
-        <div className="animate-pulse">Loading...</div>
-      </div>
-    );
+    return <ArtistDetailSkeleton />;
   }
 
   if (!hasArtist && statusMessage) {
