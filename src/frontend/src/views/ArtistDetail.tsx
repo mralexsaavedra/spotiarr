@@ -9,16 +9,14 @@ export const ArtistDetail: FC = () => {
 
   const hasArtist = !!artist && !!id && !error;
 
-  const headerMeta =
-    hasArtist && artist
-      ? `Top tracks: ${artist.topTracks.length}`
-      : error === "missing_user_access_token"
-        ? "Connect Spotify to view artist details."
-        : error === "spotify_rate_limited"
-          ? "Spotify rate limited. Please try again later."
-          : error
-            ? "Failed to load artist details."
-            : undefined;
+  const emptyMessage =
+    error === "missing_user_access_token"
+      ? "Connect Spotify to view artist details."
+      : error === "spotify_rate_limited"
+        ? "Spotify rate limited. Please try again later."
+        : error
+          ? "Failed to load artist details."
+          : undefined;
 
   return (
     <DetailLayout
@@ -29,7 +27,7 @@ export const ArtistDetail: FC = () => {
       title={artist?.name || "Artist"}
       spotifyUrl={artist?.spotifyUrl ?? null}
       isLoading={isLoading}
-      emptyMessage={headerMeta}
+      emptyMessage={emptyMessage}
     >
       {hasArtist && (
         <div className="space-y-2">
