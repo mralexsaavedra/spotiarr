@@ -51,19 +51,6 @@ export const ArtistDetail: FC = () => {
     return !!isHistory;
   }, [artist?.spotifyUrl, playlists, downloadTracks]);
 
-  const isTrackDownloaded = useCallback(
-    (url: string) => {
-      // Check active playlists
-      const isActive = playlists?.some((p) => p.tracks?.some((t) => t.trackUrl === url));
-      if (isActive) return true;
-
-      // Check history
-      const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
-      return !!isHistory;
-    },
-    [playlists, downloadTracks],
-  );
-
   const handleDownload = useCallback(
     (url?: string) => {
       if (!url) return;
@@ -167,7 +154,22 @@ export const ArtistDetail: FC = () => {
           <TrackList
             tracks={artist?.topTracks || []}
             onDownload={handleDownload}
-            isTrackDownloaded={isTrackDownloaded}
+            getTrackStatus={(url) => {
+              // Check active playlists
+              const activePlaylist = playlists?.find((p) =>
+                p.tracks?.some((t) => t.trackUrl === url),
+              );
+              if (activePlaylist) {
+                const track = activePlaylist.tracks?.find((t) => t.trackUrl === url);
+                return track?.status;
+              }
+
+              // Check history
+              const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
+              if (isHistory) return "completed";
+
+              return undefined;
+            }}
           />
         </div>
       </div>

@@ -45,7 +45,9 @@ const PlaylistTrackItem = memo(
       <div className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
         {/* Index */}
         <div className="text-text-secondary text-sm text-center w-4 flex justify-center">
-          {track.status === "error" ? (
+          {track.status === "completed" ? (
+            <i className="fa-solid fa-check text-primary" title="Downloaded" />
+          ) : track.status === "error" ? (
             <button
               className="text-red-500 hover:text-red-400 transition-colors"
               onClick={handleRetry}

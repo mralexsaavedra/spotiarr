@@ -5,10 +5,10 @@ import { formatDuration } from "../../utils/date";
 interface TrackListProps {
   tracks: ArtistTopTrack[];
   onDownload: (url: string) => void;
-  isTrackDownloaded: (url: string) => boolean;
+  getTrackStatus: (url: string) => string | undefined;
 }
 
-export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, isTrackDownloaded }) => {
+export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStatus }) => {
   const handleDownloadClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
       const url = event.currentTarget.dataset.url;
@@ -28,27 +28,39 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, isTrackDownl
   return (
     <div className="flex flex-col">
       {tracks.map((track, index) => {
-        const isDownloaded = track.trackUrl ? isTrackDownloaded(track.trackUrl) : false;
+        const status = track.trackUrl ? getTrackStatus(track.trackUrl) : undefined;
+        const isDownloaded = status === "completed";
 
         return (
           <div
             key={`${track.trackUrl ?? track.name}-${index}`}
             className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors"
           >
-            {/* Index / Download Icon */}
+            {/* Index / Status Icon */}
             <button
               onClick={handleDownloadClick}
               data-url={track.trackUrl}
               className={`flex items-center justify-center w-4 text-base font-medium transition-colors ${
-                isDownloaded
+                isDownloaded || !!status
                   ? "text-zinc-400 cursor-default"
                   : "text-zinc-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               }`}
-              disabled={!track.trackUrl || isDownloaded}
-              title={isDownloaded ? "Downloaded" : "Download"}
+              disabled={!track.trackUrl || isDownloaded || !!status}
+              title={status || "Download"}
             >
-              {isDownloaded ? (
+              {status === "completed" ? (
                 <span>{index + 1}</span>
+              ) : status === "downloading" ? (
+                <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />
+              ) : status === "queued" ? (
+                <i className="fa-regular fa-clock text-text-secondary" title="Queued" />
+              ) : status === "searching" ? (
+                <i
+                  className="fa-solid fa-magnifying-glass text-text-secondary"
+                  title="Searching..."
+                />
+              ) : status === "error" ? (
+                <i className="fa-solid fa-triangle-exclamation text-red-500" title="Error" />
               ) : (
                 <>
                   <span className="group-hover:hidden">{index + 1}</span>
