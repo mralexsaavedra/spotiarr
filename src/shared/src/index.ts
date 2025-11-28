@@ -15,6 +15,7 @@ export enum PlaylistTypeEnum {
   Playlist = "playlist",
   Album = "album",
   Track = "track",
+  Artist = "artist",
 }
 
 export enum TrackStatusEnum {

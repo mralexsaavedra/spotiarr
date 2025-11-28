@@ -1,4 +1,4 @@
-import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
 import { TrackFileHelper } from "../../helpers/track-file.helper";
@@ -91,11 +91,18 @@ export class DownloadTrackUseCase {
   private async downloadAndProcessTrack(track: ITrack): Promise<void> {
     let playlistName: string | undefined;
     let playlistCoverUrl: string | undefined;
+    let isPlaylistType = false;
 
     if (track.playlistId) {
       const playlist = await this.playlistRepository.findOne(track.playlistId);
-      playlistName = playlist?.name;
-      playlistCoverUrl = playlist?.coverUrl;
+      // Check if it's strictly a playlist (not artist or album download)
+      isPlaylistType = playlist?.type === "playlist";
+      if (playlist) {
+        playlistCoverUrl = playlist.coverUrl;
+        if (isPlaylistType) {
+          playlistName = playlist.name;
+        }
+      }
     }
 
     const trackFilePath = await this.trackFileHelper.getFolderName(track, playlistName);
@@ -130,10 +137,36 @@ export class DownloadTrackUseCase {
       track.albumYear,
     );
 
-    // Save folder cover.jpg (prefer playlist/artist/album cover for the folder)
-    const folderCoverUrl = playlistCoverUrl || trackCoverUrl;
+    // Save folder cover.jpg
+    // If it's a playlist, use the playlist cover.
+    // If it's an artist/album/track download, use the track (album) cover.
+    const folderCoverUrl = isPlaylistType ? playlistCoverUrl : trackCoverUrl;
     if (folderCoverUrl) {
       await this.youtubeService.saveCoverArt(trackDirectory, folderCoverUrl);
+    }
+
+    // If it's not a Playlist (Artist, Album, or Track), save the artist image in the artist folder
+    if (track.playlistId) {
+      const playlist = await this.playlistRepository.findOne(track.playlistId);
+
+      console.debug(
+        `Checking artist cover for playlist ${track.playlistId}: type=${playlist?.type}, hasImage=${!!playlist?.artistImageUrl}`,
+      );
+
+      if (playlist && playlist.type !== PlaylistTypeEnum.Playlist && playlist.artistImageUrl) {
+        const artistFolderPath = this.utilsService.getArtistFolderPath(track.artist);
+        console.debug(`Saving artist cover to ${artistFolderPath}`);
+
+        // Ensure artist folder exists
+        if (!fs.existsSync(artistFolderPath)) {
+          fs.mkdirSync(artistFolderPath, { recursive: true });
+        }
+        await this.youtubeService.saveCoverArt(
+          artistFolderPath,
+          playlist.artistImageUrl,
+          "cover.jpg",
+        );
+      }
     }
   }
 
@@ -142,7 +175,8 @@ export class DownloadTrackUseCase {
 
     try {
       const playlist = await this.playlistRepository.findOne(track.playlistId);
-      if (!playlist || !playlist.name) return;
+      // Only generate M3U for actual playlists
+      if (!playlist || !playlist.name || playlist.type !== "playlist") return;
 
       const playlistTracks = await this.trackRepository.findAllByPlaylist(track.playlistId);
       const hasMultipleTracks = playlistTracks.length > 0;

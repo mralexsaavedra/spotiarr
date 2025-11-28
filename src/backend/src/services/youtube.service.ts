@@ -125,13 +125,17 @@ export class YoutubeService {
    * Jellyfin looks for: cover.jpg
    * Downloads the image only if it doesn't exist yet
    */
-  async saveCoverArt(directory: string, coverUrl: string): Promise<void> {
+  async saveCoverArt(
+    directory: string,
+    coverUrl: string,
+    fileName: string = "cover.jpg",
+  ): Promise<void> {
     if (!coverUrl) {
       return;
     }
 
     try {
-      const coverFile = join(directory, "cover.jpg");
+      const coverFile = join(directory, fileName);
 
       // Only download if the file doesn't exist
       if (fs.existsSync(coverFile)) {
