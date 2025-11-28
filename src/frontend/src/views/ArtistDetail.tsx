@@ -30,8 +30,9 @@ export const ArtistDetail: FC = () => {
       emptyMessage={emptyMessage}
     >
       {hasArtist && (
-        <div className="space-y-2">
+        <section className="space-y-3">
           <h2 className="text-lg font-semibold text-text-primary">Popular</h2>
+
           <div className="space-y-1">
             {artist.topTracks.map((track, index) => (
               <div
@@ -40,12 +41,22 @@ export const ArtistDetail: FC = () => {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-sm text-text-secondary w-6 text-right">{index + 1}</span>
+
+                  {track.albumCoverUrl && (
+                    <img
+                      src={track.albumCoverUrl}
+                      alt={track.album ?? track.name}
+                      className="w-10 h-10 rounded-sm object-cover flex-shrink-0"
+                    />
+                  )}
+
                   <div className="flex flex-col min-w-0">
                     <span className="text-sm text-text-primary truncate">{track.name}</span>
                     <span className="text-xs text-text-secondary truncate">{track.artist}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+
+                <div className="flex items-center gap-3 min-w-0">
                   {track.album && (
                     <span className="hidden sm:inline text-xs text-text-secondary truncate max-w-[160px]">
                       {track.album}
@@ -66,7 +77,7 @@ export const ArtistDetail: FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
     </DetailLayout>
   );
