@@ -1,9 +1,9 @@
-import { FC, useCallback, useMemo, MouseEvent } from "react";
+import { FC, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
+import { TrackList } from "../components/molecules/TrackList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
-import { formatDuration } from "../utils/date";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,63 +43,6 @@ export const ArtistDetail: FC = () => {
   const handleArtistDownload = useCallback(() => {
     handleDownload(artist?.spotifyUrl || undefined);
   }, [handleDownload, artist?.spotifyUrl]);
-
-  const handleTrackDownload = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      const url = event.currentTarget.dataset.url;
-      handleDownload(url);
-    },
-    [handleDownload],
-  );
-
-  const topTracksList = useMemo(() => {
-    if (!artist?.topTracks) return null;
-
-    return artist.topTracks.map((track, index) => (
-      <div
-        key={`${track.trackUrl ?? track.name}-${index}`}
-        className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors"
-      >
-        {/* Index / Download Icon */}
-        <button
-          onClick={handleTrackDownload}
-          data-url={track.trackUrl}
-          className="flex items-center justify-center w-4 text-base text-zinc-400 font-medium hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={!track.trackUrl}
-          title="Download"
-        >
-          <span className="group-hover:hidden">{index + 1}</span>
-          <i className="hidden group-hover:block fa-solid fa-download text-white text-sm" />
-        </button>
-
-        {/* Title & Image */}
-        <div className="flex items-center gap-4 min-w-0">
-          {track.albumCoverUrl && (
-            <img
-              src={track.albumCoverUrl}
-              alt={track.name}
-              className="w-10 h-10 rounded shadow-sm object-cover"
-            />
-          )}
-          <div className="flex flex-col min-w-0">
-            <a
-              href={track.trackUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-base font-medium text-white truncate hover:underline"
-            >
-              {track.name}
-            </a>
-          </div>
-        </div>
-
-        {/* Duration */}
-        <div className="flex items-center justify-end gap-4 text-sm text-zinc-400">
-          <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
-        </div>
-      </div>
-    ));
-  }, [artist?.topTracks, handleTrackDownload]);
 
   if (isLoading) {
     return (
@@ -187,7 +130,7 @@ export const ArtistDetail: FC = () => {
         <div className="mt-4">
           <h2 className="text-2xl font-bold mb-4">Popular</h2>
 
-          <div className="flex flex-col">{topTracksList}</div>
+          <TrackList tracks={artist?.topTracks || []} onDownload={handleDownload} />
         </div>
       </div>
     </div>
