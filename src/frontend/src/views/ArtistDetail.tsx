@@ -27,7 +27,6 @@ export const ArtistDetail: FC = () => {
       imageShape="circle"
       typeLabel="Artist"
       title={artist?.name || "Artist"}
-      description={headerMeta}
       spotifyUrl={artist?.spotifyUrl ?? null}
       isLoading={isLoading}
       emptyMessage={headerMeta}
