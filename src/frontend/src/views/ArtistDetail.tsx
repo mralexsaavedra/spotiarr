@@ -28,6 +28,7 @@ export const ArtistDetail: FC = () => {
       typeLabel="Artist"
       title={artist?.name || "Artist"}
       description={headerMeta}
+      spotifyUrl={artist?.spotifyUrl ?? null}
       isLoading={isLoading}
       emptyMessage={headerMeta}
     >

@@ -56,11 +56,11 @@ export const PlaylistPreview: FC = () => {
       title={previewData?.name || "Preview"}
       description={previewData?.description}
       meta={
-        previewData ? (
+        previewData && (
           <span>
             {previewData.totalTracks} {previewData.totalTracks === 1 ? "track" : "tracks"}
           </span>
-        ) : null
+        )
       }
       spotifyUrl={spotifyUrl}
       actions={

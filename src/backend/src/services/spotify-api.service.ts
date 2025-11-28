@@ -371,9 +371,11 @@ export class SpotifyApiService {
     return response;
   }
 
-  private async getArtistRaw(
-    artistId: string,
-  ): Promise<{ name?: string; images?: SpotifyImage[] } | null> {
+  private async getArtistRaw(artistId: string): Promise<{
+    name?: string;
+    images?: SpotifyImage[];
+    external_urls?: SpotifyExternalUrls;
+  } | null> {
     try {
       const response = await this.fetchWithAppToken(
         `https://api.spotify.com/v1/artists/${artistId}`,
@@ -384,7 +386,11 @@ export class SpotifyApiService {
         return null;
       }
 
-      const artist = (await response.json()) as { name?: string; images?: SpotifyImage[] };
+      const artist = (await response.json()) as {
+        name?: string;
+        images?: SpotifyImage[];
+        external_urls?: SpotifyExternalUrls;
+      };
       return artist;
     } catch (error) {
       this.log(`Failed to fetch artist data: ${(error as Error).message}`);
@@ -411,20 +417,25 @@ export class SpotifyApiService {
   /**
    * Get artist metadata (name and primary image) from Spotify API
    */
-  async getArtistDetails(artistId: string): Promise<{ name: string; image: string | null }> {
+  async getArtistDetails(artistId: string): Promise<{
+    name: string;
+    image: string | null;
+    spotifyUrl: string | null;
+  }> {
     try {
       const artist = await this.getArtistRaw(artistId);
       if (!artist || !artist.name) {
-        return { name: "Unknown Artist", image: null };
+        return { name: "Unknown Artist", image: null, spotifyUrl: null };
       }
 
       return {
         name: artist.name,
         image: artist.images?.[0]?.url || null,
+        spotifyUrl: artist.external_urls?.spotify || null,
       };
     } catch (error) {
       this.log(`Failed to get artist details: ${(error as Error).message}`);
-      return { name: "Unknown Artist", image: null };
+      return { name: "Unknown Artist", image: null, spotifyUrl: null };
     }
   }
 

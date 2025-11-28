@@ -25,6 +25,7 @@ router.get(
         id,
         name: details.name,
         image: details.image,
+        spotifyUrl: details.spotifyUrl,
         topTracks,
       });
     } catch (error) {

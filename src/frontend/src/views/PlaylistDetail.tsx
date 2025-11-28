@@ -85,12 +85,6 @@ export const PlaylistDetail: FC = () => {
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
   }%)`;
 
-  const meta = (
-    <span>
-      {totalCount} {totalCount === 1 ? "track" : "tracks"}
-    </span>
-  );
-
   return (
     <DetailLayout
       imageUrl={playlist.coverUrl || null}
@@ -99,7 +93,11 @@ export const PlaylistDetail: FC = () => {
       typeLabel="Playlist"
       title={playlist.name || "Unnamed Playlist"}
       description={description}
-      meta={meta}
+      meta={
+        <span>
+          {totalCount} {totalCount === 1 ? "track" : "tracks"}
+        </span>
+      }
       spotifyUrl={playlist.spotifyUrl}
       actions={
         <PlaylistActions
