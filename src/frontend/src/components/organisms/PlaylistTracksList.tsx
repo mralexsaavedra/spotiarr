@@ -1,5 +1,5 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, memo, useCallback } from "react";
+import { FC, memo, MouseEvent, useCallback } from "react";
 import { Track } from "../../types/track";
 import { EmptyPlaylistTracks } from "../molecules/EmptyPlaylistTracks";
 
@@ -21,7 +21,7 @@ const PlaylistTrackItem = memo(
     const artists = track.artists || [{ name: track.artist }];
 
     const handleRetry = useCallback(
-      (e: React.MouseEvent) => {
+      (e: MouseEvent) => {
         e.stopPropagation();
         onRetryTrack(track.id);
       },
@@ -29,7 +29,7 @@ const PlaylistTrackItem = memo(
     );
 
     const handleDownload = useCallback(
-      (e: React.MouseEvent) => {
+      (e: MouseEvent) => {
         e.stopPropagation();
         if (onDownloadTrack) {
           onDownloadTrack(track);
@@ -38,7 +38,7 @@ const PlaylistTrackItem = memo(
       [track, onDownloadTrack],
     );
 
-    const stopPropagation = useCallback((e: React.MouseEvent) => {
+    const stopPropagation = useCallback((e: MouseEvent) => {
       e.stopPropagation();
     }, []);
 

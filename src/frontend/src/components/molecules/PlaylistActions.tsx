@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { Button } from "../atoms/Button";
+import { SpotifyLinkButton } from "../atoms/SpotifyLinkButton";
 
 interface PlaylistActionsProps {
   isSubscribed: boolean;
@@ -34,18 +35,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         <i className={`fa-solid ${isSubscribed ? "fa-check" : "fa-bell"} text-xl`} />
       </Button>
 
-      {spotifyUrl && (
-        <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="no-underline">
-          <Button
-            variant="secondary"
-            size="md"
-            className="!rounded-full !px-6 border border-zinc-600 hover:border-white"
-            icon="fa-brands fa-spotify"
-          >
-            Open in Spotify
-          </Button>
-        </a>
-      )}
+      {spotifyUrl && <SpotifyLinkButton url={spotifyUrl} />}
 
       <div className="flex-1" />
 

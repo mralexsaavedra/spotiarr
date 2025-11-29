@@ -1,6 +1,7 @@
 import { FC, MouseEvent, useCallback } from "react";
 import { formatRelativeDate } from "../../utils/date";
 import { Button } from "../atoms/Button";
+import { SpotifyLinkButton } from "../atoms/SpotifyLinkButton";
 
 interface HistoryItemProps {
   playlistName: string;
@@ -44,16 +45,7 @@ export const HistoryItem: FC<HistoryItemProps> = ({
       <div className="flex items-center gap-2 flex-wrap">
         {playlistSpotifyUrl && (
           <>
-            <a
-              href={playlistSpotifyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-text-primary bg-white/10 hover:bg-white/20 flex items-center gap-2 rounded-full px-3 py-1.5 transition-all font-semibold"
-              title="Open in Spotify"
-            >
-              <i className="fa-brands fa-spotify" />
-              <span>Open in Spotify</span>
-            </a>
+            <SpotifyLinkButton url={playlistSpotifyUrl} size="sm" />
             <Button
               variant="secondary"
               size="sm"

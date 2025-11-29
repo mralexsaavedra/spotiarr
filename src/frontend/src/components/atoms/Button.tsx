@@ -3,7 +3,7 @@ import { FC, ReactNode, useMemo } from "react";
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
-interface ButtonProps {
+export interface ButtonProps {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;

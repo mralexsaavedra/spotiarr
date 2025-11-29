@@ -1,6 +1,7 @@
 import { FC, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
+import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { TrackList } from "../components/molecules/TrackList";
 import { ArtistDetailSkeleton } from "../components/skeletons/ArtistDetailSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
@@ -128,23 +129,7 @@ export const ArtistDetail: FC = () => {
           </Button>
 
           {/* Spotify Link Button (Pill) */}
-          {artist?.spotifyUrl && (
-            <a
-              href={artist.spotifyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="no-underline"
-            >
-              <Button
-                variant="secondary"
-                size="md"
-                className="!rounded-full !px-6 border border-zinc-600 hover:border-white"
-                icon="fa-brands fa-spotify"
-              >
-                Open in Spotify
-              </Button>
-            </a>
-          )}
+          {artist?.spotifyUrl && <SpotifyLinkButton url={artist.spotifyUrl} />}
         </div>
 
         {/* Popular Tracks Section */}

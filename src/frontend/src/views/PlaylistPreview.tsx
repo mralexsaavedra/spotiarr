@@ -2,6 +2,7 @@ import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
+import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
@@ -111,16 +112,7 @@ export const PlaylistPreview: FC = () => {
             <i className="fa-solid fa-download text-xl" />
           </Button>
 
-          <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="no-underline">
-            <Button
-              variant="secondary"
-              size="md"
-              className="!rounded-full !px-6 border border-zinc-600 hover:border-white"
-              icon="fa-brands fa-spotify"
-            >
-              Open in Spotify
-            </Button>
-          </a>
+          <SpotifyLinkButton url={spotifyUrl} />
         </div>
       }
       tracks={tracks}

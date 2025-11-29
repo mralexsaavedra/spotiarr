@@ -1,0 +1,40 @@
+import { FC, MouseEvent, ReactNode, useCallback } from "react";
+import { Button, ButtonProps } from "./Button";
+
+interface SpotifyLinkButtonProps extends Omit<ButtonProps, "onClick" | "children"> {
+  url: string;
+  children?: ReactNode;
+}
+
+export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
+  url,
+  className = "",
+  variant = "secondary",
+  size = "md",
+  children,
+  ...props
+}) => {
+  const handleClick = useCallback((e: MouseEvent<HTMLAnchorElement>) => {
+    e.stopPropagation();
+  }, []);
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="no-underline"
+      onClick={handleClick}
+    >
+      <Button
+        variant={variant}
+        size={size}
+        className={`border border-zinc-600 hover:border-white ${className}`}
+        icon="fa-brands fa-spotify"
+        {...props}
+      >
+        {children || "Open in Spotify"}
+      </Button>
+    </a>
+  );
+};
