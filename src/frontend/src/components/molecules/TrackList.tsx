@@ -1,4 +1,4 @@
-import { ArtistTopTrack } from "@spotiarr/shared";
+import { ArtistTopTrack, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, MouseEvent, useCallback } from "react";
 import { formatDuration } from "../../utils/date";
 
@@ -29,7 +29,7 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStat
     <div className="flex flex-col">
       {tracks.map((track, index) => {
         const status = track.trackUrl ? getTrackStatus(track.trackUrl) : undefined;
-        const isDownloaded = status === "completed";
+        const isDownloaded = status === TrackStatusEnum.Completed;
 
         return (
           <div
@@ -48,18 +48,18 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStat
               disabled={!track.trackUrl || isDownloaded || !!status}
               title={status || "Download"}
             >
-              {status === "completed" ? (
+              {status === TrackStatusEnum.Completed ? (
                 <span>{index + 1}</span>
-              ) : status === "downloading" ? (
+              ) : status === TrackStatusEnum.Downloading ? (
                 <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />
-              ) : status === "queued" ? (
+              ) : status === TrackStatusEnum.Queued ? (
                 <i className="fa-regular fa-clock text-text-secondary" title="Queued" />
-              ) : status === "searching" ? (
+              ) : status === TrackStatusEnum.Searching ? (
                 <i
                   className="fa-solid fa-magnifying-glass text-text-secondary"
                   title="Searching..."
                 />
-              ) : status === "error" ? (
+              ) : status === TrackStatusEnum.Error ? (
                 <i className="fa-solid fa-triangle-exclamation text-red-500" title="Error" />
               ) : (
                 <>

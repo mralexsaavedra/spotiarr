@@ -1,11 +1,10 @@
-import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { DetailLayout } from "../components/layouts/DetailLayout";
 import { PlaylistActions } from "../components/molecules/PlaylistActions";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
-import { PlaylistTracksList } from "../components/organisms/PlaylistTracksList";
 import { PlaylistDetailSkeleton } from "../components/skeletons/PlaylistDetailSkeleton";
+import { PlaylistView } from "../components/templates/PlaylistView";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../hooks/mutations/useRetryFailedTracksMutation";
 import { useRetryTrackMutation } from "../hooks/mutations/useRetryTrackMutation";
@@ -18,55 +17,21 @@ export const PlaylistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: playlists = [] } = usePlaylistsQuery();
+  const { data: playlists = [], isLoading: isPlaylistsLoading } = usePlaylistsQuery();
   const updatePlaylist = useUpdatePlaylistMutation();
   const deletePlaylist = useDeletePlaylistMutation();
   const retryFailedTracks = useRetryFailedTracksMutation();
-  const { data: tracks = [] } = useTracksQuery(id || "");
+  const { data: tracks = [], isLoading: isTracksLoading } = useTracksQuery(id || "");
   const { mutate: retryTrack } = useRetryTrackMutation(id || "");
 
   const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
 
-  const { completedCount, totalCount, hasFailed } = useMemo(() => {
-    const completed = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
+  const { hasFailed } = useMemo(() => {
     const failed = tracks.some((t) => t.status === TrackStatusEnum.Error);
     return {
-      completedCount: completed,
-      totalCount: tracks.length,
       hasFailed: failed,
     };
   }, [tracks]);
-
-  const displayTitle = useMemo(() => {
-    if (!playlist) return "Unnamed Playlist";
-
-    // For Album and Track types, the backend stores "Artist - Name"
-    // We want to display just "Name"
-    if (playlist.type === PlaylistTypeEnum.Album) {
-      if (tracks.length > 0 && tracks[0].album) {
-        return tracks[0].album;
-      }
-      // Fallback: try to strip artist from name
-      const parts = (playlist.name || "").split(" - ");
-      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name || "Unnamed Playlist";
-    }
-
-    if (playlist.type === PlaylistTypeEnum.Track) {
-      if (tracks.length > 0 && tracks[0].name) {
-        return tracks[0].name;
-      }
-      // Fallback
-      const parts = (playlist.name || "").split(" - ");
-      return parts.length > 1 ? parts.slice(1).join(" - ") : playlist.name || "Unnamed Playlist";
-    }
-
-    return playlist.name || "Unnamed Playlist";
-  }, [playlist, tracks]);
-
-  const typeLabel = useMemo(() => {
-    if (!playlist?.type) return "Playlist";
-    return playlist.type.charAt(0).toUpperCase() + playlist.type.slice(1);
-  }, [playlist?.type]);
 
   const handleGoHome = useCallback(() => {
     navigate(Path.HOME);
@@ -100,104 +65,18 @@ export const PlaylistDetail: FC = () => {
     [retryTrack],
   );
 
-  const renderMetadata = useMemo(() => {
-    if (!playlist) return null;
-
-    const firstTrack = tracks[0];
-    const artists =
-      firstTrack?.artists || (firstTrack?.artist ? [{ name: firstTrack.artist }] : []);
-
-    const renderArtists = () => (
-      <span className="font-bold text-white">
-        {artists.map((artist, i) => (
-          <span key={`${artist.name}-${i}`}>
-            {artist.url ? (
-              <a
-                href={artist.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {artist.name}
-              </a>
-            ) : (
-              artist.name
-            )}
-            {i < artists.length - 1 && ", "}
-          </span>
-        ))}
-      </span>
-    );
-
-    if (playlist.type === PlaylistTypeEnum.Album && artists.length > 0) {
-      return renderArtists();
-    }
-
-    if (playlist.type === PlaylistTypeEnum.Track && artists.length > 0) {
-      return (
-        <>
-          {renderArtists()}
-          <span className="text-text-primary">•</span>
-          {firstTrack?.albumUrl ? (
-            <a
-              href={firstTrack.albumUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-white hover:underline transition-colors"
-            >
-              {firstTrack?.album || "Unknown Album"}
-            </a>
-          ) : (
-            <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
-          )}
-        </>
-      );
-    }
-
-    // Default for Playlist and Artist types
-    return <span className="font-bold">SpotiArr</span>;
-  }, [playlist, tracks]);
-
   if (!playlist) {
-    // If we are still loading playlists, show skeleton
-    if (playlists.length === 0) {
+    if (isPlaylistsLoading) {
       return <PlaylistDetailSkeleton />;
     }
     return <PlaylistNotFound onGoHome={handleGoHome} />;
   }
 
   return (
-    <DetailLayout
-      imageUrl={playlist.coverUrl || null}
-      fallbackIconClass="fa-solid fa-music"
-      typeLabel={typeLabel || "Playlist"}
-      title={displayTitle}
-      description={
-        <div className="mt-4 max-w-md">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-            <span>
-              {completedCount} / {totalCount} downloaded
-            </span>
-            <span>{totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%</span>
-          </div>
-          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-green-500 transition-all duration-500 ease-out rounded-full"
-              style={{
-                width: `${totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%`,
-              }}
-            />
-          </div>
-        </div>
-      }
-      meta={
-        <>
-          {renderMetadata}
-          <span className="text-text-secondary">•</span>
-          <span className="text-text-secondary">{totalCount} songs</span>
-        </>
-      }
+    <PlaylistView
+      title={playlist.name || "Unnamed Playlist"}
+      type={playlist.type || "playlist"}
+      coverUrl={playlist.coverUrl || null}
       actions={
         <PlaylistActions
           isSubscribed={!!playlist.subscribed}
@@ -209,18 +88,11 @@ export const PlaylistDetail: FC = () => {
           spotifyUrl={playlist.spotifyUrl}
         />
       }
-    >
-      {/* Table Header */}
-      <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 px-4 py-2 border-b border-white/10 text-text-secondary text-sm uppercase tracking-wider mb-4 sticky top-0 bg-background z-10">
-        <div className="text-center">#</div>
-        <div>Title</div>
-        <div className="hidden md:block">Album</div>
-        <div className="text-right">
-          <i className="fa-regular fa-clock" />
-        </div>
-      </div>
-
-      <PlaylistTracksList tracks={tracks} onRetryTrack={handleRetryTrack} />
-    </DetailLayout>
+      tracks={tracks}
+      isLoading={isTracksLoading}
+      error={null}
+      onGoBack={handleGoHome}
+      onRetryTrack={handleRetryTrack}
+    />
   );
 };
