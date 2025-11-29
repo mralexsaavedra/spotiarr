@@ -1,7 +1,7 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Track } from "../../types/track";
 import { EmptyState } from "../molecules/EmptyState";
+import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 
 interface PlaylistTracksListProps {
   tracks: Track[];
@@ -46,42 +46,12 @@ const PlaylistTrackItem = memo(
       <div className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
         {/* Index */}
         <div className="text-text-secondary text-sm text-center w-4 flex justify-center">
-          {track.status === TrackStatusEnum.Error ? (
-            <button
-              className="text-red-500 hover:text-red-400 transition-colors"
-              onClick={handleRetry}
-              title="Retry download"
-            >
-              <i className="fa-solid fa-rotate-right" />
-            </button>
-          ) : track.status === TrackStatusEnum.Downloading ? (
-            <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />
-          ) : track.status === TrackStatusEnum.Queued ? (
-            <i className="fa-regular fa-clock text-text-secondary" title="Queued" />
-          ) : track.status === TrackStatusEnum.Searching ? (
-            <i className="fa-solid fa-magnifying-glass text-text-secondary" title="Searching..." />
-          ) : (
-            <>
-              <span
-                className={
-                  onDownloadTrack && track.status !== TrackStatusEnum.Completed
-                    ? "group-hover:hidden"
-                    : ""
-                }
-              >
-                {index + 1}
-              </span>
-              {onDownloadTrack && track.status !== TrackStatusEnum.Completed && (
-                <button
-                  className="hidden group-hover:block text-text-secondary hover:text-white transition-colors"
-                  onClick={handleDownload}
-                  title="Download Track"
-                >
-                  <i className="fa-solid fa-download" />
-                </button>
-              )}
-            </>
-          )}
+          <TrackStatusIndicator
+            status={track.status}
+            index={index}
+            onRetry={handleRetry}
+            onDownload={onDownloadTrack ? handleDownload : undefined}
+          />
         </div>
 
         {/* Title & Artist */}
