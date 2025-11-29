@@ -1,4 +1,4 @@
-import { IPlaylist, PlaylistTypeEnum } from "@spotiarr/shared";
+import { IPlaylist } from "@spotiarr/shared";
 import type { Track } from "./track";
 
 export interface Playlist extends IPlaylist {
@@ -6,8 +6,6 @@ export interface Playlist extends IPlaylist {
   collapsed?: boolean; // UI state
   tracks?: Track[];
 }
-
-export { PlaylistTypeEnum };
 
 export enum PlaylistStatusEnum {
   InProgress,

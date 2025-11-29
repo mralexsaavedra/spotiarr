@@ -1,18 +1,18 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useMemo } from "react";
-import { TrackStatus } from "../../types/track";
 
 interface TrackStatusBadgeProps {
-  status: TrackStatus;
+  status: TrackStatusEnum;
 }
 
 export const TrackStatusBadge: FC<TrackStatusBadgeProps> = ({ status }) => {
   const statusStyles = useMemo(() => {
     switch (status) {
-      case TrackStatus.Completed:
+      case TrackStatusEnum.Completed:
         return "bg-green-500/20 text-green-400 border-green-500/30";
-      case TrackStatus.Error:
+      case TrackStatusEnum.Error:
         return "bg-red-500/20 text-red-400 border-red-500/30";
-      case TrackStatus.Downloading:
+      case TrackStatusEnum.Downloading:
         return "bg-purple-500/20 text-purple-400 border-purple-500/30";
       default:
         return "bg-blue-500/20 text-blue-400 border-blue-500/30";
@@ -21,11 +21,11 @@ export const TrackStatusBadge: FC<TrackStatusBadgeProps> = ({ status }) => {
 
   const statusText = useMemo(() => {
     switch (status) {
-      case TrackStatus.Completed:
+      case TrackStatusEnum.Completed:
         return "COMPLETED";
-      case TrackStatus.Error:
+      case TrackStatusEnum.Error:
         return "ERROR";
-      case TrackStatus.Downloading:
+      case TrackStatusEnum.Downloading:
         return "DOWNLOADING";
       default:
         return "QUEUED";
@@ -34,11 +34,11 @@ export const TrackStatusBadge: FC<TrackStatusBadgeProps> = ({ status }) => {
 
   const statusIcon = useMemo(() => {
     switch (status) {
-      case TrackStatus.Completed:
+      case TrackStatusEnum.Completed:
         return "fa-check";
-      case TrackStatus.Error:
+      case TrackStatusEnum.Error:
         return "fa-xmark";
-      case TrackStatus.Downloading:
+      case TrackStatusEnum.Downloading:
         return "fa-arrow-down";
       default:
         return "fa-clock";

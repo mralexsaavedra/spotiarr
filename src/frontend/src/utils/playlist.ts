@@ -1,6 +1,6 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { type Playlist, PlaylistStatusEnum } from "../types/playlist";
 import type { Track } from "../types/track";
-import { TrackStatus } from "../types/track";
 
 export interface PlaylistMetrics {
   totalCount: number;
@@ -12,8 +12,8 @@ export interface PlaylistMetrics {
 
 export const getPlaylistMetrics = (tracks: Track[]): PlaylistMetrics => {
   const totalCount = tracks.length;
-  const completedCount = tracks.filter((t) => t.status === TrackStatus.Completed).length;
-  const failedCount = tracks.filter((t) => t.status === TrackStatus.Error).length;
+  const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
+  const failedCount = tracks.filter((t) => t.status === TrackStatusEnum.Error).length;
 
   return {
     totalCount,
@@ -51,5 +51,5 @@ export const shouldClearPlaylist = (playlist: Playlist): boolean => {
   if (playlist.error) return true;
 
   const tracks = playlist.tracks ?? [];
-  return tracks.some((track: Track) => track.status === TrackStatus.Error);
+  return tracks.some((track: Track) => track.status === TrackStatusEnum.Error);
 };

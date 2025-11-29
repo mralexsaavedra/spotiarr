@@ -1,6 +1,7 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
-import { Track, TrackStatus } from "../../types/track";
+import { Track } from "../../types/track";
 import { tracksQueryKey } from "../queryKeys";
 
 export const useRetryTrackMutation = (playlistId: string) => {
@@ -13,7 +14,7 @@ export const useRetryTrackMutation = (playlistId: string) => {
       const previous = queryClient.getQueryData<Track[]>(tracksQueryKey(playlistId));
 
       queryClient.setQueryData<Track[] | undefined>(tracksQueryKey(playlistId), (old = []) =>
-        old.map((t) => (t.id === trackId ? { ...t, status: TrackStatus.Searching } : t)),
+        old.map((t) => (t.id === trackId ? { ...t, status: TrackStatusEnum.Searching } : t)),
       );
 
       return { previous };

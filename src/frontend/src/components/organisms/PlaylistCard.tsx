@@ -1,7 +1,8 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { Playlist } from "../../types/playlist";
-import { TrackStatus, Track } from "../../types/track";
+import { Track } from "../../types/track";
 
 interface PlaylistCardProps {
   playlist: Playlist;
@@ -10,14 +11,14 @@ interface PlaylistCardProps {
 export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
   const stats = useMemo(() => {
     const tracks = playlist.tracks || [];
-    const completed = tracks.filter((t: Track) => t.status === TrackStatus.Completed).length;
+    const completed = tracks.filter((t: Track) => t.status === TrackStatusEnum.Completed).length;
     const downloading = tracks.filter(
       (t: Track) =>
-        t.status === TrackStatus.Downloading ||
-        t.status === TrackStatus.Queued ||
-        t.status === TrackStatus.Searching,
+        t.status === TrackStatusEnum.Downloading ||
+        t.status === TrackStatusEnum.Queued ||
+        t.status === TrackStatusEnum.Searching,
     ).length;
-    const errors = tracks.filter((t: Track) => t.status === TrackStatus.Error).length;
+    const errors = tracks.filter((t: Track) => t.status === TrackStatusEnum.Error).length;
     const total = tracks.length;
     const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
 

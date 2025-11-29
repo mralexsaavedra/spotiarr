@@ -1,4 +1,4 @@
-import { PlaylistTypeEnum } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DetailLayout } from "../components/layouts/DetailLayout";
@@ -13,7 +13,6 @@ import { useUpdatePlaylistMutation } from "../hooks/mutations/useUpdatePlaylistM
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useTracksQuery } from "../hooks/queries/useTracksQuery";
 import { Path } from "../routes/routes";
-import { TrackStatus } from "../types/track";
 
 export const PlaylistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,8 +28,8 @@ export const PlaylistDetail: FC = () => {
   const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
 
   const { completedCount, totalCount, hasFailed } = useMemo(() => {
-    const completed = tracks.filter((t) => t.status === TrackStatus.Completed).length;
-    const failed = tracks.some((t) => t.status === TrackStatus.Error);
+    const completed = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
+    const failed = tracks.some((t) => t.status === TrackStatusEnum.Error);
     return {
       completedCount: completed,
       totalCount: tracks.length,

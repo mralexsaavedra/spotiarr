@@ -338,7 +338,9 @@ export class SpotifyApiService {
       return response;
     }
 
-    return response;
+    // Retry with new token
+    const newToken = await this.getUserAccessToken();
+    return makeRequest(newToken);
   }
 
   /**

@@ -1,3 +1,4 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
@@ -10,7 +11,7 @@ import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery"
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { Path } from "../routes/routes";
-import { Track, TrackStatus } from "../types/track";
+import { Track } from "../types/track";
 
 export const PlaylistPreview: FC = () => {
   const [searchParams] = useSearchParams();
@@ -43,7 +44,7 @@ export const PlaylistPreview: FC = () => {
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
     return previewData.tracks.map((t, i) => {
-      let status = TrackStatus.New;
+      let status = TrackStatusEnum.New;
 
       // Check active playlists
       const activePlaylist = playlists?.find((p) =>
@@ -58,7 +59,7 @@ export const PlaylistPreview: FC = () => {
         // Check history
         const isHistory = downloadTracks?.some((dt) => dt.trackUrl === t.trackUrl);
         if (isHistory) {
-          status = TrackStatus.Completed;
+          status = TrackStatusEnum.Completed;
         }
       }
 
@@ -169,20 +170,8 @@ export const PlaylistPreview: FC = () => {
     return <span className="font-bold">SpotiArr</span>;
   }, [previewData]);
 
-  if (!spotifyUrl) {
-    return null;
-  }
-
-  if (isLoading) {
-    return <PlaylistDetailSkeleton />;
-  }
-
-  if (error || !previewData) {
-    return <PreviewError error={error} onGoBack={handleGoBack} />;
-  }
-
   const totalCount = tracks.length;
-  const completedCount = tracks.filter((t) => t.status === TrackStatus.Completed).length;
+  const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
 
   const description = useMemo(() => {
     if (completedCount > 0) {
@@ -207,6 +196,18 @@ export const PlaylistPreview: FC = () => {
     }
     return previewData?.description;
   }, [completedCount, totalCount, previewData?.description]);
+
+  if (!spotifyUrl) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <PlaylistDetailSkeleton />;
+  }
+
+  if (error || !previewData) {
+    return <PreviewError error={error} onGoBack={handleGoBack} />;
+  }
 
   return (
     <DetailLayout
