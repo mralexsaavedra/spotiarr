@@ -11,11 +11,11 @@ export const PlaylistDetailSkeleton: FC = () => {
           <Skeleton className="w-48 h-48 md:w-60 md:h-60 shadow-2xl flex-shrink-0" />
 
           {/* Metadata */}
-          <div className="flex-1 space-y-4 mb-2 w-full">
+          <div className="flex-1 space-y-2 mb-2 w-full min-w-0">
             <Skeleton className="h-4 w-20" /> {/* Type label */}
             <Skeleton className="h-12 md:h-24 w-3/4 max-w-2xl" /> {/* Title */}
             {/* Progress Bar */}
-            <div className="max-w-md space-y-2">
+            <div className="max-w-md space-y-2 mt-4">
               <div className="flex justify-between">
                 <Skeleton className="h-3 w-24" />
                 <Skeleton className="h-3 w-10" />
@@ -63,7 +63,7 @@ export const PlaylistDetailSkeleton: FC = () => {
               <Skeleton className="h-4 w-32" /> {/* Artist */}
             </div>
             <Skeleton className="h-4 w-32 hidden md:block" /> {/* Album */}
-            <div className="flex items-center justify-end gap-4">
+            <div className="flex items-center justify-end gap-2">
               <Skeleton className="w-4 h-4 rounded-full" /> {/* Status Icon */}
               <Skeleton className="w-10 h-4" /> {/* Duration */}
             </div>
