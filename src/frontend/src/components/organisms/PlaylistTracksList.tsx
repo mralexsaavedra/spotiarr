@@ -1,7 +1,7 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Track } from "../../types/track";
-import { EmptyPlaylistTracks } from "../molecules/EmptyPlaylistTracks";
+import { EmptyState } from "../molecules/EmptyState";
 
 interface PlaylistTracksListProps {
   tracks: Track[];
@@ -160,7 +160,14 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   onDownloadTrack,
 }) => {
   if (tracks.length === 0) {
-    return <EmptyPlaylistTracks />;
+    return (
+      <EmptyState
+        icon="fa-music"
+        title="No tracks in this playlist yet"
+        description="Tracks you download or sync will appear here."
+        className="py-12"
+      />
+    );
   }
 
   return (

@@ -2,7 +2,7 @@ import { FC, MouseEvent, memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
-import { EmptyReleases } from "../components/molecules/EmptyReleases";
+import { EmptyState } from "../components/molecules/EmptyState";
 import { RateLimitedMessage } from "../components/molecules/RateLimitedMessage";
 import { ConnectSpotifyPrompt } from "../components/organisms/ConnectSpotifyPrompt";
 import { ReleaseCard } from "../components/organisms/ReleaseCard";
@@ -134,7 +134,11 @@ export const Releases: FC = () => {
           again later.
         </div>
       ) : !releases || releases.length === 0 ? (
-        <EmptyReleases />
+        <EmptyState
+          icon="fa-compact-disc"
+          title="No new releases"
+          description="No recent releases found from your followed artists."
+        />
       ) : (
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {releases.map((release) => {

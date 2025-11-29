@@ -2,7 +2,7 @@ import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
-import { EmptyHistory } from "../components/molecules/EmptyHistory";
+import { EmptyState } from "../components/molecules/EmptyState";
 import { HistoryItem } from "../components/molecules/HistoryItem";
 import { useRecreatePlaylistMutation } from "../hooks/mutations/useRecreatePlaylistMutation";
 import { useDownloadHistoryQuery } from "../hooks/queries/useDownloadHistoryQuery";
@@ -38,7 +38,11 @@ export const History: FC = () => {
         {isLoading ? (
           <Loading message="Loading history..." />
         ) : playlists.length === 0 ? (
-          <EmptyHistory />
+          <EmptyState
+            icon="fa-clock-rotate-left"
+            title="No download history yet"
+            description="Completed downloads will appear here."
+          />
         ) : (
           <div className="space-y-3">
             {playlists.map((playlist) => (
