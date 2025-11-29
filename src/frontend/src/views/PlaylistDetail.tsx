@@ -3,7 +3,7 @@ import { FC, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PlaylistActions } from "../components/molecules/PlaylistActions";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
-import { PlaylistDetailSkeleton } from "../components/skeletons/PlaylistDetailSkeleton";
+import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../hooks/mutations/useRetryFailedTracksMutation";
@@ -28,6 +28,7 @@ export const PlaylistDetail: FC = () => {
 
   const { hasFailed } = useMemo(() => {
     const failed = tracks.some((t) => t.status === TrackStatusEnum.Error);
+
     return {
       hasFailed: failed,
     };
@@ -67,7 +68,7 @@ export const PlaylistDetail: FC = () => {
 
   if (!playlist) {
     if (isPlaylistsLoading) {
-      return <PlaylistDetailSkeleton />;
+      return <PlaylistSkeleton />;
     }
     return <PlaylistNotFound onGoHome={handleGoHome} />;
   }

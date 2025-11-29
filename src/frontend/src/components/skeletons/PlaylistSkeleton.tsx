@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Skeleton } from "../atoms/Skeleton";
 
-export const PlaylistDetailSkeleton: FC = () => {
+export const PlaylistSkeleton: FC = () => {
   return (
     <div className="flex-1 bg-background overflow-y-auto h-full">
       {/* Header Skeleton */}

@@ -3,7 +3,7 @@ import { FC, ReactNode, useMemo } from "react";
 import { Track } from "../../types/track";
 import { PreviewError } from "../molecules/PreviewError";
 import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
-import { PlaylistDetailSkeleton } from "../skeletons/PlaylistDetailSkeleton";
+import { PlaylistSkeleton } from "../skeletons/PlaylistSkeleton";
 
 interface PlaylistViewProps {
   title: string;
@@ -144,7 +144,7 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   }, [completedCount, totalCount, originalDescription]);
 
   if (isLoading) {
-    return <PlaylistDetailSkeleton />;
+    return <PlaylistSkeleton />;
   }
 
   if (error) {
