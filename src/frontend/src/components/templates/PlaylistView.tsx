@@ -1,6 +1,8 @@
 import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, ReactNode, useMemo } from "react";
 import { Track } from "../../types/track";
+import { PlaylistTableHeader } from "../atoms/PlaylistTableHeader";
+import { PlaylistHeader } from "../molecules/PlaylistHeader";
 import { PreviewError } from "../molecules/PreviewError";
 import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
 import { PlaylistSkeleton } from "../skeletons/PlaylistSkeleton";
@@ -151,58 +153,16 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
     return <PreviewError error={error} onGoBack={onGoBack} />;
   }
 
-  const imageClasses = "w-48 h-48 md:w-60 md:h-60 shadow-2xl flex-shrink-0";
-  const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-
   return (
     <div className="flex-1 bg-background overflow-y-auto h-full text-text-primary">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-zinc-800/80 to-background px-6 md:px-8 py-6">
-        <div className="flex flex-col md:flex-row gap-6 items-end">
-          {/* Cover Image */}
-          <div className={imageClasses}>
-            {coverUrl ? (
-              <img
-                src={coverUrl}
-                alt={displayTitle}
-                className="w-full h-full object-cover shadow-lg"
-              />
-            ) : (
-              <div className="w-full h-full bg-background-elevated flex items-center justify-center">
-                <i className="fa-solid fa-music text-6xl text-text-secondary" />
-              </div>
-            )}
-          </div>
-
-          {/* Metadata */}
-          <div className="flex-1 min-w-0 space-y-2 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-text-primary">
-              {typeLabel}
-            </span>
-            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-md break-words">
-              {displayTitle}
-            </h1>
-
-            {description && (
-              <div className="mt-4 max-w-md">
-                {typeof description === "string" ? (
-                  <p className="text-text-secondary text-sm font-medium line-clamp-2">
-                    {description}
-                  </p>
-                ) : (
-                  description
-                )}
-              </div>
-            )}
-
-            <div className="flex items-center gap-1 text-sm font-medium text-text-primary mt-2">
-              {renderMetadata}
-              <span className="text-text-secondary">•</span>
-              <span className="text-text-secondary">{totalCount} songs</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PlaylistHeader
+        title={displayTitle}
+        type={type}
+        coverUrl={coverUrl}
+        description={description}
+        metadata={renderMetadata}
+        totalCount={totalCount}
+      />
 
       {/* Action Bar */}
       {actions && (
@@ -213,15 +173,7 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
 
       {/* Content */}
       <div className="px-6 md:px-8 pb-8">
-        {/* Table Header */}
-        <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 px-4 py-2 border-b border-white/10 text-text-secondary text-sm uppercase tracking-wider mb-4 sticky top-0 bg-background z-10">
-          <div className="text-center">#</div>
-          <div>Title</div>
-          <div className="hidden md:block">Album</div>
-          <div className="text-right">
-            <i className="fa-regular fa-clock" />
-          </div>
-        </div>
+        <PlaylistTableHeader />
 
         <PlaylistTracksList
           tracks={tracks}
