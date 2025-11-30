@@ -1,5 +1,5 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
-import { FC } from "react";
+import { FC, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
@@ -16,13 +16,17 @@ export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) =>
 
   const typeLower = type.toLowerCase();
 
+  const handleStopPropagation = useCallback((e: MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
   if (typeLower === PlaylistTypeEnum.Album && artists.length > 0) {
     return (
       <ArtistList
         artists={artists}
         className="font-bold text-white"
         linkClassName="hover:underline"
-        onLinkClick={(e) => e.stopPropagation()}
+        onLinkClick={handleStopPropagation}
       />
     );
   }
@@ -34,14 +38,14 @@ export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) =>
           artists={artists}
           className="font-bold text-white"
           linkClassName="hover:underline"
-          onLinkClick={(e) => e.stopPropagation()}
+          onLinkClick={handleStopPropagation}
         />
         <span className="text-text-primary">•</span>
         {firstTrack?.albumUrl ? (
           <Link
             to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}
             className="font-medium text-white hover:underline transition-colors"
-            onClick={(e) => e.stopPropagation()}
+            onClick={handleStopPropagation}
           >
             {firstTrack?.album || "Unknown Album"}
           </Link>

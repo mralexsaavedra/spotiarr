@@ -15,6 +15,38 @@ interface ArtistListProps {
   onLinkClick?: (e: MouseEvent) => void;
 }
 
+interface ArtistLinkProps {
+  artist: Artist;
+  linkClassName?: string;
+  onLinkClick?: (e: MouseEvent) => void;
+  isLast: boolean;
+}
+
+const ArtistLink: FC<ArtistLinkProps> = ({ artist, linkClassName, onLinkClick, isLast }) => {
+  const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
+
+  const handleClick = (e: MouseEvent) => {
+    if (onLinkClick) onLinkClick(e);
+  };
+
+  return (
+    <span>
+      {artistId ? (
+        <Link
+          to={Path.ARTIST_DETAIL.replace(":id", artistId)}
+          className={linkClassName}
+          onClick={handleClick}
+        >
+          {artist.name}
+        </Link>
+      ) : (
+        <span>{artist.name}</span>
+      )}
+      {!isLast && ", "}
+    </span>
+  );
+};
+
 export const ArtistList: FC<ArtistListProps> = ({
   artists,
   className,
@@ -23,28 +55,15 @@ export const ArtistList: FC<ArtistListProps> = ({
 }) => {
   return (
     <span className={className}>
-      {artists.map((artist, i) => {
-        const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
-
-        return (
-          <span key={`${artist.name}-${i}`}>
-            {artistId ? (
-              <Link
-                to={Path.ARTIST_DETAIL.replace(":id", artistId)}
-                className={linkClassName}
-                onClick={(e) => {
-                  if (onLinkClick) onLinkClick(e);
-                }}
-              >
-                {artist.name}
-              </Link>
-            ) : (
-              <span>{artist.name}</span>
-            )}
-            {i < artists.length - 1 && ", "}
-          </span>
-        );
-      })}
+      {artists.map((artist, i) => (
+        <ArtistLink
+          key={`${artist.name}-${i}`}
+          artist={artist}
+          linkClassName={linkClassName}
+          onLinkClick={onLinkClick}
+          isLast={i === artists.length - 1}
+        />
+      ))}
     </span>
   );
 };

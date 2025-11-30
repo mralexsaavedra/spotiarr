@@ -1,4 +1,4 @@
-import { FC, MouseEvent } from "react";
+import { FC, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 
@@ -29,6 +29,10 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
   onDownloadClick,
   onSpotifyLinkClick,
 }) => {
+  const handleStopPropagation = useCallback((e: MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
   return (
     <article
       key={`${albumId}-${artistId}`}
@@ -71,7 +75,7 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
         <Link
           to={Path.ARTIST_DETAIL.replace(":id", artistId)}
           className="text-xs text-text-secondary truncate hover:underline hover:text-text-primary block"
-          onClick={(e) => e.stopPropagation()}
+          onClick={handleStopPropagation}
         >
           {artistName}
         </Link>

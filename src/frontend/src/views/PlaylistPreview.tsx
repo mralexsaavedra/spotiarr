@@ -67,8 +67,12 @@ export const PlaylistPreview: FC = () => {
     [createPlaylist],
   );
 
+  const handleGoHome = useCallback(() => {
+    navigate(Path.HOME);
+  }, [navigate]);
+
   if (!spotifyUrl) {
-    return <PlaylistNotFound onGoHome={() => navigate(Path.HOME)} />;
+    return <PlaylistNotFound onGoHome={handleGoHome} />;
   }
 
   if (isLoading) {
