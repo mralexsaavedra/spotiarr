@@ -1,39 +1,13 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { Link } from "react-router-dom";
+import { usePlaylistStats } from "../../hooks/usePlaylistStats";
 import type { Playlist } from "../../types/playlist";
-import { Track } from "../../types/track";
 
 interface PlaylistCardProps {
   playlist: Playlist;
 }
 
 export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
-  const stats = useMemo(() => {
-    const tracks = playlist.tracks || [];
-    const completed = tracks.filter((t: Track) => t.status === TrackStatusEnum.Completed).length;
-    const downloading = tracks.filter(
-      (t: Track) =>
-        t.status === TrackStatusEnum.Downloading ||
-        t.status === TrackStatusEnum.Queued ||
-        t.status === TrackStatusEnum.Searching,
-    ).length;
-    const errors = tracks.filter((t: Track) => t.status === TrackStatusEnum.Error).length;
-    const total = tracks.length;
-    const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-    return {
-      completedCount: completed,
-      downloadingCount: downloading,
-      errorCount: errors,
-      totalCount: total,
-      progress: progressPercent,
-      isDownloading: downloading > 0,
-      hasErrors: errors > 0,
-      isCompleted: completed === total && total > 0,
-    };
-  }, [playlist.tracks]);
-
   const {
     completedCount,
     downloadingCount,
@@ -43,7 +17,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
     isDownloading,
     hasErrors,
     isCompleted,
-  } = stats;
+  } = usePlaylistStats(playlist);
 
   return (
     <Link
