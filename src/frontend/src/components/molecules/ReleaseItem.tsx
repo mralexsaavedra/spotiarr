@@ -34,6 +34,7 @@ export const ReleaseItem: FC<ReleaseItemProps> = memo(
         releaseDate={release.releaseDate}
         spotifyUrl={release.spotifyUrl}
         isDownloaded={isDownloaded}
+        albumType={release.albumType}
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}
       />

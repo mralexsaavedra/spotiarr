@@ -1,6 +1,7 @@
 import { FC, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
+import { formatRelativeDate } from "../../utils/date";
 
 interface ReleaseCardProps {
   albumId: string;
@@ -11,6 +12,7 @@ interface ReleaseCardProps {
   releaseDate?: string | null;
   spotifyUrl?: string | null;
   isDownloaded?: boolean;
+  albumType?: string;
   onCardClick: () => void;
   onDownloadClick: (e: MouseEvent<HTMLButtonElement>) => void;
 }
@@ -24,6 +26,7 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
   releaseDate,
   spotifyUrl,
   isDownloaded = false,
+  albumType,
   onCardClick,
   onDownloadClick,
 }) => {
@@ -31,54 +34,83 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
     e.stopPropagation();
   }, []);
 
+  const typeLabel =
+    albumType === "single"
+      ? "Single"
+      : albumType === "album"
+        ? "Album"
+        : albumType === "compilation"
+          ? "Compilation"
+          : "Release";
+
+  // Parse release date for relative time if needed, or just use as is if it's already formatted?
+  // The prop says `releaseDate?: string`. Usually it's YYYY-MM-DD.
+  // I'll assume I can use `formatRelativeDate` if I parse it to timestamp, or just display it.
+  // `formatRelativeDate` takes a timestamp (number).
+  // Let's try to parse it.
+  const dateDisplay = releaseDate ? formatRelativeDate(new Date(releaseDate).getTime()) : "";
+
   return (
-    <article
+    <div
       key={`${albumId}-${artistId}`}
-      className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-all cursor-pointer"
+      className="group flex items-center p-3 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
       onClick={onCardClick}
     >
-      <div className="relative aspect-square mb-4 rounded-md overflow-hidden bg-background-hover shadow-lg">
+      {/* Image */}
+      <div className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-background-elevated shadow-sm">
         {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt={albumName}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <img src={coverUrl} alt={albumName} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <i className="fa-solid fa-compact-disc text-4xl text-text-secondary" />
-          </div>
-        )}
-
-        {spotifyUrl && (
-          <div className="absolute inset-0 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-black/40">
-            <button
-              onClick={onDownloadClick}
-              disabled={isDownloaded}
-              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all ${
-                isDownloaded ? "bg-green-500 cursor-not-allowed" : "bg-primary hover:scale-110"
-              }`}
-              title={isDownloaded ? "Already downloaded" : "Download"}
-            >
-              <i className={`fa-solid ${isDownloaded ? "fa-check" : "fa-download"} text-black`} />
-            </button>
+            <i className="fa-solid fa-compact-disc text-2xl text-text-secondary" />
           </div>
         )}
       </div>
 
-      <div className="space-y-1">
-        <h3 className="font-bold text-text-primary text-sm truncate group-hover:underline">
+      {/* Content */}
+      <div className="flex-1 min-w-0 ml-4 flex flex-col justify-center">
+        <h3 className="font-bold text-text-primary text-base truncate mb-0.5 group-hover:underline">
           {albumName}
         </h3>
-        <Link
-          to={Path.ARTIST_DETAIL.replace(":id", artistId)}
-          className="text-xs text-text-secondary truncate hover:underline hover:text-text-primary block"
-          onClick={handleStopPropagation}
-        >
-          {artistName}
-        </Link>
-        {releaseDate && <p className="text-xs text-text-secondary">{releaseDate}</p>}
+        <div className="flex items-center text-sm text-text-secondary truncate">
+          <Link
+            to={Path.ARTIST_DETAIL.replace(":id", artistId)}
+            className="hover:underline hover:text-text-primary truncate"
+            onClick={handleStopPropagation}
+          >
+            {artistName}
+          </Link>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-text-muted mt-1">
+          <span>{typeLabel}</span>
+          {dateDisplay && (
+            <>
+              <span>•</span>
+              <span>{dateDisplay}</span>
+            </>
+          )}
+        </div>
       </div>
-    </article>
+
+      {/* Actions */}
+      <div className="flex items-center gap-4 ml-4">
+        {spotifyUrl && (
+          <button
+            onClick={onDownloadClick}
+            disabled={isDownloaded}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+              isDownloaded
+                ? "text-green-500 cursor-default"
+                : "text-text-secondary hover:text-text-primary hover:scale-110"
+            }`}
+            title={isDownloaded ? "Already downloaded" : "Download"}
+          >
+            <i
+              className={`fa-solid ${isDownloaded ? "fa-circle-check" : "fa-circle-arrow-down"} text-xl`}
+            />
+          </button>
+        )}
+      </div>
+    </div>
   );
 };

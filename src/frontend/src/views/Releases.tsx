@@ -1,7 +1,6 @@
 import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
-import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { RateLimitedMessage } from "../components/molecules/RateLimitedMessage";
 import { ReleaseItem } from "../components/molecules/ReleaseItem";
@@ -57,40 +56,44 @@ export const Releases: FC = () => {
 
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
-      <PageHeader title="New Releases" className="mb-6" />
-
-      {isLoading ? (
-        <Loading />
-      ) : error === "spotify_rate_limited" ? (
-        <RateLimitedMessage />
-      ) : error ? (
-        <div className="text-red-400 flex items-center gap-2">
-          <i className="fa-solid fa-triangle-exclamation" /> Failed to load releases. Please try
-          again later.
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Novedades</h1>
         </div>
-      ) : !releases || releases.length === 0 ? (
-        <EmptyState
-          icon="fa-compact-disc"
-          title="No new releases"
-          description="No recent releases found from your followed artists."
-        />
-      ) : (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {releases.map((release) => {
-            const isDownloaded = playlists.some((p) => p.spotifyUrl === release.spotifyUrl);
 
-            return (
-              <ReleaseItem
-                key={`${release.albumId}-${release.artistId}`}
-                release={release}
-                isDownloaded={isDownloaded}
-                onReleaseClick={handleReleaseClick}
-                onDownloadRelease={handleDownloadRelease}
-              />
-            );
-          })}
-        </div>
-      )}
+        {isLoading ? (
+          <Loading />
+        ) : error === "spotify_rate_limited" ? (
+          <RateLimitedMessage />
+        ) : error ? (
+          <div className="text-red-400 flex items-center gap-2">
+            <i className="fa-solid fa-triangle-exclamation" /> Failed to load releases. Please try
+            again later.
+          </div>
+        ) : !releases || releases.length === 0 ? (
+          <EmptyState
+            icon="fa-compact-disc"
+            title="No new releases"
+            description="No recent releases found from your followed artists."
+          />
+        ) : (
+          <div className="flex flex-col gap-1">
+            {releases.map((release) => {
+              const isDownloaded = playlists.some((p) => p.spotifyUrl === release.spotifyUrl);
+
+              return (
+                <ReleaseItem
+                  key={`${release.albumId}-${release.artistId}`}
+                  release={release}
+                  isDownloaded={isDownloaded}
+                  onReleaseClick={handleReleaseClick}
+                  onDownloadRelease={handleDownloadRelease}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 };
