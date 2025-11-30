@@ -44,26 +44,36 @@ export const History: FC = () => {
             description="Completed downloads will appear here."
           />
         ) : (
-          <div className="space-y-3">
-            {playlists.map((playlist) => {
-              const activePlaylist = activePlaylists.find(
-                (p) => p.spotifyUrl === playlist.playlistSpotifyUrl,
-              );
+          <div className="flex flex-col">
+            <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
+              <div>Title</div>
+              <div className="hidden md:block text-right">Tracks</div>
+              <div className="hidden md:block text-right">Completed</div>
+              <div className="text-right">Actions</div>
+            </div>
+            <div className="flex flex-col gap-1">
+              {playlists.map((playlist) => {
+                const activePlaylist = activePlaylists.find(
+                  (p) => p.spotifyUrl === playlist.playlistSpotifyUrl,
+                );
 
-              return (
-                <HistoryItem
-                  key={playlist.playlistId ?? playlist.playlistSpotifyUrl ?? playlist.playlistName}
-                  playlistName={playlist.playlistName}
-                  playlistSpotifyUrl={playlist.playlistSpotifyUrl}
-                  trackCount={playlist.trackCount}
-                  lastCompletedAt={playlist.lastCompletedAt}
-                  isRecreating={recreatePlaylist.isPending}
-                  isDisabled={!!activePlaylist}
-                  activePlaylistId={activePlaylist?.id}
-                  onRecreate={handleRecreatePlaylistClick}
-                />
-              );
-            })}
+                return (
+                  <HistoryItem
+                    key={
+                      playlist.playlistId ?? playlist.playlistSpotifyUrl ?? playlist.playlistName
+                    }
+                    playlistName={playlist.playlistName}
+                    playlistSpotifyUrl={playlist.playlistSpotifyUrl}
+                    trackCount={playlist.trackCount}
+                    lastCompletedAt={playlist.lastCompletedAt}
+                    isRecreating={recreatePlaylist.isPending}
+                    isDisabled={!!activePlaylist}
+                    activePlaylistId={activePlaylist?.id}
+                    onRecreate={handleRecreatePlaylistClick}
+                  />
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

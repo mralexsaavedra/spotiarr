@@ -31,9 +31,9 @@ export const HistoryItem: FC<HistoryItemProps> = ({
   }, [onRecreate, playlistSpotifyUrl]);
 
   return (
-    <div className="bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-all">
-      <div className="mb-3">
-        <h3 className="font-bold text-base text-text-primary break-words mb-1">
+    <div className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 items-center px-4 py-3 rounded-md hover:bg-white/10 transition-colors">
+      <div className="min-w-0">
+        <h3 className="font-medium text-base text-text-primary truncate">
           {activePlaylistId ? (
             <Link
               to={Path.PLAYLIST_DETAIL.replace(":id", activePlaylistId)}
@@ -52,34 +52,32 @@ export const HistoryItem: FC<HistoryItemProps> = ({
             playlistName
           )}
         </h3>
-        <div className="flex items-center gap-2 text-sm text-text-secondary flex-wrap">
-          <span>{trackCount} tracks downloaded</span>
-          {lastCompletedAt && (
-            <>
-              <span className="text-text-muted">•</span>
-              <span className="text-text-muted">{formatRelativeDate(lastCompletedAt)}</span>
-            </>
-          )}
+        <div className="md:hidden flex items-center gap-2 text-xs text-text-secondary mt-1">
+          <span>{trackCount} tracks</span>
+          <span>•</span>
+          <span>{lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="hidden md:block text-right text-sm text-text-secondary">{trackCount}</div>
+
+      <div className="hidden md:block text-right text-sm text-text-secondary">
+        {lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}
+      </div>
+
+      <div className="flex justify-end">
         {playlistSpotifyUrl && (
-          <>
-            <Button
-              variant="secondary"
-              size="sm"
-              icon="fa-rotate"
-              title={
-                isDisabled ? "Playlist already exists" : "Recreate playlist and subscribe again"
-              }
-              onClick={handleRecreate}
-              disabled={isRecreating || isDisabled}
-              loading={isRecreating}
-            >
-              Recreate
-            </Button>
-          </>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="fa-rotate"
+            title={isDisabled ? "Playlist already exists" : "Recreate playlist and subscribe again"}
+            onClick={handleRecreate}
+            disabled={isRecreating || isDisabled}
+            loading={isRecreating}
+          >
+            <span className="hidden md:inline">Recreate</span>
+          </Button>
         )}
       </div>
     </div>
