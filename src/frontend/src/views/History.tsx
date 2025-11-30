@@ -33,11 +33,12 @@ export const History: FC = () => {
   return (
     <section className="w-full bg-background px-4 md:px-8 py-6">
       <div className="max-w-full">
-        <PageHeader title="Download History" />
+        <div className="flex items-center justify-between mb-6">
+          <PageHeader title="Download History" className="mb-0" />
+          {isLoading && <Loading message="Loading history..." />}
+        </div>
 
-        {isLoading ? (
-          <Loading message="Loading history..." />
-        ) : playlists.length === 0 ? (
+        {!isLoading && playlists.length === 0 ? (
           <EmptyState
             icon="fa-clock-rotate-left"
             title="No download history yet"

@@ -60,7 +60,7 @@ export const Releases: FC = () => {
   }
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
-      <PageHeader title="New Releases" />
+      <PageHeader title="New Releases" className="mb-6" />
 
       {isLoading ? (
         <Loading message="Loading releases..." />

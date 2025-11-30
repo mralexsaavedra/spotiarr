@@ -68,9 +68,9 @@ export const Settings: FC = () => {
   );
 
   return (
-    <section className="w-full bg-background px-4 md:px-8 py-6">
-      <div className="max-w-full">
-        <PageHeader title="Settings" />
+    <section className="flex-1 bg-background px-4 md:px-8 py-6">
+      <div className="max-w-4xl mx-auto">
+        <PageHeader title="Settings" className="mb-6" />
 
         <form
           onSubmit={handleSubmit}
