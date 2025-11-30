@@ -686,6 +686,14 @@ export class SpotifyApiService {
         if (!response.ok) {
           const errorText = await response.text();
 
+          if (response.status === 401) {
+            const tokenError = new Error("Spotify user token expired or invalid") as Error & {
+              code?: string;
+            };
+            tokenError.code = "MISSING_SPOTIFY_USER_TOKEN";
+            throw tokenError;
+          }
+
           if (response.status === 429) {
             const rateError = new Error(
               `Spotify rate limit exceeded while fetching followed artists: ${errorText}`,
@@ -715,6 +723,15 @@ export class SpotifyApiService {
 
           if (!albumsResponse.ok) {
             const errorText = await albumsResponse.text();
+
+            if (albumsResponse.status === 401) {
+              const tokenError = new Error("Spotify user token expired or invalid") as Error & {
+                code?: string;
+              };
+              tokenError.code = "MISSING_SPOTIFY_USER_TOKEN";
+              throw tokenError;
+            }
+
             this.log(
               `Failed to fetch albums for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
               "warn",
@@ -820,6 +837,14 @@ export class SpotifyApiService {
 
         if (!response.ok) {
           const errorText = await response.text();
+
+          if (response.status === 401) {
+            const tokenError = new Error("Spotify user token expired or invalid") as Error & {
+              code?: string;
+            };
+            tokenError.code = "MISSING_SPOTIFY_USER_TOKEN";
+            throw tokenError;
+          }
 
           if (response.status === 429) {
             const rateError = new Error(

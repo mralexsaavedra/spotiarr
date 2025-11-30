@@ -10,8 +10,12 @@ interface PlaylistIdentifiers {
   url: string | null;
 }
 
+interface IntermediatePlaylistHistory extends Omit<PlaylistHistory, "trackCount"> {
+  trackIds: Set<string>;
+}
+
 interface DeduplicationMaps {
-  playlists: Map<string, PlaylistHistory>;
+  playlists: Map<string, IntermediatePlaylistHistory>;
   urlToKey: Map<string, string>;
   idToKey: Map<string, string>;
 }
@@ -101,23 +105,26 @@ export class HistoryUseCases {
     identifiers: PlaylistIdentifiers,
     maps: DeduplicationMaps,
   ): void {
+    const trackIds = new Set<string>();
+    if (entry.trackId) trackIds.add(entry.trackId);
+
     maps.playlists.set(key, {
       playlistId: identifiers.id,
       playlistName: entry.playlistName,
       playlistSpotifyUrl: identifiers.url,
       lastCompletedAt: entry.completedAt,
-      trackCount: 1,
+      trackIds,
     });
   }
 
   private updateExistingPlaylist(
-    existing: PlaylistHistory,
+    existing: IntermediatePlaylistHistory,
     entry: DownloadHistoryItem,
     identifiers: PlaylistIdentifiers,
     key: string,
     maps: DeduplicationMaps,
   ): void {
-    existing.trackCount += 1;
+    if (entry.trackId) existing.trackIds.add(entry.trackId);
 
     if (entry.completedAt > existing.lastCompletedAt) {
       existing.lastCompletedAt = entry.completedAt;
@@ -128,7 +135,7 @@ export class HistoryUseCases {
   }
 
   private enrichPlaylistData(
-    playlist: PlaylistHistory,
+    playlist: IntermediatePlaylistHistory,
     identifiers: PlaylistIdentifiers,
     key: string,
     maps: DeduplicationMaps,
@@ -144,8 +151,16 @@ export class HistoryUseCases {
     }
   }
 
-  private sortPlaylistsByDate(playlists: Map<string, PlaylistHistory>): PlaylistHistory[] {
-    return Array.from(playlists.values()).sort((a, b) => b.lastCompletedAt - a.lastCompletedAt);
+  private sortPlaylistsByDate(
+    playlists: Map<string, IntermediatePlaylistHistory>,
+  ): PlaylistHistory[] {
+    return Array.from(playlists.values())
+      .map((p) => ({
+        ...p,
+        trackCount: p.trackIds.size,
+        trackIds: undefined, // Remove trackIds from output
+      }))
+      .sort((a, b) => b.lastCompletedAt - a.lastCompletedAt);
   }
 
   private normalizeSpotifyUrl(url: string | null | undefined): string | null {
