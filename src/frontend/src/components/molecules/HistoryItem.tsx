@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { formatRelativeDate } from "../../utils/date";
 import { Button } from "../atoms/Button";
-import { SpotifyLinkButton } from "../atoms/SpotifyLinkButton";
 
 interface HistoryItemProps {
   playlistName: string;
@@ -67,7 +66,6 @@ export const HistoryItem: FC<HistoryItemProps> = ({
       <div className="flex items-center gap-2 flex-wrap">
         {playlistSpotifyUrl && (
           <>
-            <SpotifyLinkButton url={playlistSpotifyUrl} size="sm" />
             <Button
               variant="secondary"
               size="sm"

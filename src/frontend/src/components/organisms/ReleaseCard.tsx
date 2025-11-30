@@ -13,7 +13,6 @@ interface ReleaseCardProps {
   isDownloaded?: boolean;
   onCardClick: () => void;
   onDownloadClick: (e: MouseEvent<HTMLButtonElement>) => void;
-  onSpotifyLinkClick: (e: MouseEvent<HTMLAnchorElement>) => void;
 }
 
 export const ReleaseCard: FC<ReleaseCardProps> = ({
@@ -27,7 +26,6 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
   isDownloaded = false,
   onCardClick,
   onDownloadClick,
-  onSpotifyLinkClick,
 }) => {
   const handleStopPropagation = useCallback((e: MouseEvent) => {
     e.stopPropagation();
@@ -80,18 +78,6 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
           {artistName}
         </Link>
         {releaseDate && <p className="text-xs text-text-secondary">{releaseDate}</p>}
-        {spotifyUrl && (
-          <a
-            href={spotifyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-light transition-colors"
-            onClick={onSpotifyLinkClick}
-          >
-            <i className="fa-brands fa-spotify" />
-            <span>Spotify</span>
-          </a>
-        )}
       </div>
     </article>
   );

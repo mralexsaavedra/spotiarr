@@ -7,17 +7,10 @@ interface ReleaseItemProps {
   isDownloaded: boolean;
   onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
-  onSpotifyLinkClick: (e: MouseEvent) => void;
 }
 
 export const ReleaseItem: FC<ReleaseItemProps> = memo(
-  ({
-    release,
-    isDownloaded,
-    onReleaseClick,
-    onDownloadRelease,
-    onSpotifyLinkClick,
-  }: ReleaseItemProps) => {
+  ({ release, isDownloaded, onReleaseClick, onDownloadRelease }: ReleaseItemProps) => {
     const handleCardClick = useCallback(() => {
       onReleaseClick(release);
     }, [onReleaseClick, release]);
@@ -29,13 +22,6 @@ export const ReleaseItem: FC<ReleaseItemProps> = memo(
         }
       },
       [onDownloadRelease, release.spotifyUrl],
-    );
-
-    const handleSpotifyLinkClick = useCallback(
-      (e: MouseEvent<HTMLAnchorElement>) => {
-        onSpotifyLinkClick(e);
-      },
-      [onSpotifyLinkClick],
     );
 
     return (
@@ -50,7 +36,6 @@ export const ReleaseItem: FC<ReleaseItemProps> = memo(
         isDownloaded={isDownloaded}
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}
-        onSpotifyLinkClick={handleSpotifyLinkClick}
       />
     );
   },

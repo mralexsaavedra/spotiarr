@@ -47,10 +47,6 @@ export const Releases: FC = () => {
     [createPlaylist, navigate],
   );
 
-  const handleSpotifyLinkClick = useCallback((e: MouseEvent) => {
-    e.stopPropagation();
-  }, []);
-
   if (error === "missing_user_access_token") {
     return (
       <section className="flex-1 bg-background px-4 md:px-8 py-6">
@@ -58,6 +54,7 @@ export const Releases: FC = () => {
       </section>
     );
   }
+
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
       <PageHeader title="New Releases" className="mb-6" />
@@ -89,7 +86,6 @@ export const Releases: FC = () => {
                 isDownloaded={isDownloaded}
                 onReleaseClick={handleReleaseClick}
                 onDownloadRelease={handleDownloadRelease}
-                onSpotifyLinkClick={handleSpotifyLinkClick}
               />
             );
           })}
