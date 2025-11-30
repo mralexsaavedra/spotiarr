@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { ArtistHeader } from "../components/molecules/ArtistHeader";
+import { EmptyState } from "../components/molecules/EmptyState";
 import { TrackList } from "../components/molecules/TrackList";
 import { ArtistDetailSkeleton } from "../components/skeletons/ArtistDetailSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
@@ -133,11 +134,20 @@ export const ArtistDetail: FC = () => {
         <div className="mt-4">
           <h2 className="text-2xl font-bold mb-4">Popular</h2>
 
-          <TrackList
-            tracks={artist?.topTracks || []}
-            onDownload={handleDownload}
-            getTrackStatus={getTrackStatus}
-          />
+          {!artist?.topTracks || artist.topTracks.length === 0 ? (
+            <EmptyState
+              icon="fa-music"
+              title="No tracks found"
+              description="This artist has no popular tracks available."
+              className="py-8"
+            />
+          ) : (
+            <TrackList
+              tracks={artist.topTracks}
+              onDownload={handleDownload}
+              getTrackStatus={getTrackStatus}
+            />
+          )}
         </div>
       </div>
     </div>

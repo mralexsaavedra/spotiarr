@@ -2,6 +2,7 @@ import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, ReactNode, useMemo } from "react";
 import { Track } from "../../types/track";
 import { PlaylistTableHeader } from "../atoms/PlaylistTableHeader";
+import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistHeader } from "../molecules/PlaylistHeader";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
@@ -99,13 +100,24 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
 
       {/* Content */}
       <div className="px-6 md:px-8 pb-8">
-        <PlaylistTableHeader />
+        {tracks.length === 0 ? (
+          <EmptyState
+            icon="fa-music"
+            title="No tracks in this playlist yet"
+            description="Tracks you download or sync will appear here."
+            className="py-12"
+          />
+        ) : (
+          <>
+            <PlaylistTableHeader />
 
-        <PlaylistTracksList
-          tracks={tracks}
-          onRetryTrack={onRetryTrack}
-          onDownloadTrack={onDownloadTrack}
-        />
+            <PlaylistTracksList
+              tracks={tracks}
+              onRetryTrack={onRetryTrack}
+              onDownloadTrack={onDownloadTrack}
+            />
+          </>
+        )}
       </div>
     </div>
   );

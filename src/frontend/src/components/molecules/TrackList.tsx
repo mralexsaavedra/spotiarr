@@ -1,7 +1,6 @@
 import { ArtistTopTrack, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
 import { formatDuration } from "../../utils/date";
-import { EmptyState } from "./EmptyState";
 import { TrackStatusIndicator } from "./TrackStatusIndicator";
 
 interface TrackListProps {
@@ -17,17 +16,6 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStat
     },
     [onDownload],
   );
-
-  if (!tracks.length) {
-    return (
-      <EmptyState
-        icon="fa-music"
-        title="No tracks found"
-        description="This artist has no popular tracks available."
-        className="py-8"
-      />
-    );
-  }
 
   return (
     <div className="flex flex-col">
