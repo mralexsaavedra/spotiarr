@@ -8,7 +8,6 @@ import { PlaylistHeader } from "../molecules/PlaylistHeader";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
 import { PreviewError } from "../molecules/PreviewError";
 import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
-import { PlaylistSkeleton } from "../skeletons/PlaylistSkeleton";
 
 interface PlaylistViewProps {
   title: string;
@@ -17,7 +16,6 @@ interface PlaylistViewProps {
   description?: string | null;
   actions: ReactNode;
   tracks: Track[];
-  isLoading: boolean;
   error: unknown;
   onGoBack: () => void;
   onRetryTrack: (id: string) => void;
@@ -31,7 +29,6 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   description: originalDescription,
   actions,
   tracks,
-  isLoading,
   error,
   onGoBack,
   onRetryTrack,
@@ -43,8 +40,6 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   const displayTitle = useMemo(() => {
     if (!rawTitle) return "Unnamed Playlist";
 
-    // Normalize type for comparison (backend sends lowercase, enum is PascalCase-ish values but let's check)
-    // PlaylistTypeEnum: Playlist="playlist", Album="album", Track="track"
     const typeLower = type.toLowerCase();
 
     if (typeLower === PlaylistTypeEnum.Album) {
@@ -65,10 +60,6 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
 
     return rawTitle;
   }, [rawTitle, type, tracks]);
-
-  if (isLoading) {
-    return <PlaylistSkeleton />;
-  }
 
   if (error) {
     return <PreviewError error={error} onGoBack={onGoBack} />;

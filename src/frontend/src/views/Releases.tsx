@@ -1,11 +1,11 @@
 import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { RateLimitedMessage } from "../components/molecules/RateLimitedMessage";
 import { ReleaseItem } from "../components/molecules/ReleaseItem";
 import { ConnectSpotifyPrompt } from "../components/organisms/ConnectSpotifyPrompt";
+import { CardGridSkeleton } from "../components/skeletons/CardGridSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useReleasesQuery } from "../hooks/queries/useReleasesQuery";
@@ -63,7 +63,7 @@ export const Releases: FC = () => {
       <PageHeader title="New Releases" className="mb-6" />
 
       {isLoading ? (
-        <Loading message="Loading releases..." />
+        <CardGridSkeleton />
       ) : error === "spotify_rate_limited" ? (
         <RateLimitedMessage />
       ) : error ? (

@@ -3,6 +3,7 @@ import { FC, useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
+import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
@@ -45,7 +46,6 @@ export const PlaylistPreview: FC = () => {
     return previewData.tracks.map((t, i) => {
       let status = "new" as TrackStatusEnum;
 
-      // Check active playlists
       const activePlaylist = playlists?.find((p) =>
         p.tracks?.some((at) => at.trackUrl === t.trackUrl),
       );
@@ -55,7 +55,6 @@ export const PlaylistPreview: FC = () => {
           status = activeTrack.status;
         }
       } else {
-        // Check history
         const isHistory = downloadTracks?.some((dt) => dt.trackUrl === t.trackUrl);
         if (isHistory) {
           status = "completed" as TrackStatusEnum;
@@ -93,6 +92,10 @@ export const PlaylistPreview: FC = () => {
     return null;
   }
 
+  if (isLoading) {
+    return <PlaylistSkeleton />;
+  }
+
   return (
     <PlaylistView
       title={previewData?.name || "Preview"}
@@ -116,7 +119,6 @@ export const PlaylistPreview: FC = () => {
         </div>
       }
       tracks={tracks}
-      isLoading={isLoading}
       error={error}
       onGoBack={handleGoBack}
       onRetryTrack={handleRetryTrack}

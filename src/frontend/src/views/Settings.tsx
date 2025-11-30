@@ -5,6 +5,7 @@ import { PageHeader } from "../components/atoms/PageHeader";
 import { SettingInput } from "../components/molecules/SettingInput";
 import { SettingSelect } from "../components/molecules/SettingSelect";
 import { SettingToggle } from "../components/molecules/SettingToggle";
+import { SettingsSkeleton } from "../components/skeletons/SettingsSkeleton";
 import { useSettingsForm } from "../hooks/useSettingsForm";
 
 export const Settings: FC = () => {
@@ -72,42 +73,46 @@ export const Settings: FC = () => {
       <div className="max-w-4xl mx-auto">
         <PageHeader title="Settings" className="mb-6" />
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-background-elevated rounded-lg p-4 md:p-6 space-y-8"
-        >
-          <fieldset disabled={isLoading || isSaving} className="space-y-8">
-            {Object.entries(settings).map(([section, sectionSettings]) => (
-              <div key={section} className="space-y-4">
-                <h2 className="text-lg font-bold text-text-primary border-b border-white/10 pb-2">
-                  {section}
-                </h2>
-                <div className="space-y-6">{sectionSettings.map(renderSetting)}</div>
-              </div>
-            ))}
-          </fieldset>
+        {isLoading ? (
+          <SettingsSkeleton />
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="bg-background-elevated rounded-lg p-4 md:p-6 space-y-8"
+          >
+            <fieldset disabled={isSaving} className="space-y-8">
+              {Object.entries(settings).map(([section, sectionSettings]) => (
+                <div key={section} className="space-y-4">
+                  <h2 className="text-lg font-bold text-text-primary border-b border-white/10 pb-2">
+                    {section}
+                  </h2>
+                  <div className="space-y-6">{sectionSettings.map(renderSetting)}</div>
+                </div>
+              ))}
+            </fieldset>
 
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              onClick={handleReset}
-              disabled={isLoading || isSaving}
-              variant="secondary"
-              size="lg"
-            >
-              Reset to Defaults
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || isSaving}
-              variant="primary"
-              size="lg"
-              loading={isSaving}
-            >
-              {isSaving ? "Saving..." : "Save Settings"}
-            </Button>
-          </div>
-        </form>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                onClick={handleReset}
+                disabled={isSaving}
+                variant="secondary"
+                size="lg"
+              >
+                Reset to Defaults
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSaving}
+                variant="primary"
+                size="lg"
+                loading={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save Settings"}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
     </section>
   );

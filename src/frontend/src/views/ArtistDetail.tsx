@@ -44,12 +44,9 @@ export const ArtistDetail: FC = () => {
     if (!artist?.spotifyUrl) return false;
     const url = artist.spotifyUrl;
 
-    // Check active playlists
     const isActive = playlists?.some((p) => p.spotifyUrl === url);
     if (isActive) return true;
 
-    // Check history (if artist was downloaded as a playlist)
-    // Note: downloadTracks contains individual tracks, but we can check if any track belongs to a playlist with this URL
     const isHistory = downloadTracks?.some((t) => t.playlistSpotifyUrl === url);
     return !!isHistory;
   }, [artist?.spotifyUrl, playlists, downloadTracks]);
@@ -68,14 +65,12 @@ export const ArtistDetail: FC = () => {
 
   const getTrackStatus = useCallback(
     (url: string) => {
-      // Check active playlists
       const activePlaylist = playlists?.find((p) => p.tracks?.some((t) => t.trackUrl === url));
       if (activePlaylist) {
         const track = activePlaylist.tracks?.find((t) => t.trackUrl === url);
         return track?.status;
       }
 
-      // Check history
       const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
       if (isHistory) return "completed";
 

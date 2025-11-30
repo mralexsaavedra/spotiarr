@@ -73,6 +73,10 @@ export const PlaylistDetail: FC = () => {
     return <PlaylistNotFound onGoHome={handleGoHome} />;
   }
 
+  if (isTracksLoading) {
+    return <PlaylistSkeleton />;
+  }
+
   return (
     <PlaylistView
       title={playlist.name || "Unnamed Playlist"}
@@ -90,7 +94,6 @@ export const PlaylistDetail: FC = () => {
         />
       }
       tracks={tracks}
-      isLoading={isTracksLoading}
       error={null}
       onGoBack={handleGoHome}
       onRetryTrack={handleRetryTrack}
