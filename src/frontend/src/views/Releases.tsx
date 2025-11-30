@@ -39,8 +39,8 @@ export const Releases: FC = () => {
     (e: MouseEvent, spotifyUrl: string) => {
       e.stopPropagation();
       createPlaylist.mutate(spotifyUrl, {
-        onSuccess: () => {
-          navigate(Path.HOME);
+        onSuccess: (playlist) => {
+          navigate(Path.PLAYLIST_DETAIL.replace(":id", playlist.id));
         },
       });
     },

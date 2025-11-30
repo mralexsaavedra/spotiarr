@@ -54,7 +54,7 @@ class ApiClient {
     return this.request(`/playlist/preview?url=${encodeURIComponent(spotifyUrl)}`);
   }
 
-  async createPlaylist(spotifyUrl: string): Promise<void> {
+  async createPlaylist(spotifyUrl: string): Promise<Playlist> {
     const response = await fetch(`${API_BASE}/playlist`, {
       method: "POST",
       headers: {
@@ -83,6 +83,8 @@ class ApiClient {
 
       throw new Error(message ?? `API Error: ${response.statusText}`);
     }
+
+    return data as Playlist;
   }
 
   async updatePlaylist(id: string, data: Partial<Playlist>): Promise<void> {
