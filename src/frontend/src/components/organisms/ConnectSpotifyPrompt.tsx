@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { Button } from "../atoms/Button";
 
 interface ConnectSpotifyPromptProps {
   onConnect: () => void;
@@ -13,13 +14,9 @@ export const ConnectSpotifyPrompt: FC<ConnectSpotifyPromptProps> = ({ onConnect 
         <p className="text-text-secondary">
           To see new releases from the artists you follow, connect your Spotify account.
         </p>
-        <button
-          onClick={onConnect}
-          className="bg-primary hover:bg-primary-light text-black px-6 py-3 text-base rounded-full font-semibold transition-colors flex items-center gap-2"
-        >
-          <i className="fa-brands fa-spotify" />
+        <Button variant="primary" size="lg" icon="fa-brands fa-spotify" onClick={onConnect}>
           Connect with Spotify
-        </button>
+        </Button>
       </div>
     </div>
   );

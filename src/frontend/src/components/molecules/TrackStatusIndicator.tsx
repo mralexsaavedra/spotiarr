@@ -20,6 +20,7 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = ({
         className="text-red-500 hover:text-red-400 transition-colors"
         onClick={onRetry}
         title="Retry download"
+        type="button"
       >
         <i className="fa-solid fa-rotate-right" />
       </button>
@@ -48,6 +49,7 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = ({
           className="hidden group-hover:block text-text-secondary hover:text-white transition-colors"
           onClick={onDownload}
           title="Download Track"
+          type="button"
         >
           <i className="fa-solid fa-download" />
         </button>
