@@ -31,11 +31,11 @@ export const Sidebar: FC<SidebarProps> = ({
 }) => (
   <>
     {isMobileMenuOpen && (
-      <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={closeMobileMenu} />
+      <div className="fixed inset-0 bg-black/50 z-[60] md:hidden" onClick={closeMobileMenu} />
     )}
 
     <aside
-      className={`w-64 bg-black flex flex-col py-8 px-6 border-r border-border h-screen fixed top-0 left-0 overflow-y-auto z-40 transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+      className={`w-64 bg-black flex flex-col py-8 px-6 border-r border-border h-screen fixed top-0 left-0 overflow-y-auto z-[70] transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
     >
       <button
         onClick={closeMobileMenu}
