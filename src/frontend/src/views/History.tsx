@@ -1,9 +1,9 @@
 import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { HistoryItem } from "../components/molecules/HistoryItem";
-import { HistorySkeleton } from "../components/skeletons/HistorySkeleton";
 import { useRecreatePlaylistMutation } from "../hooks/mutations/useRecreatePlaylistMutation";
 import { useDownloadHistoryQuery } from "../hooks/queries/useDownloadHistoryQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
@@ -36,7 +36,7 @@ export const History: FC = () => {
         <PageHeader title="Download History" className="mb-6" />
 
         {isLoading ? (
-          <HistorySkeleton />
+          <Loading />
         ) : playlists.length === 0 ? (
           <EmptyState
             icon="fa-clock-rotate-left"

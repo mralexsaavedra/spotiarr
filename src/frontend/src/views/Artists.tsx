@@ -1,9 +1,9 @@
 import { FC, ChangeEventHandler, useCallback, useMemo, useState } from "react";
+import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { SearchInput } from "../components/molecules/SearchInput";
 import { ArtistCard } from "../components/organisms/ArtistCard";
 import { ConnectSpotifyPrompt } from "../components/organisms/ConnectSpotifyPrompt";
-import { CardGridSkeleton } from "../components/skeletons/CardGridSkeleton";
 import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuery";
 
 export const Artists: FC = () => {
@@ -45,7 +45,7 @@ export const Artists: FC = () => {
       </div>
 
       {isLoading ? (
-        <CardGridSkeleton />
+        <Loading />
       ) : error === "spotify_rate_limited" ? (
         <div className="text-text-secondary flex items-center gap-2">
           <i className="fa-solid fa-hourglass-half" /> Spotify rate limited. Please try again later.

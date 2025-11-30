@@ -1,11 +1,11 @@
 import { SettingMetadata } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
 import { Button } from "../components/atoms/Button";
+import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { SettingInput } from "../components/molecules/SettingInput";
 import { SettingSelect } from "../components/molecules/SettingSelect";
 import { SettingToggle } from "../components/molecules/SettingToggle";
-import { SettingsSkeleton } from "../components/skeletons/SettingsSkeleton";
 import { useSettingsForm } from "../hooks/useSettingsForm";
 
 export const Settings: FC = () => {
@@ -74,7 +74,7 @@ export const Settings: FC = () => {
         <PageHeader title="Settings" className="mb-6" />
 
         {isLoading ? (
-          <SettingsSkeleton />
+          <Loading />
         ) : (
           <form
             onSubmit={handleSubmit}

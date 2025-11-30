@@ -1,26 +1,15 @@
 import { FC } from "react";
 
 interface LoadingProps {
-  message?: string;
-  fullScreen?: boolean;
+  className?: string;
 }
 
-export const Loading: FC<LoadingProps> = ({ message = "Loading...", fullScreen = false }) => {
-  const containerClass = fullScreen
-    ? "fixed inset-0 flex items-center justify-center bg-background z-50"
-    : "flex items-center justify-center py-12";
-
+export const Loading: FC<LoadingProps> = ({ className = "" }) => {
   return (
-    <div className={containerClass}>
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 border-4 border-white/10 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-
-        {message && (
-          <p className="text-text-secondary text-sm font-medium animate-pulse">{message}</p>
-        )}
+    <div className={`flex-1 flex items-center justify-center min-h-[50vh] ${className}`}>
+      <div className="relative w-12 h-12">
+        <div className="absolute top-0 left-0 w-full h-full border-4 border-background-elevated rounded-full"></div>
+        <div className="absolute top-0 left-0 w-full h-full border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
       </div>
     </div>
   );

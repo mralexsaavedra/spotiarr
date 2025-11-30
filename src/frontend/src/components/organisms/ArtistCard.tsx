@@ -37,7 +37,7 @@ export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
       </div>
       <div className="flex flex-col min-w-0">
         <h3 className="font-bold text-base text-white truncate">{name}</h3>
-        <p className="text-sm text-zinc-400">Artista</p>
+        <p className="text-sm text-zinc-400">Artist</p>
       </div>
     </article>
   );

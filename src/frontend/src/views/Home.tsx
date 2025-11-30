@@ -1,28 +1,39 @@
-import { useCallback } from "react";
+import { FC, useCallback } from "react";
+import { Loading } from "../components/atoms/Loading";
+import { PageHeader } from "../components/atoms/PageHeader";
+import { EmptyState } from "../components/molecules/EmptyState";
 import { PlaylistList } from "../components/organisms/PlaylistList";
-import { CardGridSkeleton } from "../components/skeletons/CardGridSkeleton";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { shouldClearPlaylist } from "../utils/playlist";
 
-export const Home = () => {
-  const { data: playlists = [], isLoading } = usePlaylistsQuery();
+export const Home: FC = () => {
+  const { data: playlists, isLoading } = usePlaylistsQuery();
   const deletePlaylist = useDeletePlaylistMutation();
 
   const handleClearAll = useCallback(() => {
-    playlists.filter((p) => shouldClearPlaylist(p)).forEach((p) => deletePlaylist.mutate(p.id));
+    if (playlists) {
+      playlists.filter((p) => shouldClearPlaylist(p)).forEach((p) => deletePlaylist.mutate(p.id));
+    }
   }, [deletePlaylist, playlists]);
 
-  if (isLoading) {
-    return (
-      <section className="flex-1 bg-background px-4 md:px-8 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-text-primary">Your Playlists</h2>
-        </div>
-        <CardGridSkeleton />
-      </section>
-    );
-  }
+  return (
+    <section className="w-full bg-background px-4 md:px-8 py-6">
+      <div className="max-w-full">
+        <PageHeader title="Your Library" className="mb-6" />
 
-  return <PlaylistList onClearAll={handleClearAll} playlists={playlists} />;
+        {isLoading ? (
+          <Loading />
+        ) : !playlists || playlists.length === 0 ? (
+          <EmptyState
+            icon="fa-music"
+            title="Create your first playlist"
+            description="Search for artists or albums to start building your collection."
+          />
+        ) : (
+          <PlaylistList onClearAll={handleClearAll} playlists={playlists} />
+        )}
+      </div>
+    </section>
+  );
 };
