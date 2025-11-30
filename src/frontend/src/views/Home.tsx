@@ -1,4 +1,5 @@
 import { FC, useCallback } from "react";
+import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
@@ -25,13 +26,9 @@ export const Home: FC = () => {
           className="mb-6"
           action={
             playlists && playlists.length > 0 ? (
-              <button
-                onClick={handleClearAll}
-                className="px-4 py-2 bg-background-elevated hover:bg-background-hover text-text-secondary hover:text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
-              >
-                <i className="fa-solid fa-broom" />
+              <Button variant="secondary" size="md" icon="fa-broom" onClick={handleClearAll}>
                 <span className="hidden sm:inline">Clear completed</span>
-              </button>
+              </Button>
             ) : undefined
           }
         />
