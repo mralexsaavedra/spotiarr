@@ -37,8 +37,7 @@ export const PlaylistPreview: FC = () => {
     if (!previewData?.tracks) return [];
 
     return previewData.tracks.map((t, i) => {
-      const status =
-        (t.trackUrl ? getTrackStatus(t.trackUrl) : undefined) || ("new" as TrackStatusEnum);
+      const status = (t.trackUrl ? getTrackStatus(t.trackUrl) : undefined) || TrackStatusEnum.New;
 
       return {
         id: `preview-${i}`,
