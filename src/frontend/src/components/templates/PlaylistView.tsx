@@ -2,7 +2,9 @@ import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, ReactNode, useMemo } from "react";
 import { Track } from "../../types/track";
 import { PlaylistTableHeader } from "../atoms/PlaylistTableHeader";
+import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistHeader } from "../molecules/PlaylistHeader";
+import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
 import { PreviewError } from "../molecules/PreviewError";
 import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
 import { PlaylistSkeleton } from "../skeletons/PlaylistSkeleton";
@@ -63,88 +65,6 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
     return rawTitle;
   }, [rawTitle, type, tracks]);
 
-  const renderMetadata = useMemo(() => {
-    const firstTrack = tracks[0];
-    const artists =
-      firstTrack?.artists || (firstTrack?.artist ? [{ name: firstTrack.artist }] : []);
-
-    const renderArtists = () => (
-      <span className="font-bold text-white">
-        {artists.map((artist, i) => (
-          <span key={`${artist.name}-${i}`}>
-            {artist.url ? (
-              <a
-                href={artist.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {artist.name}
-              </a>
-            ) : (
-              artist.name
-            )}
-            {i < artists.length - 1 && ", "}
-          </span>
-        ))}
-      </span>
-    );
-
-    const typeLower = type.toLowerCase();
-
-    if (typeLower === PlaylistTypeEnum.Album && artists.length > 0) {
-      return renderArtists();
-    }
-
-    if (typeLower === PlaylistTypeEnum.Track && artists.length > 0) {
-      return (
-        <>
-          {renderArtists()}
-          <span className="text-text-primary">•</span>
-          {firstTrack?.albumUrl ? (
-            <a
-              href={firstTrack.albumUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-white hover:underline transition-colors"
-            >
-              {firstTrack?.album || "Unknown Album"}
-            </a>
-          ) : (
-            <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
-          )}
-        </>
-      );
-    }
-
-    return <span className="font-bold">SpotiArr</span>;
-  }, [type, tracks]);
-
-  const description = useMemo(() => {
-    if (completedCount > 0) {
-      return (
-        <div className="mt-4 max-w-md">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-            <span>
-              {completedCount} / {totalCount} downloaded
-            </span>
-            <span>{totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%</span>
-          </div>
-          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-green-500 transition-all duration-500 ease-out rounded-full"
-              style={{
-                width: `${totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%`,
-              }}
-            />
-          </div>
-        </div>
-      );
-    }
-    return originalDescription;
-  }, [completedCount, totalCount, originalDescription]);
-
   if (isLoading) {
     return <PlaylistSkeleton />;
   }
@@ -159,8 +79,14 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
         title={displayTitle}
         type={type}
         coverUrl={coverUrl}
-        description={description}
-        metadata={renderMetadata}
+        description={
+          <PlaylistDescription
+            description={originalDescription}
+            completedCount={completedCount}
+            totalCount={totalCount}
+          />
+        }
+        metadata={<PlaylistMetadata type={type} tracks={tracks} />}
         totalCount={totalCount}
       />
 

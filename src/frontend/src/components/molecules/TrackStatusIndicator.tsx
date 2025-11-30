@@ -2,7 +2,7 @@ import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, MouseEvent } from "react";
 
 interface TrackStatusIndicatorProps {
-  status: TrackStatusEnum;
+  status?: TrackStatusEnum;
   index: number;
   onRetry: (e: MouseEvent) => void;
   onDownload?: (e: MouseEvent) => void;

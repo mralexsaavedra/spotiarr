@@ -1,6 +1,8 @@
 import { ArtistTopTrack, TrackStatusEnum } from "@spotiarr/shared";
-import { FC, MouseEvent, useCallback } from "react";
+import { FC, useCallback } from "react";
 import { formatDuration } from "../../utils/date";
+import { EmptyState } from "./EmptyState";
+import { TrackStatusIndicator } from "./TrackStatusIndicator";
 
 interface TrackListProps {
   tracks: ArtistTopTrack[];
@@ -9,26 +11,30 @@ interface TrackListProps {
 }
 
 export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStatus }) => {
-  const handleDownloadClick = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      const url = event.currentTarget.dataset.url;
-      if (url) {
-        onDownload(url);
-      }
+  const handleDownload = useCallback(
+    (url: string) => {
+      onDownload(url);
     },
     [onDownload],
   );
 
   if (!tracks.length) {
     return (
-      <div className="flex items-center justify-center py-8 text-zinc-400">No tracks found.</div>
+      <EmptyState
+        icon="fa-music"
+        title="No tracks found"
+        description="This artist has no popular tracks available."
+        className="py-8"
+      />
     );
   }
 
   return (
     <div className="flex flex-col">
       {tracks.map((track, index) => {
-        const status = track.trackUrl ? getTrackStatus(track.trackUrl) : undefined;
+        const status = (track.trackUrl ? getTrackStatus(track.trackUrl) : undefined) as
+          | TrackStatusEnum
+          | undefined;
         const isDownloaded = status === TrackStatusEnum.Completed;
 
         return (
@@ -37,37 +43,18 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStat
             className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors"
           >
             {/* Index / Status Icon */}
-            <button
-              onClick={handleDownloadClick}
-              data-url={track.trackUrl}
-              className={`flex items-center justify-center w-4 text-base font-medium transition-colors ${
-                isDownloaded || !!status
-                  ? "text-zinc-400 cursor-default"
-                  : "text-zinc-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              }`}
-              disabled={!track.trackUrl || isDownloaded || !!status}
-              title={status || "Download"}
-            >
-              {status === TrackStatusEnum.Completed ? (
-                <span>{index + 1}</span>
-              ) : status === TrackStatusEnum.Downloading ? (
-                <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />
-              ) : status === TrackStatusEnum.Queued ? (
-                <i className="fa-regular fa-clock text-text-secondary" title="Queued" />
-              ) : status === TrackStatusEnum.Searching ? (
-                <i
-                  className="fa-solid fa-magnifying-glass text-text-secondary"
-                  title="Searching..."
-                />
-              ) : status === TrackStatusEnum.Error ? (
-                <i className="fa-solid fa-triangle-exclamation text-red-500" title="Error" />
-              ) : (
-                <>
-                  <span className="group-hover:hidden">{index + 1}</span>
-                  <i className="hidden group-hover:block fa-solid fa-download text-white text-sm" />
-                </>
-              )}
-            </button>
+            <div className="flex justify-center">
+              <TrackStatusIndicator
+                status={status}
+                index={index}
+                onRetry={() => track.trackUrl && handleDownload(track.trackUrl)}
+                onDownload={
+                  track.trackUrl && !isDownloaded
+                    ? () => handleDownload(track.trackUrl!)
+                    : undefined
+                }
+              />
+            </div>
 
             {/* Title & Image */}
             <div className="flex items-center gap-4 min-w-0">

@@ -2,6 +2,7 @@ import { FC, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
+import { ArtistHeader } from "../components/molecules/ArtistHeader";
 import { TrackList } from "../components/molecules/TrackList";
 import { ArtistDetailSkeleton } from "../components/skeletons/ArtistDetailSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
@@ -64,6 +65,24 @@ export const ArtistDetail: FC = () => {
     handleDownload(artist?.spotifyUrl || undefined);
   }, [handleDownload, artist?.spotifyUrl]);
 
+  const getTrackStatus = useCallback(
+    (url: string) => {
+      // Check active playlists
+      const activePlaylist = playlists?.find((p) => p.tracks?.some((t) => t.trackUrl === url));
+      if (activePlaylist) {
+        const track = activePlaylist.tracks?.find((t) => t.trackUrl === url);
+        return track?.status;
+      }
+
+      // Check history
+      const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
+      if (isHistory) return "completed";
+
+      return undefined;
+    },
+    [playlists, downloadTracks],
+  );
+
   if (isLoading) {
     return <ArtistDetailSkeleton />;
   }
@@ -78,33 +97,11 @@ export const ArtistDetail: FC = () => {
 
   return (
     <div className="flex-1 bg-background overflow-y-auto h-full text-white">
-      {/* Header */}
-      <header className="relative w-full h-[40vh] min-h-[340px] max-h-[500px]">
-        {/* Background Image */}
-        {artist?.image ? (
-          <div
-            className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${artist.image})` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-background" />
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-zinc-800">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="absolute bottom-0 left-0 w-full p-6 md:p-8 z-10">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 drop-shadow-lg">
-            {artist?.name || "Artist"}
-          </h1>
-
-          {followersText && (
-            <p className="text-base font-medium drop-shadow-md">{followersText} followers</p>
-          )}
-        </div>
-      </header>
+      <ArtistHeader
+        name={artist?.name || "Artist"}
+        image={artist?.image}
+        followersText={followersText}
+      />
 
       {/* Action Bar & Content */}
       <div className="px-6 md:px-8 pb-10 bg-gradient-to-b from-background to-black min-h-[50vh]">
@@ -139,22 +136,7 @@ export const ArtistDetail: FC = () => {
           <TrackList
             tracks={artist?.topTracks || []}
             onDownload={handleDownload}
-            getTrackStatus={(url) => {
-              // Check active playlists
-              const activePlaylist = playlists?.find((p) =>
-                p.tracks?.some((t) => t.trackUrl === url),
-              );
-              if (activePlaylist) {
-                const track = activePlaylist.tracks?.find((t) => t.trackUrl === url);
-                return track?.status;
-              }
-
-              // Check history
-              const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
-              if (isHistory) return "completed";
-
-              return undefined;
-            }}
+            getTrackStatus={getTrackStatus}
           />
         </div>
       </div>
