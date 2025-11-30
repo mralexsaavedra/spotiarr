@@ -1,5 +1,8 @@
 import { FC, memo, MouseEvent, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
+import { getSpotifyIdFromUrl } from "../../utils/spotify";
 import { TrackStatusIndicator } from "./TrackStatusIndicator";
 
 interface PlaylistTrackItemProps {
@@ -51,53 +54,50 @@ export const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         <div className="flex flex-col min-w-0">
           <div className="text-text-primary font-medium truncate">
             {track.trackUrl ? (
-              <a
-                href={track.trackUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
                 className="hover:underline"
                 onClick={stopPropagation}
               >
                 {track.name}
-              </a>
+              </Link>
             ) : (
               <span>{track.name}</span>
             )}
           </div>
           <div className="text-text-secondary text-sm truncate">
-            {artists.map((artist, i) => (
-              <span key={`${artist.name}-${i}`}>
-                {artist.url ? (
-                  <a
-                    href={artist.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-text-primary transition-colors"
-                    onClick={stopPropagation}
-                  >
-                    {artist.name}
-                  </a>
-                ) : (
-                  <span>{artist.name}</span>
-                )}
-                {i < artists.length - 1 && <span>, </span>}
-              </span>
-            ))}
+            {artists.map((artist, i) => {
+              const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
+              return (
+                <span key={`${artist.name}-${i}`}>
+                  {artistId ? (
+                    <Link
+                      to={Path.ARTIST_DETAIL.replace(":id", artistId)}
+                      className="hover:text-text-primary transition-colors"
+                      onClick={stopPropagation}
+                    >
+                      {artist.name}
+                    </Link>
+                  ) : (
+                    <span>{artist.name}</span>
+                  )}
+                  {i < artists.length - 1 && <span>, </span>}
+                </span>
+              );
+            })}
           </div>
         </div>
 
         {/* Album */}
         <div className="hidden md:block text-text-secondary text-sm truncate">
           {track.albumUrl ? (
-            <a
-              href={track.albumUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.albumUrl)}`}
               className="hover:text-text-primary hover:underline transition-colors"
               onClick={stopPropagation}
             >
               {track.album || "Unknown Album"}
-            </a>
+            </Link>
           ) : (
             <span>{track.album || "Unknown Album"}</span>
           )}

@@ -1,4 +1,6 @@
 import { FC, MouseEvent } from "react";
+import { Link } from "react-router-dom";
+import { Path } from "../../routes/routes";
 
 interface ReleaseCardProps {
   albumId: string;
@@ -66,7 +68,13 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
         <h3 className="font-bold text-text-primary text-sm truncate group-hover:underline">
           {albumName}
         </h3>
-        <p className="text-xs text-text-secondary truncate">{artistName}</p>
+        <Link
+          to={Path.ARTIST_DETAIL.replace(":id", artistId)}
+          className="text-xs text-text-secondary truncate hover:underline hover:text-text-primary block"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {artistName}
+        </Link>
         {releaseDate && <p className="text-xs text-text-secondary">{releaseDate}</p>}
         {spotifyUrl && (
           <a

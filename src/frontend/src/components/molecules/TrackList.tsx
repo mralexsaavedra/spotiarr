@@ -1,5 +1,7 @@
 import { ArtistTopTrack, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { Path } from "../../routes/routes";
 import { formatDuration } from "../../utils/date";
 import { TrackStatusIndicator } from "./TrackStatusIndicator";
 
@@ -54,14 +56,16 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStat
                 />
               )}
               <div className="flex flex-col min-w-0">
-                <a
-                  href={track.trackUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-base font-medium truncate hover:underline text-white"
-                >
-                  {track.name}
-                </a>
+                {track.trackUrl ? (
+                  <Link
+                    to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
+                    className="text-base font-medium truncate hover:underline text-white"
+                  >
+                    {track.name}
+                  </Link>
+                ) : (
+                  <span className="text-base font-medium truncate text-white">{track.name}</span>
+                )}
               </div>
             </div>
 

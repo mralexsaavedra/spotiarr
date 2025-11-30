@@ -45,3 +45,18 @@ export const mapSpotifyError = <T extends string>(
 
   return fallback;
 };
+
+export const getSpotifyIdFromUrl = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url);
+    const parts = urlObj.pathname.split("/");
+    // path is usually /artist/<id> or /album/<id> or /track/<id>
+    // parts[0] is empty, parts[1] is type, parts[2] is id
+    if (parts.length >= 3) {
+      return parts[2];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};

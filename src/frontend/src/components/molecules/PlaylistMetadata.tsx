@@ -1,6 +1,9 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC } from "react";
+import { Link } from "react-router-dom";
+import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
+import { getSpotifyIdFromUrl } from "../../utils/spotify";
 
 interface PlaylistMetadataProps {
   type: string;
@@ -13,24 +16,25 @@ export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) =>
 
   const renderArtists = () => (
     <span className="font-bold text-white">
-      {artists.map((artist, i) => (
-        <span key={`${artist.name}-${i}`}>
-          {artist.url ? (
-            <a
-              href={artist.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {artist.name}
-            </a>
-          ) : (
-            artist.name
-          )}
-          {i < artists.length - 1 && ", "}
-        </span>
-      ))}
+      {artists.map((artist, i) => {
+        const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
+        return (
+          <span key={`${artist.name}-${i}`}>
+            {artistId ? (
+              <Link
+                to={Path.ARTIST_DETAIL.replace(":id", artistId)}
+                className="hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {artist.name}
+              </Link>
+            ) : (
+              artist.name
+            )}
+            {i < artists.length - 1 && ", "}
+          </span>
+        );
+      })}
     </span>
   );
 
@@ -46,14 +50,13 @@ export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) =>
         {renderArtists()}
         <span className="text-text-primary">•</span>
         {firstTrack?.albumUrl ? (
-          <a
-            href={firstTrack.albumUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}
             className="font-medium text-white hover:underline transition-colors"
+            onClick={(e) => e.stopPropagation()}
           >
             {firstTrack?.album || "Unknown Album"}
-          </a>
+          </Link>
         ) : (
           <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
         )}

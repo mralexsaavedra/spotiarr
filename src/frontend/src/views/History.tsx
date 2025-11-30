@@ -45,20 +45,25 @@ export const History: FC = () => {
           />
         ) : (
           <div className="space-y-3">
-            {playlists.map((playlist) => (
-              <HistoryItem
-                key={playlist.playlistId ?? playlist.playlistSpotifyUrl ?? playlist.playlistName}
-                playlistName={playlist.playlistName}
-                playlistSpotifyUrl={playlist.playlistSpotifyUrl}
-                trackCount={playlist.trackCount}
-                lastCompletedAt={playlist.lastCompletedAt}
-                isRecreating={recreatePlaylist.isPending}
-                isDisabled={activePlaylists.some(
-                  (p) => p.spotifyUrl === playlist.playlistSpotifyUrl,
-                )}
-                onRecreate={handleRecreatePlaylistClick}
-              />
-            ))}
+            {playlists.map((playlist) => {
+              const activePlaylist = activePlaylists.find(
+                (p) => p.spotifyUrl === playlist.playlistSpotifyUrl,
+              );
+
+              return (
+                <HistoryItem
+                  key={playlist.playlistId ?? playlist.playlistSpotifyUrl ?? playlist.playlistName}
+                  playlistName={playlist.playlistName}
+                  playlistSpotifyUrl={playlist.playlistSpotifyUrl}
+                  trackCount={playlist.trackCount}
+                  lastCompletedAt={playlist.lastCompletedAt}
+                  isRecreating={recreatePlaylist.isPending}
+                  isDisabled={!!activePlaylist}
+                  activePlaylistId={activePlaylist?.id}
+                  onRecreate={handleRecreatePlaylistClick}
+                />
+              );
+            })}
           </div>
         )}
       </div>
