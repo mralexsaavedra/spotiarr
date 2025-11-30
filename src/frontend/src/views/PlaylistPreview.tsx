@@ -7,9 +7,8 @@ import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
-import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
-import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
+import { useTrackStatus } from "../hooks/useTrackStatus";
 import { Path } from "../routes/routes";
 import { Track } from "../types/track";
 
@@ -22,8 +21,7 @@ export const PlaylistPreview: FC = () => {
   const spotifyUrl = useMemo(() => searchParams.get("url"), [searchParams]);
 
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
-  const { data: playlists } = usePlaylistsQuery();
-  const { data: downloadTracks } = useDownloadTracksQuery();
+  const { getTrackStatus } = useTrackStatus();
 
   const handleGoBack = useCallback(() => {
     navigate(Path.RELEASES);
@@ -39,22 +37,8 @@ export const PlaylistPreview: FC = () => {
     if (!previewData?.tracks) return [];
 
     return previewData.tracks.map((t, i) => {
-      let status = "new" as TrackStatusEnum;
-
-      const activePlaylist = playlists?.find((p) =>
-        p.tracks?.some((at) => at.trackUrl === t.trackUrl),
-      );
-      if (activePlaylist) {
-        const activeTrack = activePlaylist.tracks?.find((at) => at.trackUrl === t.trackUrl);
-        if (activeTrack) {
-          status = activeTrack.status;
-        }
-      } else {
-        const isHistory = downloadTracks?.some((dt) => dt.trackUrl === t.trackUrl);
-        if (isHistory) {
-          status = "completed" as TrackStatusEnum;
-        }
-      }
+      const status =
+        (t.trackUrl ? getTrackStatus(t.trackUrl) : undefined) || ("new" as TrackStatusEnum);
 
       return {
         id: `preview-${i}`,
@@ -68,7 +52,7 @@ export const PlaylistPreview: FC = () => {
         albumUrl: t.albumUrl,
       };
     });
-  }, [previewData, playlists, downloadTracks]);
+  }, [previewData, getTrackStatus]);
 
   const handleRetryTrack = useCallback(() => {
     // No-op for preview

@@ -10,6 +10,7 @@ import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistM
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
 import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
+import { useTrackStatus } from "../hooks/useTrackStatus";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +41,8 @@ export const ArtistDetail: FC = () => {
     [artist?.followers],
   );
 
+  const { getTrackStatus } = useTrackStatus();
+
   const isArtistDownloaded = useMemo(() => {
     if (!artist?.spotifyUrl) return false;
     const url = artist.spotifyUrl;
@@ -62,22 +65,6 @@ export const ArtistDetail: FC = () => {
   const handleArtistDownload = useCallback(() => {
     handleDownload(artist?.spotifyUrl || undefined);
   }, [handleDownload, artist?.spotifyUrl]);
-
-  const getTrackStatus = useCallback(
-    (url: string) => {
-      const activePlaylist = playlists?.find((p) => p.tracks?.some((t) => t.trackUrl === url));
-      if (activePlaylist) {
-        const track = activePlaylist.tracks?.find((t) => t.trackUrl === url);
-        return track?.status;
-      }
-
-      const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
-      if (isHistory) return "completed";
-
-      return undefined;
-    },
-    [playlists, downloadTracks],
-  );
 
   if (isLoading) {
     return <ArtistDetailSkeleton />;
