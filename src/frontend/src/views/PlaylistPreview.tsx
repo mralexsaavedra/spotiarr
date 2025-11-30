@@ -1,8 +1,9 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, useCallback, useEffect, useMemo } from "react";
+import { FC, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
+import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
@@ -33,12 +34,6 @@ export const PlaylistPreview: FC = () => {
 
     createPlaylist.mutate(spotifyUrl);
   }, [spotifyUrl, createPlaylist]);
-
-  useEffect(() => {
-    if (!spotifyUrl) {
-      navigate(Path.HOME);
-    }
-  }, [spotifyUrl, navigate]);
 
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
@@ -89,7 +84,7 @@ export const PlaylistPreview: FC = () => {
   );
 
   if (!spotifyUrl) {
-    return null;
+    return <PlaylistNotFound onGoHome={() => navigate(Path.HOME)} />;
   }
 
   if (isLoading) {
