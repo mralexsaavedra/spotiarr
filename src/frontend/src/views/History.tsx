@@ -22,8 +22,8 @@ export const History: FC = () => {
       event.stopPropagation();
       if (!playlistSpotifyUrl) return;
       recreatePlaylist.mutate(playlistSpotifyUrl, {
-        onSuccess: () => {
-          navigate(Path.HOME);
+        onSuccess: (playlist) => {
+          navigate(Path.PLAYLIST_DETAIL.replace(":id", playlist.id));
         },
       });
     },
