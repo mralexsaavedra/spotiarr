@@ -2,7 +2,7 @@ import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
-import { getSpotifyIdFromUrl } from "../../utils/spotify";
+import { ArtistList } from "./ArtistList";
 import { TrackStatusIndicator } from "./TrackStatusIndicator";
 
 interface PlaylistTrackItemProps {
@@ -65,27 +65,12 @@ export const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
               <span>{track.name}</span>
             )}
           </div>
-          <div className="text-text-secondary text-sm truncate">
-            {artists.map((artist, i) => {
-              const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
-              return (
-                <span key={`${artist.name}-${i}`}>
-                  {artistId ? (
-                    <Link
-                      to={Path.ARTIST_DETAIL.replace(":id", artistId)}
-                      className="hover:text-text-primary transition-colors"
-                      onClick={stopPropagation}
-                    >
-                      {artist.name}
-                    </Link>
-                  ) : (
-                    <span>{artist.name}</span>
-                  )}
-                  {i < artists.length - 1 && <span>, </span>}
-                </span>
-              );
-            })}
-          </div>
+          <ArtistList
+            artists={artists}
+            className="text-text-secondary text-sm truncate"
+            linkClassName="hover:text-text-primary transition-colors"
+            onLinkClick={stopPropagation}
+          />
         </div>
 
         {/* Album */}

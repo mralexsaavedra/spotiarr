@@ -3,7 +3,7 @@ import { FC } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
-import { getSpotifyIdFromUrl } from "../../utils/spotify";
+import { ArtistList } from "./ArtistList";
 
 interface PlaylistMetadataProps {
   type: string;
@@ -14,40 +14,28 @@ export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) =>
   const firstTrack = tracks[0];
   const artists = firstTrack?.artists || (firstTrack?.artist ? [{ name: firstTrack.artist }] : []);
 
-  const renderArtists = () => (
-    <span className="font-bold text-white">
-      {artists.map((artist, i) => {
-        const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
-        return (
-          <span key={`${artist.name}-${i}`}>
-            {artistId ? (
-              <Link
-                to={Path.ARTIST_DETAIL.replace(":id", artistId)}
-                className="hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {artist.name}
-              </Link>
-            ) : (
-              artist.name
-            )}
-            {i < artists.length - 1 && ", "}
-          </span>
-        );
-      })}
-    </span>
-  );
-
   const typeLower = type.toLowerCase();
 
   if (typeLower === PlaylistTypeEnum.Album && artists.length > 0) {
-    return renderArtists();
+    return (
+      <ArtistList
+        artists={artists}
+        className="font-bold text-white"
+        linkClassName="hover:underline"
+        onLinkClick={(e) => e.stopPropagation()}
+      />
+    );
   }
 
   if (typeLower === PlaylistTypeEnum.Track && artists.length > 0) {
     return (
       <>
-        {renderArtists()}
+        <ArtistList
+          artists={artists}
+          className="font-bold text-white"
+          linkClassName="hover:underline"
+          onLinkClick={(e) => e.stopPropagation()}
+        />
         <span className="text-text-primary">•</span>
         {firstTrack?.albumUrl ? (
           <Link
