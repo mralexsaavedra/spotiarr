@@ -1,9 +1,9 @@
 import { FC, ChangeEventHandler, useCallback, useMemo, useState } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
+import { ConnectSpotifyPrompt } from "../components/molecules/ConnectSpotifyPrompt";
 import { SearchInput } from "../components/molecules/SearchInput";
 import { ArtistCard } from "../components/organisms/ArtistCard";
-import { ConnectSpotifyPrompt } from "../components/organisms/ConnectSpotifyPrompt";
 import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuery";
 
 export const Artists: FC = () => {
