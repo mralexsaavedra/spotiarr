@@ -1,9 +1,8 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
-import { Virtuoso } from "react-virtuoso";
-import { useGridColumns } from "../../hooks/useGridColumns";
+import { FC, memo, MouseEvent, useCallback } from "react";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
+import { VirtualGrid } from "../molecules/VirtualGrid";
 import { ReleaseCard } from "./ReleaseCard";
 
 interface ReleaseItemProps {
@@ -61,46 +60,28 @@ export const ReleasesList: FC<ReleasesListProps> = ({
   onReleaseClick,
   onDownloadRelease,
 }) => {
-  const columns = useGridColumns();
-
-  const rows = useMemo(() => {
-    const result = [];
-    for (let i = 0; i < releases.length; i += columns) {
-      result.push(releases.slice(i, i + columns));
-    }
-    return result;
-  }, [releases, columns]);
-
   return (
-    <Virtuoso
-      useWindowScroll
-      data={rows}
-      itemContent={(_, rowItems) => (
-        <div
-          className="grid gap-4 mb-4"
-          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-        >
-          {rowItems.map((release) => {
-            const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
-            const status = playlist ? getPlaylistStatus(playlist) : undefined;
+    <VirtualGrid
+      items={releases}
+      itemKey={(release) => `${release.albumId}-${release.artistId}`}
+      renderItem={(release) => {
+        const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
+        const status = playlist ? getPlaylistStatus(playlist) : undefined;
 
-            const isDownloaded = status === PlaylistStatusEnum.Completed;
-            const isDownloading =
-              status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+        const isDownloaded = status === PlaylistStatusEnum.Completed;
+        const isDownloading =
+          status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
 
-            return (
-              <ReleaseItem
-                key={`${release.albumId}-${release.artistId}`}
-                release={release}
-                isDownloaded={isDownloaded}
-                isDownloading={isDownloading}
-                onReleaseClick={onReleaseClick}
-                onDownloadRelease={onDownloadRelease}
-              />
-            );
-          })}
-        </div>
-      )}
+        return (
+          <ReleaseItem
+            release={release}
+            isDownloaded={isDownloaded}
+            isDownloading={isDownloading}
+            onReleaseClick={onReleaseClick}
+            onDownloadRelease={onDownloadRelease}
+          />
+        );
+      }}
     />
   );
 };
