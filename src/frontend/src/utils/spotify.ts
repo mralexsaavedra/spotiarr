@@ -1,3 +1,5 @@
+import { ApiErrorCode } from "@spotiarr/shared";
+
 export const normalizeSpotifyUrl = (value: string): string | null => {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -27,12 +29,7 @@ export const normalizeSpotifyUrl = (value: string): string | null => {
   }
 };
 
-export type SpotifyBaseError = "missing_user_access_token" | "spotify_rate_limited";
-
-export const mapSpotifyError = <T extends string>(
-  error: unknown,
-  fallback: T,
-): SpotifyBaseError | T | null => {
+export const mapSpotifyError = (error: unknown, fallback: ApiErrorCode): ApiErrorCode | null => {
   if (!(error instanceof Error)) return null;
 
   if (error.message === "missing_user_access_token") {

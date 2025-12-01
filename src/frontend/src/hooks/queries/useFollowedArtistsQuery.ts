@@ -1,3 +1,4 @@
+import { ApiErrorCode } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { api } from "../../services/api";
@@ -16,11 +17,7 @@ interface FollowedArtist {
 interface UseFollowedArtistsState {
   artists: FollowedArtist[] | null;
   isLoading: boolean;
-  error:
-    | "missing_user_access_token"
-    | "spotify_rate_limited"
-    | "failed_to_fetch_followed_artists"
-    | null;
+  error: ApiErrorCode | null;
 }
 
 export const useFollowedArtistsQuery = (): UseFollowedArtistsState => {

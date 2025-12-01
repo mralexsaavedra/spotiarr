@@ -1,4 +1,4 @@
-import { type ArtistRelease } from "@spotiarr/shared";
+import { ApiErrorCode, type ArtistRelease } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { api } from "../../services/api";
@@ -10,7 +10,7 @@ import { useSettingsQuery } from "./useSettingsQuery";
 interface UseReleasesState {
   releases: ArtistRelease[] | null;
   isLoading: boolean;
-  error: "missing_user_access_token" | "spotify_rate_limited" | "failed_to_fetch_releases" | null;
+  error: ApiErrorCode | null;
 }
 
 export const useReleasesQuery = (): UseReleasesState => {

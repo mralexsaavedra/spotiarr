@@ -1,12 +1,31 @@
+import { ApiErrorCode } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
 import { ConnectSpotifyPrompt } from "./ConnectSpotifyPrompt";
 import { RateLimitedMessage } from "./RateLimitedMessage";
 
 interface SpotifyErrorStateProps {
-  error: string | null;
+  error: ApiErrorCode | null;
   message?: string;
   className?: string;
 }
+
+interface ErrorRendererProps {
+  className?: string;
+  onConnect: () => void;
+}
+
+const ERROR_RENDERERS: Partial<Record<ApiErrorCode, FC<ErrorRendererProps>>> = {
+  missing_user_access_token: ({ className, onConnect }) => (
+    <div className={`flex-1 flex items-center justify-center ${className}`}>
+      <ConnectSpotifyPrompt onConnect={onConnect} />
+    </div>
+  ),
+  spotify_rate_limited: ({ className }) => (
+    <div className={`flex items-center gap-2 text-text-secondary ${className}`}>
+      <RateLimitedMessage />
+    </div>
+  ),
+};
 
 export const SpotifyErrorState: FC<SpotifyErrorStateProps> = ({
   error,
@@ -19,20 +38,10 @@ export const SpotifyErrorState: FC<SpotifyErrorStateProps> = ({
 
   if (!error) return null;
 
-  if (error === "missing_user_access_token") {
-    return (
-      <div className={`flex-1 flex items-center justify-center ${className}`}>
-        <ConnectSpotifyPrompt onConnect={handleConnectSpotify} />
-      </div>
-    );
-  }
+  const Renderer = ERROR_RENDERERS[error];
 
-  if (error === "spotify_rate_limited") {
-    return (
-      <div className={`flex items-center gap-2 text-text-secondary ${className}`}>
-        <RateLimitedMessage />
-      </div>
-    );
+  if (Renderer) {
+    return <Renderer className={className} onConnect={handleConnectSpotify} />;
   }
 
   return (
