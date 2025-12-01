@@ -1,10 +1,10 @@
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Virtuoso } from "react-virtuoso";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
 import { ArtistList } from "../molecules/ArtistList";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
+import { VirtualList } from "../molecules/VirtualList";
 
 interface PlaylistTrackItemProps {
   track: Track;
@@ -129,19 +129,16 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
       </div>
 
       {/* List */}
-      <Virtuoso
-        useWindowScroll
-        data={tracks}
-        itemContent={(index, track) => (
-          <div className="mb-1">
-            <PlaylistTrackItem
-              key={track.id}
-              track={track}
-              index={index + 1}
-              onRetryTrack={onRetryTrack}
-              onDownloadTrack={onDownloadTrack}
-            />
-          </div>
+      <VirtualList
+        items={tracks}
+        itemKey={(track) => track.id}
+        renderItem={(track, index) => (
+          <PlaylistTrackItem
+            track={track}
+            index={index + 1}
+            onRetryTrack={onRetryTrack}
+            onDownloadTrack={onDownloadTrack}
+          />
         )}
       />
     </div>

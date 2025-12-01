@@ -1,12 +1,12 @@
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Virtuoso } from "react-virtuoso";
 import { Path } from "../../routes/routes";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { formatRelativeDate } from "../../utils/date";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { Button } from "../atoms/Button";
+import { VirtualList } from "../molecules/VirtualList";
 
 interface HistoryListItemProps {
   item: PlaylistHistory;
@@ -144,24 +144,21 @@ export const HistoryList: FC<HistoryListProps> = ({
         <div className="hidden md:block text-right">Completed</div>
         <div className="text-right">Actions</div>
       </div>
-      <Virtuoso
-        useWindowScroll
-        data={history}
-        itemContent={(_, item) => {
+      <VirtualList
+        items={history}
+        itemKey={(item) => item.playlistId ?? item.playlistSpotifyUrl ?? item.playlistName}
+        renderItem={(item) => {
           const activePlaylist = activePlaylists.find(
             (p) => p.spotifyUrl === item.playlistSpotifyUrl,
           );
 
           return (
-            <div className="mb-1">
-              <HistoryListItem
-                key={item.playlistId ?? item.playlistSpotifyUrl ?? item.playlistName}
-                item={item}
-                activePlaylist={activePlaylist}
-                isRecreating={isRecreating}
-                onRecreate={onRecreate}
-              />
-            </div>
+            <HistoryListItem
+              item={item}
+              activePlaylist={activePlaylist}
+              isRecreating={isRecreating}
+              onRecreate={onRecreate}
+            />
           );
         }}
       />
