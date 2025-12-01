@@ -3,7 +3,7 @@ import { FC, memo, MouseEvent, useCallback } from "react";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { VirtualGrid } from "../molecules/VirtualGrid";
-import { ReleaseCard } from "./ReleaseCard";
+import { AlbumCard } from "./AlbumCard";
 
 interface ReleaseItemProps {
   release: ArtistRelease;
@@ -29,7 +29,7 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
     );
 
     return (
-      <ReleaseCard
+      <AlbumCard
         albumId={release.albumId}
         artistId={release.artistId}
         albumName={release.albumName}

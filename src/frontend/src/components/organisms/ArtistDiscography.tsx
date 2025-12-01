@@ -5,7 +5,7 @@ import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { Button } from "../atoms/Button";
 import { ArtistDiscographyFilters } from "../molecules/ArtistDiscographyFilters";
-import { ReleaseCard } from "./ReleaseCard";
+import { AlbumCard } from "./AlbumCard";
 
 interface ArtistDiscographyProps {
   artistId: string;
@@ -47,7 +47,7 @@ const DiscographyItem: FC<DiscographyItemProps> = ({
   );
 
   return (
-    <ReleaseCard
+    <AlbumCard
       albumId={album.albumId}
       artistId={album.artistId}
       albumName={album.albumName}
