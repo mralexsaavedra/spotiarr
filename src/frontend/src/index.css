@@ -8,4 +8,5 @@
 body {
   padding: 0;
   margin: 0;
+  @apply bg-background text-text-primary;
 }
