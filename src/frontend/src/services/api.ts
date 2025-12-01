@@ -264,8 +264,8 @@ class ApiClient {
     }[];
   }
 
-  async getArtistDetail(artistId: string): Promise<ArtistDetail> {
-    const response = await fetch(`${API_BASE}/artist/${artistId}`, {
+  async getArtistDetail(artistId: string, limit: number = 12): Promise<ArtistDetail> {
+    const response = await fetch(`${API_BASE}/artist/${artistId}?limit=${limit}`, {
       headers: {
         "Content-Type": "application/json",
       },

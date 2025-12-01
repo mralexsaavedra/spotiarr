@@ -6,11 +6,16 @@ import { api } from "../services/api";
 interface UseArtistDiscographyProps {
   artistId: string;
   initialAlbums: ArtistRelease[];
+  pageSize?: number;
 }
 
-export const useArtistDiscography = ({ artistId, initialAlbums }: UseArtistDiscographyProps) => {
+export const useArtistDiscography = ({
+  artistId,
+  initialAlbums,
+  pageSize = 12,
+}: UseArtistDiscographyProps) => {
   const [filter, setFilter] = useState<DiscographyFilter>("all");
-  const [visibleItems, setVisibleItems] = useState(12);
+  const [visibleItems, setVisibleItems] = useState(pageSize);
   const [allAlbums, setAllAlbums] = useState<ArtistRelease[]>(initialAlbums);
   const [hasFetchedAll, setHasFetchedAll] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -20,8 +25,8 @@ export const useArtistDiscography = ({ artistId, initialAlbums }: UseArtistDisco
   }, [initialAlbums]);
 
   useEffect(() => {
-    setVisibleItems(12);
-  }, [filter]);
+    setVisibleItems(pageSize);
+  }, [filter, pageSize]);
 
   const filteredAlbums = useMemo(() => {
     let result = allAlbums;
@@ -41,11 +46,10 @@ export const useArtistDiscography = ({ artistId, initialAlbums }: UseArtistDisco
     if (!hasFetchedAll) {
       setIsLoadingMore(true);
       try {
-        const limit = 12;
         const offset = allAlbums.length;
-        const moreAlbums = await api.getArtistAlbums(artistId, limit, offset);
+        const moreAlbums = await api.getArtistAlbums(artistId, pageSize, offset);
 
-        if (moreAlbums.length < limit) {
+        if (moreAlbums.length < pageSize) {
           setHasFetchedAll(true);
         }
 
@@ -60,8 +64,8 @@ export const useArtistDiscography = ({ artistId, initialAlbums }: UseArtistDisco
       }
     }
 
-    setVisibleItems((prev) => prev + 12);
-  }, [artistId, hasFetchedAll, allAlbums]);
+    setVisibleItems((prev) => prev + pageSize);
+  }, [artistId, hasFetchedAll, allAlbums, pageSize]);
 
   const canShowMore =
     visibleItems < filteredAlbums.length || (!hasFetchedAll && filteredAlbums.length >= 12);

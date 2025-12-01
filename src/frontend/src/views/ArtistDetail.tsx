@@ -13,14 +13,17 @@ import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
 import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useArtistStatus } from "../hooks/useArtistStatus";
+import { useGridColumns } from "../hooks/useGridColumns";
 import { useTrackStatus } from "../hooks/useTrackStatus";
 import { Path } from "../routes/routes";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const columns = useGridColumns();
+  const limit = columns * 2;
 
-  const { artist, isLoading, error } = useArtistDetailQuery(id || null);
+  const { artist, isLoading, error } = useArtistDetailQuery(id || null, limit);
   const { data: playlists } = usePlaylistsQuery();
   const { data: downloadTracks } = useDownloadTracksQuery();
   const createPlaylistMutation = useCreatePlaylistMutation();

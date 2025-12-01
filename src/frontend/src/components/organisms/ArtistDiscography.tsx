@@ -1,6 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { useArtistDiscography } from "../../hooks/useArtistDiscography";
+import { useGridColumns } from "../../hooks/useGridColumns";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { Button } from "../atoms/Button";
@@ -68,6 +69,9 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   onDownload,
   onDiscographyItemClick,
 }) => {
+  const columns = useGridColumns();
+  const pageSize = columns * 2;
+
   const {
     filter,
     setFilter,
@@ -76,7 +80,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     isLoadingMore,
     handleShowMore,
     canShowMore,
-  } = useArtistDiscography({ artistId, initialAlbums: albums });
+  } = useArtistDiscography({ artistId, initialAlbums: albums, pageSize });
 
   return (
     <div className="mt-10">

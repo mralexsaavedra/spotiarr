@@ -15,11 +15,13 @@ router.get(
       return res.status(400).json({ error: "missing_artist_id" });
     }
 
+    const limit = parseInt(req.query.limit as string) || 12;
+
     try {
       const [details, topTracks, albums] = await Promise.all([
         spotifyApiService.getArtistDetails(id),
         spotifyApiService.getArtistTopTracks(id),
-        spotifyApiService.getArtistAlbums(id, 12),
+        spotifyApiService.getArtistAlbums(id, limit),
       ]);
 
       return res.json({

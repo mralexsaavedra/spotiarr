@@ -10,10 +10,13 @@ interface UseArtistDetailState {
   error: ApiErrorCode | null;
 }
 
-export const useArtistDetailQuery = (artistId: string | null): UseArtistDetailState => {
+export const useArtistDetailQuery = (
+  artistId: string | null,
+  limit: number = 12,
+): UseArtistDetailState => {
   const { data, isLoading, error } = useQuery<ArtistDetail, Error>({
-    queryKey: artistDetailQueryKey(artistId || ""),
-    queryFn: () => api.getArtistDetail(artistId!),
+    queryKey: [...artistDetailQueryKey(artistId || ""), limit],
+    queryFn: () => api.getArtistDetail(artistId!, limit),
     enabled: !!artistId,
   });
 
