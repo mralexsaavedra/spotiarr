@@ -35,7 +35,7 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   const displayTitle = usePlaylistTitle(rawTitle, type, tracks);
 
   return (
-    <div className="flex-1 bg-background overflow-y-auto h-full text-text-primary">
+    <div className="flex-1 bg-background text-text-primary">
       <PlaylistHeader
         title={displayTitle}
         type={type}
