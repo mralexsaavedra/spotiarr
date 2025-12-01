@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
@@ -13,9 +13,11 @@ import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery"
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useArtistStatus } from "../hooks/useArtistStatus";
 import { useTrackStatus } from "../hooks/useTrackStatus";
+import { Path } from "../routes/routes";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { artist, isLoading, error } = useArtistDetailQuery(id || null);
   const { data: playlists } = usePlaylistsQuery();
@@ -57,6 +59,13 @@ export const ArtistDetail: FC = () => {
   const handleArtistDownload = useCallback(() => {
     handleDownload(artist?.spotifyUrl || undefined);
   }, [handleDownload, artist?.spotifyUrl]);
+
+  const handleNavigate = useCallback(
+    (url: string) => {
+      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(url)}`);
+    },
+    [navigate],
+  );
 
   if (isLoading) {
     return <Loading />;
@@ -132,6 +141,7 @@ export const ArtistDetail: FC = () => {
             albums={artist.albums}
             playlists={playlists}
             onDownload={handleDownload}
+            onDiscographyItemClick={handleNavigate}
           />
         ) : (
           <div className="mt-10 text-center text-text-secondary">

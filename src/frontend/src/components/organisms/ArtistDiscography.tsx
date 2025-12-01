@@ -1,8 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, MouseEvent, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { useArtistDiscography } from "../../hooks/useArtistDiscography";
-import { Path } from "../../routes/routes";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { Button } from "../atoms/Button";
@@ -14,13 +12,14 @@ interface ArtistDiscographyProps {
   albums: ArtistRelease[];
   playlists?: Playlist[];
   onDownload: (url: string) => void;
+  onDiscographyItemClick: (url: string) => void;
 }
 
 interface DiscographyItemProps {
   album: ArtistRelease;
   isDownloaded: boolean;
   isDownloading: boolean;
-  onNavigate: (url: string) => void;
+  onDiscographyItemClick: (url: string) => void;
   onDownload: (url: string) => void;
 }
 
@@ -28,14 +27,14 @@ const DiscographyItem: FC<DiscographyItemProps> = ({
   album,
   isDownloaded,
   isDownloading,
-  onNavigate,
+  onDiscographyItemClick,
   onDownload,
 }) => {
   const handleCardClick = useCallback(() => {
     if (album.spotifyUrl) {
-      onNavigate(album.spotifyUrl);
+      onDiscographyItemClick(album.spotifyUrl);
     }
-  }, [album.spotifyUrl, onNavigate]);
+  }, [album.spotifyUrl, onDiscographyItemClick]);
 
   const handleDownloadClick = useCallback(
     (e: MouseEvent) => {
@@ -70,8 +69,8 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   albums,
   playlists,
   onDownload,
+  onDiscographyItemClick,
 }) => {
-  const navigate = useNavigate();
   const {
     filter,
     setFilter,
@@ -81,13 +80,6 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     handleShowMore,
     canShowMore,
   } = useArtistDiscography({ artistId, initialAlbums: albums });
-
-  const handleNavigate = useCallback(
-    (url: string) => {
-      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(url)}`);
-    },
-    [navigate],
-  );
 
   return (
     <div className="mt-10">
@@ -118,7 +110,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
                   album={album}
                   isDownloaded={isDownloaded}
                   isDownloading={isDownloading}
-                  onNavigate={handleNavigate}
+                  onDiscographyItemClick={onDiscographyItemClick}
                   onDownload={onDownload}
                 />
               );
