@@ -2,7 +2,7 @@ import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
-import { ArtistList } from "../molecules/ArtistList";
+import { ArtistLinks } from "../molecules/ArtistLinks";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 import { VirtualList } from "../molecules/VirtualList";
 
@@ -68,7 +68,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
               <span>{track.name}</span>
             )}
           </div>
-          <ArtistList
+          <ArtistLinks
             artists={artists}
             className="text-text-secondary text-sm truncate"
             linkClassName="hover:text-text-primary transition-colors"

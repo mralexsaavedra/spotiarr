@@ -8,7 +8,7 @@ interface Artist {
   url?: string | null;
 }
 
-interface ArtistListProps {
+interface ArtistLinksProps {
   artists: Artist[];
   className?: string;
   linkClassName?: string;
@@ -47,7 +47,7 @@ const ArtistLink: FC<ArtistLinkProps> = memo(({ artist, linkClassName, onLinkCli
   );
 });
 
-export const ArtistList: FC<ArtistListProps> = ({
+export const ArtistLinks: FC<ArtistLinksProps> = ({
   artists,
   className,
   linkClassName,

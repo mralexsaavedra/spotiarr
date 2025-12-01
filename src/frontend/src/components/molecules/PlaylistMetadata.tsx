@@ -3,7 +3,7 @@ import { FC, MouseEvent, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
-import { ArtistList } from "./ArtistList";
+import { ArtistLinks } from "./ArtistLinks";
 
 interface PlaylistMetadataProps {
   type: string;
@@ -17,7 +17,7 @@ interface MetadataRendererProps {
 }
 
 const AlbumMetadata: FC<MetadataRendererProps> = ({ artists, onStopPropagation }) => (
-  <ArtistList
+  <ArtistLinks
     artists={artists}
     className="font-bold text-white"
     linkClassName="hover:underline"
@@ -27,7 +27,7 @@ const AlbumMetadata: FC<MetadataRendererProps> = ({ artists, onStopPropagation }
 
 const TrackMetadata: FC<MetadataRendererProps> = ({ artists, firstTrack, onStopPropagation }) => (
   <>
-    <ArtistList
+    <ArtistLinks
       artists={artists}
       className="font-bold text-white"
       linkClassName="hover:underline"
