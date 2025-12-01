@@ -1,6 +1,6 @@
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { formatRelativeDate } from "../../utils/date";
@@ -21,6 +21,8 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
     isRecreating,
     onRecreate,
   }) => {
+    const navigate = useNavigate();
+
     const handleRecreate = useCallback(() => {
       const fakeEvent = {
         preventDefault: () => {},
@@ -28,6 +30,18 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
       } as unknown as MouseEvent<HTMLButtonElement>;
       onRecreate(fakeEvent, playlistSpotifyUrl);
     }, [onRecreate, playlistSpotifyUrl]);
+
+    const handleRowClick = useCallback(() => {
+      if (activePlaylist) {
+        navigate(Path.PLAYLIST_DETAIL.replace(":id", activePlaylist.id));
+      } else if (playlistSpotifyUrl) {
+        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(playlistSpotifyUrl)}`);
+      }
+    }, [activePlaylist, playlistSpotifyUrl, navigate]);
+
+    const handleActionClick = useCallback((e: MouseEvent) => {
+      e.stopPropagation();
+    }, []);
 
     const status = activePlaylist ? getPlaylistStatus(activePlaylist) : undefined;
     const isDownloaded = status === PlaylistStatusEnum.Completed;
@@ -37,13 +51,17 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
     const isDisabled = !!activePlaylist;
 
     return (
-      <div className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 items-center px-4 py-3 rounded-md hover:bg-white/10 transition-colors">
+      <div
+        onClick={handleRowClick}
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 items-center px-4 py-3 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+      >
         <div className="min-w-0">
           <h3 className="font-medium text-base text-text-primary truncate">
             {activePlaylist ? (
               <Link
                 to={Path.PLAYLIST_DETAIL.replace(":id", activePlaylist.id)}
                 className="hover:underline"
+                onClick={(e) => e.stopPropagation()}
               >
                 {playlistName}
               </Link>
@@ -51,6 +69,7 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
               <Link
                 to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(playlistSpotifyUrl)}`}
                 className="hover:underline"
+                onClick={(e) => e.stopPropagation()}
               >
                 {playlistName}
               </Link>
@@ -71,14 +90,19 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
           {lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}
         </div>
 
-        <div className="flex justify-end items-center">
+        <div className="flex justify-end items-center" onClick={handleActionClick}>
           {playlistSpotifyUrl && (
             <>
               {isDownloading ? (
-                <div className="flex items-center gap-2 text-text-secondary text-sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled
+                  className="!opacity-100 !cursor-default hover:!bg-transparent text-text-secondary"
+                >
                   <i className="fa-solid fa-spinner fa-spin text-primary" />
                   <span className="hidden md:inline">Downloading...</span>
-                </div>
+                </Button>
               ) : (
                 <Button
                   variant="ghost"
