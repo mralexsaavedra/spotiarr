@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
+import { Button } from "../atoms/Button";
 import { ReleaseCard } from "./ReleaseCard";
 
 interface ArtistDiscographyProps {
@@ -19,14 +20,14 @@ const FilterButton: FC<{ active: boolean; onClick: () => void; label: string }> 
   onClick,
   label,
 }) => (
-  <button
+  <Button
     onClick={onClick}
-    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-      active ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
-    }`}
+    size="sm"
+    variant="secondary"
+    className={`whitespace-nowrap ${active ? "!bg-white !text-black hover:!bg-white/90" : ""}`}
   >
     {label}
-  </button>
+  </Button>
 );
 
 interface DiscographyItemProps {
