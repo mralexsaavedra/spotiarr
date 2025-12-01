@@ -1,0 +1,146 @@
+import { PlaylistHistory } from "@spotiarr/shared";
+import { FC, memo, MouseEvent, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { Path } from "../../routes/routes";
+import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
+import { formatRelativeDate } from "../../utils/date";
+import { getPlaylistStatus } from "../../utils/playlist";
+import { Button } from "../atoms/Button";
+
+interface HistoryListItemProps {
+  item: PlaylistHistory;
+  activePlaylist?: Playlist;
+  isRecreating: boolean;
+  onRecreate: (event: MouseEvent<HTMLButtonElement>, spotifyUrl: string | null) => void;
+}
+
+const HistoryListItem: FC<HistoryListItemProps> = memo(
+  ({
+    item: { playlistName, playlistSpotifyUrl, trackCount, lastCompletedAt },
+    activePlaylist,
+    isRecreating,
+    onRecreate,
+  }) => {
+    const handleRecreate = useCallback(() => {
+      const fakeEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      } as unknown as MouseEvent<HTMLButtonElement>;
+      onRecreate(fakeEvent, playlistSpotifyUrl);
+    }, [onRecreate, playlistSpotifyUrl]);
+
+    const status = activePlaylist ? getPlaylistStatus(activePlaylist) : undefined;
+    const isDownloaded = status === PlaylistStatusEnum.Completed;
+    const isDownloading =
+      status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+
+    const isDisabled = !!activePlaylist;
+
+    return (
+      <div className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 items-center px-4 py-3 rounded-md hover:bg-white/10 transition-colors">
+        <div className="min-w-0">
+          <h3 className="font-medium text-base text-text-primary truncate">
+            {activePlaylist ? (
+              <Link
+                to={Path.PLAYLIST_DETAIL.replace(":id", activePlaylist.id)}
+                className="hover:underline"
+              >
+                {playlistName}
+              </Link>
+            ) : playlistSpotifyUrl ? (
+              <Link
+                to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(playlistSpotifyUrl)}`}
+                className="hover:underline"
+              >
+                {playlistName}
+              </Link>
+            ) : (
+              playlistName
+            )}
+          </h3>
+          <div className="md:hidden flex items-center gap-2 text-xs text-text-secondary mt-1">
+            <span>{trackCount} tracks</span>
+            <span>•</span>
+            <span>{lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}</span>
+          </div>
+        </div>
+
+        <div className="hidden md:block text-right text-sm text-text-secondary">{trackCount}</div>
+
+        <div className="hidden md:block text-right text-sm text-text-secondary">
+          {lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}
+        </div>
+
+        <div className="flex justify-end items-center">
+          {playlistSpotifyUrl && (
+            <>
+              {isDownloading ? (
+                <div className="flex items-center gap-2 text-text-secondary text-sm">
+                  <i className="fa-solid fa-spinner fa-spin text-primary" />
+                  <span className="hidden md:inline">Downloading...</span>
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={isDisabled ? "fa-check" : "fa-rotate"}
+                  title={
+                    isDisabled ? "Playlist already exists" : "Recreate playlist and subscribe again"
+                  }
+                  onClick={handleRecreate}
+                  disabled={isRecreating || isDisabled}
+                  loading={isRecreating && !isDisabled}
+                  className={isDisabled ? "text-green-500 hover:text-green-400" : ""}
+                >
+                  <span className="hidden md:inline">{isDisabled ? "Exists" : "Recreate"}</span>
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  },
+);
+
+interface HistoryListProps {
+  history: PlaylistHistory[];
+  activePlaylists: Playlist[];
+  isRecreating: boolean;
+  onRecreate: (event: MouseEvent<HTMLButtonElement>, spotifyUrl: string | null) => void;
+}
+
+export const HistoryList: FC<HistoryListProps> = ({
+  history,
+  activePlaylists,
+  isRecreating,
+  onRecreate,
+}) => {
+  return (
+    <div className="flex flex-col">
+      <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
+        <div>Title</div>
+        <div className="hidden md:block text-right">Tracks</div>
+        <div className="hidden md:block text-right">Completed</div>
+        <div className="text-right">Actions</div>
+      </div>
+      <div className="flex flex-col gap-1">
+        {history.map((item) => {
+          const activePlaylist = activePlaylists.find(
+            (p) => p.spotifyUrl === item.playlistSpotifyUrl,
+          );
+
+          return (
+            <HistoryListItem
+              key={item.playlistId ?? item.playlistSpotifyUrl ?? item.playlistName}
+              item={item}
+              activePlaylist={activePlaylist}
+              isRecreating={isRecreating}
+              onRecreate={onRecreate}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};
