@@ -128,6 +128,7 @@ export const ArtistDetail: FC = () => {
         {/* Discography Section */}
         {artist?.albums && artist.albums.length > 0 ? (
           <ArtistDiscography
+            artistId={id!}
             albums={artist.albums}
             playlists={playlists}
             onDownload={handleDownload}

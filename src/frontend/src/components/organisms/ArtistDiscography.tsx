@@ -1,13 +1,15 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, MouseEvent, useCallback, useMemo, useState } from "react";
+import { FC, MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
+import { api } from "../../services/api";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
 import { ReleaseCard } from "./ReleaseCard";
 
 interface ArtistDiscographyProps {
+  artistId: string;
   albums: ArtistRelease[];
   playlists?: Playlist[];
   onDownload: (url: string) => void;
@@ -63,27 +65,39 @@ const DiscographyItem: FC<DiscographyItemProps> = ({
 };
 
 export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
+  artistId,
   albums,
   playlists,
   onDownload,
 }) => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<DiscographyFilter>("all");
+  const [visibleItems, setVisibleItems] = useState(12);
+  const [allAlbums, setAllAlbums] = useState<ArtistRelease[]>(albums);
+  const [hasFetchedAll, setHasFetchedAll] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  useEffect(() => {
+    setAllAlbums(albums);
+  }, [albums]);
 
   const filteredAlbums = useMemo(() => {
-    let result = albums;
+    let result = allAlbums;
 
     if (filter !== "all") {
       result = result.filter((a) => a.albumType === filter);
     }
 
-    // Sort by release date desc
     return [...result].sort((a, b) => {
       const dateA = a.releaseDate || "";
       const dateB = b.releaseDate || "";
       return dateB.localeCompare(dateA);
     });
-  }, [albums, filter]);
+  }, [allAlbums, filter]);
+
+  useEffect(() => {
+    setVisibleItems(12);
+  }, [filter]);
 
   const handleNavigate = useCallback(
     (url: string) => {
@@ -91,6 +105,26 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     },
     [navigate],
   );
+
+  const handleShowMore = useCallback(async () => {
+    if (!hasFetchedAll) {
+      setIsLoadingMore(true);
+      try {
+        const moreAlbums = await api.getArtistAlbums(artistId, 1000, 12);
+        const existingIds = new Set(allAlbums.map((a) => a.albumId));
+        const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
+
+        setAllAlbums((prev) => [...prev, ...uniqueNewAlbums]);
+        setHasFetchedAll(true);
+      } catch (error) {
+        console.error("Failed to fetch more albums", error);
+      } finally {
+        setIsLoadingMore(false);
+      }
+    }
+
+    setVisibleItems((prev) => prev + 12);
+  }, [artistId, hasFetchedAll, allAlbums]);
 
   return (
     <div className="mt-10">
@@ -105,27 +139,42 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
           <p>No releases found for this category.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {filteredAlbums.slice(0, 12).map((album) => {
-            const playlist = playlists?.find((p) => p.spotifyUrl === album.spotifyUrl);
-            const status = playlist ? getPlaylistStatus(playlist) : undefined;
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {filteredAlbums.slice(0, visibleItems).map((album) => {
+              const playlist = playlists?.find((p) => p.spotifyUrl === album.spotifyUrl);
+              const status = playlist ? getPlaylistStatus(playlist) : undefined;
 
-            const isDownloaded = status === PlaylistStatusEnum.Completed;
-            const isDownloading =
-              status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+              const isDownloaded = status === PlaylistStatusEnum.Completed;
+              const isDownloading =
+                status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
 
-            return (
-              <DiscographyItem
-                key={album.albumId}
-                album={album}
-                isDownloaded={isDownloaded}
-                isDownloading={isDownloading}
-                onNavigate={handleNavigate}
-                onDownload={onDownload}
-              />
-            );
-          })}
-        </div>
+              return (
+                <DiscographyItem
+                  key={album.albumId}
+                  album={album}
+                  isDownloaded={isDownloaded}
+                  isDownloading={isDownloading}
+                  onNavigate={handleNavigate}
+                  onDownload={onDownload}
+                />
+              );
+            })}
+          </div>
+
+          {(visibleItems < filteredAlbums.length ||
+            (!hasFetchedAll && filteredAlbums.length >= 12)) && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={handleShowMore}
+                disabled={isLoadingMore}
+                className="px-6 py-2 text-sm font-medium text-white transition-colors border rounded-full border-white/20 hover:bg-white/10 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoadingMore ? "Loading..." : "Show more"}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
