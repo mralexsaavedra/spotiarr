@@ -8,83 +8,65 @@ interface PlaylistCardProps {
 }
 
 export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
-  const {
-    completedCount,
-    downloadingCount,
-    errorCount,
-    totalCount,
-    progress,
-    isDownloading,
-    hasErrors,
-    isCompleted,
-  } = usePlaylistStats(playlist);
+  const { downloadingCount, errorCount, totalCount, isDownloading, hasErrors, isCompleted } =
+    usePlaylistStats(playlist);
 
   return (
     <Link
       to={`/playlist/${playlist.id}`}
-      className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-all cursor-pointer"
+      className="group bg-[#181818] hover:bg-[#282828] rounded-md p-4 transition-colors duration-300 cursor-pointer block"
     >
-      <div className="relative aspect-square mb-4 rounded-md overflow-hidden bg-background-hover shadow-lg">
+      <div className="relative aspect-square mb-4 rounded-md overflow-hidden shadow-lg bg-[#282828]">
         {playlist.coverUrl ? (
           <img
             src={playlist.coverUrl}
             alt={playlist.name || "Playlist cover"}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <i className="fa-solid fa-music text-4xl text-text-secondary" />
           </div>
         )}
-
-        {isDownloading && (
-          <div className="absolute top-2 right-2 bg-blue-500/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
-            <i className="fa-solid fa-spinner fa-spin text-text-primary text-xs" />
-            <span className="text-text-primary text-xs font-semibold">{downloadingCount}</span>
-          </div>
-        )}
-        {hasErrors && !isDownloading && (
-          <div className="absolute top-2 right-2 bg-red-500/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
-            <i className="fa-solid fa-circle-exclamation text-text-primary text-xs" />
-            <span className="text-text-primary text-xs font-semibold">{errorCount}</span>
-          </div>
-        )}
       </div>
 
-      <div className="space-y-2">
+      <div className="flex flex-col gap-1">
         <h3
-          className="font-bold text-text-primary truncate group-hover:underline"
+          className="font-bold text-white text-base truncate"
           title={playlist.name || "Unnamed Playlist"}
         >
           {playlist.name || "Unnamed Playlist"}
         </h3>
 
-        {totalCount > 0 && (
-          <div className="space-y-1">
-            <div className="h-1 bg-text-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-300 ${
-                  isCompleted ? "bg-primary" : hasErrors ? "bg-red-500" : "bg-white"
-                }`}
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <p className="text-xs text-text-secondary">
-              {completedCount}/{totalCount} tracks
-              {isDownloading && <span className="text-blue-400"> • Downloading...</span>}
-              {hasErrors && !isDownloading && (
-                <span className="text-red-400"> • {errorCount} failed</span>
-              )}
-            </p>
-          </div>
-        )}
+        <div className="text-sm text-[#a7a7a7] flex items-center gap-2 truncate min-h-[20px]">
+          {isDownloading ? (
+            <>
+              <i className="fa-solid fa-spinner fa-spin text-blue-400 text-xs" />
+              <span>
+                Downloading {downloadingCount}/{totalCount}
+              </span>
+            </>
+          ) : hasErrors ? (
+            <>
+              <i className="fa-solid fa-circle-exclamation text-red-400 text-xs" />
+              <span>{errorCount} failed</span>
+            </>
+          ) : isCompleted ? (
+            <>
+              <i className="fa-solid fa-circle-arrow-down text-primary text-xs" />
+              <span>{totalCount} tracks</span>
+            </>
+          ) : (
+            <span>{totalCount} tracks</span>
+          )}
 
-        {playlist.subscribed && (
-          <span className="inline-flex items-center gap-1 text-xs text-primary">
-            <i className="fa-solid fa-circle-check" />
-            <span>Subscribed</span>
-          </span>
-        )}
+          {playlist.subscribed && !isDownloading && !hasErrors && !isCompleted && (
+            <>
+              <span>•</span>
+              <span className="text-primary text-xs">Subscribed</span>
+            </>
+          )}
+        </div>
       </div>
     </Link>
   );
