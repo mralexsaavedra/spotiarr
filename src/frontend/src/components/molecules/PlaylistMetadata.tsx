@@ -1,5 +1,5 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
-import { FC, MouseEvent, useCallback } from "react";
+import { FC, MouseEvent, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
@@ -12,9 +12,19 @@ interface PlaylistMetadataProps {
 
 export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) => {
   const firstTrack = tracks[0];
-  const artists = firstTrack?.artists || (firstTrack?.artist ? [{ name: firstTrack.artist }] : []);
-
   const typeLower = type.toLowerCase();
+
+  const artists = useMemo(() => {
+    const rawArtists =
+      firstTrack?.artists || (firstTrack?.artist ? [{ name: firstTrack.artist }] : []);
+
+    if (typeLower === PlaylistTypeEnum.Album && rawArtists.length > 1) {
+      const primaryArtist = rawArtists.find((a) => a.name === firstTrack?.artist);
+      return primaryArtist ? [primaryArtist] : [rawArtists[0]];
+    }
+
+    return rawArtists;
+  }, [firstTrack, typeLower]);
 
   const handleStopPropagation = useCallback((e: MouseEvent) => {
     e.stopPropagation();
