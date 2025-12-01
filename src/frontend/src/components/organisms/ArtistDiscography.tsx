@@ -1,13 +1,14 @@
-import { ArtistRelease, DownloadHistoryItem, IPlaylist } from "@spotiarr/shared";
+import { ArtistRelease } from "@spotiarr/shared";
 import { FC, MouseEvent, useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
+import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
+import { getPlaylistStatus } from "../../utils/playlist";
 import { ReleaseCard } from "./ReleaseCard";
 
 interface ArtistDiscographyProps {
   albums: ArtistRelease[];
-  playlists?: IPlaylist[];
-  downloadTracks?: DownloadHistoryItem[];
+  playlists?: Playlist[];
   onDownload: (url: string) => void;
 }
 
@@ -80,7 +81,6 @@ const DiscographyItem: FC<DiscographyItemProps> = ({
 export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   albums,
   playlists,
-  downloadTracks,
   onDownload,
 }) => {
   const navigate = useNavigate();
@@ -144,13 +144,12 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {filteredAlbums.slice(0, 12).map((album) => {
-            const isDownloaded =
-              playlists?.some((p) => p.spotifyUrl === album.spotifyUrl) ||
-              downloadTracks?.some((t) => t.playlistSpotifyUrl === album.spotifyUrl) ||
-              false;
+            const playlist = playlists?.find((p) => p.spotifyUrl === album.spotifyUrl);
+            const status = playlist ? getPlaylistStatus(playlist) : undefined;
 
-            // We don't have real-time downloading status for albums yet, only history.
-            const isDownloading = false;
+            const isDownloaded = status === PlaylistStatusEnum.Completed;
+            const isDownloading =
+              status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
 
             return (
               <DiscographyItem

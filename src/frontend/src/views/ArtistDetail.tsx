@@ -129,7 +129,6 @@ export const ArtistDetail: FC = () => {
           <ArtistDiscography
             albums={artist.albums}
             playlists={playlists}
-            downloadTracks={downloadTracks}
             onDownload={handleDownload}
           />
         ) : (
