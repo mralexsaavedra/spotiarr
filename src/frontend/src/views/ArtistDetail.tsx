@@ -80,7 +80,7 @@ export const ArtistDetail: FC = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background text-white">
+    <div className="flex-1 flex flex-col bg-black text-white">
       <ArtistHeader
         name={artist?.name || "Artist"}
         image={artist?.image}
@@ -88,8 +88,8 @@ export const ArtistDetail: FC = () => {
         spotifyUrl={artist?.spotifyUrl}
       />
 
-      {/* Action Bar & Content */}
-      <div className="flex-1 px-6 md:px-8 pb-10 bg-background">
+      {/* Content */}
+      <div className="flex-1 px-6 md:px-8 pb-10 bg-gradient-to-b from-background to-black">
         {/* Action Buttons */}
         <div className="flex items-center gap-4 py-6">
           {/* Download Button (Circular) */}
