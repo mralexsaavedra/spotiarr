@@ -15,9 +15,9 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({
   return (
     <Link
       to={`/playlist/${playlist.id}`}
-      className="group bg-[#181818] hover:bg-[#282828] rounded-md p-4 transition-colors duration-300 cursor-pointer block"
+      className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-colors duration-300 cursor-pointer block"
     >
-      <div className="relative aspect-square mb-4 rounded-md overflow-hidden shadow-lg bg-[#282828]">
+      <div className="relative aspect-square mb-4 rounded-md overflow-hidden shadow-lg bg-background-hover">
         {playlist.coverUrl ? (
           <img
             src={playlist.coverUrl}
@@ -39,7 +39,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({
           {playlist.name || "Unnamed Playlist"}
         </h3>
 
-        <div className="text-sm text-[#a7a7a7] flex items-center gap-2 truncate min-h-[20px]">
+        <div className="text-sm text-text-subtle flex items-center gap-2 truncate min-h-[20px]">
           {isDownloading ? (
             <>
               <i className="fa-solid fa-spinner fa-spin text-blue-400 text-xs" />

@@ -25,6 +25,7 @@ module.exports = {
         text: {
           primary: "#ffffff", // Texto principal
           secondary: "#b3b3b3", // Texto secundario
+          subtle: "#a7a7a7", // Texto sutil (metadata)
           muted: "#535353", // Texto muy discreto
         },
         // Bordes y divisores

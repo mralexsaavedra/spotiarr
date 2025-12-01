@@ -72,8 +72,8 @@ export const ArtistDetail: FC = () => {
 
   if (!hasArtist && statusMessage) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#121212] text-white">
-        <p className="text-zinc-400">{statusMessage}</p>
+      <div className="flex-1 flex items-center justify-center bg-background text-white">
+        <p className="text-text-secondary">{statusMessage}</p>
       </div>
     );
   }

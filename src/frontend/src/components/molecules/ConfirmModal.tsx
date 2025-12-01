@@ -26,9 +26,9 @@ export const ConfirmModal: FC<ConfirmModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#282828] rounded-lg shadow-2xl max-w-md w-full p-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200 border border-white/5">
+      <div className="bg-background-hover rounded-lg shadow-2xl max-w-md w-full p-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200 border border-white/5">
         <h2 className="text-xl font-bold text-white mb-2">{title}</h2>
-        <p className="text-[#a7a7a7] text-sm mb-6">{description}</p>
+        <p className="text-text-subtle text-sm mb-6">{description}</p>
 
         <div className="flex justify-end gap-3">
           <Button variant="ghost" onClick={onCancel} className="text-white hover:text-white">
