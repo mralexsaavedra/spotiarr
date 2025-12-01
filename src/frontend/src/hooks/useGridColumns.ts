@@ -6,16 +6,20 @@ export const useGridColumns = () => {
   useEffect(() => {
     const updateColumns = () => {
       const width = window.innerWidth;
-      if (width >= 1280) {
-        setColumns(8); // xl
+      if (width >= 2560) {
+        setColumns(8); // ultrawide
+      } else if (width >= 1920) {
+        setColumns(6); // 2k/full hd large
+      } else if (width >= 1280) {
+        setColumns(5); // xl
       } else if (width >= 1024) {
-        setColumns(6); // lg
+        setColumns(4); // lg
       } else if (width >= 768) {
-        setColumns(4); // md
+        setColumns(3); // md
       } else if (width >= 640) {
-        setColumns(3); // sm
+        setColumns(2); // sm
       } else {
-        setColumns(2); // default
+        setColumns(2); // mobile
       }
     };
 
