@@ -10,6 +10,7 @@ import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistM
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
 import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
+import { useArtistStatus } from "../hooks/useArtistStatus";
 import { useTrackStatus } from "../hooks/useTrackStatus";
 
 export const ArtistDetail: FC = () => {
@@ -43,16 +44,7 @@ export const ArtistDetail: FC = () => {
 
   const { getTrackStatus } = useTrackStatus();
 
-  const isArtistDownloaded = useMemo(() => {
-    if (!artist?.spotifyUrl) return false;
-    const url = artist.spotifyUrl;
-
-    const isActive = playlists?.some((p) => p.spotifyUrl === url);
-    if (isActive) return true;
-
-    const isHistory = downloadTracks?.some((t) => t.playlistSpotifyUrl === url);
-    return !!isHistory;
-  }, [artist?.spotifyUrl, playlists, downloadTracks]);
+  const isArtistDownloaded = useArtistStatus(artist?.spotifyUrl, playlists, downloadTracks);
 
   const handleDownload = useCallback(
     (url?: string) => {

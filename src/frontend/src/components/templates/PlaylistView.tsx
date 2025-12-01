@@ -1,5 +1,6 @@
-import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
-import { FC, ReactNode, useMemo } from "react";
+import { TrackStatusEnum } from "@spotiarr/shared";
+import { FC, ReactNode } from "react";
+import { usePlaylistTitle } from "../../hooks/usePlaylistTitle";
 import { Track } from "../../types/track";
 import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
@@ -36,29 +37,7 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   const totalCount = tracks.length;
   const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
 
-  const displayTitle = useMemo(() => {
-    if (!rawTitle) return "Unnamed Playlist";
-
-    const typeLower = type.toLowerCase();
-
-    if (typeLower === PlaylistTypeEnum.Album) {
-      if (tracks.length > 0 && tracks[0].album) {
-        return tracks[0].album;
-      }
-      const parts = rawTitle.split(" - ");
-      return parts.length > 1 ? parts.slice(1).join(" - ") : rawTitle;
-    }
-
-    if (typeLower === PlaylistTypeEnum.Track) {
-      if (tracks.length > 0 && tracks[0].name) {
-        return tracks[0].name;
-      }
-      const parts = rawTitle.split(" - ");
-      return parts.length > 1 ? parts.slice(1).join(" - ") : rawTitle;
-    }
-
-    return rawTitle;
-  }, [rawTitle, type, tracks]);
+  const displayTitle = usePlaylistTitle(rawTitle, type, tracks);
 
   if (error) {
     return <PreviewError error={error} onGoBack={onGoBack} />;
