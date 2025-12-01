@@ -1,6 +1,7 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, useCallback, useMemo } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { ConfirmModal } from "../components/molecules/ConfirmModal";
 import { PlaylistActions } from "../components/molecules/PlaylistActions";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
@@ -16,6 +17,7 @@ import { Path } from "../routes/routes";
 export const PlaylistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { data: playlists = [], isLoading: isPlaylistsLoading } = usePlaylistsQuery();
   const updatePlaylist = useUpdatePlaylistMutation();
@@ -46,13 +48,20 @@ export const PlaylistDetail: FC = () => {
     });
   }, [updatePlaylist, playlist]);
 
-  const handleDelete = useCallback(() => {
+  const handleDeleteClick = useCallback(() => {
+    setIsDeleteModalOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
     if (!playlist) return;
-    if (window.confirm(`Are you sure you want to delete "${playlist.name}"?`)) {
-      deletePlaylist.mutate(playlist.id);
-      navigate(Path.HOME);
-    }
+    deletePlaylist.mutate(playlist.id);
+    setIsDeleteModalOpen(false);
+    navigate(Path.HOME);
   }, [deletePlaylist, playlist, navigate]);
+
+  const handleCancelDelete = useCallback(() => {
+    setIsDeleteModalOpen(false);
+  }, []);
 
   const handleRetryFailed = useCallback(() => {
     if (!playlist || !hasFailed) return;
@@ -78,25 +87,38 @@ export const PlaylistDetail: FC = () => {
   }
 
   return (
-    <PlaylistView
-      title={playlist.name || "Unnamed Playlist"}
-      type={playlist.type || "playlist"}
-      coverUrl={playlist.coverUrl || null}
-      actions={
-        <PlaylistActions
-          isSubscribed={!!playlist.subscribed}
-          hasFailed={hasFailed}
-          isRetrying={retryFailedTracks.isPending}
-          onToggleSubscription={handleToggleActive}
-          onRetryFailed={handleRetryFailed}
-          onDelete={handleDelete}
-          spotifyUrl={playlist.spotifyUrl}
-        />
-      }
-      tracks={tracks}
-      error={null}
-      onGoBack={handleGoHome}
-      onRetryTrack={handleRetryTrack}
-    />
+    <>
+      <PlaylistView
+        title={playlist.name || "Unnamed Playlist"}
+        type={playlist.type || "playlist"}
+        coverUrl={playlist.coverUrl || null}
+        actions={
+          <PlaylistActions
+            isSubscribed={!!playlist.subscribed}
+            hasFailed={hasFailed}
+            isRetrying={retryFailedTracks.isPending}
+            onToggleSubscription={handleToggleActive}
+            onRetryFailed={handleRetryFailed}
+            onDelete={handleDeleteClick}
+            spotifyUrl={playlist.spotifyUrl}
+          />
+        }
+        tracks={tracks}
+        error={null}
+        onGoBack={handleGoHome}
+        onRetryTrack={handleRetryTrack}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title={`Delete ${playlist.name}?`}
+        description="This will remove the playlist from your library. Downloaded files will NOT be deleted."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDestructive={true}
+      />
+    </>
   );
 };
