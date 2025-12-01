@@ -4,7 +4,7 @@ import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { ConfirmModal } from "../components/molecules/ConfirmModal";
 import { EmptyState } from "../components/molecules/EmptyState";
-import { PlaylistCard } from "../components/organisms/PlaylistCard";
+import { PlaylistList } from "../components/organisms/PlaylistList";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { shouldClearPlaylist } from "../utils/playlist";
@@ -53,11 +53,7 @@ export const Home: FC = () => {
             description="Search for artists or albums to start building your collection."
           />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {playlists.map((playlist) => (
-              <PlaylistCard key={playlist.id} playlist={playlist} />
-            ))}
-          </div>
+          <PlaylistList playlists={playlists} />
         )}
       </div>
 

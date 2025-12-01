@@ -1,16 +1,17 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
-import { usePlaylistStats } from "../../hooks/usePlaylistStats";
+import { PlaylistStats } from "../../hooks/usePlaylistStats";
 import type { Playlist } from "../../types/playlist";
 
 interface PlaylistCardProps {
   playlist: Playlist;
+  stats: PlaylistStats;
 }
 
-export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
-  const { completedCount, errorCount, totalCount, isDownloading, hasErrors, isCompleted } =
-    usePlaylistStats(playlist);
-
+export const PlaylistCard: FC<PlaylistCardProps> = ({
+  playlist,
+  stats: { completedCount, errorCount, totalCount, isDownloading, hasErrors, isCompleted },
+}) => {
   return (
     <Link
       to={`/playlist/${playlist.id}`}

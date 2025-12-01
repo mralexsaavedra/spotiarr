@@ -3,7 +3,21 @@ import { useMemo } from "react";
 import { Playlist } from "../types/playlist";
 import { Track } from "../types/track";
 
-export const usePlaylistStats = (playlist: Playlist) => {
+export interface PlaylistStats {
+  completedCount: number;
+  downloadingCount: number;
+  searchingCount: number;
+  queuedCount: number;
+  activeCount: number;
+  errorCount: number;
+  totalCount: number;
+  progress: number;
+  isDownloading: boolean;
+  hasErrors: boolean;
+  isCompleted: boolean;
+}
+
+export const usePlaylistStats = (playlist: Playlist): PlaylistStats => {
   return useMemo(() => {
     const tracks = playlist.tracks || [];
     const completed = tracks.filter((t: Track) => t.status === TrackStatusEnum.Completed).length;
