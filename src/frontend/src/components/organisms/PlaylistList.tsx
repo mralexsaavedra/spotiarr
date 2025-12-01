@@ -1,5 +1,6 @@
-import { FC, forwardRef, HTMLAttributes, memo } from "react";
-import { VirtuosoGrid } from "react-virtuoso";
+import { FC, memo, useMemo } from "react";
+import { Virtuoso } from "react-virtuoso";
+import { useGridColumns } from "../../hooks/useGridColumns";
 import { usePlaylistStats } from "../../hooks/usePlaylistStats";
 import type { Playlist } from "../../types/playlist";
 import { PlaylistCard } from "./PlaylistCard";
@@ -18,28 +19,31 @@ interface PlaylistListProps {
   playlists: Playlist[];
 }
 
-const GridList = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => (
-  <div
-    ref={ref}
-    {...props}
-    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
-  />
-));
-
-const GridItem = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => (
-  <div ref={ref} {...props} className="contents" />
-));
-
 export const PlaylistList: FC<PlaylistListProps> = ({ playlists }) => {
+  const columns = useGridColumns();
+
+  const rows = useMemo(() => {
+    const result = [];
+    for (let i = 0; i < playlists.length; i += columns) {
+      result.push(playlists.slice(i, i + columns));
+    }
+    return result;
+  }, [playlists, columns]);
+
   return (
-    <VirtuosoGrid
+    <Virtuoso
       useWindowScroll
-      data={playlists}
-      components={{
-        List: GridList,
-        Item: GridItem,
-      }}
-      itemContent={(index, playlist) => <PlaylistListItem playlist={playlist} />}
+      data={rows}
+      itemContent={(_, rowItems) => (
+        <div
+          className="grid gap-4 mb-4"
+          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+        >
+          {rowItems.map((playlist) => (
+            <PlaylistListItem key={playlist.id} playlist={playlist} />
+          ))}
+        </div>
+      )}
     />
   );
 };

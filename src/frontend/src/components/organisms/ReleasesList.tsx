@@ -1,6 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, forwardRef, HTMLAttributes, memo, MouseEvent, useCallback } from "react";
-import { VirtuosoGrid } from "react-virtuoso";
+import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
+import { Virtuoso } from "react-virtuoso";
+import { useGridColumns } from "../../hooks/useGridColumns";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { ReleaseCard } from "./ReleaseCard";
@@ -54,50 +55,52 @@ interface ReleasesListProps {
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
 }
 
-const GridList = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => (
-  <div
-    ref={ref}
-    {...props}
-    className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-  />
-));
-
-const GridItem = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => (
-  <div ref={ref} {...props} className="contents" />
-));
-
 export const ReleasesList: FC<ReleasesListProps> = ({
   releases,
   playlists,
   onReleaseClick,
   onDownloadRelease,
 }) => {
+  const columns = useGridColumns();
+
+  const rows = useMemo(() => {
+    const result = [];
+    for (let i = 0; i < releases.length; i += columns) {
+      result.push(releases.slice(i, i + columns));
+    }
+    return result;
+  }, [releases, columns]);
+
   return (
-    <VirtuosoGrid
+    <Virtuoso
       useWindowScroll
-      data={releases}
-      components={{
-        List: GridList,
-        Item: GridItem,
-      }}
-      itemContent={(index, release) => {
-        const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
-        const status = playlist ? getPlaylistStatus(playlist) : undefined;
+      data={rows}
+      itemContent={(_, rowItems) => (
+        <div
+          className="grid gap-4 mb-4"
+          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+        >
+          {rowItems.map((release) => {
+            const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
+            const status = playlist ? getPlaylistStatus(playlist) : undefined;
 
-        const isDownloaded = status === PlaylistStatusEnum.Completed;
-        const isDownloading =
-          status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+            const isDownloaded = status === PlaylistStatusEnum.Completed;
+            const isDownloading =
+              status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
 
-        return (
-          <ReleaseItem
-            release={release}
-            isDownloaded={isDownloaded}
-            isDownloading={isDownloading}
-            onReleaseClick={onReleaseClick}
-            onDownloadRelease={onDownloadRelease}
-          />
-        );
-      }}
+            return (
+              <ReleaseItem
+                key={`${release.albumId}-${release.artistId}`}
+                release={release}
+                isDownloaded={isDownloaded}
+                isDownloading={isDownloading}
+                onReleaseClick={onReleaseClick}
+                onDownloadRelease={onDownloadRelease}
+              />
+            );
+          })}
+        </div>
+      )}
     />
   );
 };
