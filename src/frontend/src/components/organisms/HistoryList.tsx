@@ -1,6 +1,7 @@
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Virtuoso } from "react-virtuoso";
 import { Path } from "../../routes/routes";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { formatRelativeDate } from "../../utils/date";
@@ -148,23 +149,27 @@ export const HistoryList: FC<HistoryListProps> = ({
         <div className="hidden md:block text-right">Completed</div>
         <div className="text-right">Actions</div>
       </div>
-      <div className="flex flex-col gap-1">
-        {history.map((item) => {
+      <Virtuoso
+        useWindowScroll
+        data={history}
+        itemContent={(_, item) => {
           const activePlaylist = activePlaylists.find(
             (p) => p.spotifyUrl === item.playlistSpotifyUrl,
           );
 
           return (
-            <HistoryListItem
-              key={item.playlistId ?? item.playlistSpotifyUrl ?? item.playlistName}
-              item={item}
-              activePlaylist={activePlaylist}
-              isRecreating={isRecreating}
-              onRecreate={onRecreate}
-            />
+            <div className="mb-1">
+              <HistoryListItem
+                key={item.playlistId ?? item.playlistSpotifyUrl ?? item.playlistName}
+                item={item}
+                activePlaylist={activePlaylist}
+                isRecreating={isRecreating}
+                onRecreate={onRecreate}
+              />
+            </div>
           );
-        })}
-      </div>
+        }}
+      />
     </div>
   );
 };
