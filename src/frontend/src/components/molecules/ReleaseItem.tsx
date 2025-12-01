@@ -5,12 +5,19 @@ import { ReleaseCard } from "../organisms/ReleaseCard";
 interface ReleaseItemProps {
   release: ArtistRelease;
   isDownloaded: boolean;
+  isDownloading: boolean;
   onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
 }
 
 export const ReleaseItem: FC<ReleaseItemProps> = memo(
-  ({ release, isDownloaded, onReleaseClick, onDownloadRelease }: ReleaseItemProps) => {
+  ({
+    release,
+    isDownloaded,
+    isDownloading,
+    onReleaseClick,
+    onDownloadRelease,
+  }: ReleaseItemProps) => {
     const handleCardClick = useCallback(() => {
       onReleaseClick(release);
     }, [onReleaseClick, release]);
@@ -34,6 +41,7 @@ export const ReleaseItem: FC<ReleaseItemProps> = memo(
         releaseDate={release.releaseDate}
         spotifyUrl={release.spotifyUrl}
         isDownloaded={isDownloaded}
+        isDownloading={isDownloading}
         albumType={release.albumType}
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}

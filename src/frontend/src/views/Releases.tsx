@@ -10,6 +10,8 @@ import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistM
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useReleasesQuery } from "../hooks/queries/useReleasesQuery";
 import { Path } from "../routes/routes";
+import { PlaylistStatusEnum } from "../types/playlist";
+import { getPlaylistStatus } from "../utils/playlist";
 
 export const Releases: FC = () => {
   const navigate = useNavigate();
@@ -38,13 +40,9 @@ export const Releases: FC = () => {
   const handleDownloadRelease = useCallback(
     (e: MouseEvent, spotifyUrl: string) => {
       e.stopPropagation();
-      createPlaylist.mutate(spotifyUrl, {
-        onSuccess: (playlist) => {
-          navigate(Path.PLAYLIST_DETAIL.replace(":id", playlist.id));
-        },
-      });
+      createPlaylist.mutate(spotifyUrl);
     },
-    [createPlaylist, navigate],
+    [createPlaylist],
   );
 
   if (error === "missing_user_access_token") {
@@ -78,13 +76,19 @@ export const Releases: FC = () => {
         ) : (
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {releases.map((release) => {
-              const isDownloaded = playlists.some((p) => p.spotifyUrl === release.spotifyUrl);
+              const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
+              const status = playlist ? getPlaylistStatus(playlist) : undefined;
+
+              const isDownloaded = status === PlaylistStatusEnum.Completed;
+              const isDownloading =
+                status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
 
               return (
                 <ReleaseItem
                   key={`${release.albumId}-${release.artistId}`}
                   release={release}
                   isDownloaded={isDownloaded}
+                  isDownloading={isDownloading}
                   onReleaseClick={handleReleaseClick}
                   onDownloadRelease={handleDownloadRelease}
                 />

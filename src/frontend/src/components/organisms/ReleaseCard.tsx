@@ -12,6 +12,7 @@ interface ReleaseCardProps {
   releaseDate?: string | null;
   spotifyUrl?: string | null;
   isDownloaded?: boolean;
+  isDownloading?: boolean;
   albumType?: string;
   onCardClick: () => void;
   onDownloadClick: (e: MouseEvent<HTMLButtonElement>) => void;
@@ -26,6 +27,7 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
   releaseDate,
   spotifyUrl,
   isDownloaded = false,
+  isDownloading = false,
   albumType,
   onCardClick,
   onDownloadClick,
@@ -65,16 +67,30 @@ export const ReleaseCard: FC<ReleaseCardProps> = ({
         )}
 
         {spotifyUrl && (
-          <div className="absolute inset-0 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-black/40">
+          <div
+            className={`absolute inset-0 flex items-center justify-center transition-opacity bg-black/40 ${
+              isDownloading ? "opacity-100" : "md:opacity-0 md:group-hover:opacity-100"
+            }`}
+          >
             <button
               onClick={onDownloadClick}
-              disabled={isDownloaded}
+              disabled={isDownloaded || isDownloading}
               className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all ${
-                isDownloaded ? "bg-green-500 cursor-not-allowed" : "bg-primary hover:scale-110"
+                isDownloaded
+                  ? "bg-green-500 cursor-not-allowed"
+                  : isDownloading
+                    ? "bg-background-elevated cursor-wait"
+                    : "bg-primary hover:scale-110"
               }`}
-              title={isDownloaded ? "Already downloaded" : "Download"}
+              title={
+                isDownloaded ? "Already downloaded" : isDownloading ? "Downloading..." : "Download"
+              }
             >
-              <i className={`fa-solid ${isDownloaded ? "fa-check" : "fa-download"} text-black`} />
+              {isDownloading ? (
+                <i className="fa-solid fa-spinner fa-spin text-primary" />
+              ) : (
+                <i className={`fa-solid ${isDownloaded ? "fa-check" : "fa-download"} text-black`} />
+              )}
             </button>
           </div>
         )}
