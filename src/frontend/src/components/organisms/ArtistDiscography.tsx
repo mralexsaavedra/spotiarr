@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
-import { Button } from "../atoms/Button";
+import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
 import { ReleaseCard } from "./ReleaseCard";
 
 interface ArtistDiscographyProps {
@@ -12,23 +12,6 @@ interface ArtistDiscographyProps {
   playlists?: Playlist[];
   onDownload: (url: string) => void;
 }
-
-type DiscographyFilter = "popular" | "album" | "single" | "compilation";
-
-const FilterButton: FC<{ active: boolean; onClick: () => void; label: string }> = ({
-  active,
-  onClick,
-  label,
-}) => (
-  <Button
-    onClick={onClick}
-    size="sm"
-    variant="secondary"
-    className={`whitespace-nowrap ${active ? "!bg-white !text-black hover:!bg-white/90" : ""}`}
-  >
-    {label}
-  </Button>
-);
 
 interface DiscographyItemProps {
   album: ArtistRelease;
@@ -85,12 +68,12 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   onDownload,
 }) => {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<DiscographyFilter>("popular");
+  const [filter, setFilter] = useState<DiscographyFilter>("all");
 
   const filteredAlbums = useMemo(() => {
     let result = albums;
 
-    if (filter !== "popular") {
+    if (filter !== "all") {
       result = result.filter((a) => a.albumType === filter);
     }
 
@@ -115,28 +98,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
         <h2 className="text-2xl font-bold">Discography</h2>
       </div>
 
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        <FilterButton
-          active={filter === "popular"}
-          onClick={() => setFilter("popular")}
-          label="Popular releases"
-        />
-        <FilterButton
-          active={filter === "album"}
-          onClick={() => setFilter("album")}
-          label="Albums"
-        />
-        <FilterButton
-          active={filter === "single"}
-          onClick={() => setFilter("single")}
-          label="Singles & EPs"
-        />
-        <FilterButton
-          active={filter === "compilation"}
-          onClick={() => setFilter("compilation")}
-          label="Compilations"
-        />
-      </div>
+      <ArtistDiscographyFilters currentFilter={filter} onFilterChange={setFilter} />
 
       {filteredAlbums.length === 0 ? (
         <div className="py-12 text-center text-text-secondary bg-white/5 rounded-lg">
