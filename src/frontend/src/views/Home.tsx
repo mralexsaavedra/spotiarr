@@ -11,6 +11,7 @@ import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 export const Home: FC = () => {
   const { data: playlists, isLoading } = usePlaylistsQuery();
   const deleteCompletedPlaylists = useDeleteCompletedPlaylistsMutation();
+
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   const handleClearAllClick = useCallback(() => {

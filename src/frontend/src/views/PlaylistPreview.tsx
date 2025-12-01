@@ -20,19 +20,9 @@ export const PlaylistPreview: FC = () => {
   const createPlaylist = useCreatePlaylistMutation();
 
   const spotifyUrl = useMemo(() => searchParams.get("url"), [searchParams]);
-
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
+
   const { getTrackStatus } = useTrackStatus();
-
-  const handleGoBack = useCallback(() => {
-    navigate(Path.RELEASES);
-  }, [navigate]);
-
-  const handleDownload = useCallback(() => {
-    if (!spotifyUrl) return;
-
-    createPlaylist.mutate(spotifyUrl);
-  }, [spotifyUrl, createPlaylist]);
 
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
@@ -53,6 +43,16 @@ export const PlaylistPreview: FC = () => {
       };
     });
   }, [previewData, getTrackStatus]);
+
+  const handleGoBack = useCallback(() => {
+    navigate(Path.RELEASES);
+  }, [navigate]);
+
+  const handleDownload = useCallback(() => {
+    if (!spotifyUrl) return;
+
+    createPlaylist.mutate(spotifyUrl);
+  }, [spotifyUrl, createPlaylist]);
 
   const handleDownloadTrack = useCallback(
     (track: Track) => {

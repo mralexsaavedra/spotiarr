@@ -8,6 +8,7 @@ import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuer
 
 export const Artists: FC = () => {
   const { artists, isLoading, error } = useFollowedArtistsQuery();
+
   const [search, setSearch] = useState("");
 
   const filteredArtists = useMemo(() => {

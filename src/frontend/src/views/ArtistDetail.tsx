@@ -15,11 +15,14 @@ import { useTrackStatus } from "../hooks/useTrackStatus";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
+
   const { artist, isLoading, error } = useArtistDetailQuery(id || null);
   const { data: playlists } = usePlaylistsQuery();
   const { data: downloadTracks } = useDownloadTracksQuery();
   const createPlaylistMutation = useCreatePlaylistMutation();
 
+  const { getTrackStatus } = useTrackStatus();
+  const isArtistDownloaded = useArtistStatus(artist?.spotifyUrl, playlists, downloadTracks);
   const hasArtist = !!artist && !!id && !error;
 
   const statusMessage = useMemo(
@@ -41,10 +44,6 @@ export const ArtistDetail: FC = () => {
         : null,
     [artist?.followers],
   );
-
-  const { getTrackStatus } = useTrackStatus();
-
-  const isArtistDownloaded = useArtistStatus(artist?.spotifyUrl, playlists, downloadTracks);
 
   const handleDownload = useCallback(
     (url?: string) => {

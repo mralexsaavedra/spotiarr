@@ -17,14 +17,15 @@ import { Path } from "../routes/routes";
 export const PlaylistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { data: playlists = [], isLoading: isPlaylistsLoading } = usePlaylistsQuery();
+  const { data: tracks = [], isLoading: isTracksLoading } = useTracksQuery(id || "");
   const updatePlaylist = useUpdatePlaylistMutation();
   const deletePlaylist = useDeletePlaylistMutation();
   const retryFailedTracks = useRetryFailedTracksMutation();
-  const { data: tracks = [], isLoading: isTracksLoading } = useTracksQuery(id || "");
   const { mutate: retryTrack } = useRetryTrackMutation(id || "");
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
 
