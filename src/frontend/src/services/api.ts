@@ -294,6 +294,43 @@ class ApiClient {
 
     return data as ArtistDetail;
   }
+  async getArtistAlbums(
+    artistId: string,
+    limit: number = 50,
+    offset: number = 0,
+  ): Promise<ArtistRelease[]> {
+    const response = await fetch(
+      `${API_BASE}/artist/${artistId}/albums?limit=${limit}&offset=${offset}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const text = await response.text();
+    const data = text ? (JSON.parse(text) as unknown) : undefined;
+
+    if (!response.ok) {
+      let errorCode: ApiErrorCode | undefined;
+
+      if (typeof data === "object" && data !== null && "error" in data) {
+        errorCode = (data as ApiErrorShape).error;
+      }
+
+      if (errorCode === "missing_user_access_token") {
+        throw new Error("missing_user_access_token");
+      }
+
+      if (errorCode === "spotify_rate_limited") {
+        throw new Error("spotify_rate_limited");
+      }
+
+      throw new Error("failed_to_fetch_artist_albums");
+    }
+
+    return data as ArtistRelease[];
+  }
 }
 
 export const api = new ApiClient();
