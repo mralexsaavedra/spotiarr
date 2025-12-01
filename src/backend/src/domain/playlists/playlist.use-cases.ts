@@ -39,6 +39,22 @@ export class PlaylistUseCases {
     this.deps.emitEvent("playlists-updated");
   }
 
+  async removeCompleted(): Promise<void> {
+    const playlists = await this.findAll(true);
+    const completedPlaylists = playlists.filter((playlist) => {
+      if (!playlist.tracks || playlist.tracks.length === 0) return false;
+      return playlist.tracks.every((track) => track.status === TrackStatusEnum.Completed);
+    });
+
+    for (const playlist of completedPlaylists) {
+      await this.deps.repository.delete(playlist.id);
+    }
+
+    if (completedPlaylists.length > 0) {
+      this.deps.emitEvent("playlists-updated");
+    }
+  }
+
   async create(playlist: IPlaylist): Promise<IPlaylist> {
     const existing = await this.deps.repository.findAll(false, { spotifyUrl: playlist.spotifyUrl });
     if (existing.length > 0) {

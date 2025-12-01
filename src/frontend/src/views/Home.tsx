@@ -5,13 +5,12 @@ import { PageHeader } from "../components/atoms/PageHeader";
 import { ConfirmModal } from "../components/molecules/ConfirmModal";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { PlaylistList } from "../components/organisms/PlaylistList";
-import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
+import { useDeleteCompletedPlaylistsMutation } from "../hooks/mutations/useDeleteCompletedPlaylistsMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
-import { shouldClearPlaylist } from "../utils/playlist";
 
 export const Home: FC = () => {
   const { data: playlists, isLoading } = usePlaylistsQuery();
-  const deletePlaylist = useDeletePlaylistMutation();
+  const deleteCompletedPlaylists = useDeleteCompletedPlaylistsMutation();
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   const handleClearAllClick = useCallback(() => {
@@ -19,11 +18,9 @@ export const Home: FC = () => {
   }, []);
 
   const handleConfirmClearAll = useCallback(() => {
-    if (playlists) {
-      playlists.filter((p) => shouldClearPlaylist(p)).forEach((p) => deletePlaylist.mutate(p.id));
-    }
+    deleteCompletedPlaylists.mutate();
     setIsClearModalOpen(false);
-  }, [deletePlaylist, playlists]);
+  }, [deleteCompletedPlaylists]);
 
   const handleCancelClearAll = useCallback(() => {
     setIsClearModalOpen(false);

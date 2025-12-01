@@ -111,6 +111,15 @@ router.put(
   }),
 );
 
+// DELETE /api/playlist/completed - Delete all completed playlists
+router.delete(
+  "/completed",
+  asyncHandler(async (req, res) => {
+    await playlistService.removeCompleted();
+    res.status(204).send();
+  }),
+);
+
 // DELETE /api/playlist/:id - Delete playlist
 router.delete(
   "/:id",

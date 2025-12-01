@@ -45,6 +45,10 @@ export class PlaylistService {
     await this.useCases.remove(id);
   }
 
+  async removeCompleted(): Promise<void> {
+    await this.useCases.removeCompleted();
+  }
+
   async create(playlist: IPlaylist): Promise<IPlaylist> {
     return this.useCases.create(playlist);
   }

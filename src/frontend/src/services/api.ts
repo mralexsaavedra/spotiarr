@@ -129,6 +129,12 @@ class ApiClient {
     });
   }
 
+  async deleteCompletedPlaylists(): Promise<void> {
+    return this.request<void>("/playlist/completed", {
+      method: "DELETE",
+    });
+  }
+
   // Track endpoints
   async getTracksByPlaylist(playlistId: string): Promise<Track[]> {
     const response = await this.request<{ data: Track[] }>(`/track/playlist/${playlistId}`);
