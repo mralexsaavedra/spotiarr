@@ -1,7 +1,6 @@
 import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, ReactNode, useMemo } from "react";
 import { Track } from "../../types/track";
-import { PlaylistTableHeader } from "../atoms/PlaylistTableHeader";
 import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistHeader } from "../molecules/PlaylistHeader";
@@ -99,15 +98,11 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
             className="py-12"
           />
         ) : (
-          <>
-            <PlaylistTableHeader />
-
-            <PlaylistTracksList
-              tracks={tracks}
-              onRetryTrack={onRetryTrack}
-              onDownloadTrack={onDownloadTrack}
-            />
-          </>
+          <PlaylistTracksList
+            tracks={tracks}
+            onRetryTrack={onRetryTrack}
+            onDownloadTrack={onDownloadTrack}
+          />
         )}
       </div>
     </div>
