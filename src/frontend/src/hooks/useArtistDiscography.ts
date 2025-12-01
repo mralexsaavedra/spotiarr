@@ -41,7 +41,7 @@ export const useArtistDiscography = ({ artistId, initialAlbums }: UseArtistDisco
     if (!hasFetchedAll) {
       setIsLoadingMore(true);
       try {
-        const limit = 50;
+        const limit = 12;
         const offset = allAlbums.length;
         const moreAlbums = await api.getArtistAlbums(artistId, limit, offset);
 

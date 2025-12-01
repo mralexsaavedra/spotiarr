@@ -81,13 +81,15 @@ export interface IPlaylist {
   tracks?: ITrack[];
 }
 
+export type AlbumType = "album" | "single" | "compilation";
+
 export interface ArtistRelease {
   artistId: string;
   artistName: string;
   artistImageUrl: string | null;
   albumId: string;
   albumName: string;
-  albumType?: string;
+  albumType?: AlbumType;
   releaseDate?: string;
   coverUrl: string | null;
   spotifyUrl?: string;

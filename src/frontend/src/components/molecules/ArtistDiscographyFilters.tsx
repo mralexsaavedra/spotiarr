@@ -1,7 +1,8 @@
+import { AlbumType } from "@spotiarr/shared";
 import { FC, memo, useCallback } from "react";
 import { Button } from "../atoms/Button";
 
-export type DiscographyFilter = "all" | "album" | "single" | "compilation";
+export type DiscographyFilter = AlbumType | "all";
 
 interface FilterOption {
   key: DiscographyFilter;

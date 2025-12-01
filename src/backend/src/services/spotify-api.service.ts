@@ -1,4 +1,4 @@
-import { type ArtistRelease } from "@spotiarr/shared";
+import { AlbumType, ArtistRelease } from "@spotiarr/shared";
 import { SpotifyUrlHelper } from "../helpers/spotify-url.helper";
 import { NormalizedTrack } from "../types/spotify";
 import { SettingsService } from "./settings.service";
@@ -691,7 +691,7 @@ export class SpotifyApiService {
           artistImageUrl: null,
           albumId: album.id as string,
           albumName: album.name,
-          albumType: album.album_group ?? album.album_type,
+          albumType: (album.album_group ?? album.album_type) as AlbumType,
           releaseDate: album.release_date,
           coverUrl: album.images?.[0]?.url ?? null,
           spotifyUrl: album.external_urls?.spotify,
@@ -802,7 +802,7 @@ export class SpotifyApiService {
             artistImageUrl: artist.images?.[0]?.url ?? null,
             albumId: album.id as string,
             albumName: album.name,
-            albumType: album.album_group ?? album.album_type,
+            albumType: (album.album_group ?? album.album_type) as AlbumType,
             releaseDate: album.release_date,
             coverUrl: album.images?.[0]?.url ?? null,
             spotifyUrl: album.external_urls?.spotify,
