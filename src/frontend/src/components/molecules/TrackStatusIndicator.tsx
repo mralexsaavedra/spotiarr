@@ -4,7 +4,7 @@ import { FC, MouseEvent } from "react";
 interface TrackStatusIndicatorProps {
   status?: TrackStatusEnum;
   index: number;
-  onRetry: (e: MouseEvent) => void;
+  onRetry?: (e: MouseEvent) => void;
   onDownload?: (e: MouseEvent) => void;
 }
 
@@ -15,16 +15,19 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = ({
   onDownload,
 }) => {
   if (status === TrackStatusEnum.Error) {
-    return (
-      <button
-        className="text-red-500 hover:text-red-400 transition-colors"
-        onClick={onRetry}
-        title="Retry download"
-        type="button"
-      >
-        <i className="fa-solid fa-rotate-right" />
-      </button>
-    );
+    if (onRetry) {
+      return (
+        <button
+          className="text-red-500 hover:text-red-400 transition-colors"
+          onClick={onRetry}
+          title="Retry download"
+          type="button"
+        >
+          <i className="fa-solid fa-rotate-right" />
+        </button>
+      );
+    }
+    return <i className="fa-solid fa-triangle-exclamation text-red-500" title="Error" />;
   }
 
   if (status === TrackStatusEnum.Downloading) {

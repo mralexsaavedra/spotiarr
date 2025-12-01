@@ -8,7 +8,7 @@ import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 interface PlaylistTrackItemProps {
   track: Track;
   index: number;
-  onRetryTrack: (trackId: string) => void;
+  onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
 }
 
@@ -19,7 +19,9 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
     const handleRetry = useCallback(
       (e: MouseEvent) => {
         e.stopPropagation();
-        onRetryTrack(track.id);
+        if (onRetryTrack) {
+          onRetryTrack(track.id);
+        }
       },
       [track.id, onRetryTrack],
     );
@@ -45,7 +47,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
           <TrackStatusIndicator
             status={track.status}
             index={index}
-            onRetry={handleRetry}
+            onRetry={onRetryTrack ? handleRetry : undefined}
             onDownload={onDownloadTrack ? handleDownload : undefined}
           />
         </div>
@@ -104,7 +106,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
 
 interface PlaylistTracksListProps {
   tracks: Track[];
-  onRetryTrack: (trackId: string) => void;
+  onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
 }
 

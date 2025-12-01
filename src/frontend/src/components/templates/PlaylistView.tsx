@@ -18,7 +18,7 @@ interface PlaylistViewProps {
   tracks: Track[];
   error: unknown;
   onGoBack: () => void;
-  onRetryTrack: (id: string) => void;
+  onRetryTrack?: (id: string) => void;
   onDownloadTrack?: (track: Track) => void;
 }
 

@@ -53,10 +53,6 @@ export const PlaylistPreview: FC = () => {
     });
   }, [previewData, getTrackStatus]);
 
-  const handleRetryTrack = useCallback(() => {
-    // No-op for preview
-  }, []);
-
   const handleDownloadTrack = useCallback(
     (track: Track) => {
       if (track.trackUrl) {
@@ -103,7 +99,6 @@ export const PlaylistPreview: FC = () => {
       tracks={tracks}
       error={error}
       onGoBack={handleGoBack}
-      onRetryTrack={handleRetryTrack}
       onDownloadTrack={handleDownloadTrack}
     />
   );
