@@ -5,7 +5,7 @@ import { Loading } from "../components/atoms/Loading";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { ArtistHeader } from "../components/molecules/ArtistHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
-import { TrackList } from "../components/molecules/TrackList";
+import { TrackList } from "../components/organisms/TrackList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
 import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";

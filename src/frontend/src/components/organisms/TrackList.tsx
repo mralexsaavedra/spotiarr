@@ -3,7 +3,7 @@ import { FC, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { formatDuration } from "../../utils/date";
-import { TrackStatusIndicator } from "./TrackStatusIndicator";
+import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 
 interface TrackListItemProps {
   track: ArtistTopTrack;
