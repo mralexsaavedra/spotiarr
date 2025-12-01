@@ -1,5 +1,5 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, MouseEvent, useCallback } from "react";
+import { FC, memo, MouseEvent, useCallback } from "react";
 import { useArtistDiscography } from "../../hooks/useArtistDiscography";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
@@ -23,46 +23,42 @@ interface DiscographyItemProps {
   onDownload: (url: string) => void;
 }
 
-const DiscographyItem: FC<DiscographyItemProps> = ({
-  album,
-  isDownloaded,
-  isDownloading,
-  onDiscographyItemClick,
-  onDownload,
-}) => {
-  const handleCardClick = useCallback(() => {
-    if (album.spotifyUrl) {
-      onDiscographyItemClick(album.spotifyUrl);
-    }
-  }, [album.spotifyUrl, onDiscographyItemClick]);
-
-  const handleDownloadClick = useCallback(
-    (e: MouseEvent) => {
-      e.stopPropagation();
+const DiscographyItem: FC<DiscographyItemProps> = memo(
+  ({ album, isDownloaded, isDownloading, onDiscographyItemClick, onDownload }) => {
+    const handleCardClick = useCallback(() => {
       if (album.spotifyUrl) {
-        onDownload(album.spotifyUrl);
+        onDiscographyItemClick(album.spotifyUrl);
       }
-    },
-    [album.spotifyUrl, onDownload],
-  );
+    }, [album.spotifyUrl, onDiscographyItemClick]);
 
-  return (
-    <AlbumCard
-      albumId={album.albumId}
-      artistId={album.artistId}
-      albumName={album.albumName}
-      artistName={album.artistName}
-      coverUrl={album.coverUrl}
-      releaseDate={album.releaseDate}
-      spotifyUrl={album.spotifyUrl}
-      isDownloaded={isDownloaded}
-      isDownloading={isDownloading}
-      albumType={album.albumType}
-      onCardClick={handleCardClick}
-      onDownloadClick={handleDownloadClick}
-    />
-  );
-};
+    const handleDownloadClick = useCallback(
+      (e: MouseEvent) => {
+        e.stopPropagation();
+        if (album.spotifyUrl) {
+          onDownload(album.spotifyUrl);
+        }
+      },
+      [album.spotifyUrl, onDownload],
+    );
+
+    return (
+      <AlbumCard
+        albumId={album.albumId}
+        artistId={album.artistId}
+        albumName={album.albumName}
+        artistName={album.artistName}
+        coverUrl={album.coverUrl}
+        releaseDate={album.releaseDate}
+        spotifyUrl={album.spotifyUrl}
+        isDownloaded={isDownloaded}
+        isDownloading={isDownloading}
+        albumType={album.albumType}
+        onCardClick={handleCardClick}
+        onDownloadClick={handleDownloadClick}
+      />
+    );
+  },
+);
 
 export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   artistId,

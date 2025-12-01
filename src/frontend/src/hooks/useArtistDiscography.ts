@@ -41,13 +41,18 @@ export const useArtistDiscography = ({ artistId, initialAlbums }: UseArtistDisco
     if (!hasFetchedAll) {
       setIsLoadingMore(true);
       try {
-        const moreAlbums = await api.getArtistAlbums(artistId, 1000, 12);
+        const limit = 50;
+        const offset = allAlbums.length;
+        const moreAlbums = await api.getArtistAlbums(artistId, limit, offset);
+
+        if (moreAlbums.length < limit) {
+          setHasFetchedAll(true);
+        }
 
         const existingIds = new Set(allAlbums.map((a) => a.albumId));
         const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
 
         setAllAlbums((prev) => [...prev, ...uniqueNewAlbums]);
-        setHasFetchedAll(true);
       } catch (error) {
         console.error("Failed to fetch more albums", error);
       } finally {
