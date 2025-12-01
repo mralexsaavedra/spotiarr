@@ -1,72 +1,13 @@
-import { SettingMetadata } from "@spotiarr/shared";
-import { FC, useCallback } from "react";
+import { FC } from "react";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
-import { SettingInput } from "../components/molecules/SettingInput";
-import { SettingSelect } from "../components/molecules/SettingSelect";
-import { SettingToggle } from "../components/molecules/SettingToggle";
+import { SettingItem } from "../components/molecules/SettingItem";
 import { useSettingsForm } from "../hooks/useSettingsForm";
 
 export const Settings: FC = () => {
   const { settings, values, isLoading, isSaving, handleSubmit, handleChange, handleReset } =
     useSettingsForm();
-
-  const renderSetting = useCallback(
-    (setting: SettingMetadata) => {
-      const value = values[setting.key] || setting.defaultValue;
-
-      switch (setting.component) {
-        case "input":
-          return (
-            <SettingInput
-              key={setting.key}
-              id={setting.key}
-              label={setting.label}
-              value={value}
-              onChange={handleChange(setting.key)}
-              min={setting.min}
-              max={setting.max}
-              description={setting.description}
-            />
-          );
-
-        case "toggle":
-          return (
-            <SettingToggle
-              key={setting.key}
-              id={setting.key}
-              label={setting.label}
-              description={setting.description}
-              value={value === "true"}
-              onChange={handleChange(setting.key)}
-            />
-          );
-
-        case "select": {
-          const formatLabel =
-            setting.key === "FORMAT" ? (option: string) => option.toUpperCase() : undefined;
-
-          return (
-            <SettingSelect
-              key={setting.key}
-              id={setting.key}
-              label={setting.label}
-              value={value}
-              onChange={handleChange(setting.key)}
-              options={setting.options || []}
-              description={setting.description}
-              formatLabel={formatLabel}
-            />
-          );
-        }
-
-        default:
-          return null;
-      }
-    },
-    [values, handleChange],
-  );
 
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">
@@ -86,7 +27,16 @@ export const Settings: FC = () => {
                   <h2 className="text-lg font-bold text-text-primary border-b border-white/10 pb-2">
                     {section}
                   </h2>
-                  <div className="space-y-6">{sectionSettings.map(renderSetting)}</div>
+                  <div className="space-y-6">
+                    {sectionSettings.map((setting) => (
+                      <SettingItem
+                        key={setting.key}
+                        setting={setting}
+                        value={values[setting.key]}
+                        onChange={handleChange}
+                      />
+                    ))}
+                  </div>
                 </div>
               ))}
             </fieldset>
