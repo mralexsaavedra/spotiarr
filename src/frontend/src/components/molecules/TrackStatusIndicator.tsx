@@ -1,5 +1,5 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, MouseEvent } from "react";
+import { FC, MouseEvent, ReactNode } from "react";
 
 interface TrackStatusIndicatorProps {
   status?: TrackStatusEnum;
@@ -8,38 +8,40 @@ interface TrackStatusIndicatorProps {
   onDownload?: (e: MouseEvent) => void;
 }
 
-export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = ({
-  status,
-  index,
-  onRetry,
-  onDownload,
-}) => {
-  if (status === TrackStatusEnum.Error) {
-    if (onRetry) {
-      return (
-        <button
-          className="text-red-500 hover:text-red-400 transition-colors"
-          onClick={onRetry}
-          title="Retry download"
-          type="button"
-        >
-          <i className="fa-solid fa-rotate-right" />
-        </button>
-      );
-    }
-    return <i className="fa-solid fa-triangle-exclamation text-red-500" title="Error" />;
-  }
+const STATUS_RENDERERS: Partial<
+  Record<TrackStatusEnum, (props: TrackStatusIndicatorProps) => ReactNode>
+> = {
+  [TrackStatusEnum.Error]: ({ onRetry }) =>
+    onRetry ? (
+      <button
+        className="text-red-500 hover:text-red-400 transition-colors"
+        onClick={onRetry}
+        title="Retry download"
+        type="button"
+      >
+        <i className="fa-solid fa-rotate-right" />
+      </button>
+    ) : (
+      <i className="fa-solid fa-triangle-exclamation text-red-500" title="Error" />
+    ),
+  [TrackStatusEnum.Downloading]: () => (
+    <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />
+  ),
+  [TrackStatusEnum.Queued]: () => (
+    <i className="fa-regular fa-clock text-text-secondary" title="Queued" />
+  ),
+  [TrackStatusEnum.Searching]: () => (
+    <i className="fa-solid fa-magnifying-glass text-text-secondary" title="Searching..." />
+  ),
+};
 
-  if (status === TrackStatusEnum.Downloading) {
-    return <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />;
-  }
+export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
+  const { status, index, onDownload } = props;
 
-  if (status === TrackStatusEnum.Queued) {
-    return <i className="fa-regular fa-clock text-text-secondary" title="Queued" />;
-  }
+  const Renderer = status ? STATUS_RENDERERS[status] : undefined;
 
-  if (status === TrackStatusEnum.Searching) {
-    return <i className="fa-solid fa-magnifying-glass text-text-secondary" title="Searching..." />;
+  if (Renderer) {
+    return <Renderer {...props} />;
   }
 
   const showDownloadAction = !!onDownload && status !== TrackStatusEnum.Completed;
@@ -51,7 +53,7 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = ({
           showDownloadAction ? "hidden md:block md:group-hover:hidden" : "text-text-secondary"
         }
       >
-        {index + 1}
+        {index}
       </span>
       {showDownloadAction && (
         <button

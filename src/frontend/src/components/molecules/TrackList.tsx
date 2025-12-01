@@ -89,7 +89,7 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStat
         <TrackListItem
           key={`${track.trackUrl ?? track.name}-${index}`}
           track={track}
-          index={index}
+          index={index + 1}
           onDownload={onDownload}
           getTrackStatus={getTrackStatus}
         />
