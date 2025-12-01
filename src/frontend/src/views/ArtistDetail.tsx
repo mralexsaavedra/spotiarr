@@ -1,11 +1,11 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { ArtistHeader } from "../components/molecules/ArtistHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
-import { ReleaseCard } from "../components/organisms/ReleaseCard";
+import { ArtistDiscography } from "../components/organisms/ArtistDiscography";
 import { TrackList } from "../components/organisms/TrackList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
@@ -14,24 +14,8 @@ import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useArtistStatus } from "../hooks/useArtistStatus";
 import { useTrackStatus } from "../hooks/useTrackStatus";
 
-const FilterButton: FC<{ active: boolean; onClick: () => void; label: string }> = ({
-  active,
-  onClick,
-  label,
-}) => (
-  <button
-    onClick={onClick}
-    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-      active ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
-    }`}
-  >
-    {label}
-  </button>
-);
-
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [filter, setFilter] = useState<"popular" | "album" | "single" | "compilation">("popular");
 
   const { artist, isLoading, error } = useArtistDetailQuery(id || null);
   const { data: playlists } = usePlaylistsQuery();
@@ -41,23 +25,6 @@ export const ArtistDetail: FC = () => {
   const { getTrackStatus } = useTrackStatus();
   const isArtistDownloaded = useArtistStatus(artist?.spotifyUrl, playlists, downloadTracks);
   const hasArtist = !!artist && !!id && !error;
-
-  const filteredAlbums = useMemo(() => {
-    if (!artist?.albums) return [];
-
-    let result = artist.albums;
-
-    if (filter !== "popular") {
-      result = result.filter((a) => a.albumType === filter);
-    }
-
-    // Sort by release date desc
-    return [...result].sort((a, b) => {
-      const dateA = a.releaseDate || "";
-      const dateB = b.releaseDate || "";
-      return dateB.localeCompare(dateA);
-    });
-  }, [artist?.albums, filter]);
 
   const statusMessage = useMemo(
     () =>
@@ -159,57 +126,7 @@ export const ArtistDetail: FC = () => {
 
         {/* Discography Section */}
         {artist?.albums && artist.albums.length > 0 && (
-          <div className="mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Discography</h2>
-            </div>
-
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              <FilterButton
-                active={filter === "popular"}
-                onClick={() => setFilter("popular")}
-                label="Popular releases"
-              />
-              <FilterButton
-                active={filter === "album"}
-                onClick={() => setFilter("album")}
-                label="Albums"
-              />
-              <FilterButton
-                active={filter === "single"}
-                onClick={() => setFilter("single")}
-                label="Singles & EPs"
-              />
-              <FilterButton
-                active={filter === "compilation"}
-                onClick={() => setFilter("compilation")}
-                label="Compilations"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {filteredAlbums.slice(0, 12).map((album) => (
-                <ReleaseCard
-                  key={album.albumId}
-                  albumId={album.albumId}
-                  artistId={album.artistId}
-                  albumName={album.albumName}
-                  artistName={album.artistName}
-                  coverUrl={album.coverUrl}
-                  releaseDate={album.releaseDate}
-                  spotifyUrl={album.spotifyUrl}
-                  isDownloaded={false} // TODO: Check status
-                  isDownloading={false} // TODO: Check status
-                  albumType={album.albumType}
-                  onCardClick={() => {}} // TODO: Navigate
-                  onDownloadClick={(e) => {
-                    e.stopPropagation();
-                    handleDownload(album.spotifyUrl);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+          <ArtistDiscography albums={artist.albums} onDownload={handleDownload} />
         )}
       </div>
     </div>
