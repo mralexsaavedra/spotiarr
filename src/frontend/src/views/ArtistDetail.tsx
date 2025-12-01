@@ -142,6 +142,7 @@ export const ArtistDetail: FC = () => {
             playlists={playlists}
             onDownload={handleDownload}
             onDiscographyItemClick={handleNavigate}
+            pageSize={limit}
           />
         ) : (
           <div className="mt-10 text-center text-text-secondary">
