@@ -1,5 +1,6 @@
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { Virtuoso } from "react-virtuoso";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
 import { ArtistList } from "../molecules/ArtistList";
@@ -128,17 +129,21 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
       </div>
 
       {/* List */}
-      <div className="flex flex-col">
-        {tracks.map((track, index) => (
-          <PlaylistTrackItem
-            key={track.id}
-            track={track}
-            index={index + 1}
-            onRetryTrack={onRetryTrack}
-            onDownloadTrack={onDownloadTrack}
-          />
-        ))}
-      </div>
+      <Virtuoso
+        useWindowScroll
+        data={tracks}
+        itemContent={(index, track) => (
+          <div className="mb-1">
+            <PlaylistTrackItem
+              key={track.id}
+              track={track}
+              index={index + 1}
+              onRetryTrack={onRetryTrack}
+              onDownloadTrack={onDownloadTrack}
+            />
+          </div>
+        )}
+      />
     </div>
   );
 };
