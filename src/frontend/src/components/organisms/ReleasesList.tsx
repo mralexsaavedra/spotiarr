@@ -1,5 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback } from "react";
+import { FC, forwardRef, HTMLAttributes, memo, MouseEvent, useCallback } from "react";
+import { VirtuosoGrid } from "react-virtuoso";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { ReleaseCard } from "./ReleaseCard";
@@ -53,6 +54,18 @@ interface ReleasesListProps {
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
 }
 
+const GridList = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => (
+  <div
+    ref={ref}
+    {...props}
+    className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+  />
+));
+
+const GridItem = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => (
+  <div ref={ref} {...props} className="contents" />
+));
+
 export const ReleasesList: FC<ReleasesListProps> = ({
   releases,
   playlists,
@@ -60,8 +73,14 @@ export const ReleasesList: FC<ReleasesListProps> = ({
   onDownloadRelease,
 }) => {
   return (
-    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {releases.map((release) => {
+    <VirtuosoGrid
+      useWindowScroll
+      data={releases}
+      components={{
+        List: GridList,
+        Item: GridItem,
+      }}
+      itemContent={(index, release) => {
         const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
         const status = playlist ? getPlaylistStatus(playlist) : undefined;
 
@@ -71,7 +90,6 @@ export const ReleasesList: FC<ReleasesListProps> = ({
 
         return (
           <ReleaseItem
-            key={`${release.albumId}-${release.artistId}`}
             release={release}
             isDownloaded={isDownloaded}
             isDownloading={isDownloading}
@@ -79,7 +97,7 @@ export const ReleasesList: FC<ReleasesListProps> = ({
             onDownloadRelease={onDownloadRelease}
           />
         );
-      })}
-    </div>
+      }}
+    />
   );
 };
