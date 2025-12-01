@@ -46,10 +46,16 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = ({
 
   return (
     <>
-      <span className={showDownloadAction ? "group-hover:hidden" : ""}>{index + 1}</span>
+      <span
+        className={
+          showDownloadAction ? "hidden md:block md:group-hover:hidden" : "text-text-secondary"
+        }
+      >
+        {index + 1}
+      </span>
       {showDownloadAction && (
         <button
-          className="hidden group-hover:block text-text-secondary hover:text-white transition-colors"
+          className="block md:hidden md:group-hover:block text-text-secondary hover:text-white transition-colors"
           onClick={onDownload}
           title="Download Track"
           type="button"
