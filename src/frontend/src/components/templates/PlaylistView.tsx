@@ -6,7 +6,6 @@ import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistHeader } from "../molecules/PlaylistHeader";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
-import { PreviewError } from "../molecules/PreviewError";
 import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
 
 interface PlaylistViewProps {
@@ -16,8 +15,6 @@ interface PlaylistViewProps {
   description?: string | null;
   actions: ReactNode;
   tracks: Track[];
-  error: unknown;
-  onGoBack: () => void;
   onRetryTrack?: (id: string) => void;
   onDownloadTrack?: (track: Track) => void;
 }
@@ -29,8 +26,6 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   description: originalDescription,
   actions,
   tracks,
-  error,
-  onGoBack,
   onRetryTrack,
   onDownloadTrack,
 }) => {
@@ -38,10 +33,6 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
 
   const displayTitle = usePlaylistTitle(rawTitle, type, tracks);
-
-  if (error) {
-    return <PreviewError error={error} onGoBack={onGoBack} />;
-  }
 
   return (
     <div className="flex-1 bg-background overflow-y-auto h-full text-text-primary">

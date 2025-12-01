@@ -104,8 +104,6 @@ export const PlaylistDetail: FC = () => {
           />
         }
         tracks={tracks}
-        error={null}
-        onGoBack={handleGoHome}
         onRetryTrack={handleRetryTrack}
       />
 

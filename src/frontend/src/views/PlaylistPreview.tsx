@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
+import { PreviewError } from "../components/molecules/PreviewError";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
@@ -74,6 +75,10 @@ export const PlaylistPreview: FC = () => {
     return <PlaylistSkeleton />;
   }
 
+  if (error) {
+    return <PreviewError error={error} onGoBack={handleGoBack} />;
+  }
+
   return (
     <PlaylistView
       title={previewData?.name || "Preview"}
@@ -97,8 +102,6 @@ export const PlaylistPreview: FC = () => {
         </div>
       }
       tracks={tracks}
-      error={error}
-      onGoBack={handleGoBack}
       onDownloadTrack={handleDownloadTrack}
     />
   );
