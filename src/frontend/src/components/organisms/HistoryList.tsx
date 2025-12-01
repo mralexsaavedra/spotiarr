@@ -17,7 +17,7 @@ interface HistoryListItemProps {
 
 const HistoryListItem: FC<HistoryListItemProps> = memo(
   ({
-    item: { playlistName, playlistSpotifyUrl, trackCount, lastCompletedAt },
+    item: { playlistName, playlistSpotifyUrl, lastCompletedAt },
     activePlaylist,
     isRecreating,
     onRecreate,
@@ -54,7 +54,7 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
     return (
       <div
         onClick={handleRowClick}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 items-center px-4 py-3 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_150px_120px] gap-4 items-center px-4 py-3 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
       >
         <div className="min-w-0">
           <h3 className="font-medium text-base text-text-primary truncate">
@@ -79,13 +79,9 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
             )}
           </h3>
           <div className="md:hidden flex items-center gap-2 text-xs text-text-secondary mt-1">
-            <span>{trackCount} tracks</span>
-            <span>•</span>
             <span>{lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}</span>
           </div>
         </div>
-
-        <div className="hidden md:block text-right text-sm text-text-secondary">{trackCount}</div>
 
         <div className="hidden md:block text-right text-sm text-text-secondary">
           {lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}
@@ -143,9 +139,8 @@ export const HistoryList: FC<HistoryListProps> = ({
 }) => {
   return (
     <div className="flex flex-col">
-      <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
+      <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
         <div>Title</div>
-        <div className="hidden md:block text-right">Tracks</div>
         <div className="hidden md:block text-right">Completed</div>
         <div className="text-right">Actions</div>
       </div>
