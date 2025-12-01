@@ -128,6 +128,9 @@ importers:
       react-router-dom:
         specifier: ^7.9.6
         version: 7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      react-virtuoso:
+        specifier: ^4.16.1
+        version: 4.16.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       zustand:
         specifier: ^5.0.2
         version: 5.0.8(@types/react@19.2.7)(react@19.2.0)
@@ -3967,6 +3970,15 @@ packages:
       react-dom:
         optional: true
 
+  react-virtuoso@4.16.1:
+    resolution:
+      {
+        integrity: sha512-V9ZDw7TFspJb02gNWqHyVZvaMaCFaoL30F/tOVepCI12kdLjA2oxFfWvNC66AVJdOH5cwiq8317p2Q9OpG+TDw==,
+      }
+    peerDependencies:
+      react: ">=16 || >=17 || >= 18 || >= 19"
+      react-dom: ">=16 || >=17 || >= 18 || >=19"
+
   react@19.2.0:
     resolution:
       {
@@ -7281,6 +7293,11 @@ snapshots:
       react: 19.2.0
       set-cookie-parser: 2.7.2
     optionalDependencies:
+      react-dom: 19.2.0(react@19.2.0)
+
+  react-virtuoso@4.16.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+    dependencies:
+      react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
 
   react@19.2.0: {}
