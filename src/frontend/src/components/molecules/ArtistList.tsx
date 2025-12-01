@@ -1,4 +1,4 @@
-import { FC, MouseEvent } from "react";
+import { FC, memo, MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { getSpotifyIdFromUrl } from "../../utils/spotify";
@@ -22,7 +22,7 @@ interface ArtistLinkProps {
   isLast: boolean;
 }
 
-const ArtistLink: FC<ArtistLinkProps> = ({ artist, linkClassName, onLinkClick, isLast }) => {
+const ArtistLink: FC<ArtistLinkProps> = memo(({ artist, linkClassName, onLinkClick, isLast }) => {
   const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
 
   const handleClick = (e: MouseEvent) => {
@@ -45,7 +45,7 @@ const ArtistLink: FC<ArtistLinkProps> = ({ artist, linkClassName, onLinkClick, i
       {!isLast && ", "}
     </span>
   );
-};
+});
 
 export const ArtistList: FC<ArtistListProps> = ({
   artists,

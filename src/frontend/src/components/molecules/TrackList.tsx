@@ -67,7 +67,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(
         </div>
 
         {/* Duration */}
-        <div className="flex items-center justify-end gap-4 text-sm text-zinc-400">
+        <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
           {isDownloaded && <i className="fa-solid fa-circle-check text-green-500 text-base" />}
           <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
         </div>
