@@ -3,7 +3,7 @@ import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { ConnectSpotifyPrompt } from "../components/molecules/ConnectSpotifyPrompt";
 import { SearchInput } from "../components/molecules/SearchInput";
-import { ArtistCard } from "../components/organisms/ArtistCard";
+import { ArtistList } from "../components/organisms/ArtistList";
 import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuery";
 
 export const Artists: FC = () => {
@@ -56,17 +56,7 @@ export const Artists: FC = () => {
       ) : filteredArtists.length === 0 ? (
         <div className="text-text-secondary">No followed artists found.</div>
       ) : (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          {filteredArtists.map((artist) => (
-            <ArtistCard
-              key={artist.id}
-              id={artist.id}
-              name={artist.name}
-              image={artist.image}
-              spotifyUrl={artist.spotifyUrl}
-            />
-          ))}
-        </div>
+        <ArtistList artists={filteredArtists} />
       )}
     </section>
   );
