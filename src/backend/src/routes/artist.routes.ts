@@ -19,7 +19,7 @@ router.get(
       const [details, topTracks, albums] = await Promise.all([
         spotifyApiService.getArtistDetails(id),
         spotifyApiService.getArtistTopTracks(id),
-        spotifyApiService.getArtistAlbums(id),
+        spotifyApiService.getArtistAlbums(id, 12),
       ]);
 
       return res.json({
@@ -46,6 +46,28 @@ router.get(
 
       console.error("Error getting artist detail", err.message);
       return res.status(500).json({ error: "failed_to_fetch_artist_detail" });
+    }
+  }),
+);
+
+// GET /api/artist/:id/albums - Artist albums (paginated)
+router.get(
+  "/:id/albums",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    if (!id) {
+      return res.status(400).json({ error: "missing_artist_id" });
+    }
+
+    try {
+      const albums = await spotifyApiService.getArtistAlbums(id, limit, offset);
+      return res.json(albums);
+    } catch (error) {
+      console.error("Error getting artist albums", (error as Error).message);
+      return res.status(500).json({ error: "failed_to_fetch_artist_albums" });
     }
   }),
 );
