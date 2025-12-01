@@ -680,7 +680,7 @@ export class SpotifyApiService {
       // A simple dedup by name might be too aggressive, but let's stick to raw for now.
 
       return albums.map((album) => ({
-        artistId: artistId,
+        artistId: album.artists?.[0]?.id || artistId,
         artistName: album.artists?.[0]?.name || "Unknown Artist",
         artistImageUrl: null,
         albumId: album.id as string,

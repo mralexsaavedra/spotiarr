@@ -76,6 +76,7 @@ export const ArtistDetail: FC = () => {
         name={artist?.name || "Artist"}
         image={artist?.image}
         followersText={followersText}
+        spotifyUrl={artist?.spotifyUrl}
       />
 
       {/* Action Bar & Content */}

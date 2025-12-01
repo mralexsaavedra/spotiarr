@@ -4,9 +4,10 @@ interface ArtistHeaderProps {
   name: string;
   image?: string | null;
   followersText?: string | null;
+  spotifyUrl?: string | null;
 }
 
-export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText }) => {
+export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText, spotifyUrl }) => {
   return (
     <header className="relative w-full h-[40vh] min-h-[340px] max-h-[500px]">
       {/* Background Image */}
@@ -26,7 +27,18 @@ export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText
       {/* Content */}
       <div className="absolute bottom-0 left-0 w-full p-6 md:p-8 z-10">
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 drop-shadow-lg">
-          {name}
+          {spotifyUrl ? (
+            <a
+              href={spotifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-green-500 transition-colors"
+            >
+              {name}
+            </a>
+          ) : (
+            name
+          )}
         </h1>
 
         {followersText && (
