@@ -1,9 +1,13 @@
-import { ArtistRelease } from "@spotiarr/shared";
-import { FC, useMemo, useState } from "react";
+import { ArtistRelease, DownloadHistoryItem, IPlaylist } from "@spotiarr/shared";
+import { FC, MouseEvent, useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Path } from "../../routes/routes";
 import { ReleaseCard } from "./ReleaseCard";
 
 interface ArtistDiscographyProps {
   albums: ArtistRelease[];
+  playlists?: IPlaylist[];
+  downloadTracks?: DownloadHistoryItem[];
   onDownload: (url: string) => void;
 }
 
@@ -24,7 +28,62 @@ const FilterButton: FC<{ active: boolean; onClick: () => void; label: string }> 
   </button>
 );
 
-export const ArtistDiscography: FC<ArtistDiscographyProps> = ({ albums, onDownload }) => {
+interface DiscographyItemProps {
+  album: ArtistRelease;
+  isDownloaded: boolean;
+  isDownloading: boolean;
+  onNavigate: (url: string) => void;
+  onDownload: (url: string) => void;
+}
+
+const DiscographyItem: FC<DiscographyItemProps> = ({
+  album,
+  isDownloaded,
+  isDownloading,
+  onNavigate,
+  onDownload,
+}) => {
+  const handleCardClick = useCallback(() => {
+    if (album.spotifyUrl) {
+      onNavigate(album.spotifyUrl);
+    }
+  }, [album.spotifyUrl, onNavigate]);
+
+  const handleDownloadClick = useCallback(
+    (e: MouseEvent) => {
+      e.stopPropagation();
+      if (album.spotifyUrl) {
+        onDownload(album.spotifyUrl);
+      }
+    },
+    [album.spotifyUrl, onDownload],
+  );
+
+  return (
+    <ReleaseCard
+      albumId={album.albumId}
+      artistId={album.artistId}
+      albumName={album.albumName}
+      artistName={album.artistName}
+      coverUrl={album.coverUrl}
+      releaseDate={album.releaseDate}
+      spotifyUrl={album.spotifyUrl}
+      isDownloaded={isDownloaded}
+      isDownloading={isDownloading}
+      albumType={album.albumType}
+      onCardClick={handleCardClick}
+      onDownloadClick={handleDownloadClick}
+    />
+  );
+};
+
+export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
+  albums,
+  playlists,
+  downloadTracks,
+  onDownload,
+}) => {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<DiscographyFilter>("popular");
 
   const filteredAlbums = useMemo(() => {
@@ -41,6 +100,13 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({ albums, onDownlo
       return dateB.localeCompare(dateA);
     });
   }, [albums, filter]);
+
+  const handleNavigate = useCallback(
+    (url: string) => {
+      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(url)}`);
+    },
+    [navigate],
+  );
 
   return (
     <div className="mt-10">
@@ -77,28 +143,26 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({ albums, onDownlo
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {filteredAlbums.slice(0, 12).map((album) => (
-            <ReleaseCard
-              key={album.albumId}
-              albumId={album.albumId}
-              artistId={album.artistId}
-              albumName={album.albumName}
-              artistName={album.artistName}
-              coverUrl={album.coverUrl}
-              releaseDate={album.releaseDate}
-              spotifyUrl={album.spotifyUrl}
-              isDownloaded={false} // TODO: Check status if needed
-              isDownloading={false} // TODO: Check status if needed
-              albumType={album.albumType}
-              onCardClick={() => {}} // TODO: Navigate
-              onDownloadClick={(e) => {
-                e.stopPropagation();
-                if (album.spotifyUrl) {
-                  onDownload(album.spotifyUrl);
-                }
-              }}
-            />
-          ))}
+          {filteredAlbums.slice(0, 12).map((album) => {
+            const isDownloaded =
+              playlists?.some((p) => p.spotifyUrl === album.spotifyUrl) ||
+              downloadTracks?.some((t) => t.playlistSpotifyUrl === album.spotifyUrl) ||
+              false;
+
+            // We don't have real-time downloading status for albums yet, only history.
+            const isDownloading = false;
+
+            return (
+              <DiscographyItem
+                key={album.albumId}
+                album={album}
+                isDownloaded={isDownloaded}
+                isDownloading={isDownloading}
+                onNavigate={handleNavigate}
+                onDownload={onDownload}
+              />
+            );
+          })}
         </div>
       )}
     </div>
