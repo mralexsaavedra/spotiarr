@@ -10,6 +10,53 @@ interface PlaylistMetadataProps {
   tracks: Track[];
 }
 
+interface MetadataRendererProps {
+  artists: { name: string; url?: string }[];
+  onStopPropagation: (e: MouseEvent) => void;
+  firstTrack?: Track;
+}
+
+const AlbumMetadata: FC<MetadataRendererProps> = ({ artists, onStopPropagation }) => (
+  <ArtistList
+    artists={artists}
+    className="font-bold text-white"
+    linkClassName="hover:underline"
+    onLinkClick={onStopPropagation}
+  />
+);
+
+const TrackMetadata: FC<MetadataRendererProps> = ({ artists, firstTrack, onStopPropagation }) => (
+  <>
+    <ArtistList
+      artists={artists}
+      className="font-bold text-white"
+      linkClassName="hover:underline"
+      onLinkClick={onStopPropagation}
+    />
+    <span className="text-text-primary mx-1">•</span>
+    {firstTrack?.albumUrl ? (
+      <Link
+        to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}
+        className="font-medium text-white hover:underline transition-colors"
+        onClick={onStopPropagation}
+      >
+        {firstTrack?.album || "Unknown Album"}
+      </Link>
+    ) : (
+      <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
+    )}
+  </>
+);
+
+const DefaultMetadata: FC<MetadataRendererProps> = () => (
+  <span className="font-bold">SpotiArr</span>
+);
+
+const METADATA_RENDERERS: Record<string, FC<MetadataRendererProps>> = {
+  [PlaylistTypeEnum.Album]: AlbumMetadata,
+  [PlaylistTypeEnum.Track]: TrackMetadata,
+};
+
 export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) => {
   const firstTrack = tracks[0];
   const typeLower = type.toLowerCase();
@@ -30,41 +77,13 @@ export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) =>
     e.stopPropagation();
   }, []);
 
-  if (typeLower === PlaylistTypeEnum.Album && artists.length > 0) {
-    return (
-      <ArtistList
-        artists={artists}
-        className="font-bold text-white"
-        linkClassName="hover:underline"
-        onLinkClick={handleStopPropagation}
-      />
-    );
+  if (artists.length === 0) {
+    return <DefaultMetadata artists={[]} onStopPropagation={handleStopPropagation} />;
   }
 
-  if (typeLower === PlaylistTypeEnum.Track && artists.length > 0) {
-    return (
-      <>
-        <ArtistList
-          artists={artists}
-          className="font-bold text-white"
-          linkClassName="hover:underline"
-          onLinkClick={handleStopPropagation}
-        />
-        <span className="text-text-primary">•</span>
-        {firstTrack?.albumUrl ? (
-          <Link
-            to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}
-            className="font-medium text-white hover:underline transition-colors"
-            onClick={handleStopPropagation}
-          >
-            {firstTrack?.album || "Unknown Album"}
-          </Link>
-        ) : (
-          <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
-        )}
-      </>
-    );
-  }
+  const Renderer = METADATA_RENDERERS[typeLower] || DefaultMetadata;
 
-  return <span className="font-bold">SpotiArr</span>;
+  return (
+    <Renderer artists={artists} firstTrack={firstTrack} onStopPropagation={handleStopPropagation} />
+  );
 };
