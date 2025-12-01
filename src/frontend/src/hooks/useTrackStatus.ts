@@ -9,14 +9,12 @@ export const useTrackStatus = () => {
 
   const getTrackStatus = useCallback(
     (url: string): TrackStatusEnum | undefined => {
-      // Check active playlists
       const activePlaylist = playlists?.find((p) => p.tracks?.some((t) => t.trackUrl === url));
       if (activePlaylist) {
         const track = activePlaylist.tracks?.find((t) => t.trackUrl === url);
         return track?.status;
       }
 
-      // Check history
       const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
       if (isHistory) return TrackStatusEnum.Completed;
 

@@ -28,7 +28,6 @@ export const usePlaylistStats = (playlist: Playlist): PlaylistStats => {
     const searching = tracks.filter((t: Track) => t.status === TrackStatusEnum.Searching).length;
     const queued = tracks.filter((t: Track) => t.status === TrackStatusEnum.Queued).length;
 
-    // Aggregate for "is busy" logic
     const active = downloading + searching + queued;
 
     const errors = tracks.filter((t: Track) => t.status === TrackStatusEnum.Error).length;
