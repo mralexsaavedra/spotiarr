@@ -8,7 +8,7 @@ interface PlaylistCardProps {
 }
 
 export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
-  const { downloadingCount, errorCount, totalCount, isDownloading, hasErrors, isCompleted } =
+  const { completedCount, errorCount, totalCount, isDownloading, hasErrors, isCompleted } =
     usePlaylistStats(playlist);
 
   return (
@@ -21,7 +21,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
           <img
             src={playlist.coverUrl}
             alt={playlist.name || "Playlist cover"}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -43,7 +43,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({ playlist }) => {
             <>
               <i className="fa-solid fa-spinner fa-spin text-blue-400 text-xs" />
               <span>
-                Downloading {downloadingCount}/{totalCount}
+                Downloading... {completedCount}/{totalCount}
               </span>
             </>
           ) : hasErrors ? (
