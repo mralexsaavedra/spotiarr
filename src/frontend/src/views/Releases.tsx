@@ -4,14 +4,12 @@ import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { RateLimitedMessage } from "../components/molecules/RateLimitedMessage";
-import { ReleaseItem } from "../components/molecules/ReleaseItem";
 import { ConnectSpotifyPrompt } from "../components/organisms/ConnectSpotifyPrompt";
+import { ReleasesList } from "../components/organisms/ReleasesList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useReleasesQuery } from "../hooks/queries/useReleasesQuery";
 import { Path } from "../routes/routes";
-import { PlaylistStatusEnum } from "../types/playlist";
-import { getPlaylistStatus } from "../utils/playlist";
 
 export const Releases: FC = () => {
   const navigate = useNavigate();
@@ -74,27 +72,12 @@ export const Releases: FC = () => {
             description="No recent releases found from your followed artists."
           />
         ) : (
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {releases.map((release) => {
-              const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
-              const status = playlist ? getPlaylistStatus(playlist) : undefined;
-
-              const isDownloaded = status === PlaylistStatusEnum.Completed;
-              const isDownloading =
-                status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
-
-              return (
-                <ReleaseItem
-                  key={`${release.albumId}-${release.artistId}`}
-                  release={release}
-                  isDownloaded={isDownloaded}
-                  isDownloading={isDownloading}
-                  onReleaseClick={handleReleaseClick}
-                  onDownloadRelease={handleDownloadRelease}
-                />
-              );
-            })}
-          </div>
+          <ReleasesList
+            releases={releases}
+            playlists={playlists}
+            onReleaseClick={handleReleaseClick}
+            onDownloadRelease={handleDownloadRelease}
+          />
         )}
       </div>
     </section>
