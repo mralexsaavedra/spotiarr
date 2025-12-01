@@ -42,8 +42,6 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({ albums, onDownlo
     });
   }, [albums, filter]);
 
-  if (!albums || albums.length === 0) return null;
-
   return (
     <div className="mt-10">
       <div className="flex items-center justify-between mb-4">
@@ -73,30 +71,36 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({ albums, onDownlo
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {filteredAlbums.slice(0, 12).map((album) => (
-          <ReleaseCard
-            key={album.albumId}
-            albumId={album.albumId}
-            artistId={album.artistId}
-            albumName={album.albumName}
-            artistName={album.artistName}
-            coverUrl={album.coverUrl}
-            releaseDate={album.releaseDate}
-            spotifyUrl={album.spotifyUrl}
-            isDownloaded={false} // TODO: Check status if needed
-            isDownloading={false} // TODO: Check status if needed
-            albumType={album.albumType}
-            onCardClick={() => {}} // TODO: Navigate
-            onDownloadClick={(e) => {
-              e.stopPropagation();
-              if (album.spotifyUrl) {
-                onDownload(album.spotifyUrl);
-              }
-            }}
-          />
-        ))}
-      </div>
+      {filteredAlbums.length === 0 ? (
+        <div className="py-12 text-center text-text-secondary bg-white/5 rounded-lg">
+          <p>No releases found for this category.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {filteredAlbums.slice(0, 12).map((album) => (
+            <ReleaseCard
+              key={album.albumId}
+              albumId={album.albumId}
+              artistId={album.artistId}
+              albumName={album.albumName}
+              artistName={album.artistName}
+              coverUrl={album.coverUrl}
+              releaseDate={album.releaseDate}
+              spotifyUrl={album.spotifyUrl}
+              isDownloaded={false} // TODO: Check status if needed
+              isDownloading={false} // TODO: Check status if needed
+              albumType={album.albumType}
+              onCardClick={() => {}} // TODO: Navigate
+              onDownloadClick={(e) => {
+                e.stopPropagation();
+                if (album.spotifyUrl) {
+                  onDownload(album.spotifyUrl);
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

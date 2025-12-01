@@ -125,8 +125,12 @@ export const ArtistDetail: FC = () => {
         </div>
 
         {/* Discography Section */}
-        {artist?.albums && artist.albums.length > 0 && (
+        {artist?.albums && artist.albums.length > 0 ? (
           <ArtistDiscography albums={artist.albums} onDownload={handleDownload} />
+        ) : (
+          <div className="mt-10 text-center text-text-secondary">
+            <p>No discography available.</p>
+          </div>
         )}
       </div>
     </div>
