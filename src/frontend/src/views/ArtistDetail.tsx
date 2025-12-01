@@ -5,6 +5,7 @@ import { Loading } from "../components/atoms/Loading";
 import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { ArtistHeader } from "../components/molecules/ArtistHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
+import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ArtistDiscography } from "../components/organisms/ArtistDiscography";
 import { TrackList } from "../components/organisms/TrackList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
@@ -27,18 +28,6 @@ export const ArtistDetail: FC = () => {
   const { getTrackStatus } = useTrackStatus();
   const isArtistDownloaded = useArtistStatus(artist?.spotifyUrl, playlists, downloadTracks);
   const hasArtist = !!artist && !!id && !error;
-
-  const statusMessage = useMemo(
-    () =>
-      error === "missing_user_access_token"
-        ? "Connect Spotify to view artist details."
-        : error === "spotify_rate_limited"
-          ? "Spotify rate limited. Please try again later."
-          : error
-            ? "Failed to load artist details."
-            : undefined,
-    [error],
-  );
 
   const followersText = useMemo(
     () =>
@@ -71,10 +60,18 @@ export const ArtistDetail: FC = () => {
     return <Loading />;
   }
 
-  if (!hasArtist && statusMessage) {
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background text-white p-6">
+        <SpotifyErrorState error={error} message="Failed to load artist details." />
+      </div>
+    );
+  }
+
+  if (!hasArtist) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background text-white">
-        <p className="text-text-secondary">{statusMessage}</p>
+        <p className="text-text-secondary">Artist not found.</p>
       </div>
     );
   }

@@ -2,9 +2,8 @@ import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
-import { ConnectSpotifyPrompt } from "../components/molecules/ConnectSpotifyPrompt";
 import { EmptyState } from "../components/molecules/EmptyState";
-import { RateLimitedMessage } from "../components/molecules/RateLimitedMessage";
+import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ReleasesList } from "../components/organisms/ReleasesList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
@@ -17,10 +16,6 @@ export const Releases: FC = () => {
   const { releases, isLoading, error } = useReleasesQuery();
   const { data: playlists = [] } = usePlaylistsQuery();
   const createPlaylist = useCreatePlaylistMutation();
-
-  const handleConnectSpotify = useCallback(() => {
-    window.location.href = "/api/auth/spotify/login";
-  }, []);
 
   const handleReleaseClick = useCallback(
     (release: { spotifyUrl?: string | null; albumId: string }) => {
@@ -43,10 +38,10 @@ export const Releases: FC = () => {
     [createPlaylist],
   );
 
-  if (error === "missing_user_access_token") {
+  if (error) {
     return (
       <section className="flex-1 bg-background px-4 md:px-8 py-6">
-        <ConnectSpotifyPrompt onConnect={handleConnectSpotify} />
+        <SpotifyErrorState error={error} message="Failed to load releases." />
       </section>
     );
   }
@@ -58,13 +53,6 @@ export const Releases: FC = () => {
 
         {isLoading ? (
           <Loading />
-        ) : error === "spotify_rate_limited" ? (
-          <RateLimitedMessage />
-        ) : error ? (
-          <div className="text-red-400 flex items-center gap-2">
-            <i className="fa-solid fa-triangle-exclamation" /> Failed to load releases. Please try
-            again later.
-          </div>
         ) : !releases || releases.length === 0 ? (
           <EmptyState
             icon="fa-compact-disc"
