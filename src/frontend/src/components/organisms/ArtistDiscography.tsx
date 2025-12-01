@@ -1,11 +1,12 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useArtistDiscography } from "../../hooks/useArtistDiscography";
 import { Path } from "../../routes/routes";
-import { api } from "../../services/api";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
-import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
+import { Button } from "../atoms/Button";
+import { ArtistDiscographyFilters } from "../molecules/ArtistDiscographyFilters";
 import { ReleaseCard } from "./ReleaseCard";
 
 interface ArtistDiscographyProps {
@@ -71,33 +72,15 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   onDownload,
 }) => {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<DiscographyFilter>("all");
-  const [visibleItems, setVisibleItems] = useState(12);
-  const [allAlbums, setAllAlbums] = useState<ArtistRelease[]>(albums);
-  const [hasFetchedAll, setHasFetchedAll] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  useEffect(() => {
-    setAllAlbums(albums);
-  }, [albums]);
-
-  const filteredAlbums = useMemo(() => {
-    let result = allAlbums;
-
-    if (filter !== "all") {
-      result = result.filter((a) => a.albumType === filter);
-    }
-
-    return [...result].sort((a, b) => {
-      const dateA = a.releaseDate || "";
-      const dateB = b.releaseDate || "";
-      return dateB.localeCompare(dateA);
-    });
-  }, [allAlbums, filter]);
-
-  useEffect(() => {
-    setVisibleItems(12);
-  }, [filter]);
+  const {
+    filter,
+    setFilter,
+    filteredAlbums,
+    visibleItems,
+    isLoadingMore,
+    handleShowMore,
+    canShowMore,
+  } = useArtistDiscography({ artistId, initialAlbums: albums });
 
   const handleNavigate = useCallback(
     (url: string) => {
@@ -105,26 +88,6 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     },
     [navigate],
   );
-
-  const handleShowMore = useCallback(async () => {
-    if (!hasFetchedAll) {
-      setIsLoadingMore(true);
-      try {
-        const moreAlbums = await api.getArtistAlbums(artistId, 1000, 12);
-        const existingIds = new Set(allAlbums.map((a) => a.albumId));
-        const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
-
-        setAllAlbums((prev) => [...prev, ...uniqueNewAlbums]);
-        setHasFetchedAll(true);
-      } catch (error) {
-        console.error("Failed to fetch more albums", error);
-      } finally {
-        setIsLoadingMore(false);
-      }
-    }
-
-    setVisibleItems((prev) => prev + 12);
-  }, [artistId, hasFetchedAll, allAlbums]);
 
   return (
     <div className="mt-10">
@@ -162,16 +125,16 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
             })}
           </div>
 
-          {(visibleItems < filteredAlbums.length ||
-            (!hasFetchedAll && filteredAlbums.length >= 12)) && (
+          {canShowMore && (
             <div className="flex justify-center mt-8">
-              <button
+              <Button
                 onClick={handleShowMore}
-                disabled={isLoadingMore}
-                className="px-6 py-2 text-sm font-medium text-white transition-colors border rounded-full border-white/20 hover:bg-white/10 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed"
+                loading={isLoadingMore}
+                variant="secondary"
+                size="md"
               >
-                {isLoadingMore ? "Loading..." : "Show more"}
-              </button>
+                Show more
+              </Button>
             </div>
           )}
         </>
