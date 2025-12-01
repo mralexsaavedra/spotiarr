@@ -91,7 +91,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
             {filteredAlbums.slice(0, visibleItems).map((album) => {
               const playlist = playlists?.find((p) => p.spotifyUrl === album.spotifyUrl);
               const status = playlist ? getPlaylistStatus(playlist) : undefined;

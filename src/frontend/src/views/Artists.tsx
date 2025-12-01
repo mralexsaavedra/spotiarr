@@ -56,7 +56,7 @@ export const Artists: FC = () => {
       ) : filteredArtists.length === 0 ? (
         <div className="text-text-secondary">No followed artists found.</div>
       ) : (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {filteredArtists.map((artist) => (
             <ArtistCard
               key={artist.id}

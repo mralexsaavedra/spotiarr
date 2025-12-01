@@ -7,9 +7,9 @@ export const useGridColumns = () => {
     const updateColumns = () => {
       const width = window.innerWidth;
       if (width >= 1280) {
-        setColumns(6); // xl
+        setColumns(8); // xl
       } else if (width >= 1024) {
-        setColumns(5); // lg
+        setColumns(6); // lg
       } else if (width >= 768) {
         setColumns(4); // md
       } else if (width >= 640) {
