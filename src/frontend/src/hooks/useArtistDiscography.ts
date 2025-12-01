@@ -1,7 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DiscographyFilter } from "../components/molecules/ArtistDiscographyFilters";
-import { api } from "../services/api";
+import { useArtistAlbumsQuery } from "./queries/useArtistAlbumsQuery";
 
 interface UseArtistDiscographyProps {
   artistId: string;
@@ -17,16 +17,39 @@ export const useArtistDiscography = ({
   const [filter, setFilter] = useState<DiscographyFilter>("all");
   const [visibleItems, setVisibleItems] = useState(pageSize);
   const [allAlbums, setAllAlbums] = useState<ArtistRelease[]>(initialAlbums);
+  const [offset, setOffset] = useState(initialAlbums.length);
   const [hasFetchedAll, setHasFetchedAll] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const { data: moreAlbums, isFetching: isLoadingMore } = useArtistAlbumsQuery({
+    artistId,
+    limit: pageSize,
+    offset,
+    enabled: offset > initialAlbums.length && !hasFetchedAll,
+  });
 
   useEffect(() => {
     setAllAlbums(initialAlbums);
+    setOffset(initialAlbums.length);
   }, [initialAlbums]);
 
   useEffect(() => {
     setVisibleItems(pageSize);
   }, [filter, pageSize]);
+
+  useEffect(() => {
+    if (moreAlbums && moreAlbums.length > 0) {
+      if (moreAlbums.length < pageSize) {
+        setHasFetchedAll(true);
+      }
+
+      const existingIds = new Set(allAlbums.map((a) => a.albumId));
+      const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
+
+      if (uniqueNewAlbums.length > 0) {
+        setAllAlbums((prev) => [...prev, ...uniqueNewAlbums]);
+      }
+    }
+  }, [moreAlbums, pageSize, allAlbums]);
 
   const filteredAlbums = useMemo(() => {
     let result = allAlbums;
@@ -42,33 +65,18 @@ export const useArtistDiscography = ({
     });
   }, [allAlbums, filter]);
 
-  const handleShowMore = useCallback(async () => {
-    if (!hasFetchedAll) {
-      setIsLoadingMore(true);
-      try {
-        const offset = allAlbums.length;
-        const moreAlbums = await api.getArtistAlbums(artistId, pageSize, offset);
-
-        if (moreAlbums.length < pageSize) {
-          setHasFetchedAll(true);
-        }
-
-        const existingIds = new Set(allAlbums.map((a) => a.albumId));
-        const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
-
-        setAllAlbums((prev) => [...prev, ...uniqueNewAlbums]);
-      } catch (error) {
-        console.error("Failed to fetch more albums", error);
-      } finally {
-        setIsLoadingMore(false);
-      }
-    }
-
+  const handleShowMore = useCallback(() => {
+    // Increase visible items
     setVisibleItems((prev) => prev + pageSize);
-  }, [artistId, hasFetchedAll, allAlbums, pageSize]);
+
+    // Trigger fetch if we need more albums
+    if (!hasFetchedAll && visibleItems + pageSize >= allAlbums.length) {
+      setOffset((prev) => prev + pageSize);
+    }
+  }, [pageSize, hasFetchedAll, visibleItems, allAlbums.length]);
 
   const canShowMore =
-    visibleItems < filteredAlbums.length || (!hasFetchedAll && filteredAlbums.length >= 12);
+    visibleItems < filteredAlbums.length || (!hasFetchedAll && filteredAlbums.length >= pageSize);
 
   return {
     filter,
