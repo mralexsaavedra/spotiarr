@@ -118,20 +118,21 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
                 />
               );
             }}
+            footer={
+              canShowMore ? (
+                <div className="flex justify-center mt-8 pb-8">
+                  <Button
+                    onClick={handleShowMore}
+                    loading={isLoadingMore}
+                    variant="secondary"
+                    size="md"
+                  >
+                    Show more
+                  </Button>
+                </div>
+              ) : undefined
+            }
           />
-
-          {canShowMore && (
-            <div className="flex justify-center mt-8">
-              <Button
-                onClick={handleShowMore}
-                loading={isLoadingMore}
-                variant="secondary"
-                size="md"
-              >
-                Show more
-              </Button>
-            </div>
-          )}
         </>
       )}
     </div>

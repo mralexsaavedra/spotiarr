@@ -7,6 +7,7 @@ interface VirtualGridProps<T> {
   renderItem: (item: T) => ReactNode;
   itemKey: (item: T) => string;
   emptyState?: ReactNode;
+  footer?: ReactNode;
 }
 
 export const VirtualGrid = <T,>({
@@ -14,6 +15,7 @@ export const VirtualGrid = <T,>({
   renderItem,
   itemKey,
   emptyState,
+  footer,
 }: VirtualGridProps<T>) => {
   const columns = useGridColumns();
 
@@ -33,6 +35,9 @@ export const VirtualGrid = <T,>({
     <Virtuoso
       useWindowScroll
       data={rows}
+      components={{
+        Footer: footer ? () => <>{footer}</> : undefined,
+      }}
       itemContent={(_, rowItems) => (
         <div
           className="grid gap-4 mb-4"
