@@ -180,6 +180,7 @@ export interface ArtistDetail {
   popularity?: number | null;
   genres?: string[];
   topTracks: ArtistTopTrack[];
+  albums: ArtistRelease[];
 }
 
 export interface SettingItem {

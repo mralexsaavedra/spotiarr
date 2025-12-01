@@ -25,6 +25,7 @@ interface SpotifyAlbum {
   album_group?: string;
   album_type?: string;
   external_urls?: SpotifyExternalUrls;
+  artists?: SpotifyArtist[];
 }
 
 interface SpotifyTrack {
@@ -656,6 +657,41 @@ export class SpotifyApiService {
       return mappedTracks;
     } catch (error) {
       this.log(`Failed to get artist top tracks: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  async getArtistAlbums(artistId: string): Promise<ArtistRelease[]> {
+    try {
+      // Fetch albums, singles, and compilations
+      const url = `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,compilation&limit=50&market=US`;
+      const response = await this.fetchWithAppToken(url);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch artist albums: ${response.status}`);
+      }
+
+      const data = (await response.json()) as SpotifyArtistAlbumsResponse;
+      const albums = data.items ?? [];
+
+      // Filter out duplicates (same album name) to avoid clutter, keeping the one with the most recent release date if possible
+      // But for now, let's just return all unique IDs.
+      // Spotify often returns duplicates for different markets or explicit/clean versions.
+      // A simple dedup by name might be too aggressive, but let's stick to raw for now.
+
+      return albums.map((album) => ({
+        artistId: artistId,
+        artistName: album.artists?.[0]?.name || "Unknown Artist",
+        artistImageUrl: null,
+        albumId: album.id as string,
+        albumName: album.name,
+        albumType: album.album_group ?? album.album_type,
+        releaseDate: album.release_date,
+        coverUrl: album.images?.[0]?.url ?? null,
+        spotifyUrl: album.external_urls?.spotify,
+      }));
+    } catch (error) {
+      this.log(`Failed to get artist albums: ${(error as Error).message}`);
       throw error;
     }
   }

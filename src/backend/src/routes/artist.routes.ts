@@ -16,9 +16,10 @@ router.get(
     }
 
     try {
-      const [details, topTracks] = await Promise.all([
+      const [details, topTracks, albums] = await Promise.all([
         spotifyApiService.getArtistDetails(id),
         spotifyApiService.getArtistTopTracks(id),
+        spotifyApiService.getArtistAlbums(id),
       ]);
 
       return res.json({
@@ -30,6 +31,7 @@ router.get(
         popularity: details.popularity,
         genres: details.genres,
         topTracks,
+        albums,
       });
     } catch (error) {
       const err = error as Error & { code?: string; status?: number };
