@@ -50,8 +50,9 @@ export class CreatePlaylistUseCase {
       let displayName = detail.name;
       if ((detail.type === "track" || detail.type === "album") && detail.tracks?.length > 0) {
         const firstTrack = detail.tracks[0];
-        if (firstTrack.artist && detail.name) {
-          displayName = `${firstTrack.artist} - ${detail.name}`;
+        const artistName = firstTrack.primaryArtist || firstTrack.artist;
+        if (artistName && detail.name) {
+          displayName = `${artistName} - ${detail.name}`;
         }
       } else if (detail.type === "artist") {
         // For artists, keep just the artist name
