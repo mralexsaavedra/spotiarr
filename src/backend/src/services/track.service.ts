@@ -31,7 +31,7 @@ export class TrackService {
     const utilsService = new UtilsService();
     const settingsService = new SettingsService();
     const playlistRepository = new PrismaPlaylistRepository();
-    const spotifyApiService = new SpotifyApiService();
+    const spotifyApiService = SpotifyApiService.getInstance();
     const spotifyService = new SpotifyService(spotifyApiService);
 
     this.searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(

@@ -3,7 +3,7 @@ import { asyncHandler } from "../middleware/async-handler";
 import { SpotifyApiService } from "../services/spotify-api.service";
 
 const router: ExpressRouter = Router();
-const spotifyApiService = new SpotifyApiService();
+const spotifyApiService = SpotifyApiService.getInstance();
 
 // GET /api/feed/releases - Get recent releases from followed artists
 router.get(

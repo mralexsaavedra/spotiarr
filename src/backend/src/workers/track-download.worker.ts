@@ -4,7 +4,7 @@ import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
 import { emitSseEvent } from "../routes/events.routes";
 import { SettingsService } from "../services/settings.service";
 import { TrackService } from "../services/track.service";
-import { EnvironmentEnum } from "../setup/environment";
+import { getEnv } from "../setup/environment";
 
 const trackService = new TrackService();
 const settingsService = new SettingsService();
@@ -22,8 +22,8 @@ export const trackDownloadWorker = new Worker(
   },
   {
     connection: {
-      host: process.env[EnvironmentEnum.REDIS_HOST] || "localhost",
-      port: parseInt(process.env[EnvironmentEnum.REDIS_PORT] || "6379"),
+      host: getEnv().REDIS_HOST,
+      port: getEnv().REDIS_PORT,
     },
   },
 );

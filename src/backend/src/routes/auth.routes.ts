@@ -1,6 +1,7 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { asyncHandler } from "../middleware/async-handler";
 import { PrismaSettingsRepository } from "../repositories/prisma-settings.repository";
+import { getEnv } from "../setup/environment";
 
 const router: ExpressRouter = Router();
 const settingsRepository = new PrismaSettingsRepository();
@@ -10,16 +11,9 @@ const SCOPES = ["user-follow-read"].join(" ");
 router.get(
   "/spotify/login",
   asyncHandler(async (_req, res) => {
-    const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const redirectUri =
-      process.env.SPOTIFY_REDIRECT_URI || "http://localhost:3000/api/auth/spotify/callback";
-
-    if (!clientId) {
-      return res.status(500).json({
-        error: "missing_spotify_client_id",
-        message: "Spotify client ID is not configured",
-      });
-    }
+    const env = getEnv();
+    const clientId = env.SPOTIFY_CLIENT_ID;
+    const redirectUri = env.SPOTIFY_REDIRECT_URI;
 
     const params = new URLSearchParams({
       client_id: clientId,
@@ -47,17 +41,10 @@ router.get(
       });
     }
 
-    const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-    const redirectUri =
-      process.env.SPOTIFY_REDIRECT_URI || "http://localhost:3000/api/auth/spotify/callback";
-
-    if (!clientId || !clientSecret) {
-      return res.status(500).json({
-        error: "missing_spotify_credentials",
-        message: "Spotify client credentials are not configured",
-      });
-    }
+    const env = getEnv();
+    const clientId = env.SPOTIFY_CLIENT_ID;
+    const clientSecret = env.SPOTIFY_CLIENT_SECRET;
+    const redirectUri = env.SPOTIFY_REDIRECT_URI;
 
     const tokenBody = new URLSearchParams({
       grant_type: "authorization_code",

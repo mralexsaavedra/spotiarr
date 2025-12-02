@@ -4,19 +4,20 @@ import { resolve } from "path";
 import { app } from "./app";
 import "./env";
 import { startScheduledJobs } from "./jobs";
-import { validateEnvironment } from "./setup/environment";
+import { getEnv, validateEnvironment } from "./setup/environment";
 import { initializeQueues } from "./setup/queues";
 
-const PORT = process.env.PORT || 3000;
+// Validate environment variables first
+validateEnvironment();
+
+const env = getEnv();
+const PORT = env.PORT;
 
 async function bootstrap() {
   console.log("🚀 Starting SpotiArr Backend...\n");
 
-  // Validate environment variables
-  validateEnvironment();
-
   // Create downloads directory if it doesn't exist
-  const downloadsPath = resolve(__dirname, process.env.DOWNLOADS_PATH || "../downloads");
+  const downloadsPath = resolve(__dirname, getEnv().DOWNLOADS_PATH);
   if (!fs.existsSync(downloadsPath)) {
     fs.mkdirSync(downloadsPath, { recursive: true });
     console.log(`✅ Created downloads directory: ${downloadsPath}`);

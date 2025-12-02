@@ -15,7 +15,7 @@ export class PlaylistService {
   constructor() {
     const repository = new PrismaPlaylistRepository();
     const trackService = new TrackService();
-    const spotifyApiService = new SpotifyApiService();
+    const spotifyApiService = SpotifyApiService.getInstance();
     const settingsService = new SettingsService();
     this.spotifyService = new SpotifyService(spotifyApiService);
 

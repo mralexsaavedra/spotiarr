@@ -1,13 +1,14 @@
 import { Queue } from "bullmq";
-import { EnvironmentEnum } from "../setup/environment";
+import { getEnv } from "../setup/environment";
 
 let trackDownloadQueue: Queue;
 let trackSearchQueue: Queue;
 
 export function initializeQueues(): void {
+  const env = getEnv();
   const connection = {
-    host: process.env[EnvironmentEnum.REDIS_HOST] || "localhost",
-    port: parseInt(process.env[EnvironmentEnum.REDIS_PORT] || "6379"),
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
   };
 
   trackDownloadQueue = new Queue("track-download-processor", {

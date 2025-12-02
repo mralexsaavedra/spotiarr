@@ -1,5 +1,6 @@
 import { AlbumType, ArtistRelease } from "@spotiarr/shared";
 import { SpotifyUrlHelper } from "../helpers/spotify-url.helper";
+import { getEnv } from "../setup/environment";
 import { NormalizedTrack } from "../types/spotify";
 import { SettingsService } from "./settings.service";
 
@@ -86,13 +87,21 @@ interface CacheEntry<T> {
 const FOLLOWED_ARTISTS_MAX_KEY = "FOLLOWED_ARTISTS_MAX";
 
 export class SpotifyApiService {
+  private static instance: SpotifyApiService | null = null;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
   private readonly settingsService: SettingsService;
   private cache: Map<string, CacheEntry<unknown>> = new Map();
 
-  constructor() {
+  private constructor() {
     this.settingsService = new SettingsService();
+  }
+
+  static getInstance(): SpotifyApiService {
+    if (!SpotifyApiService.instance) {
+      SpotifyApiService.instance = new SpotifyApiService();
+    }
+    return SpotifyApiService.instance;
   }
 
   private getCacheKey(method: string, ...args: unknown[]): string {
@@ -126,7 +135,7 @@ export class SpotifyApiService {
     const prefix = `[SpotifyApiService]`;
     if (level === "error") console.error(prefix, message);
     else if (level === "warn") console.warn(prefix, message);
-    else if (process.env.NODE_ENV === "development") console.log(prefix, message);
+    else if (getEnv().NODE_ENV === "development") console.log(prefix, message);
   }
 
   async getPlaylistMetadata(spotifyUrl: string): Promise<{ name: string; image: string }> {
@@ -163,8 +172,9 @@ export class SpotifyApiService {
     try {
       this.log("Getting new Spotify access token");
 
-      const clientId = process.env.SPOTIFY_CLIENT_ID;
-      const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+      const env = getEnv();
+      const clientId = env.SPOTIFY_CLIENT_ID;
+      const clientSecret = env.SPOTIFY_CLIENT_SECRET;
 
       if (!clientId || !clientSecret) {
         throw new Error(
@@ -210,7 +220,7 @@ export class SpotifyApiService {
       fromSettings = undefined;
     }
 
-    const token = fromSettings ?? process.env.SPOTIFY_USER_ACCESS_TOKEN;
+    const token = fromSettings ?? getEnv().SPOTIFY_USER_ACCESS_TOKEN;
 
     if (!token) {
       const error = new Error(
@@ -254,8 +264,9 @@ export class SpotifyApiService {
         return false;
       }
 
-      const clientId = process.env.SPOTIFY_CLIENT_ID;
-      const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+      const env = getEnv();
+      const clientId = env.SPOTIFY_CLIENT_ID;
+      const clientSecret = env.SPOTIFY_CLIENT_SECRET;
 
       if (!clientId || !clientSecret) {
         this.log(

@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import { EnvironmentEnum } from "../setup/environment";
+import { getEnv } from "../setup/environment";
 
 export class UtilsService {
   constructor() {}
@@ -8,7 +8,7 @@ export class UtilsService {
    * Get the base music library path
    */
   getMusicLibraryPath(): string {
-    return resolve(__dirname, "..", process.env[EnvironmentEnum.DOWNLOADS_PATH] || "./downloads");
+    return resolve(__dirname, "..", getEnv().DOWNLOADS_PATH);
   }
 
   /**

@@ -2,7 +2,7 @@ import { type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
 import { SettingsService } from "../services/settings.service";
 import { TrackService } from "../services/track.service";
-import { EnvironmentEnum } from "../setup/environment";
+import { getEnv } from "../setup/environment";
 
 const trackService = new TrackService();
 const settingsService = new SettingsService();
@@ -16,8 +16,8 @@ export const trackSearchWorker = new Worker(
   {
     concurrency: 3,
     connection: {
-      host: process.env[EnvironmentEnum.REDIS_HOST] || "localhost",
-      port: parseInt(process.env[EnvironmentEnum.REDIS_PORT] || "6379"),
+      host: getEnv().REDIS_HOST,
+      port: getEnv().REDIS_PORT,
     },
   },
 );
