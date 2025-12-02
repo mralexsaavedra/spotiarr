@@ -6,8 +6,8 @@ import { resolve } from "node:path";
 // Dev: src/backend/src/env.ts -> ../../../.env
 // Prod: dist/backend/env.js -> ../../.env
 
-const devPath = resolve(__dirname, "../../../.env");
-const prodPath = resolve(__dirname, "../../.env");
+const devPath = resolve(__dirname, "../../../../../.env");
+const prodPath = resolve(__dirname, "../../../../.env");
 
 const envPath = existsSync(devPath) ? devPath : prodPath;
 

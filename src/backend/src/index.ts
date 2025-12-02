@@ -2,8 +2,8 @@ import * as fs from "fs";
 import { createServer } from "http";
 import { resolve } from "path";
 import { app } from "./app";
-import "./env";
 import { startScheduledJobs } from "./infrastructure/jobs";
+import "./infrastructure/setup/env";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { initializeQueues } from "./infrastructure/setup/queues";
 
