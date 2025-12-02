@@ -20,9 +20,9 @@ export const useServerEvents = () => {
       queryClient.invalidateQueries({ queryKey: DOWNLOAD_HISTORY_QUERY_KEY });
     });
 
-    eventSource.onerror = () => {
-      // In case of error, close and let React remount hook on next navigation/focus
-      eventSource.close();
+    eventSource.onerror = (error) => {
+      console.error("EventSource failed:", error);
+      // Do not close explicitly; let the browser attempt to reconnect
     };
 
     return () => {

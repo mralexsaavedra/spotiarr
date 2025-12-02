@@ -31,11 +31,17 @@ export const useSettingsForm = () => {
   useEffect(() => {
     if (settingsLoading || metadataLoading || Object.keys(metadata).length === 0) return;
 
-    const newValues: Record<string, string> = {};
-    Object.values(metadata).forEach((meta) => {
-      newValues[meta.key] = getValue(meta.key, meta.defaultValue);
+    setValues((prev) => {
+      // If values are already initialized, don't overwrite them to prevent losing user input
+      // during background refetches.
+      if (Object.keys(prev).length > 0) return prev;
+
+      const newValues: Record<string, string> = {};
+      Object.values(metadata).forEach((meta) => {
+        newValues[meta.key] = getValue(meta.key, meta.defaultValue);
+      });
+      return newValues;
     });
-    setValues(newValues);
   }, [getValue, settingsLoading, metadataLoading, metadata]);
 
   const handleSubmit = useCallback(
