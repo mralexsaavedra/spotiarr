@@ -9,7 +9,6 @@ import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
-import { useTrackStatus } from "../hooks/useTrackStatus";
 import { Path } from "../routes/routes";
 import { Track } from "../types/track";
 
@@ -21,8 +20,6 @@ export const PlaylistPreview: FC = () => {
 
   const spotifyUrl = useMemo(() => searchParams.get("url"), [searchParams]);
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
-
-  const { getTrackStatus } = useTrackStatus();
 
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
@@ -101,7 +98,6 @@ export const PlaylistPreview: FC = () => {
       }
       tracks={tracks}
       onDownloadTrack={handleDownloadTrack}
-      getTrackStatus={getTrackStatus}
     />
   );
 };

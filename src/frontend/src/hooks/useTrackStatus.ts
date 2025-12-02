@@ -1,18 +1,32 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
+import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { api } from "../services/api";
+import { Playlist } from "../types/playlist";
 import { useDownloadTracksQuery } from "./queries/useDownloadTracksQuery";
-import { usePlaylistsQuery } from "./queries/usePlaylistsQuery";
+import { PLAYLISTS_QUERY_KEY } from "./queryKeys";
 
 export const useTrackStatus = () => {
-  const { data: playlists } = usePlaylistsQuery();
+  const { data: tracksStatusMap } = useQuery({
+    queryKey: PLAYLISTS_QUERY_KEY,
+    queryFn: () => api.getPlaylists(),
+    select: (data: Playlist[]) => {
+      const map = new Map<string, TrackStatusEnum>();
+      data.forEach((p) => {
+        p.tracks?.forEach((t) => {
+          if (t.trackUrl) map.set(t.trackUrl, t.status);
+        });
+      });
+      return map;
+    },
+  });
+
   const { data: downloadTracks } = useDownloadTracksQuery();
 
   const getTrackStatus = useCallback(
     (url: string): TrackStatusEnum | undefined => {
-      const activePlaylist = playlists?.find((p) => p.tracks?.some((t) => t.trackUrl === url));
-      if (activePlaylist) {
-        const track = activePlaylist.tracks?.find((t) => t.trackUrl === url);
-        return track?.status;
+      if (tracksStatusMap?.has(url)) {
+        return tracksStatusMap.get(url);
       }
 
       const isHistory = downloadTracks?.some((t) => t.trackUrl === url);
@@ -20,7 +34,7 @@ export const useTrackStatus = () => {
 
       return undefined;
     },
-    [playlists, downloadTracks],
+    [tracksStatusMap, downloadTracks],
   );
 
   return { getTrackStatus };

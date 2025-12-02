@@ -1,14 +1,17 @@
-import { ArtistTopTrack, TrackStatusEnum } from "@spotiarr/shared";
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useTrackStatus } from "../../hooks/useTrackStatus";
 import { Path } from "../../routes/routes";
+import { Track } from "../../types/track";
 import { formatDuration } from "../../utils/date";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
+import { VirtualList } from "../molecules/VirtualList";
 
 interface TrackListItemProps {
-  track: ArtistTopTrack;
+  track: Track;
   index: number;
-  onDownload: (url: string) => void;
+  onDownload: (track: Track) => void;
   status?: TrackStatusEnum;
 }
 
@@ -16,16 +19,12 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
   const isDownloaded = status === TrackStatusEnum.Completed;
 
   const handleRetry = useCallback(() => {
-    if (track.trackUrl) {
-      onDownload(track.trackUrl);
-    }
-  }, [track.trackUrl, onDownload]);
+    onDownload(track);
+  }, [track, onDownload]);
 
   const handleDownloadClick = useCallback(() => {
-    if (track.trackUrl) {
-      onDownload(track.trackUrl);
-    }
-  }, [track.trackUrl, onDownload]);
+    onDownload(track);
+  }, [track, onDownload]);
 
   return (
     <div className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
@@ -41,9 +40,9 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
 
       {/* Title & Image */}
       <div className="flex items-center gap-4 min-w-0">
-        {track.albumCoverUrl && (
+        {track.albumUrl && (
           <img
-            src={track.albumCoverUrl}
+            src={track.albumUrl}
             alt={track.name}
             loading="lazy"
             className="w-10 h-10 rounded shadow-sm object-cover"
@@ -73,23 +72,27 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
 });
 
 interface TrackListProps {
-  tracks: ArtistTopTrack[];
-  onDownload: (url: string) => void;
-  getTrackStatus: (url: string) => TrackStatusEnum | undefined;
+  tracks: Track[];
+  onDownload: (track: Track) => void;
 }
 
-export const TrackList: FC<TrackListProps> = ({ tracks, onDownload, getTrackStatus }) => {
+export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
+  const { getTrackStatus } = useTrackStatus();
+
   return (
-    <div className="flex flex-col">
-      {tracks.map((track, index) => (
-        <TrackListItem
-          key={`${track.trackUrl ?? track.name}-${index}`}
-          track={track}
-          index={index + 1}
-          onDownload={onDownload}
-          status={track.trackUrl ? getTrackStatus(track.trackUrl) : undefined}
-        />
-      ))}
+    <div className="flex flex-col gap-2">
+      <VirtualList
+        items={tracks}
+        itemKey={(track) => track.id}
+        renderItem={(track, index) => (
+          <TrackListItem
+            track={track}
+            index={index + 1}
+            onDownload={onDownload}
+            status={track.trackUrl ? getTrackStatus(track.trackUrl) : undefined}
+          />
+        )}
+      />
     </div>
   );
 };

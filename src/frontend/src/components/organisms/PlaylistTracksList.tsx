@@ -1,6 +1,7 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useTrackStatus } from "../../hooks/useTrackStatus";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
 import { ArtistLinks } from "../molecules/ArtistLinks";
@@ -111,15 +112,15 @@ interface PlaylistTracksListProps {
   tracks: Track[];
   onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
-  getTrackStatus?: (trackUrl: string) => TrackStatusEnum | undefined;
 }
 
 export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   tracks,
   onRetryTrack,
   onDownloadTrack,
-  getTrackStatus,
 }) => {
+  const { getTrackStatus } = useTrackStatus();
+
   return (
     <div className="flex flex-col pb-4">
       {/* Header */}
@@ -140,9 +141,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
           <PlaylistTrackItem
             track={track}
             index={index + 1}
-            status={
-              getTrackStatus && track.trackUrl ? getTrackStatus(track.trackUrl) : track.status
-            }
+            status={track.trackUrl ? getTrackStatus(track.trackUrl) : track.status}
             onRetryTrack={onRetryTrack}
             onDownloadTrack={onDownloadTrack}
           />
