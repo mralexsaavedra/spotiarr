@@ -11,25 +11,31 @@ interface Artist {
 
 interface ArtistListItemProps {
   artist: Artist;
+  onClick: (id: string) => void;
 }
 
-const ArtistListItem: FC<ArtistListItemProps> = memo(({ artist }) => {
+const ArtistListItem: FC<ArtistListItemProps> = memo(({ artist, onClick }) => {
   return (
     <ArtistCard
       id={artist.id}
       name={artist.name}
       image={artist.image}
       spotifyUrl={artist.spotifyUrl}
+      onClick={onClick}
     />
   );
 });
 
 interface ArtistListProps {
   artists: Artist[];
+  onClick: (id: string) => void;
 }
 
-export const ArtistList: FC<ArtistListProps> = ({ artists }) => {
-  const renderItem = useCallback((artist: Artist) => <ArtistListItem artist={artist} />, []);
+export const ArtistList: FC<ArtistListProps> = ({ artists, onClick }) => {
+  const renderItem = useCallback(
+    (artist: Artist) => <ArtistListItem artist={artist} onClick={onClick} />,
+    [onClick],
+  );
 
   return <VirtualGrid items={artists} itemKey={(artist) => artist.id} renderItem={renderItem} />;
 };

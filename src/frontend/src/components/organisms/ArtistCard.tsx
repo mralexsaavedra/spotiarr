@@ -1,21 +1,18 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, memo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Path } from "../../routes/routes";
+import { FC, memo } from "react";
 
 interface ArtistCardProps {
   id: string;
   name: string;
   image: string | null;
   spotifyUrl: string | null;
+  onClick: (id: string) => void;
 }
 
-export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image }) => {
-  const navigate = useNavigate();
-
-  const handleCardClick = useCallback(() => {
-    navigate(Path.ARTIST_DETAIL.replace(":id", id));
-  }, [id, navigate]);
+export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick }) => {
+  const handleCardClick = () => {
+    onClick(id);
+  };
 
   return (
     <article

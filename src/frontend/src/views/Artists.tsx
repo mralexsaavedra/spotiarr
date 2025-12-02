@@ -1,4 +1,5 @@
 import { FC, useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { SearchInput } from "../components/molecules/SearchInput";
@@ -6,8 +7,10 @@ import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ArtistList } from "../components/organisms/ArtistList";
 import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuery";
 import { useDebounce } from "../hooks/useDebounce";
+import { Path } from "../routes/routes";
 
 export const Artists: FC = () => {
+  const navigate = useNavigate();
   const { artists, isLoading, error } = useFollowedArtistsQuery();
 
   const [search, setSearch] = useState("");
@@ -23,6 +26,13 @@ export const Artists: FC = () => {
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
   }, []);
+
+  const handleArtistClick = useCallback(
+    (id: string) => {
+      navigate(Path.ARTIST_DETAIL.replace(":id", id));
+    },
+    [navigate],
+  );
 
   if (error) {
     return (
@@ -49,7 +59,7 @@ export const Artists: FC = () => {
       ) : filteredArtists.length === 0 ? (
         <div className="text-text-secondary">No followed artists found.</div>
       ) : (
-        <ArtistList artists={filteredArtists} />
+        <ArtistList artists={filteredArtists} onClick={handleArtistClick} />
       )}
     </section>
   );
