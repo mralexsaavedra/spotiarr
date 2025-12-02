@@ -1,7 +1,7 @@
 import { PlaylistPreview, TrackStatusEnum, type IPlaylist } from "@spotiarr/shared";
 import { EventBus } from "../domain/events/event-bus";
+import { PlaylistRepository } from "../domain/interfaces/playlist.repository";
 import { CreatePlaylistUseCase } from "../domain/playlists/create-playlist.use-case";
-import { PlaylistRepository } from "../domain/playlists/playlist.repository";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../helpers/spotify-url.helper";
 import { AppError } from "../middleware/error-handler";
 import { SettingsService } from "./settings.service";

@@ -2,14 +2,14 @@ import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared
 import * as fs from "fs";
 import * as path from "path";
 import { EventBus } from "../../domain/events/event-bus";
-import { HistoryRepository } from "../../domain/history/history.repository";
-import { PlaylistRepository } from "../../domain/playlists/playlist.repository";
+import { HistoryRepository } from "../../domain/interfaces/history.repository";
+import { PlaylistRepository } from "../../domain/interfaces/playlist.repository";
+import { TrackRepository } from "../../domain/interfaces/track.repository";
 import { TrackFileHelper } from "../../helpers/track-file.helper";
 import { M3uService } from "../../services/m3u.service";
 import { SpotifyService } from "../../services/spotify.service";
 import { UtilsService } from "../../services/utils.service";
 import { YoutubeService } from "../../services/youtube.service";
-import { TrackRepository } from "./track.repository";
 
 export class DownloadTrackUseCase {
   constructor(

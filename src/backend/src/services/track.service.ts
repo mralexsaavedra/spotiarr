@@ -1,11 +1,11 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { EventBus } from "../domain/events/event-bus";
-import { HistoryRepository } from "../domain/history/history.repository";
-import { PlaylistRepository } from "../domain/playlists/playlist.repository";
+import { HistoryRepository } from "../domain/interfaces/history.repository";
+import { PlaylistRepository } from "../domain/interfaces/playlist.repository";
+import { TrackRepository } from "../domain/interfaces/track.repository";
 import { DownloadTrackUseCase } from "../domain/tracks/download-track.use-case";
 import { SearchTrackOnYoutubeUseCase } from "../domain/tracks/search-track-on-youtube.use-case";
 import { TrackQueueService } from "../domain/tracks/track-queue.service";
-import { TrackRepository } from "../domain/tracks/track.repository";
 import { TrackFileHelper } from "../helpers/track-file.helper";
 import { AppError } from "../middleware/error-handler";
 import { M3uService } from "./m3u.service";

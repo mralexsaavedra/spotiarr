@@ -3,7 +3,7 @@ import { SpotifyUrlHelper, SpotifyUrlType } from "../../helpers/spotify-url.help
 import { SettingsService } from "../../services/settings.service";
 import { SpotifyService } from "../../services/spotify.service";
 import { TrackService } from "../../services/track.service";
-import type { PlaylistRepository } from "../playlists/playlist.repository";
+import type { PlaylistRepository } from "../interfaces/playlist.repository";
 
 interface PlaylistTrackDetail {
   artist: string;

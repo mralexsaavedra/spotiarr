@@ -1,5 +1,5 @@
 import type { PlaylistHistory, DownloadHistoryItem } from "@spotiarr/shared";
-import type { HistoryRepository } from "./history.repository";
+import type { HistoryRepository } from "../interfaces/history.repository";
 
 export interface HistoryUseCaseDependencies {
   repository: HistoryRepository;

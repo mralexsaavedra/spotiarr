@@ -1,5 +1,5 @@
 import type { SettingItem } from "@spotiarr/shared";
-import type { SettingsRepository } from "./settings.repository";
+import type { SettingsRepository } from "../interfaces/settings.repository";
 
 export interface SettingsUseCaseDependencies {
   repository: SettingsRepository;
