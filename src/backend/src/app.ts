@@ -1,3 +1,4 @@
+import compression from "compression";
 import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
@@ -19,6 +20,9 @@ app.use(
   }),
 );
 app.use(cors());
+
+// Compression middleware (should be early in the chain)
+app.use(compression());
 
 // Body parsing
 app.use(express.json());

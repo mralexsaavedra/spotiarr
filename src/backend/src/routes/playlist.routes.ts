@@ -1,6 +1,13 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { asyncHandler } from "../middleware/async-handler";
+import { validate } from "../middleware/validate";
 import { PlaylistService } from "../services/playlist.service";
+import {
+  createPlaylistSchema,
+  playlistIdSchema,
+  playlistPreviewSchema,
+  updatePlaylistSchema,
+} from "./schemas/playlist.schema";
 
 const router: ExpressRouter = Router();
 const playlistService = new PlaylistService();
@@ -8,16 +15,9 @@ const playlistService = new PlaylistService();
 // GET /api/playlist/preview - Get playlist preview from Spotify URL
 router.get(
   "/preview",
+  validate(playlistPreviewSchema),
   asyncHandler(async (req, res) => {
-    const { url } = req.query;
-
-    if (typeof url !== "string" || url.length === 0) {
-      return res.status(400).json({
-        error: "invalid_url",
-        message: "url query parameter is required",
-      });
-    }
-
+    const { url } = req.query as { url: string };
     const preview = await playlistService.getPreview(url);
     res.json(preview);
   }),
@@ -35,37 +35,8 @@ router.get(
 // POST /api/playlist - Create new playlist
 router.post(
   "/",
+  validate(createPlaylistSchema),
   asyncHandler(async (req, res) => {
-    const { spotifyUrl, name, type, subscribed } = req.body ?? {};
-
-    if (typeof spotifyUrl !== "string" || spotifyUrl.length === 0) {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "spotifyUrl is required and must be a non-empty string",
-      });
-    }
-
-    if (name !== undefined && typeof name !== "string") {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "name must be a string when provided",
-      });
-    }
-
-    if (type !== undefined && typeof type !== "string") {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "type must be a string when provided",
-      });
-    }
-
-    if (subscribed !== undefined && typeof subscribed !== "boolean") {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "subscribed must be a boolean when provided",
-      });
-    }
-
     const playlist = await playlistService.create(req.body);
     res.status(201).json(playlist);
   }),
@@ -74,38 +45,9 @@ router.post(
 // PUT /api/playlist/:id - Update playlist
 router.put(
   "/:id",
+  validate(updatePlaylistSchema),
   asyncHandler(async (req, res) => {
-    const id = req.params.id;
-    const { name, type, spotifyUrl, subscribed } = req.body ?? {};
-
-    if (name !== undefined && typeof name !== "string") {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "name must be a string when provided",
-      });
-    }
-
-    if (type !== undefined && typeof type !== "string") {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "type must be a string when provided",
-      });
-    }
-
-    if (spotifyUrl !== undefined && typeof spotifyUrl !== "string") {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "spotifyUrl must be a string when provided",
-      });
-    }
-
-    if (subscribed !== undefined && typeof subscribed !== "boolean") {
-      return res.status(400).json({
-        error: "invalid_playlist_payload",
-        message: "subscribed must be a boolean when provided",
-      });
-    }
-
+    const { id } = req.params;
     await playlistService.update(id, req.body);
     res.status(204).send();
   }),
@@ -123,8 +65,9 @@ router.delete(
 // DELETE /api/playlist/:id - Delete playlist
 router.delete(
   "/:id",
+  validate(playlistIdSchema),
   asyncHandler(async (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
     await playlistService.remove(id);
     res.status(204).send();
   }),
@@ -133,8 +76,9 @@ router.delete(
 // GET /api/playlist/retry/:id - Retry failed tracks
 router.get(
   "/retry/:id",
+  validate(playlistIdSchema),
   asyncHandler(async (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
     await playlistService.retryFailedOfPlaylist(id);
     res.status(204).send();
   }),

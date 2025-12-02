@@ -18,6 +18,7 @@
     "@prisma/client": "^6.0.0",
     "@spotiarr/shared": "workspace:*",
     "bullmq": "^5.64.1",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
@@ -25,12 +26,14 @@
     "node-cron": "^4.2.1",
     "node-id3": "^0.2.9",
     "yt-search": "^2.12.1",
-    "ytdlp-nodejs": "^2.3.5"
+    "ytdlp-nodejs": "^2.3.5",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@spotiarr/eslint-config": "workspace:*",
     "@spotiarr/prettier-config": "workspace:*",
     "@spotiarr/tsconfig": "workspace:*",
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
