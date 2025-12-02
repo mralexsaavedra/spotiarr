@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, FC, KeyboardEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useCreatePlaylistFromUrl } from "../../hooks/useCreatePlaylistFromUrl";
@@ -40,7 +41,7 @@ export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             className="p-2 rounded-full hover:bg-white/10 transition"
             aria-label="Open menu"
           >
-            <i className="fa-solid fa-bars text-text-primary text-lg" />
+            <FontAwesomeIcon icon="bars" className="text-text-primary text-lg" />
           </button>
           <Link to="/" className="flex items-center gap-2">
             <img src="/logo.svg" alt="SpotiArr Logo" className="w-7 h-7" />
@@ -58,7 +59,10 @@ export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
               onKeyUp={handleKeyUp}
               placeholder="Paste Spotify URL to download..."
             />
-            <i className="fa-solid fa-link absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none" />
+            <FontAwesomeIcon
+              icon="link"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none"
+            />
             {url && (
               <button
                 className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-primary text-black font-bold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
@@ -77,7 +81,7 @@ export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             onClick={handleDownload}
             disabled={isDownloadDisabled}
           >
-            <i className="fa-solid fa-download text-black text-sm" />
+            <FontAwesomeIcon icon="download" className="text-black text-sm" />
           </button>
         )}
       </div>
@@ -92,7 +96,10 @@ export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             onKeyUp={handleKeyUp}
             placeholder="Paste Spotify URL..."
           />
-          <i className="fa-solid fa-link absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none" />
+          <FontAwesomeIcon
+            icon="link"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none"
+          />
         </div>
         {url && !isValidUrl && (
           <p className="text-xs text-red-400 mt-2 px-2">Please enter a valid Spotify URL</p>

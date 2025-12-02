@@ -1,19 +1,21 @@
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 
 interface NavItem {
   label: string;
-  icon: string;
+  icon: IconProp;
   to: Path;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Home", icon: "fa-house", to: Path.HOME },
-  { label: "History", icon: "fa-clock-rotate-left", to: Path.HISTORY },
-  { label: "Releases", icon: "fa-bell", to: Path.RELEASES },
-  { label: "Artists", icon: "fa-user-group", to: Path.ARTISTS },
-  { label: "Settings", icon: "fa-sliders", to: Path.SETTINGS },
+  { label: "Home", icon: "house", to: Path.HOME },
+  { label: "History", icon: "clock-rotate-left", to: Path.HISTORY },
+  { label: "Releases", icon: "bell", to: Path.RELEASES },
+  { label: "Artists", icon: "user-group", to: Path.ARTISTS },
+  { label: "Settings", icon: "sliders", to: Path.SETTINGS },
 ];
 
 interface SidebarProps {
@@ -42,7 +44,7 @@ export const Sidebar: FC<SidebarProps> = ({
         className="absolute top-4 right-4 md:hidden text-white hover:text-text-primary transition"
         aria-label="Close menu"
       >
-        <i className="fa-solid fa-xmark text-xl" />
+        <FontAwesomeIcon icon="xmark" className="text-xl" />
       </button>
 
       <Link to={Path.HOME} onClick={closeMobileMenu} className="flex items-center gap-3 mb-8 px-2">
@@ -61,8 +63,9 @@ export const Sidebar: FC<SidebarProps> = ({
               onClick={closeMobileMenu}
               className={`group flex items-center gap-2 font-semibold transition rounded-lg px-2 py-1 ${active ? "text-text-primary bg-background-hover" : "text-text-secondary hover:text-text-primary"}`}
             >
-              <i
-                className={`fa-solid ${item.icon} text-lg transition-colors ${active ? "text-text-primary" : "text-text-secondary group-hover:text-text-primary"}`}
+              <FontAwesomeIcon
+                icon={item.icon}
+                className={`text-lg transition-colors ${active ? "text-text-primary" : "text-text-secondary group-hover:text-text-primary"}`}
               />
               <span
                 className={`transition-colors ${active ? "text-text-primary" : "text-text-secondary group-hover:text-text-primary"}`}
@@ -97,7 +100,7 @@ export const Sidebar: FC<SidebarProps> = ({
             className="p-1 rounded-full hover:bg-yellow-400/10 text-yellow-400 transition-colors"
             title="Buy me a coffee"
           >
-            <i className="fa-solid fa-mug-hot text-sm" />
+            <FontAwesomeIcon icon="mug-hot" className="text-sm" />
           </a>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import type { Playlist } from "../../types/playlist";
@@ -27,7 +28,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <i className="fa-solid fa-music text-4xl text-text-secondary" />
+            <FontAwesomeIcon icon="music" className="text-4xl text-text-secondary" />
           </div>
         )}
       </div>
@@ -43,19 +44,19 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({
         <div className="text-sm text-text-subtle flex items-center gap-2 truncate min-h-[20px]">
           {isDownloading ? (
             <>
-              <i className="fa-solid fa-spinner fa-spin text-blue-400 text-xs" />
+              <FontAwesomeIcon icon="spinner" spin className="text-blue-400 text-xs" />
               <span>
                 Downloading... {completedCount}/{totalCount}
               </span>
             </>
           ) : hasErrors ? (
             <>
-              <i className="fa-solid fa-circle-exclamation text-red-400 text-xs" />
+              <FontAwesomeIcon icon="circle-exclamation" className="text-red-400 text-xs" />
               <span>{errorCount} failed</span>
             </>
           ) : isCompleted ? (
             <>
-              <i className="fa-solid fa-circle-arrow-down text-primary text-xs" />
+              <FontAwesomeIcon icon="circle-arrow-down" className="text-primary text-xs" />
               <span>{totalCount} tracks</span>
             </>
           ) : (

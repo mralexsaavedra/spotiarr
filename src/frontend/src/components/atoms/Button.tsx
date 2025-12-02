@@ -1,3 +1,5 @@
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, ReactNode, useMemo } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
@@ -9,7 +11,7 @@ export interface ButtonProps {
   disabled?: boolean;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  icon?: string;
+  icon?: IconProp | string;
   loading?: boolean;
   className?: string;
   type?: "button" | "submit" | "reset";
@@ -52,10 +54,25 @@ export const Button: FC<ButtonProps> = ({
 
   const iconElement = useMemo(() => {
     if (loading) {
-      return <i className="fa-solid fa-spinner fa-spin" />;
+      return <FontAwesomeIcon icon="spinner" spin />;
     }
     if (icon) {
-      return <i className={`fa-solid ${icon}`} />;
+      let finalIcon = icon;
+      if (typeof icon === "string" && icon.startsWith("fa-")) {
+        finalIcon = icon.replace(/^fa-/, "") as IconProp;
+      }
+      // Handle space separated classes like "fa-brands fa-spotify"
+      if (typeof icon === "string" && icon.includes(" ")) {
+        const parts = icon.split(" ");
+        const name = parts.find(
+          (p) => p.startsWith("fa-") && p !== "fa-brands" && p !== "fa-solid" && p !== "fa-regular",
+        );
+        if (name) {
+          finalIcon = name.replace(/^fa-/, "") as IconProp;
+        }
+      }
+
+      return <FontAwesomeIcon icon={finalIcon as IconProp} />;
     }
     return null;
   }, [loading, icon]);

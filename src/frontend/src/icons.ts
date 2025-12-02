@@ -1,0 +1,63 @@
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faSpotify } from "@fortawesome/free-brands-svg-icons";
+import { faClock as faClockRegular } from "@fortawesome/free-regular-svg-icons";
+import {
+  faBars,
+  faBell,
+  faBroom,
+  faCheck,
+  faCircleArrowDown,
+  faCircleCheck,
+  faCircleExclamation,
+  faClockRotateLeft,
+  faCompactDisc,
+  faDownload,
+  faHouse,
+  faLink,
+  faMagnifyingGlass,
+  faMugHot,
+  faMusic,
+  faRepeat,
+  faRotate,
+  faRotateRight,
+  faSliders,
+  faSpinner,
+  faTrash,
+  faTriangleExclamation,
+  faUser,
+  faUserGroup,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
+
+library.add(
+  // Solid
+  faBars,
+  faBell,
+  faBroom,
+  faCheck,
+  faCircleArrowDown,
+  faCircleCheck,
+  faCircleExclamation,
+  faClockRotateLeft,
+  faCompactDisc,
+  faDownload,
+  faHouse,
+  faLink,
+  faMagnifyingGlass,
+  faMugHot,
+  faMusic,
+  faRepeat,
+  faRotate,
+  faRotateRight,
+  faSliders,
+  faSpinner,
+  faTrash,
+  faTriangleExclamation,
+  faUser,
+  faUserGroup,
+  faXmark,
+  // Regular
+  faClockRegular,
+  // Brands
+  faSpotify,
+);

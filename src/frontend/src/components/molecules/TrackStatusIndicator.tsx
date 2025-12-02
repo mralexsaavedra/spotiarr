@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, MouseEvent, ReactNode } from "react";
 
@@ -19,19 +20,19 @@ const STATUS_RENDERERS: Partial<
         title="Retry download"
         type="button"
       >
-        <i className="fa-solid fa-rotate-right" />
+        <FontAwesomeIcon icon="rotate-right" />
       </button>
     ) : (
-      <i className="fa-solid fa-triangle-exclamation text-red-500" title="Error" />
+      <FontAwesomeIcon icon="triangle-exclamation" className="text-red-500" title="Error" />
     ),
   [TrackStatusEnum.Downloading]: () => (
-    <i className="fa-solid fa-spinner fa-spin text-primary" title="Downloading..." />
+    <FontAwesomeIcon icon="spinner" spin className="text-primary" title="Downloading..." />
   ),
   [TrackStatusEnum.Queued]: () => (
-    <i className="fa-regular fa-clock text-text-secondary" title="Queued" />
+    <FontAwesomeIcon icon={["far", "clock"]} className="text-text-secondary" title="Queued" />
   ),
   [TrackStatusEnum.Searching]: () => (
-    <i className="fa-solid fa-magnifying-glass text-text-secondary" title="Searching..." />
+    <FontAwesomeIcon icon="magnifying-glass" className="text-text-secondary" title="Searching..." />
   ),
 };
 
@@ -62,7 +63,7 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
           title="Download Track"
           type="button"
         >
-          <i className="fa-solid fa-download" />
+          <FontAwesomeIcon icon="download" />
         </button>
       )}
     </>
