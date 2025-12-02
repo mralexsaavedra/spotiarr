@@ -1,8 +1,9 @@
-import { type ITrack } from "@spotiarr/shared";
+import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { DownloadTrackUseCase } from "../domain/tracks/download-track.use-case";
 import { SearchTrackOnYoutubeUseCase } from "../domain/tracks/search-track-on-youtube.use-case";
-import { TrackUseCases } from "../domain/tracks/track.use-cases";
+import { TrackQueueService } from "../domain/tracks/track-queue.service";
 import { TrackFileHelper } from "../helpers/track-file.helper";
+import { AppError } from "../middleware/error-handler";
 import { PrismaPlaylistRepository } from "../repositories/prisma-playlist.repository";
 import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
 import { BullMqTrackQueueService } from "./bullmq-track-queue.service";
@@ -15,15 +16,14 @@ import { YoutubeService } from "./youtube.service";
 
 export class TrackService {
   private readonly repository: PrismaTrackRepository;
-  private readonly useCases: TrackUseCases;
+  private readonly queueService: TrackQueueService;
   private readonly trackFileHelper: TrackFileHelper;
   private readonly searchTrackOnYoutubeUseCase: SearchTrackOnYoutubeUseCase;
   private readonly downloadTrackUseCase: DownloadTrackUseCase;
 
   constructor() {
     this.repository = new PrismaTrackRepository();
-    const queueService = new BullMqTrackQueueService();
-    this.useCases = new TrackUseCases({ repository: this.repository, queueService });
+    this.queueService = new BullMqTrackQueueService();
     this.trackFileHelper = new TrackFileHelper();
 
     const youtubeService = new YoutubeService();
@@ -38,7 +38,7 @@ export class TrackService {
       this.repository,
       youtubeService,
       settingsService,
-      queueService,
+      this.queueService,
     );
 
     this.downloadTrackUseCase = new DownloadTrackUseCase(
@@ -53,31 +53,42 @@ export class TrackService {
   }
 
   getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
-    return this.useCases.getAll(where);
+    return this.repository.findAll(where);
   }
 
   getAllByPlaylist(id: string): Promise<ITrack[]> {
-    return this.useCases.getAllByPlaylist(id);
+    return this.repository.findAllByPlaylist(id);
   }
 
   get(id: string): Promise<ITrack | null> {
-    return this.useCases.get(id);
+    return this.repository.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
-    await this.useCases.remove(id);
+    const existing = await this.get(id);
+    if (!existing) {
+      throw new AppError(404, "track_not_found");
+    }
+
+    await this.repository.delete(id);
   }
 
   async create(track: Partial<ITrack>): Promise<void> {
-    await this.useCases.create(track);
+    const savedTrack = await this.repository.save(track as ITrack);
+    await this.queueService.enqueueSearchTrack(savedTrack);
   }
 
   async update(id: string, track: Partial<ITrack>): Promise<void> {
-    await this.useCases.update(id, track);
+    await this.repository.update(id, track);
   }
 
   async retry(id: string): Promise<void> {
-    await this.useCases.retry(id);
+    const track = await this.repository.findOneWithPlaylist(id);
+    if (!track) {
+      throw new AppError(404, "track_not_found");
+    }
+    await this.queueService.enqueueSearchTrack(track);
+    await this.update(id, { status: TrackStatusEnum.New });
   }
 
   async findOnYoutube(track: ITrack): Promise<void> {
