@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { formatRelativeDate } from "../../utils/date";
@@ -14,16 +14,12 @@ interface HistoryListItemProps {
   activePlaylist?: Playlist;
   recreatingUrl: string | null;
   onRecreate: (event: MouseEvent<HTMLButtonElement>, spotifyUrl: string | null) => void;
+  onItemClick: (item: PlaylistHistory, activePlaylist?: Playlist) => void;
 }
 
 const HistoryListItem: FC<HistoryListItemProps> = memo(
-  ({
-    item: { playlistName, playlistSpotifyUrl, lastCompletedAt },
-    activePlaylist,
-    recreatingUrl,
-    onRecreate,
-  }) => {
-    const navigate = useNavigate();
+  ({ item, activePlaylist, recreatingUrl, onRecreate, onItemClick }) => {
+    const { playlistName, playlistSpotifyUrl, lastCompletedAt } = item;
 
     const handleRecreate = useCallback(() => {
       const fakeEvent = {
@@ -34,12 +30,8 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
     }, [onRecreate, playlistSpotifyUrl]);
 
     const handleRowClick = useCallback(() => {
-      if (activePlaylist) {
-        navigate(Path.PLAYLIST_DETAIL.replace(":id", activePlaylist.id));
-      } else if (playlistSpotifyUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(playlistSpotifyUrl)}`);
-      }
-    }, [activePlaylist, playlistSpotifyUrl, navigate]);
+      onItemClick(item, activePlaylist);
+    }, [onItemClick, item, activePlaylist]);
 
     const handleActionClick = useCallback((e: MouseEvent) => {
       e.stopPropagation();
@@ -131,6 +123,7 @@ interface HistoryListProps {
   activePlaylists: Playlist[];
   recreatingUrl: string | null;
   onRecreate: (event: MouseEvent<HTMLButtonElement>, spotifyUrl: string | null) => void;
+  onItemClick: (item: PlaylistHistory, activePlaylist?: Playlist) => void;
 }
 
 export const HistoryList: FC<HistoryListProps> = ({
@@ -138,6 +131,7 @@ export const HistoryList: FC<HistoryListProps> = ({
   activePlaylists,
   recreatingUrl,
   onRecreate,
+  onItemClick,
 }) => {
   const activePlaylistsMap = useMemo(() => {
     const map = new Map<string, Playlist>();
@@ -159,10 +153,11 @@ export const HistoryList: FC<HistoryListProps> = ({
           activePlaylist={activePlaylist}
           recreatingUrl={recreatingUrl}
           onRecreate={onRecreate}
+          onItemClick={onItemClick}
         />
       );
     },
-    [activePlaylistsMap, recreatingUrl, onRecreate],
+    [activePlaylistsMap, recreatingUrl, onRecreate, onItemClick],
   );
 
   return (

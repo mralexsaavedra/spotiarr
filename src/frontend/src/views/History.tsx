@@ -1,4 +1,6 @@
+import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, MouseEvent, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
@@ -6,8 +8,11 @@ import { HistoryList } from "../components/organisms/HistoryList";
 import { useRecreatePlaylistMutation } from "../hooks/mutations/useRecreatePlaylistMutation";
 import { useDownloadHistoryQuery } from "../hooks/queries/useDownloadHistoryQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
+import { Path } from "../routes/routes";
+import { Playlist } from "../types/playlist";
 
 export const History: FC = () => {
+  const navigate = useNavigate();
   const { data: history = [], isLoading } = useDownloadHistoryQuery();
   const { data: activePlaylists = [] } = usePlaylistsQuery();
   const recreatePlaylist = useRecreatePlaylistMutation();
@@ -21,6 +26,17 @@ export const History: FC = () => {
       recreatePlaylist.mutate(playlistSpotifyUrl);
     },
     [recreatePlaylist],
+  );
+
+  const handleHistoryItemClick = useCallback(
+    (item: PlaylistHistory, activePlaylist?: Playlist) => {
+      if (activePlaylist) {
+        navigate(Path.PLAYLIST_DETAIL.replace(":id", activePlaylist.id));
+      } else if (item.playlistSpotifyUrl) {
+        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.playlistSpotifyUrl)}`);
+      }
+    },
+    [navigate],
   );
 
   return (
@@ -42,6 +58,7 @@ export const History: FC = () => {
             activePlaylists={activePlaylists}
             recreatingUrl={recreatePlaylist.isPending ? recreatePlaylist.variables : null}
             onRecreate={handleRecreatePlaylistClick}
+            onItemClick={handleHistoryItemClick}
           />
         )}
       </div>
