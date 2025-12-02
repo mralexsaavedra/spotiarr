@@ -1,14 +1,10 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
-import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
+import { container } from "../container";
 import { emitSseEvent } from "../routes/events.routes";
-import { SettingsService } from "../services/settings.service";
-import { TrackService } from "../services/track.service";
 import { getEnv } from "../setup/environment";
 
-const trackService = new TrackService();
-const settingsService = new SettingsService();
-const trackRepository = new PrismaTrackRepository();
+const { trackService, settingsService } = container;
 
 export const trackDownloadWorker = new Worker(
   "track-download-processor",
@@ -45,7 +41,7 @@ trackDownloadWorker.on("failed", async (job, err) => {
     }
 
     try {
-      await trackRepository.update(trackId, {
+      await trackService.update(trackId, {
         ...track,
         status: TrackStatusEnum.Error,
         error: err instanceof Error ? err.message : String(err),

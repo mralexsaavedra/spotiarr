@@ -1,9 +1,9 @@
 import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
+import { HistoryRepository } from "../../domain/history/history.repository";
+import { PlaylistRepository } from "../../domain/playlists/playlist.repository";
 import { TrackFileHelper } from "../../helpers/track-file.helper";
-import { PrismaHistoryRepository } from "../../repositories/prisma-history.repository";
-import { PrismaPlaylistRepository } from "../../repositories/prisma-playlist.repository";
 import { emitSseEvent } from "../../routes/events.routes";
 import { M3uService } from "../../services/m3u.service";
 import { SpotifyService } from "../../services/spotify.service";
@@ -18,9 +18,9 @@ export class DownloadTrackUseCase {
     private readonly m3uService: M3uService,
     private readonly utilsService: UtilsService,
     private readonly trackFileHelper: TrackFileHelper,
-    private readonly playlistRepository: PrismaPlaylistRepository,
+    private readonly playlistRepository: PlaylistRepository,
     private readonly spotifyService: SpotifyService,
-    private readonly downloadHistoryRepository: PrismaHistoryRepository = new PrismaHistoryRepository(),
+    private readonly downloadHistoryRepository: HistoryRepository,
   ) {}
 
   async execute(track: ITrack): Promise<void> {

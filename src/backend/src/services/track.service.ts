@@ -1,54 +1,59 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import { HistoryRepository } from "../domain/history/history.repository";
+import { PlaylistRepository } from "../domain/playlists/playlist.repository";
 import { DownloadTrackUseCase } from "../domain/tracks/download-track.use-case";
 import { SearchTrackOnYoutubeUseCase } from "../domain/tracks/search-track-on-youtube.use-case";
 import { TrackQueueService } from "../domain/tracks/track-queue.service";
+import { TrackRepository } from "../domain/tracks/track.repository";
 import { TrackFileHelper } from "../helpers/track-file.helper";
 import { AppError } from "../middleware/error-handler";
-import { PrismaPlaylistRepository } from "../repositories/prisma-playlist.repository";
-import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
-import { BullMqTrackQueueService } from "./bullmq-track-queue.service";
 import { M3uService } from "./m3u.service";
 import { SettingsService } from "./settings.service";
-import { SpotifyApiService } from "./spotify-api.service";
 import { SpotifyService } from "./spotify.service";
 import { UtilsService } from "./utils.service";
 import { YoutubeService } from "./youtube.service";
 
+export interface TrackServiceDependencies {
+  repository: TrackRepository;
+  queueService: TrackQueueService;
+  trackFileHelper: TrackFileHelper;
+  youtubeService: YoutubeService;
+  m3uService: M3uService;
+  utilsService: UtilsService;
+  settingsService: SettingsService;
+  playlistRepository: PlaylistRepository;
+  spotifyService: SpotifyService;
+  historyRepository: HistoryRepository;
+}
+
 export class TrackService {
-  private readonly repository: PrismaTrackRepository;
+  private readonly repository: TrackRepository;
   private readonly queueService: TrackQueueService;
   private readonly trackFileHelper: TrackFileHelper;
   private readonly searchTrackOnYoutubeUseCase: SearchTrackOnYoutubeUseCase;
   private readonly downloadTrackUseCase: DownloadTrackUseCase;
 
-  constructor() {
-    this.repository = new PrismaTrackRepository();
-    this.queueService = new BullMqTrackQueueService();
-    this.trackFileHelper = new TrackFileHelper();
-
-    const youtubeService = new YoutubeService();
-    const m3uService = new M3uService();
-    const utilsService = new UtilsService();
-    const settingsService = new SettingsService();
-    const playlistRepository = new PrismaPlaylistRepository();
-    const spotifyApiService = SpotifyApiService.getInstance();
-    const spotifyService = new SpotifyService(spotifyApiService);
+  constructor(deps: TrackServiceDependencies) {
+    this.repository = deps.repository;
+    this.queueService = deps.queueService;
+    this.trackFileHelper = deps.trackFileHelper;
 
     this.searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
       this.repository,
-      youtubeService,
-      settingsService,
+      deps.youtubeService,
+      deps.settingsService,
       this.queueService,
     );
 
     this.downloadTrackUseCase = new DownloadTrackUseCase(
       this.repository,
-      youtubeService,
-      m3uService,
-      utilsService,
+      deps.youtubeService,
+      deps.m3uService,
+      deps.utilsService,
       this.trackFileHelper,
-      playlistRepository,
-      spotifyService,
+      deps.playlistRepository,
+      deps.spotifyService,
+      deps.historyRepository,
     );
   }
 

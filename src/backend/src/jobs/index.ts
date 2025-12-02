@@ -1,13 +1,9 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import cron from "node-cron";
-import { PrismaTrackRepository } from "../repositories/prisma-track.repository";
+import { container } from "../container";
 import { emitSseEvent } from "../routes/events.routes";
-import { PlaylistService } from "../services/playlist.service";
-import { SettingsService } from "../services/settings.service";
 
-const playlistService = new PlaylistService();
-const settingsService = new SettingsService();
-const trackRepository = new PrismaTrackRepository();
+const { playlistService, settingsService, trackService } = container;
 
 let lastPlaylistCheckTimestamp = 0;
 let lastStuckTracksCleanupTimestamp = 0;
@@ -46,7 +42,7 @@ export const cleanStuckTracksJob = cron.schedule("* * * * *", async () => {
       return;
     }
 
-    const allTracks = await trackRepository.findAll();
+    const allTracks = await trackService.getAll();
     const stuckTracks = allTracks.filter(
       (track: ITrack) =>
         (track.status === TrackStatusEnum.Queued ||
@@ -60,7 +56,7 @@ export const cleanStuckTracksJob = cron.schedule("* * * * *", async () => {
       console.log(`[ScheduledJob] Found ${stuckTracks.length} stuck tracks, marking as error`);
       for (const track of stuckTracks) {
         if (track.id) {
-          await trackRepository.update(track.id, {
+          await trackService.update(track.id, {
             ...track,
             status: TrackStatusEnum.Error,
             error:

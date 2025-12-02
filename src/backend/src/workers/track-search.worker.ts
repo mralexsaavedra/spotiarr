@@ -1,11 +1,9 @@
 import { type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
-import { SettingsService } from "../services/settings.service";
-import { TrackService } from "../services/track.service";
+import { container } from "../container";
 import { getEnv } from "../setup/environment";
 
-const trackService = new TrackService();
-const settingsService = new SettingsService();
+const { trackService, settingsService } = container;
 
 export const trackSearchWorker = new Worker(
   "track-search-processor",

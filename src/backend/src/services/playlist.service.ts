@@ -3,12 +3,17 @@ import { CreatePlaylistUseCase } from "../domain/playlists/create-playlist.use-c
 import { PlaylistRepository } from "../domain/playlists/playlist.repository";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../helpers/spotify-url.helper";
 import { AppError } from "../middleware/error-handler";
-import { PrismaPlaylistRepository } from "../repositories/prisma-playlist.repository";
 import { emitSseEvent } from "../routes/events.routes";
 import { SettingsService } from "./settings.service";
-import { SpotifyApiService } from "./spotify-api.service";
 import { SpotifyService, type PlaylistTrack } from "./spotify.service";
 import { TrackService } from "./track.service";
+
+export interface PlaylistServiceDependencies {
+  repository: PlaylistRepository;
+  trackService: TrackService;
+  spotifyService: SpotifyService;
+  settingsService: SettingsService;
+}
 
 export class PlaylistService {
   private readonly repository: PlaylistRepository;
@@ -16,18 +21,16 @@ export class PlaylistService {
   private readonly spotifyService: SpotifyService;
   private readonly createPlaylistUseCase: CreatePlaylistUseCase;
 
-  constructor() {
-    this.repository = new PrismaPlaylistRepository();
-    this.trackService = new TrackService();
-    const spotifyApiService = SpotifyApiService.getInstance();
-    const settingsService = new SettingsService();
-    this.spotifyService = new SpotifyService(spotifyApiService);
+  constructor(deps: PlaylistServiceDependencies) {
+    this.repository = deps.repository;
+    this.trackService = deps.trackService;
+    this.spotifyService = deps.spotifyService;
 
     this.createPlaylistUseCase = new CreatePlaylistUseCase(
       this.repository,
       this.spotifyService,
       this.trackService,
-      settingsService,
+      deps.settingsService,
     );
   }
 

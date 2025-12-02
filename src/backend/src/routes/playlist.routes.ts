@@ -1,7 +1,7 @@
 import { Router, type Router as ExpressRouter } from "express";
+import { container } from "../container";
 import { asyncHandler } from "../middleware/async-handler";
 import { validate } from "../middleware/validate";
-import { PlaylistService } from "../services/playlist.service";
 import {
   createPlaylistSchema,
   playlistIdSchema,
@@ -10,7 +10,7 @@ import {
 } from "./schemas/playlist.schema";
 
 const router: ExpressRouter = Router();
-const playlistService = new PlaylistService();
+const { playlistService } = container;
 
 // GET /api/playlist/preview - Get playlist preview from Spotify URL
 router.get(
