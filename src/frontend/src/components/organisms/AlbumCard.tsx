@@ -1,7 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo, MouseEvent, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { Path } from "../../routes/routes";
 import { formatRelativeDate } from "../../utils/date";
 
 interface AlbumCardProps {
@@ -17,6 +15,7 @@ interface AlbumCardProps {
   albumType?: string;
   onCardClick: () => void;
   onDownloadClick: (e: MouseEvent<HTMLButtonElement>) => void;
+  onArtistClick: (artistId: string) => void;
 }
 
 export const AlbumCard: FC<AlbumCardProps> = memo(
@@ -33,10 +32,15 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
     albumType,
     onCardClick,
     onDownloadClick,
+    onArtistClick,
   }) => {
-    const handleStopPropagation = useCallback((e: MouseEvent) => {
-      e.stopPropagation();
-    }, []);
+    const handleArtistClick = useCallback(
+      (e: MouseEvent) => {
+        e.stopPropagation();
+        onArtistClick(artistId);
+      },
+      [onArtistClick, artistId],
+    );
 
     const typeLabel =
       albumType === "single"
@@ -111,13 +115,12 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
           <h3 className="font-bold text-text-primary text-sm truncate group-hover:underline">
             {albumName}
           </h3>
-          <Link
-            to={Path.ARTIST_DETAIL.replace(":id", artistId)}
-            className="text-xs text-text-secondary truncate hover:underline hover:text-text-primary block"
-            onClick={handleStopPropagation}
+          <span
+            className="text-xs text-text-secondary truncate hover:underline hover:text-text-primary block cursor-pointer"
+            onClick={handleArtistClick}
           >
             {artistName}
-          </Link>
+          </span>
           <div className="flex items-center gap-1 text-xs text-text-secondary truncate">
             <span>{typeLabel}</span>
             {dateDisplay && (

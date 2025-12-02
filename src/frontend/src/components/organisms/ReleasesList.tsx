@@ -1,7 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
-import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
-import { getPlaylistStatus } from "../../utils/playlist";
+import { FC, memo, MouseEvent, useCallback } from "react";
+import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { AlbumCard } from "./AlbumCard";
 
@@ -11,10 +10,11 @@ interface ReleaseItemProps {
   isDownloading: boolean;
   onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
+  onArtistClick: (artistId: string) => void;
 }
 
 const ReleaseItem: FC<ReleaseItemProps> = memo(
-  ({ release, isDownloaded, isDownloading, onReleaseClick, onDownloadRelease }) => {
+  ({ release, isDownloaded, isDownloading, onReleaseClick, onDownloadRelease, onArtistClick }) => {
     const handleCardClick = useCallback(() => {
       onReleaseClick(release);
     }, [onReleaseClick, release]);
@@ -42,6 +42,7 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
         albumType={release.albumType}
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}
+        onArtistClick={onArtistClick}
       />
     );
   },
@@ -49,33 +50,23 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
 
 interface ReleasesListProps {
   releases: ArtistRelease[];
-  playlists: Playlist[];
   onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
+  onArtistClick: (artistId: string) => void;
 }
 
 export const ReleasesList: FC<ReleasesListProps> = ({
   releases,
-  playlists,
   onReleaseClick,
   onDownloadRelease,
+  onArtistClick,
 }) => {
-  const playlistsMap = useMemo(() => {
-    const map = new Map<string, Playlist>();
-    playlists.forEach((p) => {
-      if (p.spotifyUrl) map.set(p.spotifyUrl, p);
-    });
-    return map;
-  }, [playlists]);
+  const { isPlaylistDownloaded, isPlaylistDownloading } = useDownloadStatus();
 
   const renderItem = useCallback(
     (release: ArtistRelease) => {
-      const playlist = release.spotifyUrl ? playlistsMap.get(release.spotifyUrl) : undefined;
-      const status = playlist ? getPlaylistStatus(playlist) : undefined;
-
-      const isDownloaded = status === PlaylistStatusEnum.Completed;
-      const isDownloading =
-        status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+      const isDownloaded = isPlaylistDownloaded(release.spotifyUrl);
+      const isDownloading = isPlaylistDownloading(release.spotifyUrl);
 
       return (
         <ReleaseItem
@@ -84,10 +75,11 @@ export const ReleasesList: FC<ReleasesListProps> = ({
           isDownloading={isDownloading}
           onReleaseClick={onReleaseClick}
           onDownloadRelease={onDownloadRelease}
+          onArtistClick={onArtistClick}
         />
       );
     },
-    [playlistsMap, onReleaseClick, onDownloadRelease],
+    [isPlaylistDownloaded, isPlaylistDownloading, onReleaseClick, onDownloadRelease, onArtistClick],
   );
 
   return (

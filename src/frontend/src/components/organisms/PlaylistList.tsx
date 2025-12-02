@@ -5,20 +5,24 @@ import { PlaylistCard } from "./PlaylistCard";
 
 interface PlaylistListItemProps {
   playlist: PlaylistWithStats;
+  onClick: (id: string) => void;
 }
 
-const PlaylistListItem: FC<PlaylistListItemProps> = memo(({ playlist }) => {
-  return <PlaylistCard playlist={playlist} stats={playlist.stats} />;
+const PlaylistListItem: FC<PlaylistListItemProps> = memo(({ playlist, onClick }) => {
+  return <PlaylistCard playlist={playlist} stats={playlist.stats} onClick={onClick} />;
 });
 
 interface PlaylistListProps {
   playlists: PlaylistWithStats[];
+  onPlaylistClick: (id: string) => void;
 }
 
-export const PlaylistList: FC<PlaylistListProps> = ({ playlists }) => {
+export const PlaylistList: FC<PlaylistListProps> = ({ playlists, onPlaylistClick }) => {
   const renderItem = useCallback(
-    (playlist: PlaylistWithStats) => <PlaylistListItem playlist={playlist} />,
-    [],
+    (playlist: PlaylistWithStats) => (
+      <PlaylistListItem playlist={playlist} onClick={onPlaylistClick} />
+    ),
+    [onPlaylistClick],
   );
 
   return (

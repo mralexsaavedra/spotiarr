@@ -38,6 +38,13 @@ export const Releases: FC = () => {
     [createPlaylist],
   );
 
+  const handleArtistClick = useCallback(
+    (artistId: string) => {
+      navigate(Path.ARTIST_DETAIL.replace(":id", artistId));
+    },
+    [navigate],
+  );
+
   if (error) {
     return (
       <section className="flex-1 bg-background px-4 md:px-8 py-6">
@@ -62,9 +69,9 @@ export const Releases: FC = () => {
         ) : (
           <ReleasesList
             releases={releases}
-            playlists={playlists}
             onReleaseClick={handleReleaseClick}
             onDownloadRelease={handleDownloadRelease}
+            onArtistClick={handleArtistClick}
           />
         )}
       </div>

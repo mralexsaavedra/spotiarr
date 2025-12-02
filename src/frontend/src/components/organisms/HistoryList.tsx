@@ -2,23 +2,24 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { Path } from "../../routes/routes";
-import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
+import { type Playlist } from "../../types/playlist";
 import { formatRelativeDate } from "../../utils/date";
-import { getPlaylistStatus } from "../../utils/playlist";
 import { Button } from "../atoms/Button";
 import { VirtualList } from "../molecules/VirtualList";
 
 interface HistoryListItemProps {
   item: PlaylistHistory;
   activePlaylist?: Playlist;
+  isDownloading: boolean;
   recreatingUrl: string | null;
   onRecreate: (event: MouseEvent<HTMLButtonElement>, spotifyUrl: string | null) => void;
   onItemClick: (item: PlaylistHistory, activePlaylist?: Playlist) => void;
 }
 
 const HistoryListItem: FC<HistoryListItemProps> = memo(
-  ({ item, activePlaylist, recreatingUrl, onRecreate, onItemClick }) => {
+  ({ item, activePlaylist, isDownloading, recreatingUrl, onRecreate, onItemClick }) => {
     const { playlistName, playlistSpotifyUrl, lastCompletedAt } = item;
 
     const handleRecreate = useCallback(() => {
@@ -37,10 +38,9 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
       e.stopPropagation();
     }, []);
 
-    const status = activePlaylist ? getPlaylistStatus(activePlaylist) : undefined;
-    const isDownloaded = status === PlaylistStatusEnum.Completed;
-    const isDownloading =
-      status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+    const handleLinkClick = useCallback((e: MouseEvent) => {
+      e.stopPropagation();
+    }, []);
 
     const isDisabled = !!activePlaylist;
     const isRecreating = recreatingUrl === playlistSpotifyUrl;
@@ -56,7 +56,7 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
               <Link
                 to={Path.PLAYLIST_DETAIL.replace(":id", activePlaylist.id)}
                 className="hover:underline"
-                onClick={(e) => e.stopPropagation()}
+                onClick={handleLinkClick}
               >
                 {playlistName}
               </Link>
@@ -64,7 +64,7 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
               <Link
                 to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(playlistSpotifyUrl)}`}
                 className="hover:underline"
-                onClick={(e) => e.stopPropagation()}
+                onClick={handleLinkClick}
               >
                 {playlistName}
               </Link>
@@ -133,6 +133,8 @@ export const HistoryList: FC<HistoryListProps> = ({
   onRecreate,
   onItemClick,
 }) => {
+  const { isPlaylistDownloading } = useDownloadStatus();
+
   const activePlaylistsMap = useMemo(() => {
     const map = new Map<string, Playlist>();
     activePlaylists.forEach((p) => {
@@ -147,17 +149,20 @@ export const HistoryList: FC<HistoryListProps> = ({
         ? activePlaylistsMap.get(item.playlistSpotifyUrl)
         : undefined;
 
+      const isDownloading = isPlaylistDownloading(item.playlistSpotifyUrl);
+
       return (
         <HistoryListItem
           item={item}
           activePlaylist={activePlaylist}
+          isDownloading={isDownloading}
           recreatingUrl={recreatingUrl}
           onRecreate={onRecreate}
           onItemClick={onItemClick}
         />
       );
     },
-    [activePlaylistsMap, recreatingUrl, onRecreate, onItemClick],
+    [activePlaylistsMap, recreatingUrl, onRecreate, onItemClick, isPlaylistDownloading],
   );
 
   return (

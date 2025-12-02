@@ -1,4 +1,5 @@
 import { FC, useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
@@ -7,8 +8,10 @@ import { EmptyState } from "../components/molecules/EmptyState";
 import { PlaylistList } from "../components/organisms/PlaylistList";
 import { useDeleteCompletedPlaylistsMutation } from "../hooks/mutations/useDeleteCompletedPlaylistsMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
+import { Path } from "../routes/routes";
 
 export const Home: FC = () => {
+  const navigate = useNavigate();
   const { data: playlists, isLoading } = usePlaylistsQuery();
   const deleteCompletedPlaylists = useDeleteCompletedPlaylistsMutation();
 
@@ -26,6 +29,13 @@ export const Home: FC = () => {
   const handleCancelClearAll = useCallback(() => {
     setIsClearModalOpen(false);
   }, []);
+
+  const handlePlaylistClick = useCallback(
+    (id: string) => {
+      navigate(Path.PLAYLIST_DETAIL.replace(":id", id));
+    },
+    [navigate],
+  );
 
   return (
     <section className="w-full bg-background px-4 md:px-8 py-6">
@@ -51,7 +61,7 @@ export const Home: FC = () => {
             description="Search for artists or albums to start building your collection."
           />
         ) : (
-          <PlaylistList playlists={playlists} />
+          <PlaylistList playlists={playlists} onPlaylistClick={handlePlaylistClick} />
         )}
       </div>
 

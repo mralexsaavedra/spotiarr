@@ -1,22 +1,23 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo } from "react";
-import { Link } from "react-router-dom";
 import type { Playlist } from "../../types/playlist";
 import { PlaylistStats } from "../../types/playlist";
 
 interface PlaylistCardProps {
   playlist: Playlist;
   stats: PlaylistStats;
+  onClick: (id: string) => void;
 }
 
 export const PlaylistCard: FC<PlaylistCardProps> = memo(
   ({
     playlist,
     stats: { completedCount, errorCount, totalCount, isDownloading, hasErrors, isCompleted },
+    onClick,
   }) => {
     return (
-      <Link
-        to={`/playlist/${playlist.id}`}
+      <div
+        onClick={() => onClick(playlist.id)}
         className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-colors duration-300 cursor-pointer block"
       >
         <div className="relative aspect-square mb-4 rounded-md overflow-hidden shadow-lg bg-background-hover">
@@ -73,7 +74,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = memo(
             )}
           </div>
         </div>
-      </Link>
+      </div>
     );
   },
 );

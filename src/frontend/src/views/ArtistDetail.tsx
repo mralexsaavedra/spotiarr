@@ -12,7 +12,7 @@ import { ArtistDiscography } from "../components/organisms/ArtistDiscography";
 import { TrackList } from "../components/organisms/TrackList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
-import { useArtistStatus } from "../hooks/useArtistStatus";
+import { useDownloadStatus } from "../hooks/useDownloadStatus";
 import { useGridColumns } from "../hooks/useGridColumns";
 import { Path } from "../routes/routes";
 import { Track } from "../types/track";
@@ -26,8 +26,8 @@ export const ArtistDetail: FC = () => {
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, limit);
   const createPlaylistMutation = useCreatePlaylistMutation();
 
-  const { getArtistStatus } = useArtistStatus();
-  const isArtistDownloaded = getArtistStatus(artist?.spotifyUrl);
+  const { isPlaylistDownloaded } = useDownloadStatus();
+  const isArtistDownloaded = isPlaylistDownloaded(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
 
   const followersText = useMemo(
@@ -79,6 +79,15 @@ export const ArtistDetail: FC = () => {
       navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(url)}`);
     },
     [navigate],
+  );
+
+  const handleArtistClick = useCallback(
+    (artistId: string) => {
+      if (artistId !== id) {
+        navigate(Path.ARTIST_DETAIL.replace(":id", artistId));
+      }
+    },
+    [navigate, id],
   );
 
   if (isLoading) {
@@ -159,6 +168,7 @@ export const ArtistDetail: FC = () => {
             albums={artist.albums}
             onDownload={handleDownload}
             onDiscographyItemClick={handleNavigate}
+            onArtistClick={handleArtistClick}
             pageSize={limit}
           />
         ) : (

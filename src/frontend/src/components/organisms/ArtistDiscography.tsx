@@ -1,8 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useArtistDiscography } from "../../hooks/useArtistDiscography";
-import { usePlaylistStatusMap } from "../../hooks/usePlaylistStatusMap";
-import { PlaylistStatusEnum } from "../../types/playlist";
+import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { Button } from "../atoms/Button";
 import { ArtistDiscographyFilters } from "../molecules/ArtistDiscographyFilters";
 import { VirtualGrid } from "../molecules/VirtualGrid";
@@ -13,6 +12,7 @@ interface ArtistDiscographyProps {
   albums: ArtistRelease[];
   onDownload: (url: string) => void;
   onDiscographyItemClick: (url: string) => void;
+  onArtistClick: (artistId: string) => void;
   pageSize: number;
 }
 
@@ -22,10 +22,11 @@ interface DiscographyItemProps {
   isDownloading: boolean;
   onDiscographyItemClick: (url: string) => void;
   onDownload: (url: string) => void;
+  onArtistClick: (artistId: string) => void;
 }
 
 const DiscographyItem: FC<DiscographyItemProps> = memo(
-  ({ album, isDownloaded, isDownloading, onDiscographyItemClick, onDownload }) => {
+  ({ album, isDownloaded, isDownloading, onDiscographyItemClick, onDownload, onArtistClick }) => {
     const handleCardClick = useCallback(() => {
       if (album.spotifyUrl) {
         onDiscographyItemClick(album.spotifyUrl);
@@ -56,6 +57,7 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
         albumType={album.albumType}
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}
+        onArtistClick={onArtistClick}
       />
     );
   },
@@ -66,6 +68,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   albums,
   onDownload,
   onDiscographyItemClick,
+  onArtistClick,
   pageSize,
 }) => {
   const {
@@ -78,7 +81,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     canShowMore,
   } = useArtistDiscography({ artistId, initialAlbums: albums, pageSize });
 
-  const { data: playlistStatusMap } = usePlaylistStatusMap();
+  const { isPlaylistDownloaded, isPlaylistDownloading } = useDownloadStatus();
 
   const displayedItems = useMemo(
     () => filteredAlbums.slice(0, visibleItems),
@@ -87,12 +90,8 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
 
   const renderDiscographyItem = useCallback(
     (album: ArtistRelease) => {
-      const status =
-        album.spotifyUrl && playlistStatusMap ? playlistStatusMap.get(album.spotifyUrl) : undefined;
-
-      const isDownloaded = status === PlaylistStatusEnum.Completed;
-      const isDownloading =
-        status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+      const isDownloaded = isPlaylistDownloaded(album.spotifyUrl);
+      const isDownloading = isPlaylistDownloading(album.spotifyUrl);
 
       return (
         <DiscographyItem
@@ -102,10 +101,17 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
           isDownloading={isDownloading}
           onDiscographyItemClick={onDiscographyItemClick}
           onDownload={onDownload}
+          onArtistClick={onArtistClick}
         />
       );
     },
-    [playlistStatusMap, onDiscographyItemClick, onDownload],
+    [
+      isPlaylistDownloaded,
+      isPlaylistDownloading,
+      onDiscographyItemClick,
+      onDownload,
+      onArtistClick,
+    ],
   );
 
   return (

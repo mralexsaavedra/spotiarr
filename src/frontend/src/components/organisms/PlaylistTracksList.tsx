@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { useTrackStatus } from "../../hooks/useTrackStatus";
+import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types/track";
 import { ArtistLinks } from "../molecules/ArtistLinks";
@@ -124,7 +124,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   onRetryTrack,
   onDownloadTrack,
 }) => {
-  const { getTrackStatus } = useTrackStatus();
+  const { getTrackStatus } = useDownloadStatus();
 
   const renderItem = useCallback(
     (track: Track, index: number) => (
