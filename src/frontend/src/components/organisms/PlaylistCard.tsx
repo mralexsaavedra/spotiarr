@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
-import { PlaylistStats } from "../../hooks/usePlaylistStats";
 import type { Playlist } from "../../types/playlist";
+import { PlaylistStats } from "../../types/playlist";
 
 interface PlaylistCardProps {
   playlist: Playlist;

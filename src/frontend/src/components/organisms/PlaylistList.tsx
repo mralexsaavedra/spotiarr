@@ -1,21 +1,18 @@
 import { FC, memo } from "react";
-import { usePlaylistStats } from "../../hooks/usePlaylistStats";
-import type { Playlist } from "../../types/playlist";
+import { PlaylistWithStats } from "../../types/playlist";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { PlaylistCard } from "./PlaylistCard";
 
 interface PlaylistListItemProps {
-  playlist: Playlist;
+  playlist: PlaylistWithStats;
 }
 
 const PlaylistListItem: FC<PlaylistListItemProps> = memo(({ playlist }) => {
-  const stats = usePlaylistStats(playlist);
-
-  return <PlaylistCard playlist={playlist} stats={stats} />;
+  return <PlaylistCard playlist={playlist} stats={playlist.stats} />;
 });
 
 interface PlaylistListProps {
-  playlists: Playlist[];
+  playlists: PlaylistWithStats[];
 }
 
 export const PlaylistList: FC<PlaylistListProps> = ({ playlists }) => {

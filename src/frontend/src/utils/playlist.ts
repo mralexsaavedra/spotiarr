@@ -1,5 +1,5 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { type Playlist, PlaylistStatusEnum } from "../types/playlist";
+import { type Playlist, PlaylistStatusEnum, PlaylistStats } from "../types/playlist";
 import type { Track } from "../types/track";
 
 export interface PlaylistMetrics {
@@ -43,13 +43,31 @@ export const getPlaylistStatus = (playlist: Playlist): PlaylistStatusEnum => {
   return PlaylistStatusEnum.InProgress;
 };
 
-export const shouldClearPlaylist = (playlist: Playlist): boolean => {
-  const status = getPlaylistStatus(playlist);
+export const calculatePlaylistStats = (playlist: Playlist): PlaylistStats => {
+  const tracks = playlist.tracks || [];
+  const completed = tracks.filter((t: Track) => t.status === TrackStatusEnum.Completed).length;
 
-  if (playlist.subscribed) return false;
-  if (status === PlaylistStatusEnum.Completed) return true;
-  if (playlist.error) return true;
+  const downloading = tracks.filter((t: Track) => t.status === TrackStatusEnum.Downloading).length;
+  const searching = tracks.filter((t: Track) => t.status === TrackStatusEnum.Searching).length;
+  const queued = tracks.filter((t: Track) => t.status === TrackStatusEnum.Queued).length;
 
-  const tracks = playlist.tracks ?? [];
-  return tracks.some((track: Track) => track.status === TrackStatusEnum.Error);
+  const active = downloading + searching + queued;
+
+  const errors = tracks.filter((t: Track) => t.status === TrackStatusEnum.Error).length;
+  const total = tracks.length;
+  const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return {
+    completedCount: completed,
+    downloadingCount: downloading,
+    searchingCount: searching,
+    queuedCount: queued,
+    activeCount: active,
+    errorCount: errors,
+    totalCount: total,
+    progress: progressPercent,
+    isDownloading: active > 0,
+    hasErrors: errors > 0,
+    isCompleted: completed === total && total > 0,
+  };
 };
