@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
@@ -64,7 +65,9 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
 
       {/* Duration */}
       <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
-        {isDownloaded && <i className="fa-solid fa-circle-check text-green-500 text-base" />}
+        {isDownloaded && (
+          <FontAwesomeIcon icon="circle-check" className="text-green-500 text-base" />
+        )}
         <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
       </div>
     </div>
@@ -79,20 +82,21 @@ interface TrackListProps {
 export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
   const { getTrackStatus } = useTrackStatus();
 
+  const renderItem = useCallback(
+    (track: Track, index: number) => (
+      <TrackListItem
+        track={track}
+        index={index + 1}
+        onDownload={onDownload}
+        status={track.trackUrl ? getTrackStatus(track.trackUrl) : undefined}
+      />
+    ),
+    [onDownload, getTrackStatus],
+  );
+
   return (
     <div className="flex flex-col gap-2">
-      <VirtualList
-        items={tracks}
-        itemKey={(track) => track.id}
-        renderItem={(track, index) => (
-          <TrackListItem
-            track={track}
-            index={index + 1}
-            onDownload={onDownload}
-            status={track.trackUrl ? getTrackStatus(track.trackUrl) : undefined}
-          />
-        )}
-      />
+      <VirtualList items={tracks} itemKey={(track) => track.id} renderItem={renderItem} />
     </div>
   );
 };
