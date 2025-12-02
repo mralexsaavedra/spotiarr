@@ -1,5 +1,5 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback } from "react";
+import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useArtistDiscography } from "../../hooks/useArtistDiscography";
 import { Playlist, PlaylistStatusEnum } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
@@ -80,6 +80,34 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     canShowMore,
   } = useArtistDiscography({ artistId, initialAlbums: albums, pageSize });
 
+  const displayedItems = useMemo(
+    () => filteredAlbums.slice(0, visibleItems),
+    [filteredAlbums, visibleItems],
+  );
+
+  const renderDiscographyItem = useCallback(
+    (album: ArtistRelease) => {
+      const playlist = playlists?.find((p) => p.spotifyUrl === album.spotifyUrl);
+      const status = playlist ? getPlaylistStatus(playlist) : undefined;
+
+      const isDownloaded = status === PlaylistStatusEnum.Completed;
+      const isDownloading =
+        status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+
+      return (
+        <DiscographyItem
+          key={album.albumId}
+          album={album}
+          isDownloaded={isDownloaded}
+          isDownloading={isDownloading}
+          onDiscographyItemClick={onDiscographyItemClick}
+          onDownload={onDownload}
+        />
+      );
+    },
+    [playlists, onDiscographyItemClick, onDownload],
+  );
+
   return (
     <div className="mt-10">
       <div className="flex items-center justify-between mb-4">
@@ -95,27 +123,9 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
       ) : (
         <>
           <VirtualGrid
-            items={filteredAlbums.slice(0, visibleItems)}
+            items={displayedItems}
             itemKey={(album) => album.albumId}
-            renderItem={(album) => {
-              const playlist = playlists?.find((p) => p.spotifyUrl === album.spotifyUrl);
-              const status = playlist ? getPlaylistStatus(playlist) : undefined;
-
-              const isDownloaded = status === PlaylistStatusEnum.Completed;
-              const isDownloading =
-                status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
-
-              return (
-                <DiscographyItem
-                  key={album.albumId}
-                  album={album}
-                  isDownloaded={isDownloaded}
-                  isDownloading={isDownloading}
-                  onDiscographyItemClick={onDiscographyItemClick}
-                  onDownload={onDownload}
-                />
-              );
-            }}
+            renderItem={renderDiscographyItem}
             footer={
               canShowMore ? (
                 <div className="flex justify-center mt-8 pb-8">
