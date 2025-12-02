@@ -1,5 +1,5 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
-import { emitSseEvent } from "../../routes/events.routes";
+import { EventBus } from "../../domain/events/event-bus";
 import { SettingsService } from "../../services/settings.service";
 import { YoutubeService } from "../../services/youtube.service";
 import type { TrackQueueService } from "./track-queue.service";
@@ -11,6 +11,7 @@ export class SearchTrackOnYoutubeUseCase {
     private readonly youtubeService: YoutubeService,
     private readonly settingsService: SettingsService,
     private readonly queueService: TrackQueueService,
+    private readonly eventBus: EventBus,
   ) {}
 
   async execute(track: ITrack): Promise<void> {
@@ -27,7 +28,7 @@ export class SearchTrackOnYoutubeUseCase {
       ...existingTrack,
       status: TrackStatusEnum.Searching,
     });
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
 
     let updatedTrack: ITrack;
 
@@ -50,7 +51,7 @@ export class SearchTrackOnYoutubeUseCase {
     }
 
     await this.trackRepository.update(track.id, updatedTrack);
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
 
     if (updatedTrack.youtubeUrl && updatedTrack.status === TrackStatusEnum.Queued) {
       const maxRetries = await this.settingsService.getNumber("DOWNLOAD_MAX_RETRIES");

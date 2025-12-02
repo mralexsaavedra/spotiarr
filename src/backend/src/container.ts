@@ -8,6 +8,7 @@ import { PlaylistService } from "./services/playlist.service";
 import { SettingsService } from "./services/settings.service";
 import { SpotifyApiService } from "./services/spotify-api.service";
 import { SpotifyService } from "./services/spotify.service";
+import { SseEventBus } from "./services/sse-event-bus";
 import { TrackService } from "./services/track.service";
 import { UtilsService } from "./services/utils.service";
 import { YoutubeService } from "./services/youtube.service";
@@ -24,6 +25,7 @@ const m3uService = new M3uService();
 const youtubeService = new YoutubeService();
 const trackFileHelper = new TrackFileHelper();
 const queueService = new BullMqTrackQueueService();
+const eventBus = new SseEventBus();
 
 // Spotify
 const spotifyApiService = SpotifyApiService.getInstance();
@@ -41,6 +43,7 @@ const trackService = new TrackService({
   playlistRepository,
   spotifyService,
   historyRepository,
+  eventBus,
 });
 
 const playlistService = new PlaylistService({
@@ -48,6 +51,7 @@ const playlistService = new PlaylistService({
   trackService,
   spotifyService,
   settingsService,
+  eventBus,
 });
 
 // Export container
@@ -57,4 +61,5 @@ export const container = {
   spotifyService,
   settingsService,
   queueService,
+  eventBus,
 };

@@ -1,9 +1,8 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import cron from "node-cron";
 import { container } from "../container";
-import { emitSseEvent } from "../routes/events.routes";
 
-const { playlistService, settingsService, trackService } = container;
+const { playlistService, settingsService, trackService, eventBus } = container;
 
 let lastPlaylistCheckTimestamp = 0;
 let lastStuckTracksCleanupTimestamp = 0;
@@ -65,7 +64,7 @@ export const cleanStuckTracksJob = cron.schedule("* * * * *", async () => {
           });
         }
       }
-      emitSseEvent("playlists-updated");
+      eventBus.emit("playlists-updated");
     }
 
     lastStuckTracksCleanupTimestamp = now;

@@ -1,10 +1,10 @@
 import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
+import { EventBus } from "../../domain/events/event-bus";
 import { HistoryRepository } from "../../domain/history/history.repository";
 import { PlaylistRepository } from "../../domain/playlists/playlist.repository";
 import { TrackFileHelper } from "../../helpers/track-file.helper";
-import { emitSseEvent } from "../../routes/events.routes";
 import { M3uService } from "../../services/m3u.service";
 import { SpotifyService } from "../../services/spotify.service";
 import { UtilsService } from "../../services/utils.service";
@@ -21,6 +21,7 @@ export class DownloadTrackUseCase {
     private readonly playlistRepository: PlaylistRepository,
     private readonly spotifyService: SpotifyService,
     private readonly downloadHistoryRepository: HistoryRepository,
+    private readonly eventBus: EventBus,
   ) {}
 
   async execute(track: ITrack): Promise<void> {
@@ -37,7 +38,7 @@ export class DownloadTrackUseCase {
       ...track,
       status: TrackStatusEnum.Downloading,
     });
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
 
     let error: string | undefined;
 
@@ -67,7 +68,7 @@ export class DownloadTrackUseCase {
       const persistedTrack = await this.trackRepository.findOneWithPlaylist(track.id);
       if (persistedTrack && persistedTrack.completedAt) {
         await this.downloadHistoryRepository.createFromTrack(persistedTrack);
-        emitSseEvent("download-history-updated");
+        this.eventBus.emit("download-history-updated");
       }
     }
 
@@ -77,7 +78,7 @@ export class DownloadTrackUseCase {
     }
 
     // Notify playlists have changed (track status affects playlist state)
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
   }
 
   private validateTrack(track: ITrack): void {

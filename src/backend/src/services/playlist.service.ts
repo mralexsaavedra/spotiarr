@@ -1,9 +1,9 @@
 import { PlaylistPreview, TrackStatusEnum, type IPlaylist } from "@spotiarr/shared";
+import { EventBus } from "../domain/events/event-bus";
 import { CreatePlaylistUseCase } from "../domain/playlists/create-playlist.use-case";
 import { PlaylistRepository } from "../domain/playlists/playlist.repository";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../helpers/spotify-url.helper";
 import { AppError } from "../middleware/error-handler";
-import { emitSseEvent } from "../routes/events.routes";
 import { SettingsService } from "./settings.service";
 import { SpotifyService, type PlaylistTrack } from "./spotify.service";
 import { TrackService } from "./track.service";
@@ -13,6 +13,7 @@ export interface PlaylistServiceDependencies {
   trackService: TrackService;
   spotifyService: SpotifyService;
   settingsService: SettingsService;
+  eventBus: EventBus;
 }
 
 export class PlaylistService {
@@ -20,11 +21,13 @@ export class PlaylistService {
   private readonly trackService: TrackService;
   private readonly spotifyService: SpotifyService;
   private readonly createPlaylistUseCase: CreatePlaylistUseCase;
+  private readonly eventBus: EventBus;
 
   constructor(deps: PlaylistServiceDependencies) {
     this.repository = deps.repository;
     this.trackService = deps.trackService;
     this.spotifyService = deps.spotifyService;
+    this.eventBus = deps.eventBus;
 
     this.createPlaylistUseCase = new CreatePlaylistUseCase(
       this.repository,
@@ -49,7 +52,7 @@ export class PlaylistService {
     }
 
     await this.repository.delete(id);
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
   }
 
   async removeCompleted(): Promise<void> {
@@ -64,7 +67,7 @@ export class PlaylistService {
     }
 
     if (completedPlaylists.length > 0) {
-      emitSseEvent("playlists-updated");
+      this.eventBus.emit("playlists-updated");
     }
   }
 
@@ -75,13 +78,13 @@ export class PlaylistService {
     }
 
     const created = await this.createPlaylistUseCase.execute(playlist);
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
     return created;
   }
 
   async save(playlist: IPlaylist): Promise<IPlaylist> {
     const savedPlaylist = await this.repository.save(playlist);
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
     return savedPlaylist;
   }
 
@@ -92,7 +95,7 @@ export class PlaylistService {
     }
 
     await this.repository.update(id, playlist);
-    emitSseEvent("playlists-updated");
+    this.eventBus.emit("playlists-updated");
   }
 
   async retryFailedOfPlaylist(id: string): Promise<void> {

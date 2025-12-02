@@ -1,4 +1,5 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import { EventBus } from "../domain/events/event-bus";
 import { HistoryRepository } from "../domain/history/history.repository";
 import { PlaylistRepository } from "../domain/playlists/playlist.repository";
 import { DownloadTrackUseCase } from "../domain/tracks/download-track.use-case";
@@ -24,6 +25,7 @@ export interface TrackServiceDependencies {
   playlistRepository: PlaylistRepository;
   spotifyService: SpotifyService;
   historyRepository: HistoryRepository;
+  eventBus: EventBus;
 }
 
 export class TrackService {
@@ -43,6 +45,7 @@ export class TrackService {
       deps.youtubeService,
       deps.settingsService,
       this.queueService,
+      deps.eventBus,
     );
 
     this.downloadTrackUseCase = new DownloadTrackUseCase(
@@ -54,6 +57,7 @@ export class TrackService {
       deps.playlistRepository,
       deps.spotifyService,
       deps.historyRepository,
+      deps.eventBus,
     );
   }
 
