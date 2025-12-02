@@ -38,27 +38,27 @@ interface RoutingProps {
 }
 
 export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
-  <Suspense fallback={<Loading />}>
-    <Routes>
-      <Route element={<AppLayout pathname={pathname} version={version} />}>
-        <Route
-          element={
-            <RouteErrorBoundary>
+  <Routes>
+    <Route element={<AppLayout pathname={pathname} version={version} />}>
+      <Route
+        element={
+          <RouteErrorBoundary>
+            <Suspense fallback={<Loading />}>
               <Outlet />
-            </RouteErrorBoundary>
-          }
-        >
-          <Route path={Path.HOME} element={<Home />} />
-          <Route path={Path.PLAYLIST_DETAIL} element={<PlaylistDetail />} />
-          <Route path={Path.PLAYLIST_PREVIEW} element={<PlaylistPreview />} />
-          <Route path={Path.HISTORY} element={<History />} />
-          <Route path={Path.RELEASES} element={<Releases />} />
-          <Route path={Path.ARTISTS} element={<Artists />} />
-          <Route path={Path.ARTIST_DETAIL} element={<ArtistDetail />} />
-          <Route path={Path.SETTINGS} element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
+            </Suspense>
+          </RouteErrorBoundary>
+        }
+      >
+        <Route path={Path.HOME} element={<Home />} />
+        <Route path={Path.PLAYLIST_DETAIL} element={<PlaylistDetail />} />
+        <Route path={Path.PLAYLIST_PREVIEW} element={<PlaylistPreview />} />
+        <Route path={Path.HISTORY} element={<History />} />
+        <Route path={Path.RELEASES} element={<Releases />} />
+        <Route path={Path.ARTISTS} element={<Artists />} />
+        <Route path={Path.ARTIST_DETAIL} element={<ArtistDetail />} />
+        <Route path={Path.SETTINGS} element={<Settings />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
-    </Routes>
-  </Suspense>
+    </Route>
+  </Routes>
 );
