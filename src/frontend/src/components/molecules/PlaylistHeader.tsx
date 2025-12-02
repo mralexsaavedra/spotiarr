@@ -29,7 +29,9 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
             <img
               src={coverUrl}
               alt={title}
-              loading="lazy"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="w-full h-full object-cover shadow-lg"
             />
           ) : (

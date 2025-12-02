@@ -61,6 +61,7 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
               src={coverUrl}
               alt={albumName}
               loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (

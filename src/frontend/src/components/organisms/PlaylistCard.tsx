@@ -1,6 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, memo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { FC, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../../services/api";
 import type { Playlist } from "../../types/playlist";
 import { PlaylistStats } from "../../types/playlist";
 
@@ -14,9 +16,21 @@ export const PlaylistCard: FC<PlaylistCardProps> = memo(
     playlist,
     stats: { completedCount, errorCount, totalCount, isDownloading, hasErrors, isCompleted },
   }) => {
+    const queryClient = useQueryClient();
+
+    const handleMouseEnter = useCallback(() => {
+      // Prefetch tracks when user hovers over the card
+      queryClient.prefetchQuery({
+        queryKey: ["tracks", playlist.id],
+        queryFn: () => api.getTracksByPlaylist(playlist.id),
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      });
+    }, [queryClient, playlist.id]);
+
     return (
       <Link
         to={`/playlist/${playlist.id}`}
+        onMouseEnter={handleMouseEnter}
         className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-colors duration-300 cursor-pointer block"
       >
         <div className="relative aspect-square mb-4 rounded-md overflow-hidden shadow-lg bg-background-hover">
@@ -25,6 +39,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = memo(
               src={playlist.coverUrl}
               alt={playlist.name || "Playlist cover"}
               loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (

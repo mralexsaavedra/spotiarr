@@ -46,6 +46,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
             src={track.albumUrl}
             alt={track.name}
             loading="lazy"
+            decoding="async"
             className="w-10 h-10 rounded shadow-sm object-cover"
           />
         )}
