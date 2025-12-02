@@ -28,6 +28,9 @@ const ArtistDetail = lazy(() =>
 const Settings = lazy(() =>
   import("../views/Settings").then((module) => ({ default: module.Settings })),
 );
+const NotFound = lazy(() =>
+  import("../views/NotFound").then((module) => ({ default: module.NotFound })),
+);
 
 interface RoutingProps {
   pathname: Path;
@@ -53,6 +56,7 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
           <Route path={Path.ARTISTS} element={<Artists />} />
           <Route path={Path.ARTIST_DETAIL} element={<ArtistDetail />} />
           <Route path={Path.SETTINGS} element={<Settings />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
     </Routes>
