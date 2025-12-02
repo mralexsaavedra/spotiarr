@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useCallback } from "react";
+import { FC, memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
 
@@ -10,7 +10,7 @@ interface ArtistCardProps {
   spotifyUrl: string | null;
 }
 
-export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
+export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image }) => {
   const navigate = useNavigate();
 
   const handleCardClick = useCallback(() => {
@@ -43,4 +43,4 @@ export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
       </div>
     </article>
   );
-};
+});
