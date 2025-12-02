@@ -1,4 +1,4 @@
-import { FC, ChangeEventHandler, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { SearchInput } from "../components/molecules/SearchInput";
@@ -20,8 +20,8 @@ export const Artists: FC = () => {
     return list.filter((artist) => artist.name.toLowerCase().includes(query));
   }, [artists, debouncedSearch]);
 
-  const handleSearchChange = useCallback<ChangeEventHandler<HTMLInputElement>>((event) => {
-    setSearch(event.target.value);
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
   }, []);
 
   if (error) {
