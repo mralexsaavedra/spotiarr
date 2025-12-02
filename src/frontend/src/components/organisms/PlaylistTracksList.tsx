@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
@@ -98,7 +99,11 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         <div className="flex items-center justify-end gap-4">
           <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right flex items-center justify-end gap-2">
             {(status ?? track.status) === "completed" && (
-              <i className="fa-solid fa-circle-check text-green-500 text-base" title="Downloaded" />
+              <FontAwesomeIcon
+                icon="circle-check"
+                className="text-green-500 text-base"
+                title="Downloaded"
+              />
             )}
             {track.durationMs ? new Date(track.durationMs).toISOString().substr(14, 5) : "--:--"}
           </div>
@@ -121,6 +126,19 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
 }) => {
   const { getTrackStatus } = useTrackStatus();
 
+  const renderItem = useCallback(
+    (track: Track, index: number) => (
+      <PlaylistTrackItem
+        track={track}
+        index={index + 1}
+        status={track.trackUrl ? getTrackStatus(track.trackUrl) : track.status}
+        onRetryTrack={onRetryTrack}
+        onDownloadTrack={onDownloadTrack}
+      />
+    ),
+    [onRetryTrack, onDownloadTrack, getTrackStatus],
+  );
+
   return (
     <div className="flex flex-col pb-4">
       {/* Header */}
@@ -129,24 +147,12 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
         <div>Title</div>
         <div className="hidden md:block">Album</div>
         <div className="text-right">
-          <i className="fa-regular fa-clock" />
+          <FontAwesomeIcon icon={["far", "clock"]} />
         </div>
       </div>
 
       {/* List */}
-      <VirtualList
-        items={tracks}
-        itemKey={(track) => track.id}
-        renderItem={(track, index) => (
-          <PlaylistTrackItem
-            track={track}
-            index={index + 1}
-            status={track.trackUrl ? getTrackStatus(track.trackUrl) : track.status}
-            onRetryTrack={onRetryTrack}
-            onDownloadTrack={onDownloadTrack}
-          />
-        )}
-      />
+      <VirtualList items={tracks} itemKey={(track) => track.id} renderItem={renderItem} />
     </div>
   );
 };

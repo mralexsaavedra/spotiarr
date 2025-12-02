@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -97,14 +98,14 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
                   disabled
                   className="!opacity-100 !cursor-default hover:!bg-transparent text-text-secondary"
                 >
-                  <i className="fa-solid fa-spinner fa-spin text-primary" />
+                  <FontAwesomeIcon icon="spinner" spin className="text-primary" />
                   <span className="hidden md:inline">Downloading...</span>
                 </Button>
               ) : (
                 <Button
                   variant="ghost"
                   size="sm"
-                  icon={isDisabled ? "fa-check" : "fa-rotate"}
+                  icon={isDisabled ? "check" : "rotate"}
                   title={
                     isDisabled ? "Playlist already exists" : "Recreate playlist and subscribe again"
                   }
@@ -145,6 +146,24 @@ export const HistoryList: FC<HistoryListProps> = ({
     return map;
   }, [activePlaylists]);
 
+  const renderItem = useCallback(
+    (item: PlaylistHistory) => {
+      const activePlaylist = item.playlistSpotifyUrl
+        ? activePlaylistsMap.get(item.playlistSpotifyUrl)
+        : undefined;
+
+      return (
+        <HistoryListItem
+          item={item}
+          activePlaylist={activePlaylist}
+          isRecreating={isRecreating}
+          onRecreate={onRecreate}
+        />
+      );
+    },
+    [activePlaylistsMap, isRecreating, onRecreate],
+  );
+
   return (
     <div className="flex flex-col">
       <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
@@ -155,20 +174,7 @@ export const HistoryList: FC<HistoryListProps> = ({
       <VirtualList
         items={history}
         itemKey={(item) => item.playlistId ?? item.playlistSpotifyUrl ?? item.playlistName}
-        renderItem={(item) => {
-          const activePlaylist = item.playlistSpotifyUrl
-            ? activePlaylistsMap.get(item.playlistSpotifyUrl)
-            : undefined;
-
-          return (
-            <HistoryListItem
-              item={item}
-              activePlaylist={activePlaylist}
-              isRecreating={isRecreating}
-              onRecreate={onRecreate}
-            />
-          );
-        }}
+        renderItem={renderItem}
       />
     </div>
   );
