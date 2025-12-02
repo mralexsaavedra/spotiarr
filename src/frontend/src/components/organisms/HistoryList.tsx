@@ -1,5 +1,5 @@
 import { PlaylistHistory } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback } from "react";
+import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
@@ -137,6 +137,14 @@ export const HistoryList: FC<HistoryListProps> = ({
   isRecreating,
   onRecreate,
 }) => {
+  const activePlaylistsMap = useMemo(() => {
+    const map = new Map<string, Playlist>();
+    activePlaylists.forEach((p) => {
+      if (p.spotifyUrl) map.set(p.spotifyUrl, p);
+    });
+    return map;
+  }, [activePlaylists]);
+
   return (
     <div className="flex flex-col">
       <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
@@ -148,9 +156,9 @@ export const HistoryList: FC<HistoryListProps> = ({
         items={history}
         itemKey={(item) => item.playlistId ?? item.playlistSpotifyUrl ?? item.playlistName}
         renderItem={(item) => {
-          const activePlaylist = activePlaylists.find(
-            (p) => p.spotifyUrl === item.playlistSpotifyUrl,
-          );
+          const activePlaylist = item.playlistSpotifyUrl
+            ? activePlaylistsMap.get(item.playlistSpotifyUrl)
+            : undefined;
 
           return (
             <HistoryListItem
