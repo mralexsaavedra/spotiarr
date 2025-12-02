@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -90,7 +91,7 @@ export const PlaylistPreview: FC = () => {
             loading={createPlaylist.isPending}
             title="Download Playlist"
           >
-            <i className="fa-solid fa-download text-xl" />
+            <FontAwesomeIcon icon="download" className="text-xl" />
           </Button>
 
           <SpotifyLinkButton url={spotifyUrl} />

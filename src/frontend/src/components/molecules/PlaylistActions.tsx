@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../atoms/SpotifyLinkButton";
@@ -32,7 +33,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         onClick={onToggleSubscription}
         title={isSubscribed ? "Unsubscribe from updates" : "Subscribe to updates"}
       >
-        <i className={`fa-solid ${isSubscribed ? "fa-check" : "fa-bell"} text-xl`} />
+        <FontAwesomeIcon icon={isSubscribed ? "check" : "bell"} className="text-xl" />
       </Button>
 
       {spotifyUrl && <SpotifyLinkButton url={spotifyUrl} />}
@@ -43,7 +44,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         <Button
           variant="ghost"
           size="lg"
-          icon="fa-repeat"
+          icon="repeat"
           loading={isRetrying}
           onClick={onRetryFailed}
           className="text-text-secondary hover:text-text-primary hover:bg-white/10"
@@ -56,7 +57,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
       <Button
         variant="ghost"
         size="lg"
-        icon="fa-trash"
+        icon="trash"
         onClick={onDelete}
         className="text-text-secondary hover:text-red-400 hover:bg-red-500/10"
         title="Delete playlist"

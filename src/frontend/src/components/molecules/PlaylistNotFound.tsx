@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Button } from "../atoms/Button";
 
@@ -9,7 +10,7 @@ export const PlaylistNotFound: FC<PlaylistNotFoundProps> = ({ onGoHome }) => {
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-8 flex items-center justify-center">
       <div className="text-center space-y-4">
-        <i className="fa-solid fa-circle-exclamation text-6xl text-text-secondary" />
+        <FontAwesomeIcon icon="circle-exclamation" className="text-6xl text-text-secondary" />
         <h2 className="text-2xl font-bold text-text-primary">Playlist not found</h2>
         <Button
           variant="primary"

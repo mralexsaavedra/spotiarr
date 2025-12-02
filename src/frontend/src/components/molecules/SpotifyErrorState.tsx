@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ApiErrorCode } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
 import { ConnectSpotifyPrompt } from "./ConnectSpotifyPrompt";
@@ -46,7 +47,7 @@ export const SpotifyErrorState: FC<SpotifyErrorStateProps> = ({
 
   return (
     <div className={`text-text-secondary flex items-center gap-2 ${className}`}>
-      <i className="fa-solid fa-triangle-exclamation text-red-400" />
+      <FontAwesomeIcon icon="triangle-exclamation" className="text-red-400" />
       <span>{message}</span>
     </div>
   );

@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -125,9 +126,9 @@ export const ArtistDetail: FC = () => {
             title={isArtistDownloaded ? "Artist Downloaded" : "Download All"}
           >
             {isArtistDownloaded ? (
-              <i className="fa-solid fa-check text-xl" />
+              <FontAwesomeIcon icon="check" className="text-xl" />
             ) : (
-              <i className="fa-solid fa-download text-xl" />
+              <FontAwesomeIcon icon="download" className="text-xl" />
             )}
           </Button>
 
@@ -141,7 +142,7 @@ export const ArtistDetail: FC = () => {
 
           {!tracks || tracks.length === 0 ? (
             <EmptyState
-              icon="fa-music"
+              icon="music"
               title="No tracks found"
               description="This artist has no popular tracks available."
               className="py-8"

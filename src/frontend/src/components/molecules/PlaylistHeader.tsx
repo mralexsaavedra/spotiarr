@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, ReactNode } from "react";
 
 interface PlaylistHeaderProps {
@@ -33,7 +34,7 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
             />
           ) : (
             <div className="w-full h-full bg-background-elevated flex items-center justify-center">
-              <i className="fa-solid fa-music text-6xl text-text-secondary" />
+              <FontAwesomeIcon icon="music" className="text-6xl text-text-secondary" />
             </div>
           )}
         </div>
