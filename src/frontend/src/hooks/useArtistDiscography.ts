@@ -42,14 +42,18 @@ export const useArtistDiscography = ({
         setHasFetchedAll(true);
       }
 
-      const existingIds = new Set(allAlbums.map((a) => a.albumId));
-      const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
+      setAllAlbums((prev) => {
+        const existingIds = new Set(prev.map((a) => a.albumId));
+        const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
 
-      if (uniqueNewAlbums.length > 0) {
-        setAllAlbums((prev) => [...prev, ...uniqueNewAlbums]);
-      }
+        if (uniqueNewAlbums.length === 0) {
+          return prev;
+        }
+
+        return [...prev, ...uniqueNewAlbums];
+      });
     }
-  }, [moreAlbums, pageSize, allAlbums]);
+  }, [moreAlbums, pageSize]);
 
   const filteredAlbums = useMemo(() => {
     let result = allAlbums;
