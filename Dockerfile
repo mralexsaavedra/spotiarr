@@ -42,7 +42,7 @@ COPY --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotia
 COPY --from=builder /spotiarr/src/ ./src/
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Generate Prisma Client for production
 RUN pnpm --filter backend prisma:generate
