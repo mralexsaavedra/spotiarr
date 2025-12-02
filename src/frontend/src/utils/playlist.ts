@@ -71,3 +71,27 @@ export const calculatePlaylistStats = (playlist: Playlist): PlaylistStats => {
     isCompleted: completed === total && total > 0,
   };
 };
+
+export const formatPlaylistTitle = (rawTitle: string, type: string, tracks: Track[]): string => {
+  if (!rawTitle) return "Unnamed Playlist";
+
+  const typeLower = type.toLowerCase();
+
+  if (typeLower === "album") {
+    if (tracks.length > 0 && tracks[0].album) {
+      return tracks[0].album;
+    }
+    const parts = rawTitle.split(" - ");
+    return parts.length > 1 ? parts.slice(1).join(" - ") : rawTitle;
+  }
+
+  if (typeLower === "track") {
+    if (tracks.length > 0 && tracks[0].name) {
+      return tracks[0].name;
+    }
+    const parts = rawTitle.split(" - ");
+    return parts.length > 1 ? parts.slice(1).join(" - ") : rawTitle;
+  }
+
+  return rawTitle;
+};

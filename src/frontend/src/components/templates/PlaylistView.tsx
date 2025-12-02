@@ -1,7 +1,7 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, ReactNode } from "react";
-import { usePlaylistTitle } from "../../hooks/usePlaylistTitle";
+import { FC, ReactNode, useMemo } from "react";
 import { Track } from "../../types/track";
+import { formatPlaylistTitle } from "../../utils/playlist";
 import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistHeader } from "../molecules/PlaylistHeader";
@@ -32,7 +32,10 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   const totalCount = tracks.length;
   const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
 
-  const displayTitle = usePlaylistTitle(rawTitle, type, tracks);
+  const displayTitle = useMemo(
+    () => formatPlaylistTitle(rawTitle, type, tracks),
+    [rawTitle, type, tracks],
+  );
 
   return (
     <div className="flex-1 bg-background text-text-primary">
