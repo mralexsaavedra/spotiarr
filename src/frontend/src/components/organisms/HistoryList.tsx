@@ -12,7 +12,7 @@ import { VirtualList } from "../molecules/VirtualList";
 interface HistoryListItemProps {
   item: PlaylistHistory;
   activePlaylist?: Playlist;
-  isRecreating: boolean;
+  recreatingUrl: string | null;
   onRecreate: (event: MouseEvent<HTMLButtonElement>, spotifyUrl: string | null) => void;
 }
 
@@ -20,7 +20,7 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
   ({
     item: { playlistName, playlistSpotifyUrl, lastCompletedAt },
     activePlaylist,
-    isRecreating,
+    recreatingUrl,
     onRecreate,
   }) => {
     const navigate = useNavigate();
@@ -51,6 +51,7 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
       status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
 
     const isDisabled = !!activePlaylist;
+    const isRecreating = recreatingUrl === playlistSpotifyUrl;
 
     return (
       <div
@@ -128,14 +129,14 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
 interface HistoryListProps {
   history: PlaylistHistory[];
   activePlaylists: Playlist[];
-  isRecreating: boolean;
+  recreatingUrl: string | null;
   onRecreate: (event: MouseEvent<HTMLButtonElement>, spotifyUrl: string | null) => void;
 }
 
 export const HistoryList: FC<HistoryListProps> = ({
   history,
   activePlaylists,
-  isRecreating,
+  recreatingUrl,
   onRecreate,
 }) => {
   const activePlaylistsMap = useMemo(() => {
@@ -156,12 +157,12 @@ export const HistoryList: FC<HistoryListProps> = ({
         <HistoryListItem
           item={item}
           activePlaylist={activePlaylist}
-          isRecreating={isRecreating}
+          recreatingUrl={recreatingUrl}
           onRecreate={onRecreate}
         />
       );
     },
-    [activePlaylistsMap, isRecreating, onRecreate],
+    [activePlaylistsMap, recreatingUrl, onRecreate],
   );
 
   return (
