@@ -10,6 +10,7 @@ import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
+import { useDownloadStatus } from "../hooks/useDownloadStatus";
 import { Path } from "../routes/routes";
 import { Track } from "../types/track";
 
@@ -18,14 +19,20 @@ export const PlaylistPreview: FC = () => {
   const navigate = useNavigate();
 
   const createPlaylist = useCreatePlaylistMutation();
+  const { isPlaylistDownloaded, isPlaylistDownloading, getTrackStatus } = useDownloadStatus();
 
   const spotifyUrl = useMemo(() => searchParams.get("url"), [searchParams]);
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
+
+  const isDownloaded = isPlaylistDownloaded(spotifyUrl);
+  const isDownloading = isPlaylistDownloading(spotifyUrl);
 
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
 
     return previewData.tracks.map((t, i) => {
+      const status = t.trackUrl ? getTrackStatus(t.trackUrl) : undefined;
+
       return {
         id: `preview-${i}`,
         name: t.name,
@@ -33,12 +40,12 @@ export const PlaylistPreview: FC = () => {
         artists: t.artists.map((a) => ({ name: a.name, url: a.url })),
         album: t.album,
         durationMs: t.duration,
-        status: TrackStatusEnum.New,
+        status: status || TrackStatusEnum.New,
         trackUrl: t.trackUrl,
         albumUrl: t.albumUrl,
       };
     });
-  }, [previewData]);
+  }, [previewData, getTrackStatus]);
 
   const handleGoBack = useCallback(() => {
     navigate(Path.RELEASES);
@@ -86,12 +93,23 @@ export const PlaylistPreview: FC = () => {
           <Button
             variant="primary"
             size="lg"
-            className="!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg bg-green-500 hover:bg-green-600 hover:scale-105 transition-transform"
+            className={`!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
+              isDownloaded
+                ? "bg-green-500 hover:bg-green-600 cursor-default"
+                : "bg-green-500 hover:bg-green-600 hover:scale-105"
+            }`}
             onClick={handleDownload}
-            loading={createPlaylist.isPending}
-            title="Download Playlist"
+            loading={createPlaylist.isPending || isDownloading}
+            disabled={isDownloaded || isDownloading || createPlaylist.isPending}
+            title={
+              isDownloaded ? "Downloaded" : isDownloading ? "Downloading..." : "Download Playlist"
+            }
           >
-            <FontAwesomeIcon icon="download" className="text-xl" />
+            {isDownloaded ? (
+              <FontAwesomeIcon icon="check" className="text-xl" />
+            ) : !(isDownloading || createPlaylist.isPending) ? (
+              <FontAwesomeIcon icon="download" className="text-xl" />
+            ) : null}
           </Button>
 
           <SpotifyLinkButton url={spotifyUrl} />
