@@ -3,8 +3,8 @@ import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
 import path from "path";
-import { errorHandler } from "./middleware/error-handler";
-import routes from "./routes";
+import { errorHandler } from "./presentation/middleware/error-handler";
+import routes from "./presentation/routes";
 
 export const app: Express = express();
 

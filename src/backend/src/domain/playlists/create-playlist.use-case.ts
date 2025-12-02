@@ -1,8 +1,8 @@
 import { PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
-import { SpotifyUrlHelper, SpotifyUrlType } from "../../helpers/spotify-url.helper";
-import { SettingsService } from "../../services/settings.service";
-import { SpotifyService } from "../../services/spotify.service";
-import { TrackService } from "../../services/track.service";
+import { SettingsService } from "../../application/services/settings.service";
+import { TrackService } from "../../application/services/track.service";
+import { SpotifyService } from "../../infrastructure/external/spotify.service";
+import { SpotifyUrlHelper, SpotifyUrlType } from "../helpers/spotify-url.helper";
 import type { PlaylistRepository } from "../interfaces/playlist.repository";
 
 interface PlaylistTrackDetail {

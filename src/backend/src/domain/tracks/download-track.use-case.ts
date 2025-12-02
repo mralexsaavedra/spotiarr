@@ -1,15 +1,15 @@
 import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
-import { EventBus } from "../../domain/events/event-bus";
-import { HistoryRepository } from "../../domain/interfaces/history.repository";
-import { PlaylistRepository } from "../../domain/interfaces/playlist.repository";
-import { TrackRepository } from "../../domain/interfaces/track.repository";
-import { TrackFileHelper } from "../../helpers/track-file.helper";
-import { M3uService } from "../../services/m3u.service";
-import { SpotifyService } from "../../services/spotify.service";
-import { UtilsService } from "../../services/utils.service";
-import { YoutubeService } from "../../services/youtube.service";
+import { UtilsService } from "../../application/services/utils.service";
+import { SpotifyService } from "../../infrastructure/external/spotify.service";
+import { YoutubeService } from "../../infrastructure/external/youtube.service";
+import { M3uService } from "../../infrastructure/file-system/m3u.service";
+import { TrackFileHelper } from "../../infrastructure/file-system/track-file.helper";
+import { EventBus } from "../events/event-bus";
+import { HistoryRepository } from "../interfaces/history.repository";
+import { PlaylistRepository } from "../interfaces/playlist.repository";
+import { TrackRepository } from "../interfaces/track.repository";
 
 export class DownloadTrackUseCase {
   constructor(

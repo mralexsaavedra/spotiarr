@@ -1,17 +1,17 @@
-import { TrackFileHelper } from "./helpers/track-file.helper";
-import { PrismaHistoryRepository } from "./repositories/prisma-history.repository";
-import { PrismaPlaylistRepository } from "./repositories/prisma-playlist.repository";
-import { PrismaTrackRepository } from "./repositories/prisma-track.repository";
-import { BullMqTrackQueueService } from "./services/bullmq-track-queue.service";
-import { M3uService } from "./services/m3u.service";
-import { PlaylistService } from "./services/playlist.service";
-import { SettingsService } from "./services/settings.service";
-import { SpotifyApiService } from "./services/spotify-api.service";
-import { SpotifyService } from "./services/spotify.service";
-import { SseEventBus } from "./services/sse-event-bus";
-import { TrackService } from "./services/track.service";
-import { UtilsService } from "./services/utils.service";
-import { YoutubeService } from "./services/youtube.service";
+import { PlaylistService } from "./application/services/playlist.service";
+import { SettingsService } from "./application/services/settings.service";
+import { TrackService } from "./application/services/track.service";
+import { UtilsService } from "./application/services/utils.service";
+import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
+import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
+import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
+import { SpotifyApiService } from "./infrastructure/external/spotify-api.service";
+import { SpotifyService } from "./infrastructure/external/spotify.service";
+import { YoutubeService } from "./infrastructure/external/youtube.service";
+import { M3uService } from "./infrastructure/file-system/m3u.service";
+import { TrackFileHelper } from "./infrastructure/file-system/track-file.helper";
+import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
+import { SseEventBus } from "./infrastructure/messaging/sse-event-bus";
 
 // Repositories
 const playlistRepository = new PrismaPlaylistRepository();

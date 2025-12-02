@@ -3,9 +3,9 @@ import { createServer } from "http";
 import { resolve } from "path";
 import { app } from "./app";
 import "./env";
-import { startScheduledJobs } from "./jobs";
-import { getEnv, validateEnvironment } from "./setup/environment";
-import { initializeQueues } from "./setup/queues";
+import { startScheduledJobs } from "./infrastructure/jobs";
+import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
+import { initializeQueues } from "./infrastructure/setup/queues";
 
 // Validate environment variables first
 validateEnvironment();
@@ -27,8 +27,8 @@ async function bootstrap() {
   initializeQueues();
 
   // Initialize workers
-  await import("./workers/track-download.worker");
-  await import("./workers/track-search.worker");
+  await import("./infrastructure/workers/track-download.worker");
+  await import("./infrastructure/workers/track-search.worker");
 
   // Create HTTP server
   const httpServer = createServer(app);
