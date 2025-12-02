@@ -1,9 +1,8 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { api } from "../services/api";
 import { Playlist } from "../types/playlist";
-import { useDownloadTracksQuery } from "./queries/useDownloadTracksQuery";
 import { PLAYLISTS_QUERY_KEY } from "./queryKeys";
 
 const selectTrackStatusMap = (data: Playlist[]) => {
@@ -23,26 +22,11 @@ export const useTrackStatus = () => {
     select: selectTrackStatusMap,
   });
 
-  const { data: downloadTracks } = useDownloadTracksQuery();
-
-  const downloadTracksSet = useMemo(() => {
-    if (!downloadTracks) return new Set<string>();
-    return new Set(downloadTracks.map((t) => t.trackUrl).filter(Boolean) as string[]);
-  }, [downloadTracks]);
-
   const getTrackStatus = useCallback(
     (url: string): TrackStatusEnum | undefined => {
-      if (tracksStatusMap?.has(url)) {
-        return tracksStatusMap.get(url);
-      }
-
-      if (downloadTracksSet.has(url)) {
-        return TrackStatusEnum.Completed;
-      }
-
-      return undefined;
+      return tracksStatusMap?.get(url);
     },
-    [tracksStatusMap, downloadTracksSet],
+    [tracksStatusMap],
   );
 
   return { getTrackStatus };
