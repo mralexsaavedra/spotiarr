@@ -1,3 +1,4 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
@@ -9,12 +10,13 @@ import { VirtualList } from "../molecules/VirtualList";
 interface PlaylistTrackItemProps {
   track: Track;
   index: number;
+  status?: TrackStatusEnum;
   onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
 }
 
 const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
-  ({ track, index, onRetryTrack, onDownloadTrack }) => {
+  ({ track, index, status, onRetryTrack, onDownloadTrack }) => {
     const artists = track.artists || [{ name: track.artist }];
 
     const handleRetry = useCallback(
@@ -46,7 +48,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         {/* Index */}
         <div className="text-text-secondary text-sm text-center w-4 flex justify-center">
           <TrackStatusIndicator
-            status={track.status}
+            status={status ?? track.status}
             index={index}
             onRetry={onRetryTrack ? handleRetry : undefined}
             onDownload={onDownloadTrack ? handleDownload : undefined}
@@ -94,7 +96,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         {/* Duration & Actions */}
         <div className="flex items-center justify-end gap-4">
           <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right flex items-center justify-end gap-2">
-            {track.status === "completed" && (
+            {(status ?? track.status) === "completed" && (
               <i className="fa-solid fa-circle-check text-green-500 text-base" title="Downloaded" />
             )}
             {track.durationMs ? new Date(track.durationMs).toISOString().substr(14, 5) : "--:--"}
@@ -109,12 +111,14 @@ interface PlaylistTracksListProps {
   tracks: Track[];
   onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
+  getTrackStatus?: (trackUrl: string) => TrackStatusEnum | undefined;
 }
 
 export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   tracks,
   onRetryTrack,
   onDownloadTrack,
+  getTrackStatus,
 }) => {
   return (
     <div className="flex flex-col pb-4">
@@ -136,6 +140,9 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
           <PlaylistTrackItem
             track={track}
             index={index + 1}
+            status={
+              getTrackStatus && track.trackUrl ? getTrackStatus(track.trackUrl) : track.status
+            }
             onRetryTrack={onRetryTrack}
             onDownloadTrack={onDownloadTrack}
           />

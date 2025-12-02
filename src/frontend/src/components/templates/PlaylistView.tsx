@@ -17,6 +17,7 @@ interface PlaylistViewProps {
   tracks: Track[];
   onRetryTrack?: (id: string) => void;
   onDownloadTrack?: (track: Track) => void;
+  getTrackStatus?: (trackUrl: string) => TrackStatusEnum | undefined;
 }
 
 export const PlaylistView: FC<PlaylistViewProps> = ({
@@ -28,6 +29,7 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
   tracks,
   onRetryTrack,
   onDownloadTrack,
+  getTrackStatus,
 }) => {
   const totalCount = tracks.length;
   const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
@@ -72,6 +74,7 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
             tracks={tracks}
             onRetryTrack={onRetryTrack}
             onDownloadTrack={onDownloadTrack}
+            getTrackStatus={getTrackStatus}
           />
         )}
       </div>

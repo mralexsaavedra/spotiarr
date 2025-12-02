@@ -28,8 +28,6 @@ export const PlaylistPreview: FC = () => {
     if (!previewData?.tracks) return [];
 
     return previewData.tracks.map((t, i) => {
-      const status = (t.trackUrl ? getTrackStatus(t.trackUrl) : undefined) || TrackStatusEnum.New;
-
       return {
         id: `preview-${i}`,
         name: t.name,
@@ -37,12 +35,12 @@ export const PlaylistPreview: FC = () => {
         artists: t.artists.map((a) => ({ name: a.name, url: a.url })),
         album: t.album,
         durationMs: t.duration,
-        status: status,
+        status: TrackStatusEnum.New,
         trackUrl: t.trackUrl,
         albumUrl: t.albumUrl,
       };
     });
-  }, [previewData, getTrackStatus]);
+  }, [previewData]);
 
   const handleGoBack = useCallback(() => {
     navigate(Path.RELEASES);
@@ -103,6 +101,7 @@ export const PlaylistPreview: FC = () => {
       }
       tracks={tracks}
       onDownloadTrack={handleDownloadTrack}
+      getTrackStatus={getTrackStatus}
     />
   );
 };
