@@ -1,5 +1,6 @@
 import { FC, Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
+import { RouteErrorBoundary } from "../components/RouteErrorBoundary";
 import { Loading } from "../components/atoms/Loading";
 import { AppLayout } from "../components/layouts/AppLayout";
 import { Path } from "./routes";
@@ -37,14 +38,70 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
   <Suspense fallback={<Loading />}>
     <Routes>
       <Route element={<AppLayout pathname={pathname} version={version} />}>
-        <Route path={Path.HOME} element={<Home />} />
-        <Route path={Path.PLAYLIST_DETAIL} element={<PlaylistDetail />} />
-        <Route path={Path.PLAYLIST_PREVIEW} element={<PlaylistPreview />} />
-        <Route path={Path.HISTORY} element={<History />} />
-        <Route path={Path.RELEASES} element={<Releases />} />
-        <Route path={Path.ARTISTS} element={<Artists />} />
-        <Route path={Path.ARTIST_DETAIL} element={<ArtistDetail />} />
-        <Route path={Path.SETTINGS} element={<Settings />} />
+        <Route
+          path={Path.HOME}
+          element={
+            <RouteErrorBoundary>
+              <Home />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path={Path.PLAYLIST_DETAIL}
+          element={
+            <RouteErrorBoundary>
+              <PlaylistDetail />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path={Path.PLAYLIST_PREVIEW}
+          element={
+            <RouteErrorBoundary>
+              <PlaylistPreview />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path={Path.HISTORY}
+          element={
+            <RouteErrorBoundary>
+              <History />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path={Path.RELEASES}
+          element={
+            <RouteErrorBoundary>
+              <Releases />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path={Path.ARTISTS}
+          element={
+            <RouteErrorBoundary>
+              <Artists />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path={Path.ARTIST_DETAIL}
+          element={
+            <RouteErrorBoundary>
+              <ArtistDetail />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path={Path.SETTINGS}
+          element={
+            <RouteErrorBoundary>
+              <Settings />
+            </RouteErrorBoundary>
+          }
+        />
       </Route>
     </Routes>
   </Suspense>
