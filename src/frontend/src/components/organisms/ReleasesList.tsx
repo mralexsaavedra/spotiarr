@@ -1,5 +1,5 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback } from "react";
+import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { PlaylistStatusEnum, type Playlist } from "../../types/playlist";
 import { getPlaylistStatus } from "../../utils/playlist";
 import { VirtualGrid } from "../molecules/VirtualGrid";
@@ -60,28 +60,41 @@ export const ReleasesList: FC<ReleasesListProps> = ({
   onReleaseClick,
   onDownloadRelease,
 }) => {
+  const playlistsMap = useMemo(() => {
+    const map = new Map<string, Playlist>();
+    playlists.forEach((p) => {
+      if (p.spotifyUrl) map.set(p.spotifyUrl, p);
+    });
+    return map;
+  }, [playlists]);
+
+  const renderItem = useCallback(
+    (release: ArtistRelease) => {
+      const playlist = release.spotifyUrl ? playlistsMap.get(release.spotifyUrl) : undefined;
+      const status = playlist ? getPlaylistStatus(playlist) : undefined;
+
+      const isDownloaded = status === PlaylistStatusEnum.Completed;
+      const isDownloading =
+        status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
+
+      return (
+        <ReleaseItem
+          release={release}
+          isDownloaded={isDownloaded}
+          isDownloading={isDownloading}
+          onReleaseClick={onReleaseClick}
+          onDownloadRelease={onDownloadRelease}
+        />
+      );
+    },
+    [playlistsMap, onReleaseClick, onDownloadRelease],
+  );
+
   return (
     <VirtualGrid
       items={releases}
       itemKey={(release) => `${release.albumId}-${release.artistId}`}
-      renderItem={(release) => {
-        const playlist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
-        const status = playlist ? getPlaylistStatus(playlist) : undefined;
-
-        const isDownloaded = status === PlaylistStatusEnum.Completed;
-        const isDownloading =
-          status !== undefined && !isDownloaded && status !== PlaylistStatusEnum.Error;
-
-        return (
-          <ReleaseItem
-            release={release}
-            isDownloaded={isDownloaded}
-            isDownloading={isDownloading}
-            onReleaseClick={onReleaseClick}
-            onDownloadRelease={onDownloadRelease}
-          />
-        );
-      }}
+      renderItem={renderItem}
     />
   );
 };

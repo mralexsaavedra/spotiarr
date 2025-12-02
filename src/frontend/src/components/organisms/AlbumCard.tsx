@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, MouseEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
@@ -63,7 +64,7 @@ export const AlbumCard: FC<AlbumCardProps> = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <i className="fa-solid fa-compact-disc text-4xl text-text-secondary" />
+            <FontAwesomeIcon icon="compact-disc" className="text-4xl text-text-secondary" />
           </div>
         )}
 
@@ -88,9 +89,12 @@ export const AlbumCard: FC<AlbumCardProps> = ({
               }
             >
               {isDownloading ? (
-                <i className="fa-solid fa-spinner fa-spin text-primary" />
+                <FontAwesomeIcon icon="spinner" spin className="text-primary" />
               ) : (
-                <i className={`fa-solid ${isDownloaded ? "fa-check" : "fa-download"} text-black`} />
+                <FontAwesomeIcon
+                  icon={isDownloaded ? "check" : "download"}
+                  className="text-black"
+                />
               )}
             </button>
           </div>

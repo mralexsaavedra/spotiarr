@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
@@ -32,7 +33,7 @@ export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <i className="fa-solid fa-user text-4xl text-zinc-600" />
+            <FontAwesomeIcon icon="user" className="text-4xl text-zinc-600" />
           </div>
         )}
       </div>

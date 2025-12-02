@@ -1,4 +1,4 @@
-import { FC, memo } from "react";
+import { FC, memo, useCallback } from "react";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { ArtistCard } from "./ArtistCard";
 
@@ -29,11 +29,7 @@ interface ArtistListProps {
 }
 
 export const ArtistList: FC<ArtistListProps> = ({ artists }) => {
-  return (
-    <VirtualGrid
-      items={artists}
-      itemKey={(artist) => artist.id}
-      renderItem={(artist) => <ArtistListItem artist={artist} />}
-    />
-  );
+  const renderItem = useCallback((artist: Artist) => <ArtistListItem artist={artist} />, []);
+
+  return <VirtualGrid items={artists} itemKey={(artist) => artist.id} renderItem={renderItem} />;
 };

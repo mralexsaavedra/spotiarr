@@ -1,4 +1,4 @@
-import { FC, memo } from "react";
+import { FC, memo, useCallback } from "react";
 import { PlaylistWithStats } from "../../types/playlist";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { PlaylistCard } from "./PlaylistCard";
@@ -16,11 +16,12 @@ interface PlaylistListProps {
 }
 
 export const PlaylistList: FC<PlaylistListProps> = ({ playlists }) => {
+  const renderItem = useCallback(
+    (playlist: PlaylistWithStats) => <PlaylistListItem playlist={playlist} />,
+    [],
+  );
+
   return (
-    <VirtualGrid
-      items={playlists}
-      itemKey={(playlist) => playlist.id}
-      renderItem={(playlist) => <PlaylistListItem playlist={playlist} />}
-    />
+    <VirtualGrid items={playlists} itemKey={(playlist) => playlist.id} renderItem={renderItem} />
   );
 };
