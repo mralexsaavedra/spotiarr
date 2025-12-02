@@ -1,4 +1,4 @@
-import { FC, MouseEvent, useCallback, useState } from "react";
+import { FC, MouseEvent, useCallback } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
@@ -11,7 +11,6 @@ export const History: FC = () => {
   const { data: history = [], isLoading } = useDownloadHistoryQuery();
   const { data: activePlaylists = [] } = usePlaylistsQuery();
   const recreatePlaylist = useRecreatePlaylistMutation();
-  const [recreatingUrl, setRecreatingUrl] = useState<string | null>(null);
 
   const handleRecreatePlaylistClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>, playlistSpotifyUrl: string | null) => {
@@ -19,10 +18,7 @@ export const History: FC = () => {
       event.stopPropagation();
       if (!playlistSpotifyUrl) return;
 
-      setRecreatingUrl(playlistSpotifyUrl);
-      recreatePlaylist.mutate(playlistSpotifyUrl, {
-        onSettled: () => setRecreatingUrl(null),
-      });
+      recreatePlaylist.mutate(playlistSpotifyUrl);
     },
     [recreatePlaylist],
   );
@@ -44,7 +40,7 @@ export const History: FC = () => {
           <HistoryList
             history={history}
             activePlaylists={activePlaylists}
-            recreatingUrl={recreatingUrl}
+            recreatingUrl={recreatePlaylist.isPending ? recreatePlaylist.variables : null}
             onRecreate={handleRecreatePlaylistClick}
           />
         )}
