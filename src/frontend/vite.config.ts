@@ -34,5 +34,27 @@ export default defineConfig({
   build: {
     outDir: "./dist",
     emptyOutDir: true,
+    sourcemap: false, // Disable source maps in production for smaller bundle
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor chunks for better caching
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "query-vendor": ["@tanstack/react-query"],
+          "fontawesome-vendor": [
+            "@fortawesome/fontawesome-svg-core",
+            "@fortawesome/react-fontawesome",
+            "@fortawesome/free-solid-svg-icons",
+            "@fortawesome/free-regular-svg-icons",
+            "@fortawesome/free-brands-svg-icons",
+          ],
+        },
+      },
+    },
+    // Increase chunk size warning limit (default is 500kb)
+    chunkSizeWarningLimit: 1000,
+    // Minification settings
+    minify: "esbuild",
+    target: "esnext",
   },
 });
