@@ -527,6 +527,7 @@ export class SpotifyApiService {
       artists: { name: string; url: string | undefined }[];
       trackUrl: string | undefined;
       album: string;
+      albumUrl: string | undefined;
       albumCoverUrl: string | undefined;
       albumYear: number | undefined;
       trackNumber: number | undefined;
@@ -977,21 +978,7 @@ export class SpotifyApiService {
           })),
           trackUrl: track.trackUrl,
           album: track.album,
-          albumUrl: track.albumCoverUrl, // Wait, getAlbumTracks doesn't return albumUrl? I should check getAlbumTracks return type.
-          // Actually getAlbumTracks returns albumCoverUrl but not albumUrl (external url).
-          // Let's check getAlbumTracks implementation. It returns albumCoverUrl.
-          // But I need albumUrl (external_urls.spotify).
-          // getAlbumTracks implementation (lines 534-595) returns albumCoverUrl but NOT albumUrl.
-          // I should update getAlbumTracks too if I want albumUrl for albums.
-          // For now, let's focus on playlist tracks which was the main issue.
-          // But wait, I am replacing the whole block.
-
-          // Let's assume getAlbumTracks returns what it currently returns.
-          // I will fix getAlbumTracks later if needed.
-          // But wait, I need to match NormalizedTrack type.
-          // NormalizedTrack has albumUrl.
-          // If getAlbumTracks doesn't return it, I can't set it here.
-
+          albumUrl: track.albumUrl,
           albumYear: track.albumYear,
           trackNumber: track.trackNumber,
           previewUrl: track.previewUrl ?? null,

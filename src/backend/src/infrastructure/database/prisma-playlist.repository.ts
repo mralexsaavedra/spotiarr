@@ -75,6 +75,7 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
         trackNumber: track.trackNumber ?? undefined,
         spotifyUrl: track.spotifyUrl ?? undefined,
         trackUrl: track.trackUrl ?? undefined,
+        albumUrl: track.albumUrl ?? undefined,
         artists: track.artists ? (track.artists as unknown as TrackArtist[]) : undefined,
         youtubeUrl: track.youtubeUrl ?? undefined,
         status: track.status as unknown as IPlaylist["tracks"] extends (infer T)[] | undefined
