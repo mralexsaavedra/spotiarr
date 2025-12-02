@@ -4,7 +4,7 @@ import { ChangeEvent, FC, KeyboardEvent, useCallback } from "react";
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
-  onSearch: () => void;
+  onSearch?: () => void;
   placeholder?: string;
   className?: string;
 }
@@ -18,7 +18,7 @@ export const SearchInput: FC<SearchInputProps> = ({
 }) => {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && onSearch) {
         onSearch();
       }
     },
