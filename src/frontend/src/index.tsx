@@ -4,8 +4,8 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./app/App";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { ErrorFallback } from "./components/ErrorFallback";
+import { ErrorBoundary } from "./components/errors/ErrorBoundary";
+import { ErrorFallback } from "./components/errors/ErrorFallback";
 import "./icons";
 import "./index.css";
 
