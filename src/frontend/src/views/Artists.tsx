@@ -5,18 +5,20 @@ import { SearchInput } from "../components/molecules/SearchInput";
 import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ArtistList } from "../components/organisms/ArtistList";
 import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuery";
+import { useDebounce } from "../hooks/useDebounce";
 
 export const Artists: FC = () => {
   const { artists, isLoading, error } = useFollowedArtistsQuery();
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   const filteredArtists = useMemo(() => {
     const list = artists ?? [];
-    const query = search.trim().toLowerCase();
+    const query = debouncedSearch.trim().toLowerCase();
     if (!query) return list;
     return list.filter((artist) => artist.name.toLowerCase().includes(query));
-  }, [artists, search]);
+  }, [artists, debouncedSearch]);
 
   const handleSearchChange = useCallback<ChangeEventHandler<HTMLInputElement>>((event) => {
     setSearch(event.target.value);
