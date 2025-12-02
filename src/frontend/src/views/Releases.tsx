@@ -55,7 +55,7 @@ export const Releases: FC = () => {
           <Loading />
         ) : !releases || releases.length === 0 ? (
           <EmptyState
-            icon="fa-compact-disc"
+            icon="compact-disc"
             title="No new releases"
             description="No recent releases found from your followed artists."
           />

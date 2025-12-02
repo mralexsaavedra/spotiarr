@@ -65,7 +65,7 @@ export const PlaylistView: FC<PlaylistViewProps> = ({
       <div className="px-6 md:px-8 pb-8">
         {tracks.length === 0 ? (
           <EmptyState
-            icon="fa-music"
+            icon="music"
             title="No tracks in this playlist yet"
             description="Tracks you download or sync will appear here."
             className="py-12"

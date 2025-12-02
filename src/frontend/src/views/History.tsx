@@ -31,7 +31,7 @@ export const History: FC = () => {
           <Loading />
         ) : history.length === 0 ? (
           <EmptyState
-            icon="fa-clock-rotate-left"
+            icon="clock-rotate-left"
             title="No download history yet"
             description="Completed downloads will appear here."
           />

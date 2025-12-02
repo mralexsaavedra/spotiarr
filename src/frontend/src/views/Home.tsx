@@ -35,7 +35,7 @@ export const Home: FC = () => {
           className="mb-6"
           action={
             playlists && playlists.length > 0 ? (
-              <Button variant="secondary" size="md" icon="fa-broom" onClick={handleClearAllClick}>
+              <Button variant="secondary" size="md" icon="broom" onClick={handleClearAllClick}>
                 <span className="hidden sm:inline">Clear completed</span>
               </Button>
             ) : undefined
@@ -46,7 +46,7 @@ export const Home: FC = () => {
           <Loading />
         ) : !playlists || playlists.length === 0 ? (
           <EmptyState
-            icon="fa-music"
+            icon="music"
             title="Create your first playlist"
             description="Search for artists or albums to start building your collection."
           />
