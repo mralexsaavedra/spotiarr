@@ -1,3 +1,4 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
@@ -10,12 +11,10 @@ import { ArtistDiscography } from "../components/organisms/ArtistDiscography";
 import { TrackList } from "../components/organisms/TrackList";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
-import { useDownloadTracksQuery } from "../hooks/queries/useDownloadTracksQuery";
-import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useArtistStatus } from "../hooks/useArtistStatus";
 import { useGridColumns } from "../hooks/useGridColumns";
-import { useTrackStatus } from "../hooks/useTrackStatus";
 import { Path } from "../routes/routes";
+import { Track } from "../types/track";
 
 export const ArtistDetail: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,12 +23,10 @@ export const ArtistDetail: FC = () => {
   const limit = columns * 2;
 
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, limit);
-  const { data: playlists } = usePlaylistsQuery();
-  const { data: downloadTracks } = useDownloadTracksQuery();
   const createPlaylistMutation = useCreatePlaylistMutation();
 
-  const { getTrackStatus } = useTrackStatus();
-  const isArtistDownloaded = useArtistStatus(artist?.spotifyUrl, playlists, downloadTracks);
+  const { getArtistStatus } = useArtistStatus();
+  const isArtistDownloaded = getArtistStatus(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
 
   const followersText = useMemo(
@@ -40,12 +37,36 @@ export const ArtistDetail: FC = () => {
     [artist?.followers],
   );
 
+  const tracks: Track[] = useMemo(() => {
+    if (!artist?.topTracks) return [];
+    return artist.topTracks.map((t, i) => ({
+      id: `top-${i}`,
+      name: t.name,
+      artist: artist.name,
+      artists: [{ name: artist.name, url: artist.spotifyUrl || "" }],
+      album: "", // Top tracks don't always have album info here
+      durationMs: t.durationMs,
+      status: TrackStatusEnum.New,
+      trackUrl: t.trackUrl,
+      albumUrl: t.albumCoverUrl,
+    }));
+  }, [artist]);
+
   const handleDownload = useCallback(
     (url?: string) => {
       if (!url) return;
       createPlaylistMutation.mutate(url);
     },
     [createPlaylistMutation],
+  );
+
+  const handleTrackDownload = useCallback(
+    (track: Track) => {
+      if (track.trackUrl) {
+        handleDownload(track.trackUrl);
+      }
+    },
+    [handleDownload],
   );
 
   const handleArtistDownload = useCallback(() => {
@@ -118,7 +139,7 @@ export const ArtistDetail: FC = () => {
         <div className="mt-4">
           <h2 className="text-2xl font-bold mb-4">Popular</h2>
 
-          {!artist?.topTracks || artist.topTracks.length === 0 ? (
+          {!tracks || tracks.length === 0 ? (
             <EmptyState
               icon="fa-music"
               title="No tracks found"
@@ -126,11 +147,7 @@ export const ArtistDetail: FC = () => {
               className="py-8"
             />
           ) : (
-            <TrackList
-              tracks={artist.topTracks}
-              onDownload={handleDownload}
-              getTrackStatus={getTrackStatus}
-            />
+            <TrackList tracks={tracks} onDownload={handleTrackDownload} />
           )}
         </div>
 
@@ -139,7 +156,6 @@ export const ArtistDetail: FC = () => {
           <ArtistDiscography
             artistId={id!}
             albums={artist.albums}
-            playlists={playlists}
             onDownload={handleDownload}
             onDiscographyItemClick={handleNavigate}
             pageSize={limit}
