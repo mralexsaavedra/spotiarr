@@ -22,6 +22,7 @@ export const PlaylistCard: FC<PlaylistCardProps> = ({
           <img
             src={playlist.coverUrl}
             alt={playlist.name || "Playlist cover"}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

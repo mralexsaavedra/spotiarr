@@ -27,6 +27,7 @@ export const ArtistCard: FC<ArtistCardProps> = ({ id, name, image }) => {
           <img
             src={image}
             alt={name}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

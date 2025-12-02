@@ -49,6 +49,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(
             <img
               src={track.albumCoverUrl}
               alt={track.name}
+              loading="lazy"
               className="w-10 h-10 rounded shadow-sm object-cover"
             />
           )}

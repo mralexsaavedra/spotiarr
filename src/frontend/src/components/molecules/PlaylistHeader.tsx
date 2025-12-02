@@ -25,7 +25,12 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
         {/* Cover Image */}
         <div className="w-48 h-48 md:w-60 md:h-60 shadow-2xl flex-shrink-0">
           {coverUrl ? (
-            <img src={coverUrl} alt={title} className="w-full h-full object-cover shadow-lg" />
+            <img
+              src={coverUrl}
+              alt={title}
+              loading="lazy"
+              className="w-full h-full object-cover shadow-lg"
+            />
           ) : (
             <div className="w-full h-full bg-background-elevated flex items-center justify-center">
               <i className="fa-solid fa-music text-6xl text-text-secondary" />

@@ -27,6 +27,13 @@ export const VirtualGrid = <T,>({
     return result;
   }, [items, columns]);
 
+  const virtuosoComponents = useMemo(
+    () => ({
+      Footer: footer ? () => <>{footer}</> : undefined,
+    }),
+    [footer],
+  );
+
   if (items.length === 0 && emptyState) {
     return <>{emptyState}</>;
   }
@@ -35,9 +42,7 @@ export const VirtualGrid = <T,>({
     <Virtuoso
       useWindowScroll
       data={rows}
-      components={{
-        Footer: footer ? () => <>{footer}</> : undefined,
-      }}
+      components={virtuosoComponents}
       itemContent={(_, rowItems) => (
         <div
           className="grid gap-4 mb-4"
