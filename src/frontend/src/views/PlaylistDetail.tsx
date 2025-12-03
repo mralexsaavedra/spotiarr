@@ -4,13 +4,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { Playlist } from "../components/organisms/Playlist";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
+import { useDownloadStatusContext } from "../contexts/DownloadStatusContext";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../hooks/mutations/useRetryFailedTracksMutation";
 import { useRetryTrackMutation } from "../hooks/mutations/useRetryTrackMutation";
 import { useUpdatePlaylistMutation } from "../hooks/mutations/useUpdatePlaylistMutation";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useTracksQuery } from "../hooks/queries/useTracksQuery";
-import { useDownloadStatus } from "../hooks/useDownloadStatus";
 import { Path } from "../routes/routes";
 
 export const PlaylistDetail: FC = () => {
@@ -25,7 +25,7 @@ export const PlaylistDetail: FC = () => {
   const retryFailedTracks = useRetryFailedTracksMutation();
   const { mutate: retryTrack } = useRetryTrackMutation(id || "");
 
-  const { isPlaylistDownloading } = useDownloadStatus();
+  const { isPlaylistDownloading } = useDownloadStatusContext();
 
   const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
 

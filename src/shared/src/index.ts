@@ -194,3 +194,19 @@ export interface SettingItem {
   value: string;
   updatedAt?: string;
 }
+
+export enum PlaylistStatusEnum {
+  New = "new",
+  Downloading = "downloading",
+  Completed = "completed",
+  Error = "error",
+  Warning = "warning",
+  Subscribed = "subscribed",
+  InProgress = "in_progress",
+}
+
+export interface DownloadStatusResponse {
+  playlistStatusMap: Record<string, PlaylistStatusEnum>;
+  trackStatusMap: Record<string, TrackStatusEnum>;
+  albumTrackCountMap: Record<string, number>;
+}

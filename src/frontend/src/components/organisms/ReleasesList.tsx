@@ -1,6 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
-import { useDownloadStatus } from "../../hooks/useDownloadStatus";
+import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { AlbumCard } from "./AlbumCard";
 
@@ -70,7 +70,7 @@ export const ReleasesList: FC<ReleasesListProps> = ({
   onDownloadRelease,
   onArtistClick,
 }) => {
-  const { getBulkPlaylistStatus } = useDownloadStatus();
+  const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   // Pre-calculate download states for all releases (performance optimization)
   const downloadStatesMap = useMemo(() => {

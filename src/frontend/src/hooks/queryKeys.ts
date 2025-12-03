@@ -21,3 +21,5 @@ export const artistDetailQueryKey = (artistId: string) => ["artist-detail", arti
 
 export const artistAlbumsQueryKey = (artistId: string, limit: number, offset: number) =>
   ["artist-albums", artistId, limit, offset] as const;
+
+export const DOWNLOAD_STATUS_QUERY_KEY = ["download-status"] as const;

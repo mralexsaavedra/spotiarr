@@ -23,6 +23,15 @@ router.get(
   }),
 );
 
+// GET /api/playlist/status - Get download status summary
+router.get(
+  "/status",
+  asyncHandler(async (req, res) => {
+    const status = await playlistService.getDownloadStatus();
+    res.json(status);
+  }),
+);
+
 // GET /api/playlist - Get all playlists
 router.get(
   "/",

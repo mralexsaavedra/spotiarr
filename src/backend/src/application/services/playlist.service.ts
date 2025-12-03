@@ -1,4 +1,10 @@
-import { PlaylistPreview, TrackStatusEnum, type IPlaylist } from "@spotiarr/shared";
+import {
+  DownloadStatusResponse,
+  PlaylistPreview,
+  PlaylistStatusEnum,
+  TrackStatusEnum,
+  type IPlaylist,
+} from "@spotiarr/shared";
 import { EventBus } from "../../domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../domain/helpers/spotify-url.helper";
 import { PlaylistRepository } from "../../domain/interfaces/playlist.repository";
@@ -184,5 +190,60 @@ export class PlaylistService {
       })),
       totalTracks: details.tracks.length,
     };
+  }
+
+  async getDownloadStatus(): Promise<DownloadStatusResponse> {
+    const playlists = await this.findAll(true);
+    const playlistStatusMap: Record<string, PlaylistStatusEnum> = {};
+    const trackStatusMap: Record<string, TrackStatusEnum> = {};
+    const albumTrackCountMap: Record<string, number> = {};
+
+    for (const playlist of playlists) {
+      const status = this.calculatePlaylistStatus(playlist);
+
+      if (playlist.spotifyUrl) {
+        playlistStatusMap[playlist.spotifyUrl] = status;
+      }
+
+      if (playlist.tracks) {
+        for (const track of playlist.tracks) {
+          if (track.trackUrl && track.status) {
+            trackStatusMap[track.trackUrl] = track.status;
+          }
+
+          if (track.albumUrl && track.status === TrackStatusEnum.Completed) {
+            albumTrackCountMap[track.albumUrl] = (albumTrackCountMap[track.albumUrl] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    return {
+      playlistStatusMap,
+      trackStatusMap,
+      albumTrackCountMap,
+    };
+  }
+
+  private calculatePlaylistStatus(playlist: IPlaylist): PlaylistStatusEnum {
+    if (playlist.error) return PlaylistStatusEnum.Error;
+
+    const tracks = playlist.tracks ?? [];
+    const totalCount = tracks.length;
+    const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
+    const failedCount = tracks.filter((t) => t.status === TrackStatusEnum.Error).length;
+    const hasTracks = totalCount > 0;
+
+    if (hasTracks && completedCount === totalCount) {
+      return PlaylistStatusEnum.Completed;
+    }
+
+    if (failedCount > 0) {
+      return PlaylistStatusEnum.Warning;
+    }
+
+    if (playlist.subscribed) return PlaylistStatusEnum.Subscribed;
+
+    return PlaylistStatusEnum.InProgress;
   }
 }

@@ -9,6 +9,7 @@ import type {
   SettingMetadata,
   SupportedAudioFormat,
   DownloadHistoryItem,
+  DownloadStatusResponse,
 } from "@spotiarr/shared";
 import type { Playlist } from "../types/playlist";
 import type { Track } from "../types/track";
@@ -48,6 +49,10 @@ class ApiClient {
   async getPlaylists(): Promise<Playlist[]> {
     const response = await this.request<{ data: Playlist[] }>("/playlist");
     return response.data;
+  }
+
+  async getDownloadStatus(): Promise<DownloadStatusResponse> {
+    return this.request<DownloadStatusResponse>("/playlist/status");
   }
 
   async getPlaylistPreview(spotifyUrl: string): Promise<PlaylistPreview> {

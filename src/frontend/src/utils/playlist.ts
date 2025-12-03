@@ -1,5 +1,5 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
-import { type Playlist, PlaylistStatusEnum, PlaylistStats } from "../types/playlist";
+import { PlaylistStatusEnum, TrackStatusEnum } from "@spotiarr/shared";
+import { type Playlist, PlaylistStats } from "../types/playlist";
 import type { Track } from "../types/track";
 
 export interface PlaylistMetrics {

@@ -10,9 +10,9 @@ import { EmptyState } from "../components/molecules/EmptyState";
 import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ArtistDiscography } from "../components/organisms/ArtistDiscography";
 import { TrackList } from "../components/organisms/TrackList";
+import { useDownloadStatusContext } from "../contexts/DownloadStatusContext";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
-import { useDownloadStatus } from "../hooks/useDownloadStatus";
 import { useGridColumns } from "../hooks/useGridColumns";
 import { Path } from "../routes/routes";
 import { Track } from "../types/track";
@@ -26,7 +26,7 @@ export const ArtistDetail: FC = () => {
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, limit);
   const createPlaylistMutation = useCreatePlaylistMutation();
 
-  const { isPlaylistDownloaded } = useDownloadStatus();
+  const { isPlaylistDownloaded } = useDownloadStatusContext();
   const isArtistDownloaded = isPlaylistDownloaded(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
 

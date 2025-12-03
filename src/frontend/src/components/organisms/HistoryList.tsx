@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useDownloadStatus } from "../../hooks/useDownloadStatus";
+import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
 import { type Playlist } from "../../types/playlist";
 import { formatRelativeDate } from "../../utils/date";
@@ -143,7 +143,7 @@ export const HistoryList: FC<HistoryListProps> = ({
   onRecreate,
   onItemClick,
 }) => {
-  const { getBulkPlaylistStatus } = useDownloadStatus();
+  const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const activePlaylistsMap = useMemo(() => {
     const map = new Map<string, Playlist>();

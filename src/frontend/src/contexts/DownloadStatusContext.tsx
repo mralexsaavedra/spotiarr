@@ -1,68 +1,50 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { PlaylistStatusEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { createContext, FC, ReactNode, useCallback, useContext, useMemo } from "react";
+import { DOWNLOAD_STATUS_QUERY_KEY } from "../hooks/queryKeys";
 import { api } from "../services/api";
-import { Playlist, PlaylistStatusEnum } from "../types/playlist";
-import { getPlaylistStatus as calculatePlaylistStatus } from "../utils/playlist";
-import { PLAYLISTS_QUERY_KEY } from "./queryKeys";
 
-/**
- * Unified hook for checking download status of playlists, albums, and tracks.
- * Only checks active playlists (not download history).
- */
-export const useDownloadStatus = () => {
-  const { data: playlists } = useQuery({
-    queryKey: PLAYLISTS_QUERY_KEY,
-    queryFn: () => api.getPlaylists(),
+interface DownloadStatusContextValue {
+  playlistStatusMap: Map<string, PlaylistStatusEnum>;
+  trackStatusMap: Map<string, TrackStatusEnum>;
+  getPlaylistStatus: (url: string | null | undefined) => PlaylistStatusEnum | undefined;
+  isPlaylistDownloaded: (url: string | null | undefined, expectedTrackCount?: number) => boolean;
+  isPlaylistDownloading: (url: string | null | undefined) => boolean;
+  getTrackStatus: (url: string | null | undefined) => TrackStatusEnum | undefined;
+  getBulkPlaylistStatus: (
+    items: (string | null | undefined | { url?: string; totalTracks?: number })[],
+  ) => Map<string, { isDownloaded: boolean; isDownloading: boolean }>;
+  getBulkTrackStatus: (urls: (string | null | undefined)[]) => Map<string, TrackStatusEnum>;
+}
+
+const DownloadStatusContext = createContext<DownloadStatusContextValue | null>(null);
+
+export const DownloadStatusProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const { data } = useQuery({
+    queryKey: DOWNLOAD_STATUS_QUERY_KEY,
+    queryFn: () => api.getDownloadStatus(),
+    refetchInterval: 5000, // Poll every 5 seconds to keep status fresh
   });
 
-  // Calculate all status maps in a single pass for performance
+  // Convert API response (Records) to Maps
   const { playlistStatusMap, trackStatusMap, albumTrackCountMap } = useMemo(() => {
-    const pMap = new Map<string, PlaylistStatusEnum>();
-    const tMap = new Map<string, TrackStatusEnum>();
-    const aCountMap = new Map<string, number>();
-
-    if (!playlists) {
+    if (!data) {
       return {
-        playlistStatusMap: pMap,
-        trackStatusMap: tMap,
-        albumTrackCountMap: aCountMap,
+        playlistStatusMap: new Map<string, PlaylistStatusEnum>(),
+        trackStatusMap: new Map<string, TrackStatusEnum>(),
+        albumTrackCountMap: new Map<string, number>(),
       };
     }
 
-    playlists.forEach((p: Playlist) => {
-      const status = calculatePlaylistStatus(p);
-
-      // Add playlist URL
-      if (p.spotifyUrl) {
-        pMap.set(p.spotifyUrl, status);
-      }
-
-      // Process tracks
-      if (p.tracks) {
-        p.tracks.forEach((track) => {
-          // Track status
-          if (track.trackUrl) {
-            tMap.set(track.trackUrl, track.status);
-          }
-
-          // Album status from tracks
-          if (track.albumUrl) {
-            // If track is completed, increment album count
-            if (track.status === TrackStatusEnum.Completed) {
-              aCountMap.set(track.albumUrl, (aCountMap.get(track.albumUrl) || 0) + 1);
-            }
-          }
-        });
-      }
-    });
-
     return {
-      playlistStatusMap: pMap,
-      trackStatusMap: tMap,
-      albumTrackCountMap: aCountMap,
+      playlistStatusMap: new Map(Object.entries(data.playlistStatusMap)) as Map<
+        string,
+        PlaylistStatusEnum
+      >,
+      trackStatusMap: new Map(Object.entries(data.trackStatusMap)) as Map<string, TrackStatusEnum>,
+      albumTrackCountMap: new Map(Object.entries(data.albumTrackCountMap)) as Map<string, number>,
     };
-  }, [playlists]);
+  }, [data]);
 
   /**
    * Get the status of a playlist or album by its Spotify URL
@@ -195,19 +177,36 @@ export const useDownloadStatus = () => {
     [trackStatusMap],
   );
 
-  return {
-    // Maps (direct access for advanced use cases)
-    playlistStatusMap,
-    trackStatusMap,
+  const value = useMemo(
+    () => ({
+      playlistStatusMap,
+      trackStatusMap,
+      getPlaylistStatus,
+      isPlaylistDownloaded,
+      isPlaylistDownloading,
+      getTrackStatus,
+      getBulkPlaylistStatus,
+      getBulkTrackStatus,
+    }),
+    [
+      playlistStatusMap,
+      trackStatusMap,
+      getPlaylistStatus,
+      isPlaylistDownloaded,
+      isPlaylistDownloading,
+      getTrackStatus,
+      getBulkPlaylistStatus,
+      getBulkTrackStatus,
+    ],
+  );
 
-    // Single item helpers
-    getPlaylistStatus,
-    isPlaylistDownloaded,
-    isPlaylistDownloading,
-    getTrackStatus,
+  return <DownloadStatusContext.Provider value={value}>{children}</DownloadStatusContext.Provider>;
+};
 
-    // Bulk helpers (optimized for lists)
-    getBulkPlaylistStatus,
-    getBulkTrackStatus,
-  };
+export const useDownloadStatusContext = () => {
+  const context = useContext(DownloadStatusContext);
+  if (!context) {
+    throw new Error("useDownloadStatusContext must be used within a DownloadStatusProvider");
+  }
+  return context;
 };

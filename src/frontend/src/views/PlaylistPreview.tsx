@@ -5,12 +5,12 @@ import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { PreviewError } from "../components/molecules/PreviewError";
 import { Playlist } from "../components/organisms/Playlist";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
+import { useDownloadStatusContext } from "../contexts/DownloadStatusContext";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { useUpdatePlaylistMutation } from "../hooks/mutations/useUpdatePlaylistMutation";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
-import { useDownloadStatus } from "../hooks/useDownloadStatus";
 import { Path } from "../routes/routes";
 import { PlaylistWithStats } from "../types/playlist";
 import { Track } from "../types/track";
@@ -26,7 +26,8 @@ export const PlaylistPreview: FC = () => {
   const deletePlaylist = useDeletePlaylistMutation();
   const createPlaylist = useCreatePlaylistMutation();
   const updatePlaylist = useUpdatePlaylistMutation();
-  const { isPlaylistDownloaded, isPlaylistDownloading, getTrackStatus } = useDownloadStatus();
+  const { isPlaylistDownloaded, isPlaylistDownloading, getTrackStatus } =
+    useDownloadStatusContext();
 
   const savedPlaylist = useMemo(() => {
     return playlists?.find((p) => p.spotifyUrl === spotifyUrl);

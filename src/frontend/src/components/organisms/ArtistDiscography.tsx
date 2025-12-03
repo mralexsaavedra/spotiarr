@@ -1,7 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
+import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { useArtistDiscography } from "../../hooks/useArtistDiscography";
-import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { Button } from "../atoms/Button";
 import { ArtistDiscographyFilters } from "../molecules/ArtistDiscographyFilters";
 import { VirtualGrid } from "../molecules/VirtualGrid";
@@ -90,7 +90,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     canShowMore,
   } = useArtistDiscography({ artistId, initialAlbums: albums, pageSize });
 
-  const { getBulkPlaylistStatus } = useDownloadStatus();
+  const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const displayedItems = useMemo(
     () => filteredAlbums.slice(0, visibleItems),

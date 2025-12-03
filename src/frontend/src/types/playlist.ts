@@ -7,14 +7,6 @@ export interface Playlist extends IPlaylist {
   tracks?: Track[];
 }
 
-export enum PlaylistStatusEnum {
-  InProgress,
-  Completed,
-  Warning,
-  Error,
-  Subscribed,
-}
-
 export interface PlaylistStats {
   completedCount: number;
   downloadingCount: number;
