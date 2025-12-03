@@ -52,16 +52,22 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
 
       <Button
         variant="secondary"
-        size="lg"
-        className={`!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform border-2 ${
+        size="md"
+        className={`!h-10 !w-36 !rounded-full shadow-lg border-2 justify-center ${
           isSubscribed
-            ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400 hover:scale-105"
-            : "bg-transparent border-gray-500 text-gray-400 hover:text-white hover:border-white hover:scale-105"
+            ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400"
+            : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10"
         }`}
         onClick={onToggleSubscription}
-        title={isSubscribed ? "Remove from Library" : "Add to Library"}
+        title={isSubscribed ? "Unsubscribe" : "Subscribe"}
       >
-        <FontAwesomeIcon icon="bell" className="text-xl" />
+        <div className="flex items-center justify-center gap-2">
+          <FontAwesomeIcon
+            icon={isSubscribed ? ["fas", "bell"] : ["far", "bell"]}
+            className="text-sm"
+          />
+          {isSubscribed ? "Subscribed" : "Subscribe"}
+        </div>
       </Button>
 
       {spotifyUrl && <SpotifyLinkButton url={spotifyUrl} />}

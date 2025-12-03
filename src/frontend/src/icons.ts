@@ -1,6 +1,9 @@
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpotify } from "@fortawesome/free-brands-svg-icons";
-import { faClock as faClockRegular } from "@fortawesome/free-regular-svg-icons";
+import {
+  faBell as faBellRegular,
+  faClock as faClockRegular,
+} from "@fortawesome/free-regular-svg-icons";
 import {
   faBars,
   faBell,
@@ -61,6 +64,7 @@ library.add(
   faUserGroup,
   faXmark,
   // Regular
+  faBellRegular,
   faClockRegular,
   // Brands
   faSpotify,
