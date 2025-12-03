@@ -21,10 +21,6 @@
     "noUncheckedSideEffectImports": true,
 
     /* Paths */
-    "baseUrl": "./src",
-    "paths": {
-      "@spotiarr/shared": ["../shared/src/index.ts"]
-    },
     "types": ["vite/client"]
   },
   "include": ["src"]
