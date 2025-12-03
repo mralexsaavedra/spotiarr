@@ -55,6 +55,7 @@ RUN pnpm --filter backend prisma:generate
 
 # Default downloads path inside the container; can be overridden by env if needed
 ENV DOWNLOADS_PATH=/downloads
+ENV BASE_URL=http://127.0.0.1:3000
 
 EXPOSE 3000
 

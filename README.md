@@ -106,14 +106,15 @@ pnpm dev  # Backend (3000) + Frontend (5173)
 
 ### Environment Variables
 
-| Variable                | Required | Default                                           | Description                                                 |
-| ----------------------- | -------- | ------------------------------------------------- | ----------------------------------------------------------- |
-| `SPOTIFY_CLIENT_ID`     | ✅       | -                                                 | Spotify app Client ID                                       |
-| `SPOTIFY_CLIENT_SECRET` | ✅       | -                                                 | Spotify app Client Secret                                   |
-| `SPOTIFY_REDIRECT_URI`  | ❌       | `http://127.0.0.1:3000/api/auth/spotify/callback` | OAuth callback                                              |
-| `REDIS_HOST`            | ❌       | `localhost`                                       | Redis hostname (`redis` for Docker)                         |
-| `REDIS_PORT`            | ❌       | `6379`                                            | Redis port                                                  |
-| `YT_COOKIES`            | ❌       | -                                                 | YouTube cookies for yt-dlp ([how to get](#youtube-cookies)) |
+| Variable                | Required | Default                                   | Description                                                 |
+| ----------------------- | -------- | ----------------------------------------- | ----------------------------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | ✅       | -                                         | Spotify app Client ID                                       |
+| `SPOTIFY_CLIENT_SECRET` | ✅       | -                                         | Spotify app Client Secret                                   |
+| `BASE_URL`              | ❌       | `http://127.0.0.1:3000`                   | Public URL of the app (e.g. `https://my-domain.com`)        |
+| `SPOTIFY_REDIRECT_URI`  | ❌       | `BASE_URL` + `/api/auth/spotify/callback` | Override OAuth callback if needed                           |
+| `REDIS_HOST`            | ❌       | `localhost`                               | Redis hostname (`redis` for Docker)                         |
+| `REDIS_PORT`            | ❌       | `6379`                                    | Redis port                                                  |
+| `YT_COOKIES`            | ❌       | -                                         | YouTube cookies for yt-dlp ([how to get](#youtube-cookies)) |
 
 ### In-App Settings
 

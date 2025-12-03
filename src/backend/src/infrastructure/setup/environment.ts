@@ -9,7 +9,7 @@ const envSchema = z
     SPOTIFY_USER_ACCESS_TOKEN: z.string().optional(),
 
     // App
-    BASE_URL: z.string().url().optional().default("http://localhost:3000"),
+    BASE_URL: z.string().url().optional().default("http://127.0.0.1:3000"),
 
     // Redis
     REDIS_HOST: z.string().min(1, "REDIS_HOST is required"),
