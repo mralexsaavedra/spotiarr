@@ -1,6 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { DOWNLOAD_HISTORY_QUERY_KEY, PLAYLISTS_QUERY_KEY } from "../hooks/queryKeys";
+import {
+  DOWNLOAD_HISTORY_QUERY_KEY,
+  DOWNLOAD_STATUS_QUERY_KEY,
+  PLAYLISTS_QUERY_KEY,
+} from "../hooks/queryKeys";
 
 export const useServerEvents = () => {
   const queryClient = useQueryClient();
@@ -10,6 +14,7 @@ export const useServerEvents = () => {
 
     eventSource.addEventListener("playlists-updated", () => {
       queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: DOWNLOAD_STATUS_QUERY_KEY });
       // Invalidate all track queries as well, since track status affects playlist state
       queryClient.invalidateQueries({
         predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "tracks",

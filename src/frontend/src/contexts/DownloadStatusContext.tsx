@@ -1,8 +1,6 @@
 import { PlaylistStatusEnum, TrackStatusEnum } from "@spotiarr/shared";
-import { useQuery } from "@tanstack/react-query";
 import { createContext, FC, ReactNode, useCallback, useContext, useMemo } from "react";
-import { DOWNLOAD_STATUS_QUERY_KEY } from "../hooks/queryKeys";
-import { api } from "../services/api";
+import { useDownloadStatusQuery } from "../hooks/queries/useDownloadStatusQuery";
 
 interface DownloadStatusContextValue {
   playlistStatusMap: Map<string, PlaylistStatusEnum>;
@@ -20,11 +18,7 @@ interface DownloadStatusContextValue {
 const DownloadStatusContext = createContext<DownloadStatusContextValue | null>(null);
 
 export const DownloadStatusProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { data } = useQuery({
-    queryKey: DOWNLOAD_STATUS_QUERY_KEY,
-    queryFn: () => api.getDownloadStatus(),
-    refetchInterval: 5000, // Poll every 5 seconds to keep status fresh
-  });
+  const { data } = useDownloadStatusQuery();
 
   // Convert API response (Records) to Maps
   const { playlistStatusMap, trackStatusMap, albumTrackCountMap } = useMemo(() => {
