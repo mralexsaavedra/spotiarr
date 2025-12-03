@@ -28,15 +28,6 @@ export const useDownloadStatus = () => {
       if (p.spotifyUrl) {
         map.set(p.spotifyUrl, status);
       }
-
-      // Also add album URLs from tracks (for when individual tracks are downloaded)
-      if (p.tracks) {
-        p.tracks.forEach((track) => {
-          if (track.albumUrl && !map.has(track.albumUrl)) {
-            map.set(track.albumUrl, status);
-          }
-        });
-      }
     });
 
     return map;
@@ -56,6 +47,21 @@ export const useDownloadStatus = () => {
     return map;
   }, [playlists]);
 
+  // Map of Album URL -> Downloaded Track Count
+  const albumTrackCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!playlists) return map;
+
+    playlists.forEach((p) => {
+      p.tracks?.forEach((t) => {
+        if (t.albumUrl && t.status === TrackStatusEnum.Completed) {
+          map.set(t.albumUrl, (map.get(t.albumUrl) || 0) + 1);
+        }
+      });
+    });
+    return map;
+  }, [playlists]);
+
   /**
    * Get the status of a playlist or album by its Spotify URL
    */
@@ -69,13 +75,25 @@ export const useDownloadStatus = () => {
 
   /**
    * Check if a playlist or album is downloaded (completed)
+   * Can optionally check if all tracks of an album are downloaded based on expected count
    */
   const isPlaylistDownloaded = useCallback(
-    (url: string | null | undefined): boolean => {
+    (url: string | null | undefined, expectedTrackCount?: number): boolean => {
+      if (!url) return false;
+
+      // Check if the playlist/album itself is downloaded
       const status = getPlaylistStatus(url);
-      return status === PlaylistStatusEnum.Completed;
+      if (status === PlaylistStatusEnum.Completed) return true;
+
+      // Check if we have enough tracks downloaded
+      if (expectedTrackCount && expectedTrackCount > 0) {
+        const downloadedCount = albumTrackCountMap.get(url) || 0;
+        if (downloadedCount >= expectedTrackCount) return true;
+      }
+
+      return false;
     },
-    [getPlaylistStatus],
+    [getPlaylistStatus, albumTrackCountMap],
   );
 
   /**
@@ -110,14 +128,33 @@ export const useDownloadStatus = () => {
    * This avoids repeated function calls in list renders
    */
   const getBulkPlaylistStatus = useCallback(
-    (urls: (string | null | undefined)[]) => {
+    (items: (string | null | undefined | { url?: string; totalTracks?: number })[]) => {
       const statusMap = new Map<string, { isDownloaded: boolean; isDownloading: boolean }>();
 
-      urls.forEach((url) => {
+      items.forEach((item) => {
+        let url: string | undefined;
+        let totalTracks: number | undefined;
+
+        if (typeof item === "string") {
+          url = item;
+        } else if (item && typeof item === "object") {
+          url = item.url;
+          totalTracks = item.totalTracks;
+        }
+
         if (!url) return;
 
         const status = playlistStatusMap.get(url);
-        const isDownloaded = status === PlaylistStatusEnum.Completed;
+        let isDownloaded = status === PlaylistStatusEnum.Completed;
+
+        // Check track count if not already marked as downloaded
+        if (!isDownloaded && totalTracks && totalTracks > 0) {
+          const downloadedCount = albumTrackCountMap.get(url) || 0;
+          if (downloadedCount >= totalTracks) {
+            isDownloaded = true;
+          }
+        }
+
         const isDownloading =
           status !== undefined &&
           status !== PlaylistStatusEnum.Completed &&
@@ -128,7 +165,7 @@ export const useDownloadStatus = () => {
 
       return statusMap;
     },
-    [playlistStatusMap],
+    [playlistStatusMap, albumTrackCountMap],
   );
 
   /**

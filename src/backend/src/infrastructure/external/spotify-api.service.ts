@@ -27,6 +27,7 @@ interface SpotifyAlbum {
   album_type?: string;
   external_urls?: SpotifyExternalUrls;
   artists?: SpotifyArtist[];
+  total_tracks?: number;
 }
 
 interface SpotifyTrack {
@@ -707,6 +708,7 @@ export class SpotifyApiService {
           releaseDate: album.release_date,
           coverUrl: album.images?.[0]?.url ?? null,
           spotifyUrl: album.external_urls?.spotify,
+          totalTracks: album.total_tracks,
         }));
 
         allAlbums.push(...mappedAlbums);

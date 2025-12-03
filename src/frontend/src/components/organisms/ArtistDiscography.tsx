@@ -99,8 +99,11 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
 
   // Pre-calculate download states for all displayed albums (performance optimization)
   const downloadStatesMap = useMemo(() => {
-    const urls = displayedItems.map((album) => album.spotifyUrl);
-    return getBulkPlaylistStatus(urls);
+    const items = displayedItems.map((album) => ({
+      url: album.spotifyUrl,
+      totalTracks: album.totalTracks,
+    }));
+    return getBulkPlaylistStatus(items);
   }, [displayedItems, getBulkPlaylistStatus]);
 
   const renderDiscographyItem = useCallback(

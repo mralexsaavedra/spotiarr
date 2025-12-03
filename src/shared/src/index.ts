@@ -93,6 +93,7 @@ export interface ArtistRelease {
   releaseDate?: string;
   coverUrl: string | null;
   spotifyUrl?: string;
+  totalTracks?: number;
 }
 
 export type ApiErrorCode =
