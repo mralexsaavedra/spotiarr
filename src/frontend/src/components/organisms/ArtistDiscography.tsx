@@ -1,19 +1,24 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
-import { useArtistDiscography } from "../../hooks/useArtistDiscography";
 import { Button } from "../atoms/Button";
-import { ArtistDiscographyFilters } from "../molecules/ArtistDiscographyFilters";
+import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { AlbumCard } from "./AlbumCard";
 
 interface ArtistDiscographyProps {
   artistId: string;
   albums: ArtistRelease[];
+  filter: DiscographyFilter;
+  onFilterChange: (filter: DiscographyFilter) => void;
+  filteredAlbums: ArtistRelease[];
+  visibleItems: number;
+  isLoadingMore: boolean;
+  onShowMore: () => void;
+  canShowMore: boolean;
   onDownload: (url: string) => void;
   onDiscographyItemClick: (url: string) => void;
   onArtistClick: (artistId: string) => void;
-  pageSize: number;
 }
 
 interface DiscographyItemProps {
@@ -73,23 +78,17 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
 );
 
 export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
-  artistId,
-  albums,
+  filter,
+  onFilterChange,
+  filteredAlbums,
+  visibleItems,
+  isLoadingMore,
+  onShowMore,
+  canShowMore,
   onDownload,
   onDiscographyItemClick,
   onArtistClick,
-  pageSize,
 }) => {
-  const {
-    filter,
-    setFilter,
-    filteredAlbums,
-    visibleItems,
-    isLoadingMore,
-    handleShowMore,
-    canShowMore,
-  } = useArtistDiscography({ artistId, initialAlbums: albums, pageSize });
-
   const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const displayedItems = useMemo(
@@ -134,7 +133,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
         <h2 className="text-2xl font-bold">Discography</h2>
       </div>
 
-      <ArtistDiscographyFilters currentFilter={filter} onFilterChange={setFilter} />
+      <ArtistDiscographyFilters currentFilter={filter} onFilterChange={onFilterChange} />
 
       {filteredAlbums.length === 0 ? (
         <div className="py-12 text-center text-text-secondary bg-white/5 rounded-lg">
@@ -150,7 +149,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
               canShowMore ? (
                 <div className="flex justify-center mt-8 pb-8">
                   <Button
-                    onClick={handleShowMore}
+                    onClick={onShowMore}
                     loading={isLoadingMore}
                     variant="secondary"
                     size="md"

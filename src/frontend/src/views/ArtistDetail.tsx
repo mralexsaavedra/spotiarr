@@ -13,6 +13,7 @@ import { TrackList } from "../components/organisms/TrackList";
 import { useDownloadStatusContext } from "../contexts/DownloadStatusContext";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../hooks/queries/useArtistDetailQuery";
+import { useArtistDiscography } from "../hooks/useArtistDiscography";
 import { useGridColumns } from "../hooks/useGridColumns";
 import { Path } from "../routes/routes";
 import { Track } from "../types/track";
@@ -30,6 +31,20 @@ export const ArtistDetail: FC = () => {
   const isArtistDownloaded = isPlaylistDownloaded(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
 
+  const {
+    filter,
+    setFilter,
+    filteredAlbums,
+    visibleItems,
+    isLoadingMore,
+    handleShowMore,
+    canShowMore,
+  } = useArtistDiscography({
+    artistId: id!,
+    initialAlbums: artist?.albums || [],
+    pageSize: limit,
+  });
+
   const followersText = useMemo(
     () =>
       artist?.followers && artist.followers > 0
@@ -40,6 +55,7 @@ export const ArtistDetail: FC = () => {
 
   const tracks: Track[] = useMemo(() => {
     if (!artist?.topTracks) return [];
+
     return artist.topTracks.map((t, i) => ({
       id: `top-${i}`,
       name: t.name,
@@ -169,10 +185,16 @@ export const ArtistDetail: FC = () => {
           <ArtistDiscography
             artistId={id!}
             albums={artist.albums}
+            filter={filter}
+            onFilterChange={setFilter}
+            filteredAlbums={filteredAlbums}
+            visibleItems={visibleItems}
+            isLoadingMore={isLoadingMore}
+            onShowMore={handleShowMore}
+            canShowMore={canShowMore}
             onDownload={handleDownload}
             onDiscographyItemClick={handleNavigate}
             onArtistClick={handleArtistClick}
-            pageSize={limit}
           />
         ) : (
           <div className="mt-10 text-center text-text-secondary">
