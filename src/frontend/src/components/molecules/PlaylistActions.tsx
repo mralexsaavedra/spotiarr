@@ -31,11 +31,11 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   spotifyUrl,
 }) => {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3 md:gap-4">
       <Button
         variant="primary"
         size="lg"
-        className={`!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
+        className={`!w-12 !h-12 md:!w-14 md:!h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
           isDownloaded
             ? "bg-green-500 hover:bg-green-600 cursor-default"
             : "bg-green-500 hover:bg-green-600 hover:scale-105"
@@ -55,7 +55,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
       <Button
         variant="secondary"
         size="md"
-        className={`!h-10 !w-36 !rounded-full shadow-lg border-2 justify-center ${
+        className={`!h-9 md:!h-10 !w-9 md:!w-36 px-0 md:px-0 !rounded-full shadow-lg border-2 justify-center ${
           isSubscribed
             ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400"
             : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10"
@@ -68,13 +68,17 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
             icon={isSubscribed ? ["fas", "bell"] : ["far", "bell"]}
             className="text-sm"
           />
-          <span className="font-bold text-xs uppercase tracking-wide">
+          <span className="font-bold text-xs uppercase tracking-wide hidden md:inline">
             {isSubscribed ? "Subscribed" : "Subscribe"}
           </span>
         </div>
       </Button>
 
-      {spotifyUrl && <SpotifyLinkButton url={spotifyUrl} />}
+      {spotifyUrl && (
+        <SpotifyLinkButton url={spotifyUrl}>
+          <span className="hidden md:inline">Open in Spotify</span>
+        </SpotifyLinkButton>
+      )}
 
       <div className="flex-1" />
 

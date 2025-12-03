@@ -15,7 +15,7 @@ export const PlaylistDescription: FC<PlaylistDescriptionProps> = ({
 }) => {
   if (completedCount > 0 || (isDownloading && totalCount > 0)) {
     return (
-      <div className="mt-4 max-w-md">
+      <div className="mt-4 w-full">
         <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
           <span>
             {completedCount} / {totalCount} downloaded
@@ -37,7 +37,7 @@ export const PlaylistDescription: FC<PlaylistDescriptionProps> = ({
   if (!description) return null;
 
   return (
-    <div className="mt-4 max-w-md">
+    <div className="mt-4 w-full">
       <p className="text-text-secondary text-sm font-medium line-clamp-2">{description}</p>
     </div>
   );
