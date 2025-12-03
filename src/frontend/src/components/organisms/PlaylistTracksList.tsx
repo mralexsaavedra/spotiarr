@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback } from "react";
+import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { Path } from "../../routes/routes";
@@ -111,6 +111,14 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
       </div>
     );
   },
+  // Custom comparator: only re-render if data props change
+  (prevProps, nextProps) => {
+    return (
+      prevProps.track.id === nextProps.track.id &&
+      prevProps.status === nextProps.status &&
+      prevProps.index === nextProps.index
+    );
+  },
 );
 
 interface PlaylistTracksListProps {
@@ -124,19 +132,32 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   onRetryTrack,
   onDownloadTrack,
 }) => {
-  const { getTrackStatus } = useDownloadStatus();
+  const { getBulkTrackStatus } = useDownloadStatus();
+
+  // Pre-calculate track statuses for all tracks (performance optimization)
+  const trackStatusesMap = useMemo(() => {
+    const urls = tracks.map((t) => t.trackUrl);
+    return getBulkTrackStatus(urls);
+  }, [tracks, getBulkTrackStatus]);
 
   const renderItem = useCallback(
-    (track: Track, index: number) => (
-      <PlaylistTrackItem
-        track={track}
-        index={index + 1}
-        status={track.trackUrl ? getTrackStatus(track.trackUrl) : track.status}
-        onRetryTrack={onRetryTrack}
-        onDownloadTrack={onDownloadTrack}
-      />
-    ),
-    [onRetryTrack, onDownloadTrack, getTrackStatus],
+    (track: Track, index: number) => {
+      // Use pre-calculated status if available, otherwise fall back to track.status
+      const status = track.trackUrl
+        ? (trackStatusesMap.get(track.trackUrl) ?? track.status)
+        : track.status;
+
+      return (
+        <PlaylistTrackItem
+          track={track}
+          index={index + 1}
+          status={status}
+          onRetryTrack={onRetryTrack}
+          onDownloadTrack={onDownloadTrack}
+        />
+      );
+    },
+    [onRetryTrack, onDownloadTrack, trackStatusesMap],
   );
 
   return (

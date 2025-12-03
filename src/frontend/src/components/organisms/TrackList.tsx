@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, memo, useCallback } from "react";
+import { FC, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { Path } from "../../routes/routes";
@@ -16,64 +16,74 @@ interface TrackListItemProps {
   status?: TrackStatusEnum;
 }
 
-const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, status }) => {
-  const isDownloaded = status === TrackStatusEnum.Completed;
+const TrackListItem: FC<TrackListItemProps> = memo(
+  ({ track, index, onDownload, status }) => {
+    const isDownloaded = status === TrackStatusEnum.Completed;
 
-  const handleRetry = useCallback(() => {
-    onDownload(track);
-  }, [track, onDownload]);
+    const handleRetry = useCallback(() => {
+      onDownload(track);
+    }, [track, onDownload]);
 
-  const handleDownloadClick = useCallback(() => {
-    onDownload(track);
-  }, [track, onDownload]);
+    const handleDownloadClick = useCallback(() => {
+      onDownload(track);
+    }, [track, onDownload]);
 
-  return (
-    <div className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
-      {/* Index / Status Icon */}
-      <div className="flex justify-center">
-        <TrackStatusIndicator
-          status={status}
-          index={index}
-          onRetry={handleRetry}
-          onDownload={track.trackUrl && !isDownloaded ? handleDownloadClick : undefined}
-        />
-      </div>
-
-      {/* Title & Image */}
-      <div className="flex items-center gap-4 min-w-0">
-        {track.albumUrl && (
-          <img
-            src={track.albumUrl}
-            alt={track.name}
-            loading="lazy"
-            decoding="async"
-            className="w-10 h-10 rounded shadow-sm object-cover"
+    return (
+      <div className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
+        {/* Index / Status Icon */}
+        <div className="flex justify-center">
+          <TrackStatusIndicator
+            status={status}
+            index={index}
+            onRetry={handleRetry}
+            onDownload={track.trackUrl && !isDownloaded ? handleDownloadClick : undefined}
           />
-        )}
-        <div className="flex flex-col min-w-0">
-          {track.trackUrl ? (
-            <Link
-              to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
-              className="text-base font-medium truncate hover:underline text-white"
-            >
-              {track.name}
-            </Link>
-          ) : (
-            <span className="text-base font-medium truncate text-white">{track.name}</span>
+        </div>
+
+        {/* Title & Image */}
+        <div className="flex items-center gap-4 min-w-0">
+          {track.albumUrl && (
+            <img
+              src={track.albumUrl}
+              alt={track.name}
+              loading="lazy"
+              decoding="async"
+              className="w-10 h-10 rounded shadow-sm object-cover"
+            />
           )}
+          <div className="flex flex-col min-w-0">
+            {track.trackUrl ? (
+              <Link
+                to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
+                className="text-base font-medium truncate hover:underline text-white"
+              >
+                {track.name}
+              </Link>
+            ) : (
+              <span className="text-base font-medium truncate text-white">{track.name}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Duration */}
+        <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
+          {isDownloaded && (
+            <FontAwesomeIcon icon="circle-check" className="text-green-500 text-base" />
+          )}
+          <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
         </div>
       </div>
-
-      {/* Duration */}
-      <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
-        {isDownloaded && (
-          <FontAwesomeIcon icon="circle-check" className="text-green-500 text-base" />
-        )}
-        <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
-      </div>
-    </div>
-  );
-});
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparator: only re-render if data props change
+    return (
+      prevProps.track.id === nextProps.track.id &&
+      prevProps.status === nextProps.status &&
+      prevProps.index === nextProps.index
+    );
+  },
+);
 
 interface TrackListProps {
   tracks: Track[];
@@ -81,18 +91,23 @@ interface TrackListProps {
 }
 
 export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
-  const { getTrackStatus } = useDownloadStatus();
+  const { getBulkTrackStatus } = useDownloadStatus();
+
+  // Pre-calculate track statuses for all tracks (performance optimization)
+  const trackStatusesMap = useMemo(() => {
+    const urls = tracks.map((t) => t.trackUrl);
+    return getBulkTrackStatus(urls);
+  }, [tracks, getBulkTrackStatus]);
 
   const renderItem = useCallback(
-    (track: Track, index: number) => (
-      <TrackListItem
-        track={track}
-        index={index + 1}
-        onDownload={onDownload}
-        status={track.trackUrl ? getTrackStatus(track.trackUrl) : undefined}
-      />
-    ),
-    [onDownload, getTrackStatus],
+    (track: Track, index: number) => {
+      const status = track.trackUrl ? trackStatusesMap.get(track.trackUrl) : undefined;
+
+      return (
+        <TrackListItem track={track} index={index + 1} onDownload={onDownload} status={status} />
+      );
+    },
+    [onDownload, trackStatusesMap],
   );
 
   return (

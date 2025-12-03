@@ -104,17 +104,66 @@ export const useDownloadStatus = () => {
     [trackStatusMap],
   );
 
+  /**
+   * Optimized helper for lists: Get download states for multiple URLs at once
+   * Returns a Map of URL -> { isDownloaded, isDownloading }
+   * This avoids repeated function calls in list renders
+   */
+  const getBulkPlaylistStatus = useCallback(
+    (urls: (string | null | undefined)[]) => {
+      const statusMap = new Map<string, { isDownloaded: boolean; isDownloading: boolean }>();
+
+      urls.forEach((url) => {
+        if (!url) return;
+
+        const status = playlistStatusMap.get(url);
+        const isDownloaded = status === PlaylistStatusEnum.Completed;
+        const isDownloading =
+          status !== undefined &&
+          status !== PlaylistStatusEnum.Completed &&
+          status !== PlaylistStatusEnum.Error;
+
+        statusMap.set(url, { isDownloaded, isDownloading });
+      });
+
+      return statusMap;
+    },
+    [playlistStatusMap],
+  );
+
+  /**
+   * Optimized helper for track lists: Get track statuses for multiple URLs at once
+   */
+  const getBulkTrackStatus = useCallback(
+    (urls: (string | null | undefined)[]) => {
+      const statusMap = new Map<string, TrackStatusEnum>();
+
+      urls.forEach((url) => {
+        if (!url) return;
+        const status = trackStatusMap.get(url);
+        if (status) {
+          statusMap.set(url, status);
+        }
+      });
+
+      return statusMap;
+    },
+    [trackStatusMap],
+  );
+
   return {
-    // Maps
+    // Maps (direct access for advanced use cases)
     playlistStatusMap,
     trackStatusMap,
 
-    // Playlist/Album helpers
+    // Single item helpers
     getPlaylistStatus,
     isPlaylistDownloaded,
     isPlaylistDownloading,
-
-    // Track helpers
     getTrackStatus,
+
+    // Bulk helpers (optimized for lists)
+    getBulkPlaylistStatus,
+    getBulkTrackStatus,
   };
 };

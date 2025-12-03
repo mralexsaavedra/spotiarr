@@ -61,6 +61,15 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
       />
     );
   },
+  // Custom comparator: only re-render if data props change
+  (prevProps, nextProps) => {
+    return (
+      prevProps.album.albumId === nextProps.album.albumId &&
+      prevProps.album.spotifyUrl === nextProps.album.spotifyUrl &&
+      prevProps.isDownloaded === nextProps.isDownloaded &&
+      prevProps.isDownloading === nextProps.isDownloading
+    );
+  },
 );
 
 export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
@@ -81,17 +90,25 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     canShowMore,
   } = useArtistDiscography({ artistId, initialAlbums: albums, pageSize });
 
-  const { isPlaylistDownloaded, isPlaylistDownloading } = useDownloadStatus();
+  const { getBulkPlaylistStatus } = useDownloadStatus();
 
   const displayedItems = useMemo(
     () => filteredAlbums.slice(0, visibleItems),
     [filteredAlbums, visibleItems],
   );
 
+  // Pre-calculate download states for all displayed albums (performance optimization)
+  const downloadStatesMap = useMemo(() => {
+    const urls = displayedItems.map((album) => album.spotifyUrl);
+    return getBulkPlaylistStatus(urls);
+  }, [displayedItems, getBulkPlaylistStatus]);
+
   const renderDiscographyItem = useCallback(
     (album: ArtistRelease) => {
-      const isDownloaded = isPlaylistDownloaded(album.spotifyUrl);
-      const isDownloading = isPlaylistDownloading(album.spotifyUrl);
+      const downloadState = album.spotifyUrl ? downloadStatesMap.get(album.spotifyUrl) : undefined;
+
+      const isDownloaded = downloadState?.isDownloaded ?? false;
+      const isDownloading = downloadState?.isDownloading ?? false;
 
       return (
         <DiscographyItem
@@ -105,13 +122,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
         />
       );
     },
-    [
-      isPlaylistDownloaded,
-      isPlaylistDownloading,
-      onDiscographyItemClick,
-      onDownload,
-      onArtistClick,
-    ],
+    [downloadStatesMap, onDiscographyItemClick, onDownload, onArtistClick],
   );
 
   return (

@@ -1,5 +1,5 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback } from "react";
+import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useDownloadStatus } from "../../hooks/useDownloadStatus";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { AlbumCard } from "./AlbumCard";
@@ -46,6 +46,15 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
       />
     );
   },
+  // Custom comparator: only re-render if data props change, ignore callback changes
+  (prevProps, nextProps) => {
+    return (
+      prevProps.release.albumId === nextProps.release.albumId &&
+      prevProps.release.spotifyUrl === nextProps.release.spotifyUrl &&
+      prevProps.isDownloaded === nextProps.isDownloaded &&
+      prevProps.isDownloading === nextProps.isDownloading
+    );
+  },
 );
 
 interface ReleasesListProps {
@@ -61,12 +70,22 @@ export const ReleasesList: FC<ReleasesListProps> = ({
   onDownloadRelease,
   onArtistClick,
 }) => {
-  const { isPlaylistDownloaded, isPlaylistDownloading } = useDownloadStatus();
+  const { getBulkPlaylistStatus } = useDownloadStatus();
+
+  // Pre-calculate download states for all releases (performance optimization)
+  const downloadStatesMap = useMemo(() => {
+    const urls = releases.map((r) => r.spotifyUrl);
+    return getBulkPlaylistStatus(urls);
+  }, [releases, getBulkPlaylistStatus]);
 
   const renderItem = useCallback(
     (release: ArtistRelease) => {
-      const isDownloaded = isPlaylistDownloaded(release.spotifyUrl);
-      const isDownloading = isPlaylistDownloading(release.spotifyUrl);
+      const downloadState = release.spotifyUrl
+        ? downloadStatesMap.get(release.spotifyUrl)
+        : undefined;
+
+      const isDownloaded = downloadState?.isDownloaded ?? false;
+      const isDownloading = downloadState?.isDownloading ?? false;
 
       return (
         <ReleaseItem
@@ -79,7 +98,7 @@ export const ReleasesList: FC<ReleasesListProps> = ({
         />
       );
     },
-    [isPlaylistDownloaded, isPlaylistDownloading, onReleaseClick, onDownloadRelease, onArtistClick],
+    [downloadStatesMap, onReleaseClick, onDownloadRelease, onArtistClick],
   );
 
   return (

@@ -116,6 +116,16 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
       </div>
     );
   },
+  // Custom comparator: only re-render if data props change
+  (prevProps, nextProps) => {
+    return (
+      prevProps.item.playlistSpotifyUrl === nextProps.item.playlistSpotifyUrl &&
+      prevProps.item.lastCompletedAt === nextProps.item.lastCompletedAt &&
+      prevProps.activePlaylist?.id === nextProps.activePlaylist?.id &&
+      prevProps.isDownloading === nextProps.isDownloading &&
+      prevProps.recreatingUrl === nextProps.recreatingUrl
+    );
+  },
 );
 
 interface HistoryListProps {
@@ -133,7 +143,7 @@ export const HistoryList: FC<HistoryListProps> = ({
   onRecreate,
   onItemClick,
 }) => {
-  const { isPlaylistDownloading } = useDownloadStatus();
+  const { getBulkPlaylistStatus } = useDownloadStatus();
 
   const activePlaylistsMap = useMemo(() => {
     const map = new Map<string, Playlist>();
@@ -143,13 +153,23 @@ export const HistoryList: FC<HistoryListProps> = ({
     return map;
   }, [activePlaylists]);
 
+  // Pre-calculate download states for all history items (performance optimization)
+  const downloadStatesMap = useMemo(() => {
+    const urls = history.map((item) => item.playlistSpotifyUrl);
+    return getBulkPlaylistStatus(urls);
+  }, [history, getBulkPlaylistStatus]);
+
   const renderItem = useCallback(
     (item: PlaylistHistory) => {
       const activePlaylist = item.playlistSpotifyUrl
         ? activePlaylistsMap.get(item.playlistSpotifyUrl)
         : undefined;
 
-      const isDownloading = isPlaylistDownloading(item.playlistSpotifyUrl);
+      const downloadState = item.playlistSpotifyUrl
+        ? downloadStatesMap.get(item.playlistSpotifyUrl)
+        : undefined;
+
+      const isDownloading = downloadState?.isDownloading ?? false;
 
       return (
         <HistoryListItem
@@ -162,7 +182,7 @@ export const HistoryList: FC<HistoryListProps> = ({
         />
       );
     },
-    [activePlaylistsMap, recreatingUrl, onRecreate, onItemClick, isPlaylistDownloading],
+    [activePlaylistsMap, downloadStatesMap, recreatingUrl, onRecreate, onItemClick],
   );
 
   return (
