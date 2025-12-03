@@ -13,9 +13,10 @@ interface PlaylistProps {
   isDownloaded?: boolean;
   hasFailed: boolean;
   isRetrying: boolean;
+  isSaved?: boolean;
   onRetryTrack: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
-  onConfirmDelete: () => void;
+  onConfirmDelete: (() => void) | undefined;
   onRetryFailed: () => void;
   onToggleSubscription: () => void;
   onDownload: () => void;
@@ -28,6 +29,7 @@ export const Playlist: FC<PlaylistProps> = ({
   isDownloaded,
   hasFailed,
   isRetrying,
+  isSaved = true,
   onRetryTrack,
   onDownloadTrack,
   onConfirmDelete,
@@ -66,6 +68,7 @@ export const Playlist: FC<PlaylistProps> = ({
         isRetrying={isRetrying}
         isDownloading={isDownloading}
         isDownloaded={isDownloaded ?? false}
+        isSaved={isSaved}
         onToggleSubscription={onToggleSubscription}
         onRetryFailed={handleRetryFailed}
         onDelete={handleDelete}
@@ -80,6 +83,7 @@ export const Playlist: FC<PlaylistProps> = ({
       isRetrying,
       isDownloading,
       isDownloaded,
+      isSaved,
       onToggleSubscription,
       handleRetryFailed,
       handleDelete,

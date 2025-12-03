@@ -6,7 +6,9 @@ import { PreviewError } from "../components/molecules/PreviewError";
 import { Playlist } from "../components/organisms/Playlist";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
+import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
+import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useDownloadStatus } from "../hooks/useDownloadStatus";
 import { Path } from "../routes/routes";
 import { PlaylistWithStats } from "../types/playlist";
@@ -19,8 +21,14 @@ export const PlaylistPreview: FC = () => {
 
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
 
+  const { data: playlists } = usePlaylistsQuery();
+  const deletePlaylist = useDeletePlaylistMutation();
   const createPlaylist = useCreatePlaylistMutation();
   const { isPlaylistDownloaded, isPlaylistDownloading, getTrackStatus } = useDownloadStatus();
+
+  const savedPlaylistId = useMemo(() => {
+    return playlists?.find((p) => p.spotifyUrl === spotifyUrl)?.id;
+  }, [playlists, spotifyUrl]);
 
   const playlist: PlaylistWithStats | undefined = useMemo(() => {
     if (!previewData || !spotifyUrl) {
@@ -106,6 +114,19 @@ export const PlaylistPreview: FC = () => {
     [createPlaylist],
   );
 
+  const handleConfirmDelete = useCallback(() => {
+    if (savedPlaylistId) {
+      deletePlaylist.mutate(savedPlaylistId);
+      navigate(Path.HOME);
+    }
+  }, [deletePlaylist, savedPlaylistId, navigate]);
+
+  const hasDownloadedTracks = useMemo(() => {
+    return tracks.some((t) => t.status === TrackStatusEnum.Completed);
+  }, [tracks]);
+
+  const isSaved = !!savedPlaylistId || hasDownloadedTracks;
+
   if (isLoading) {
     return <PlaylistSkeleton />;
   }
@@ -126,10 +147,11 @@ export const PlaylistPreview: FC = () => {
       isRetrying={false}
       isDownloading={isButtonLoading}
       isDownloaded={isDownloaded}
+      isSaved={isSaved}
       onDownloadTrack={handleDownloadTrack}
       onDownload={handleDownload}
       onRetryTrack={() => {}}
-      onConfirmDelete={() => {}}
+      onConfirmDelete={handleConfirmDelete}
       onRetryFailed={() => {}}
       onToggleSubscription={() => {}}
     />

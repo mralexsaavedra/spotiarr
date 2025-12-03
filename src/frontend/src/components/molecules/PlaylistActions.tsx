@@ -10,6 +10,7 @@ interface PlaylistActionsProps {
   isRetrying: boolean;
   isDownloading: boolean;
   isDownloaded: boolean;
+  isSaved: boolean;
   onToggleSubscription: () => void;
   onRetryFailed: () => void;
   onDelete: () => void;
@@ -22,6 +23,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   isRetrying,
   isDownloading,
   isDownloaded,
+  isSaved,
   onToggleSubscription,
   onRetryFailed,
   onDelete,
@@ -54,19 +56,24 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         variant="secondary"
         size="md"
         className={`!h-10 !w-36 !rounded-full shadow-lg border-2 justify-center ${
-          isSubscribed
-            ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400"
-            : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10"
+          !isSaved
+            ? "bg-transparent border-white/10 text-white/30 cursor-not-allowed"
+            : isSubscribed
+              ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400"
+              : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10"
         }`}
         onClick={onToggleSubscription}
-        title={isSubscribed ? "Unsubscribe" : "Subscribe"}
+        disabled={!isSaved}
+        title={!isSaved ? "Download to enable actions" : isSubscribed ? "Unsubscribe" : "Subscribe"}
       >
         <div className="flex items-center justify-center gap-2">
           <FontAwesomeIcon
             icon={isSubscribed ? ["fas", "bell"] : ["far", "bell"]}
             className="text-sm"
           />
-          {isSubscribed ? "Subscribed" : "Subscribe"}
+          <span className="font-bold text-xs uppercase tracking-wide">
+            {isSubscribed ? "Subscribed" : "Subscribe"}
+          </span>
         </div>
       </Button>
 
@@ -92,9 +99,12 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         variant="ghost"
         size="lg"
         icon="trash"
-        className="text-text-secondary hover:text-red-400 hover:bg-red-500/10"
+        className={`text-text-secondary ${
+          !isSaved ? "opacity-30 cursor-not-allowed" : "hover:text-red-400 hover:bg-red-500/10"
+        }`}
         onClick={onDelete}
-        title="Delete Playlist"
+        disabled={!isSaved}
+        title={!isSaved ? "Download to enable actions" : "Delete Playlist"}
       >
         <span className="hidden sm:inline">Delete</span>
       </Button>
