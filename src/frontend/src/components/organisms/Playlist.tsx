@@ -1,8 +1,7 @@
-import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
-import { FC, useCallback, useMemo, useState } from "react";
+import { PlaylistTypeEnum } from "@spotiarr/shared";
+import { FC, useCallback, useState } from "react";
 import { PlaylistWithStats } from "../../types/playlist";
 import { Track } from "../../types/track";
-import { formatPlaylistTitle } from "../../utils/playlist";
 import { ConfirmModal } from "../molecules/ConfirmModal";
 import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistActions } from "../molecules/PlaylistActions";
@@ -19,6 +18,8 @@ interface PlaylistProps {
   hasFailed: boolean;
   isRetrying: boolean;
   isSaved?: boolean;
+  displayTitle: string;
+  completedCount: number;
   onRetryTrack: (trackId: string) => void;
   onDownloadTrack: (track: Track) => void;
   onConfirmDelete: (() => void) | undefined;
@@ -35,6 +36,8 @@ export const Playlist: FC<PlaylistProps> = ({
   hasFailed,
   isRetrying,
   isSaved = true,
+  displayTitle,
+  completedCount,
   onRetryTrack,
   onDownloadTrack,
   onConfirmDelete,
@@ -57,26 +60,7 @@ export const Playlist: FC<PlaylistProps> = ({
     setIsDeleteModalOpen(false);
   }, []);
 
-  const handleRetryFailed = useCallback(() => {
-    if (!hasFailed) {
-      return;
-    }
-
-    onRetryFailed?.();
-  }, [hasFailed, onRetryFailed]);
-
   const totalCount = tracks.length;
-  const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
-
-  const displayTitle = useMemo(
-    () =>
-      formatPlaylistTitle(
-        playlist.name || "Unnamed Playlist",
-        playlist.type || PlaylistTypeEnum.Playlist,
-        tracks,
-      ),
-    [playlist.name, playlist.type, tracks],
-  );
 
   return (
     <>
@@ -109,7 +93,7 @@ export const Playlist: FC<PlaylistProps> = ({
             isDownloaded={isDownloaded ?? false}
             isSaved={isSaved}
             onToggleSubscription={onToggleSubscription}
-            onRetryFailed={handleRetryFailed}
+            onRetryFailed={onRetryFailed}
             onDelete={handleDelete}
             onDownload={onDownload}
             spotifyUrl={playlist?.spotifyUrl || ""}

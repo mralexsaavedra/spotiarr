@@ -1,9 +1,10 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Playlist, PlaylistWithStats } from "../../types/playlist";
 import { Track } from "../../types/track";
+import { formatPlaylistTitle } from "../../utils/playlist";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useDeletePlaylistMutation } from "../mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../mutations/useRetryFailedTracksMutation";
@@ -93,10 +94,26 @@ export const usePlaylistController = ({
     [retryTrack, createPlaylist],
   );
 
+  const completedCount = useMemo(() => {
+    return tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
+  }, [tracks]);
+
+  const displayTitle = useMemo(
+    () =>
+      formatPlaylistTitle(
+        playlist?.name || "Unnamed Playlist",
+        playlist?.type || PlaylistTypeEnum.Playlist,
+        tracks,
+      ),
+    [playlist?.name, playlist?.type, tracks],
+  );
+
   return {
     isDownloading,
     isDownloaded,
     hasFailed,
+    completedCount,
+    displayTitle,
     handleDownload,
     handleToggleSubscription,
     handleDelete,

@@ -15,6 +15,8 @@ export const PlaylistPreview: FC = () => {
     isDownloaded,
     isSaved,
     hasFailed,
+    completedCount,
+    displayTitle,
     handleDownload,
     handleToggleSubscription,
     handleDelete,
@@ -45,6 +47,8 @@ export const PlaylistPreview: FC = () => {
       isDownloading={isButtonLoading}
       isDownloaded={isDownloaded}
       isSaved={isSaved}
+      displayTitle={displayTitle}
+      completedCount={completedCount}
       onDownloadTrack={handleRetryTrack}
       onDownload={handleDownload}
       onRetryTrack={(trackId) => {

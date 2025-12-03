@@ -13,6 +13,8 @@ export const PlaylistDetail: FC = () => {
     isDownloading,
     isDownloaded,
     hasFailed,
+    completedCount,
+    displayTitle,
     retryFailedTracks,
     handleToggleSubscription,
     handleDelete,
@@ -35,6 +37,8 @@ export const PlaylistDetail: FC = () => {
       tracks={tracks}
       isDownloading={isDownloading}
       isDownloaded={isDownloaded}
+      displayTitle={displayTitle}
+      completedCount={completedCount}
       onRetryTrack={(trackId) => {
         const track = tracks.find((t) => t.id === trackId);
         if (track) handleRetryTrack(track);
