@@ -66,12 +66,12 @@ export const ArtistDetail: FC = () => {
       {/* Content */}
       <div className="flex-1 px-6 md:px-8 pb-10 bg-gradient-to-b from-background to-black">
         {/* Action Buttons */}
-        <div className="flex items-center gap-4 py-6">
+        <div className="flex items-center gap-3 md:gap-4 py-6">
           {/* Download Button (Circular) */}
           <Button
             variant="primary"
             size="lg"
-            className={`!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
+            className={`!w-12 !h-12 md:!w-14 md:!h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
               isArtistDownloaded ? "bg-green-500 hover:bg-green-600" : "hover:scale-105"
             }`}
             onClick={handleArtistDownload}
@@ -85,8 +85,11 @@ export const ArtistDetail: FC = () => {
             )}
           </Button>
 
-          {/* Spotify Link Button (Pill) */}
-          {artist?.spotifyUrl && <SpotifyLinkButton url={artist.spotifyUrl} />}
+          {artist?.spotifyUrl && (
+            <SpotifyLinkButton url={artist.spotifyUrl}>
+              <span className="hidden md:inline">Open in Spotify</span>
+            </SpotifyLinkButton>
+          )}
         </div>
 
         {/* Popular Tracks Section */}

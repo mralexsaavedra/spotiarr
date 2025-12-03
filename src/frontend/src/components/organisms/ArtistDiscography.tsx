@@ -128,7 +128,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   );
 
   return (
-    <div className="mt-10">
+    <div className="mt-10 pb-24 md:pb-0">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Discography</h2>
       </div>
