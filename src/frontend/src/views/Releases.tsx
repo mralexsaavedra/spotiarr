@@ -1,49 +1,20 @@
-import { FC, MouseEvent, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { FC } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ReleasesList } from "../components/organisms/ReleasesList";
-import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
-import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
-import { useReleasesQuery } from "../hooks/queries/useReleasesQuery";
-import { Path } from "../routes/routes";
+import { useReleasesController } from "../hooks/controllers/useReleasesController";
 
 export const Releases: FC = () => {
-  const navigate = useNavigate();
-
-  const { releases, isLoading, error } = useReleasesQuery();
-  const { data: playlists = [] } = usePlaylistsQuery();
-  const createPlaylist = useCreatePlaylistMutation();
-
-  const handleReleaseClick = useCallback(
-    (release: { spotifyUrl?: string | null; albumId: string }) => {
-      const existingPlaylist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
-
-      if (existingPlaylist) {
-        navigate(`${Path.PLAYLIST_DETAIL.replace(":id", existingPlaylist.id)}`);
-      } else if (release.spotifyUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(release.spotifyUrl)}`);
-      }
-    },
-    [playlists, navigate],
-  );
-
-  const handleDownloadRelease = useCallback(
-    (e: MouseEvent, spotifyUrl: string) => {
-      e.stopPropagation();
-      createPlaylist.mutate(spotifyUrl);
-    },
-    [createPlaylist],
-  );
-
-  const handleArtistClick = useCallback(
-    (artistId: string) => {
-      navigate(Path.ARTIST_DETAIL.replace(":id", artistId));
-    },
-    [navigate],
-  );
+  const {
+    releases,
+    isLoading,
+    error,
+    handleReleaseClick,
+    handleDownloadRelease,
+    handleArtistClick,
+  } = useReleasesController();
 
   if (error) {
     return (

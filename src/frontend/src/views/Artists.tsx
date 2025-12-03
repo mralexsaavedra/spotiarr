@@ -1,38 +1,14 @@
-import { FC, useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { FC } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { SearchInput } from "../components/molecules/SearchInput";
 import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ArtistList } from "../components/organisms/ArtistList";
-import { useFollowedArtistsQuery } from "../hooks/queries/useFollowedArtistsQuery";
-import { useDebounce } from "../hooks/useDebounce";
-import { Path } from "../routes/routes";
+import { useArtistsController } from "../hooks/controllers/useArtistsController";
 
 export const Artists: FC = () => {
-  const navigate = useNavigate();
-  const { artists, isLoading, error } = useFollowedArtistsQuery();
-
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 300);
-
-  const filteredArtists = useMemo(() => {
-    const list = artists ?? [];
-    const query = debouncedSearch.trim().toLowerCase();
-    if (!query) return list;
-    return list.filter((artist) => artist.name.toLowerCase().includes(query));
-  }, [artists, debouncedSearch]);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value);
-  }, []);
-
-  const handleArtistClick = useCallback(
-    (id: string) => {
-      navigate(Path.ARTIST_DETAIL.replace(":id", id));
-    },
-    [navigate],
-  );
+  const { filteredArtists, isLoading, error, search, handleSearchChange, handleArtistClick } =
+    useArtistsController();
 
   if (error) {
     return (

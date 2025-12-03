@@ -1,41 +1,22 @@
-import { FC, useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { FC } from "react";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { ConfirmModal } from "../components/molecules/ConfirmModal";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { PlaylistList } from "../components/organisms/PlaylistList";
-import { useDeleteCompletedPlaylistsMutation } from "../hooks/mutations/useDeleteCompletedPlaylistsMutation";
-import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
-import { Path } from "../routes/routes";
+import { useHomeController } from "../hooks/controllers/useHomeController";
 
 export const Home: FC = () => {
-  const navigate = useNavigate();
-  const { data: playlists, isLoading } = usePlaylistsQuery();
-  const deleteCompletedPlaylists = useDeleteCompletedPlaylistsMutation();
-
-  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-
-  const handleClearAllClick = useCallback(() => {
-    setIsClearModalOpen(true);
-  }, []);
-
-  const handleConfirmClearAll = useCallback(() => {
-    deleteCompletedPlaylists.mutate();
-    setIsClearModalOpen(false);
-  }, [deleteCompletedPlaylists]);
-
-  const handleCancelClearAll = useCallback(() => {
-    setIsClearModalOpen(false);
-  }, []);
-
-  const handlePlaylistClick = useCallback(
-    (id: string) => {
-      navigate(Path.PLAYLIST_DETAIL.replace(":id", id));
-    },
-    [navigate],
-  );
+  const {
+    playlists,
+    isLoading,
+    isClearModalOpen,
+    handleClearAllClick,
+    handleConfirmClearAll,
+    handleCancelClearAll,
+    handlePlaylistClick,
+  } = useHomeController();
 
   return (
     <section className="w-full bg-background px-4 md:px-8 py-6">
