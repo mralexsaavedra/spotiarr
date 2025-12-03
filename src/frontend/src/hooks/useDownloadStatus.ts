@@ -16,50 +16,52 @@ export const useDownloadStatus = () => {
     queryFn: () => api.getPlaylists(),
   });
 
-  // Map of playlist/album URLs to their status
-  const playlistStatusMap = useMemo(() => {
-    const map = new Map<string, PlaylistStatusEnum>();
-    if (!playlists) return map;
+  // Calculate all status maps in a single pass for performance
+  const { playlistStatusMap, trackStatusMap, albumTrackCountMap } = useMemo(() => {
+    const pMap = new Map<string, PlaylistStatusEnum>();
+    const tMap = new Map<string, TrackStatusEnum>();
+    const aCountMap = new Map<string, number>();
+
+    if (!playlists) {
+      return {
+        playlistStatusMap: pMap,
+        trackStatusMap: tMap,
+        albumTrackCountMap: aCountMap,
+      };
+    }
 
     playlists.forEach((p: Playlist) => {
       const status = calculatePlaylistStatus(p);
 
       // Add playlist URL
       if (p.spotifyUrl) {
-        map.set(p.spotifyUrl, status);
+        pMap.set(p.spotifyUrl, status);
+      }
+
+      // Process tracks
+      if (p.tracks) {
+        p.tracks.forEach((track) => {
+          // Track status
+          if (track.trackUrl) {
+            tMap.set(track.trackUrl, track.status);
+          }
+
+          // Album status from tracks
+          if (track.albumUrl) {
+            // If track is completed, increment album count
+            if (track.status === TrackStatusEnum.Completed) {
+              aCountMap.set(track.albumUrl, (aCountMap.get(track.albumUrl) || 0) + 1);
+            }
+          }
+        });
       }
     });
 
-    return map;
-  }, [playlists]);
-
-  // Map of track URLs to their status
-  const trackStatusMap = useMemo(() => {
-    const map = new Map<string, TrackStatusEnum>();
-    if (!playlists) return map;
-
-    playlists.forEach((p) => {
-      p.tracks?.forEach((t) => {
-        if (t.trackUrl) map.set(t.trackUrl, t.status);
-      });
-    });
-
-    return map;
-  }, [playlists]);
-
-  // Map of Album URL -> Downloaded Track Count
-  const albumTrackCountMap = useMemo(() => {
-    const map = new Map<string, number>();
-    if (!playlists) return map;
-
-    playlists.forEach((p) => {
-      p.tracks?.forEach((t) => {
-        if (t.albumUrl && t.status === TrackStatusEnum.Completed) {
-          map.set(t.albumUrl, (map.get(t.albumUrl) || 0) + 1);
-        }
-      });
-    });
-    return map;
+    return {
+      playlistStatusMap: pMap,
+      trackStatusMap: tMap,
+      albumTrackCountMap: aCountMap,
+    };
   }, [playlists]);
 
   /**
