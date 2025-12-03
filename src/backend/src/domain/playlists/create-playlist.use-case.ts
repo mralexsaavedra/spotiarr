@@ -140,7 +140,7 @@ export class CreatePlaylistUseCase {
           name: track.name,
           album: track.album ?? (useSinglesFallback ? "Singles" : playlist.name),
           albumYear: track.albumYear,
-          trackNumber: track.trackNumber ?? processedCount + 1,
+          trackNumber: isAlbum ? (track.trackNumber ?? processedCount + 1) : processedCount + 1,
           spotifyUrl: track.previewUrl ?? undefined,
           artists: track.artists,
           trackUrl: track.trackUrl,

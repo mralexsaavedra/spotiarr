@@ -156,7 +156,7 @@ export class PlaylistService {
           name: track.name,
           album: track.album ?? (isTrack ? "Singles" : playlist.name),
           albumYear: track.albumYear,
-          trackNumber: track.trackNumber ?? i + 1,
+          trackNumber: isAlbum ? (track.trackNumber ?? i + 1) : i + 1,
           spotifyUrl: track.previewUrl ?? undefined,
           artists: track.artists,
           trackUrl: track.trackUrl,

@@ -108,6 +108,7 @@ export class YoutubeService {
     title: string,
     artist: string,
     albumYear?: number,
+    trackNumber?: number,
   ): Promise<void> {
     if (coverUrl) {
       const res = await fetch(coverUrl);
@@ -128,6 +129,11 @@ export class YoutubeService {
       // Add year if available
       if (albumYear) {
         tags.year = albumYear.toString();
+      }
+
+      // Add track number if available
+      if (trackNumber) {
+        tags.trackNumber = trackNumber.toString();
       }
 
       NodeID3.write(tags, folderName);

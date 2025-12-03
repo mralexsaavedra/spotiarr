@@ -136,6 +136,7 @@ export class DownloadTrackUseCase {
       track.name,
       track.artist,
       track.albumYear,
+      track.trackNumber,
     );
 
     // Save folder cover.jpg
