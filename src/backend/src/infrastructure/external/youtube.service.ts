@@ -2,6 +2,7 @@ import { SUPPORTED_AUDIO_FORMATS, SupportedAudioFormat, type ITrack } from "@spo
 import { execSync } from "child_process";
 import * as fs from "fs";
 import * as NodeID3 from "node-id3";
+import * as os from "os";
 import { join } from "path";
 import { YtDlp } from "ytdlp-nodejs";
 import { SettingsService } from "../../application/services/settings.service";
@@ -34,9 +35,9 @@ export class YoutubeService {
         encoding: "utf-8",
       }).trim();
 
-      // WORKAROUND: ytdlp-nodejs tries to chmod the binary, which fails for /usr/bin/yt-dlp
-      // We copy it to a local writable path so the library can do its thing
-      const localPath = join(process.cwd(), "yt-dlp");
+      // WORKAROUND: ytdlp-nodejs tries to chmod the binary, which fails for /usr/bin/yt-dlp in Docker
+      // We copy it to a local writable path (tmp dir) so the library can do its thing
+      const localPath = join(os.tmpdir(), "yt-dlp");
 
       // Only copy if it doesn't exist or is different (simple check)
       if (!fs.existsSync(localPath)) {
@@ -48,7 +49,7 @@ export class YoutubeService {
       this.ytDlpPath = localPath;
       console.debug(`Using yt-dlp from: ${this.ytDlpPath}`);
     } catch (e) {
-      console.warn("yt-dlp not found in PATH or failed to copy, will try default location", e);
+      console.warn("yt-dlp not found in PATH, will try default 'yt-dlp' command", e);
       this.ytDlpPath = "yt-dlp";
     }
     this.settingsService = new SettingsService();
