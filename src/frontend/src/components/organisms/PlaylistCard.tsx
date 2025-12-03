@@ -57,7 +57,8 @@ export const PlaylistCard: FC<PlaylistCardProps> = memo(
               <>
                 <FontAwesomeIcon icon="spinner" spin className="text-blue-400 text-xs" />
                 <span>
-                  Downloading... {completedCount}/{totalCount}
+                  <span className="hidden sm:inline">Downloading... </span>
+                  {completedCount}/{totalCount}
                 </span>
               </>
             ) : hasErrors ? (
