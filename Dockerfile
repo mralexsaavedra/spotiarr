@@ -31,15 +31,21 @@ FROM node:24-alpine
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install runtime dependencies
-RUN apk add --no-cache ffmpeg yt-dlp python3
+RUN apk add --no-cache ffmpeg yt-dlp python3 curl
 
 WORKDIR /spotiarr
 
-# Copy root configuration
-COPY --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
+# Create downloads directory and set permissions
+RUN mkdir -p /downloads && chown -R node:node /downloads /spotiarr
 
-# Copy entire src directory (includes all package.json and dist folders)
-COPY --from=builder /spotiarr/src/ ./src/
+# Copy root configuration with correct ownership
+COPY --from=builder --chown=node:node /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
+
+# Copy entire src directory with correct ownership
+COPY --from=builder --chown=node:node /spotiarr/src/ ./src/
+
+# Switch to non-root user
+USER node
 
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
@@ -51,4 +57,9 @@ RUN pnpm --filter backend prisma:generate
 ENV DOWNLOADS_PATH=/downloads
 
 EXPOSE 3000
+
+# Healthcheck to ensure the service is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
 CMD ["sh", "-c", "pnpm --filter backend prisma:migrate:deploy && pnpm start"]
