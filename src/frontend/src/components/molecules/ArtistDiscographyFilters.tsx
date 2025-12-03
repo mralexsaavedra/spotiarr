@@ -13,7 +13,6 @@ const FILTERS: FilterOption[] = [
   { key: "all", label: "All" },
   { key: "album", label: "Albums" },
   { key: "single", label: "Singles & EPs" },
-  { key: "compilation", label: "Compilations" },
 ];
 
 interface FilterItemProps {
