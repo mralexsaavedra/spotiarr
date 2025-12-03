@@ -1,4 +1,4 @@
-import { FC, MouseEvent, ReactNode, useCallback } from "react";
+import { FC, MouseEvent, useCallback } from "react";
 import { Button, ButtonProps } from "./Button";
 
 interface SpotifyLinkButtonProps extends Omit<ButtonProps, "onClick" | "children"> {
