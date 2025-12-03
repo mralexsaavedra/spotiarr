@@ -30,12 +30,25 @@ export class YoutubeService {
   constructor() {
     // Auto-detect yt-dlp path from system PATH
     try {
-      this.ytDlpPath = execSync("which yt-dlp", {
+      const systemPath = execSync("which yt-dlp", {
         encoding: "utf-8",
       }).trim();
+
+      // WORKAROUND: ytdlp-nodejs tries to chmod the binary, which fails for /usr/bin/yt-dlp
+      // We copy it to a local writable path so the library can do its thing
+      const localPath = join(process.cwd(), "yt-dlp");
+
+      // Only copy if it doesn't exist or is different (simple check)
+      if (!fs.existsSync(localPath)) {
+        console.debug(`Copying system yt-dlp to ${localPath} to avoid permission issues`);
+        fs.copyFileSync(systemPath, localPath);
+        fs.chmodSync(localPath, 0o755);
+      }
+
+      this.ytDlpPath = localPath;
       console.debug(`Using yt-dlp from: ${this.ytDlpPath}`);
-    } catch {
-      console.warn("yt-dlp not found in PATH, will try default location");
+    } catch (e) {
+      console.warn("yt-dlp not found in PATH or failed to copy, will try default location", e);
       this.ytDlpPath = "yt-dlp";
     }
     this.settingsService = new SettingsService();
