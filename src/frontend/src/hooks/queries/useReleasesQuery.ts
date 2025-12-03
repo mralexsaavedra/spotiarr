@@ -1,7 +1,7 @@
 import { ApiErrorCode, type ArtistRelease } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { api } from "../../services/api";
+import { artistService } from "../../services/artist.service";
 import { getCacheMinutesFromSettings } from "../../utils/cache";
 import { mapSpotifyError } from "../../utils/spotify";
 import { RELEASES_QUERY_KEY } from "../queryKeys";
@@ -22,7 +22,7 @@ export const useReleasesQuery = (): UseReleasesState => {
 
   const { data, isLoading, error } = useQuery<ArtistRelease[], Error>({
     queryKey: RELEASES_QUERY_KEY,
-    queryFn: () => api.getReleases(),
+    queryFn: () => artistService.getReleases(),
     staleTime: 1000 * 60 * cacheMinutes,
   });
 

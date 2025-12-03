@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { playlistService } from "../../services/playlist.service";
 import type { Playlist } from "../../types/playlist";
 import { PLAYLISTS_QUERY_KEY } from "../queryKeys";
 
@@ -8,7 +8,7 @@ export const useUpdatePlaylistMutation = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Playlist> }) =>
-      api.updatePlaylist(id, data),
+      playlistService.updatePlaylist(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: PLAYLISTS_QUERY_KEY });
       const previous = queryClient.getQueryData<Playlist[]>(PLAYLISTS_QUERY_KEY);

@@ -1,6 +1,6 @@
 import type { ApiErrorCode, ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { artistService } from "../../services/artist.service";
 import { mapSpotifyError } from "../../utils/spotify";
 import { artistDetailQueryKey } from "../queryKeys";
 
@@ -16,7 +16,7 @@ export const useArtistDetailQuery = (
 ): UseArtistDetailState => {
   const { data, isLoading, error } = useQuery<ArtistDetail, Error>({
     queryKey: [...artistDetailQueryKey(artistId || ""), limit],
-    queryFn: () => api.getArtistDetail(artistId!, limit),
+    queryFn: () => artistService.getArtistDetail(artistId!, limit),
     enabled: !!artistId,
   });
 

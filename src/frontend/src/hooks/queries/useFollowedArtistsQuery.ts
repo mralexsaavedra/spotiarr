@@ -1,7 +1,7 @@
 import { ApiErrorCode } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { api } from "../../services/api";
+import { artistService } from "../../services/artist.service";
 import { getCacheMinutesFromSettings } from "../../utils/cache";
 import { mapSpotifyError } from "../../utils/spotify";
 import { FOLLOWED_ARTISTS_QUERY_KEY } from "../queryKeys";
@@ -29,7 +29,7 @@ export const useFollowedArtistsQuery = (): UseFollowedArtistsState => {
 
   const { data, isLoading, error } = useQuery<FollowedArtist[], Error>({
     queryKey: FOLLOWED_ARTISTS_QUERY_KEY,
-    queryFn: () => api.getFollowedArtists(),
+    queryFn: () => artistService.getFollowedArtists(),
     staleTime: 1000 * 60 * cacheMinutes,
   });
 

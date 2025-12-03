@@ -1,6 +1,6 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { artistService } from "../../services/artist.service";
 import { artistAlbumsQueryKey } from "../queryKeys";
 
 interface UseArtistAlbumsQueryOptions {
@@ -18,7 +18,7 @@ export const useArtistAlbumsQuery = ({
 }: UseArtistAlbumsQueryOptions) => {
   return useQuery<ArtistRelease[], Error>({
     queryKey: artistAlbumsQueryKey(artistId, limit, offset),
-    queryFn: () => api.getArtistAlbums(artistId, limit, offset),
+    queryFn: () => artistService.getArtistAlbums(artistId, limit, offset),
     enabled,
   });
 };
