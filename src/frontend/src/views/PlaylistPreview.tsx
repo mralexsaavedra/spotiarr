@@ -6,9 +6,7 @@ import { PreviewError } from "../components/molecules/PreviewError";
 import { Playlist } from "../components/organisms/Playlist";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { useDownloadStatusContext } from "../contexts/DownloadStatusContext";
-import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
-import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
-import { useUpdatePlaylistMutation } from "../hooks/mutations/useUpdatePlaylistMutation";
+import { usePlaylistController } from "../hooks/controllers/usePlaylistController";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { Path } from "../routes/routes";
@@ -16,18 +14,13 @@ import { PlaylistWithStats } from "../types/playlist";
 import { Track } from "../types/track";
 
 export const PlaylistPreview: FC = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const spotifyUrl = searchParams.get("url");
-  const navigate = useNavigate();
 
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
-
   const { data: playlists } = usePlaylistsQuery();
-  const deletePlaylist = useDeletePlaylistMutation();
-  const createPlaylist = useCreatePlaylistMutation();
-  const updatePlaylist = useUpdatePlaylistMutation();
-  const { isPlaylistDownloaded, isPlaylistDownloading, getTrackStatus } =
-    useDownloadStatusContext();
+  const { getTrackStatus } = useDownloadStatusContext();
 
   const savedPlaylist = useMemo(() => {
     return playlists?.find((p) => p.spotifyUrl === spotifyUrl);
@@ -86,82 +79,37 @@ export const PlaylistPreview: FC = () => {
     });
   }, [previewData, getTrackStatus]);
 
-  const isDownloaded = isPlaylistDownloaded(spotifyUrl, tracks.length);
-  const isDownloading = isPlaylistDownloading(spotifyUrl);
+  const {
+    isDownloading,
+    isDownloaded,
+    hasFailed,
+    handleDownload,
+    handleToggleSubscription,
+    handleDelete,
+    handleRetryFailed,
+    handleRetryTrack,
+    mutations: { createPlaylist },
+  } = usePlaylistController({
+    playlist,
+    tracks,
+    spotifyUrl,
+    id: savedPlaylistId,
+  });
 
   const isButtonLoading =
     createPlaylist.isPending ||
     isDownloading ||
     (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
 
+  const isSaved = !!savedPlaylistId || tracks.some((t) => t.status === TrackStatusEnum.Completed);
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   const handleGoHome = useCallback(() => {
     navigate(Path.HOME);
   }, [navigate]);
-
-  const handleGoBack = useCallback(() => {
-    navigate(Path.RELEASES);
-  }, [navigate]);
-
-  const handleDownload = useCallback(() => {
-    if (!spotifyUrl) {
-      return;
-    }
-
-    createPlaylist.mutate(spotifyUrl);
-  }, [spotifyUrl, createPlaylist]);
-
-  const handleDownloadTrack = useCallback(
-    (track: Track) => {
-      if (track.trackUrl) {
-        createPlaylist.mutate(track.trackUrl);
-      }
-    },
-    [createPlaylist],
-  );
-
-  const handleRetryTrack = useCallback(
-    (trackId: string) => {
-      const track = tracks.find((t) => t.id === trackId);
-      if (track?.trackUrl) {
-        createPlaylist.mutate(track.trackUrl);
-      }
-    },
-    [tracks, createPlaylist],
-  );
-
-  const handleRetryFailed = useCallback(() => {
-    tracks.forEach((track) => {
-      if (track.status === TrackStatusEnum.Error && track.trackUrl) {
-        createPlaylist.mutate(track.trackUrl);
-      }
-    });
-  }, [tracks, createPlaylist]);
-
-  const handleToggleSubscription = useCallback(() => {
-    if (savedPlaylistId && playlist) {
-      updatePlaylist.mutate({
-        id: savedPlaylistId,
-        data: { subscribed: !playlist.subscribed },
-      });
-    }
-  }, [savedPlaylistId, playlist, updatePlaylist]);
-
-  const handleConfirmDelete = useCallback(() => {
-    if (savedPlaylistId) {
-      deletePlaylist.mutate(savedPlaylistId);
-      navigate(Path.HOME);
-    }
-  }, [deletePlaylist, savedPlaylistId, navigate]);
-
-  const hasDownloadedTracks = useMemo(() => {
-    return tracks.some((t) => t.status === TrackStatusEnum.Completed);
-  }, [tracks]);
-
-  const hasFailed = useMemo(() => {
-    return tracks.some((t) => t.status === TrackStatusEnum.Error);
-  }, [tracks]);
-
-  const isSaved = !!savedPlaylistId || hasDownloadedTracks;
 
   if (isLoading) {
     return <PlaylistSkeleton />;
@@ -184,10 +132,13 @@ export const PlaylistPreview: FC = () => {
       isDownloading={isButtonLoading}
       isDownloaded={isDownloaded}
       isSaved={isSaved}
-      onDownloadTrack={handleDownloadTrack}
+      onDownloadTrack={handleRetryTrack}
       onDownload={handleDownload}
-      onRetryTrack={handleRetryTrack}
-      onConfirmDelete={handleConfirmDelete}
+      onRetryTrack={(trackId) => {
+        const track = tracks.find((t) => t.id === trackId);
+        if (track) handleRetryTrack(track);
+      }}
+      onConfirmDelete={handleDelete}
       onRetryFailed={handleRetryFailed}
       onToggleSubscription={handleToggleSubscription}
     />

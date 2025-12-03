@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "tsx watch --tsconfig ./tsconfig.dev.json src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "pnpm prisma:generate && tsc",
     "start": "node dist/index.js",
     "lint": "spotiarr-lint src --fix",
