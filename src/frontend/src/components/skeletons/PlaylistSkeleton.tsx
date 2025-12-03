@@ -6,7 +6,7 @@ export const PlaylistSkeleton: FC = () => {
     <div className="flex-1 bg-background overflow-y-auto h-full">
       {/* Header Skeleton */}
       <div className="bg-gradient-to-b from-zinc-800/80 to-background px-6 md:px-8 py-6">
-        <div className="flex flex-col md:flex-row gap-6 items-end">
+        <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
           {/* Image */}
           <Skeleton className="w-48 h-48 md:w-60 md:h-60 shadow-2xl flex-shrink-0" />
 
@@ -15,7 +15,7 @@ export const PlaylistSkeleton: FC = () => {
             <Skeleton className="h-4 w-20" /> {/* Type label */}
             <Skeleton className="h-12 md:h-24 w-3/4 max-w-2xl" /> {/* Title */}
             {/* Progress Bar */}
-            <div className="max-w-md space-y-2 mt-4">
+            <div className="w-full space-y-2 mt-4">
               <div className="flex justify-between">
                 <Skeleton className="h-3 w-24" />
                 <Skeleton className="h-3 w-10" />
@@ -32,11 +32,12 @@ export const PlaylistSkeleton: FC = () => {
       </div>
 
       {/* Actions Skeleton */}
-      <div className="px-6 md:px-8 py-6 bg-gradient-to-b from-black/20 to-background flex items-center gap-4">
-        <Skeleton className="w-14 h-14 rounded-full" /> {/* Subscribe button */}
-        <Skeleton className="w-32 h-10 rounded-full" /> {/* Spotify button */}
+      <div className="px-6 md:px-8 py-6 bg-gradient-to-b from-black/20 to-background flex items-center gap-3 md:gap-4">
+        <Skeleton className="w-12 h-12 md:w-14 md:h-14 rounded-full" /> {/* Download button */}
+        <Skeleton className="w-9 h-9 md:w-36 md:h-10 rounded-full" /> {/* Subscribe button */}
+        <Skeleton className="w-9 h-9 md:w-32 md:h-10 rounded-full" /> {/* Spotify button */}
         <div className="flex-1" />
-        <Skeleton className="w-24 h-10 rounded-md" /> {/* Delete/Retry button */}
+        <Skeleton className="w-24 h-10 rounded-md hidden sm:block" /> {/* Delete/Retry button */}
       </div>
 
       {/* Tracks List Skeleton */}
