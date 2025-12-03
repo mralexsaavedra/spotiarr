@@ -37,9 +37,10 @@ async function bootstrap() {
   startScheduledJobs();
 
   // Start server
-  httpServer.listen(PORT, () => {
-    console.log(`\n✅ Server running on http://localhost:${PORT}`);
-    console.log(`📡 API available at http://localhost:${PORT}/api`);
+  // Start server
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`\n✅ Server running on ${env.BASE_URL}`);
+    console.log(`📡 API available at ${env.BASE_URL}/api`);
   });
 }
 
