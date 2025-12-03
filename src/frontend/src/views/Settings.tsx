@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
+import { AppFooter } from "../components/molecules/AppFooter";
 import { SettingItem } from "../components/molecules/SettingItem";
 import { useSettingsController } from "../hooks/controllers/useSettingsController";
 
@@ -63,6 +64,8 @@ export const Settings: FC = () => {
             </div>
           </form>
         )}
+
+        <AppFooter className="mt-8 md:hidden" />
       </div>
     </section>
   );
