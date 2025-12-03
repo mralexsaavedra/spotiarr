@@ -46,23 +46,9 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
    - Create an app → note your `Client ID` and `Client Secret`
    - Set redirect URI: `http://localhost:3000/api/auth/spotify/callback`
 
-2. **Run with Docker** (recommended):
+2. **Run with Docker Compose** (recommended):
 
-```bash
-docker run -d -p 3000:3000 \
-  -v /path/to/music:/spotiarr/downloads \
-  -e SPOTIFY_CLIENT_ID=your_client_id \
-  -e SPOTIFY_CLIENT_SECRET=your_client_secret \
-  mralexandersaavedra/spotiarr:latest
-```
-
-3. **Open** → http://localhost:3000 🎉
-
-## 📦 Installation
-
-### Docker Compose (Recommended)
-
-Includes Redis + health checks + persistent storage:
+   Includes Redis + health checks + persistent storage.
 
 ```bash
 # 1. Clone repo
@@ -73,19 +59,21 @@ cp .env.example .env
 # Edit .env → add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET
 
 # 3. Start
-docker-compose up -d
+docker compose up -d
 ```
 
-Access at http://localhost:3000
+3. **Open** → http://localhost:3000 (or your configured `BASE_URL`) 🎉
+
+## 📦 Installation
 
 ### Build from Source
 
-**Requirements:** Node.js 24 LTS, pnpm 9+, Redis, FFmpeg, yt-dlp, Python 3.11/3.12
+**Requirements:** Node.js 24+, pnpm 10+, Redis, FFmpeg, yt-dlp, Python 3.11/3.12
 
 ```bash
 # 1. Setup
 git clone https://github.com/mralexsaavedra/spotiarr.git && cd spotiarr
-nvm install && nvm use
+corepack enable
 pnpm install
 
 # 2. Install services (macOS example)
@@ -97,7 +85,9 @@ cp .env.example .env
 # Edit .env → add Spotify credentials + set REDIS_HOST=localhost
 
 # 4. Run
-pnpm dev  # Backend (3000) + Frontend (5173)
+pnpm dev
+# Frontend: http://localhost:5173 (Hot Reload)
+# Backend:  http://localhost:3000 (API)
 ```
 
 **Troubleshooting:** See [CONTRIBUTING.md](CONTRIBUTING.md#having-trouble) for common issues (Redis, better-sqlite3, FFmpeg, yt-dlp).
