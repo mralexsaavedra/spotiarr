@@ -1,41 +1,25 @@
-import { FC, useCallback, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { FC } from "react";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { Playlist } from "../components/organisms/Playlist";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
-import { usePlaylistController } from "../hooks/controllers/usePlaylistController";
-import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
-import { useTracksQuery } from "../hooks/queries/useTracksQuery";
-import { Path } from "../routes/routes";
+import { usePlaylistDetailController } from "../hooks/controllers/usePlaylistDetailController";
 
 export const PlaylistDetail: FC = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-
-  const { data: playlists = [], isLoading: isPlaylistsLoading } = usePlaylistsQuery();
-  const { data: tracks = [], isLoading: isTracksLoading } = useTracksQuery(id);
-
-  const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
-
   const {
+    playlist,
+    tracks,
+    isPlaylistsLoading,
+    isTracksLoading,
     isDownloading,
     isDownloaded,
     hasFailed,
+    retryFailedTracks,
     handleToggleSubscription,
     handleDelete,
     handleRetryFailed,
     handleRetryTrack,
-    mutations: { retryFailedTracks },
-  } = usePlaylistController({
-    playlist,
-    tracks,
-    spotifyUrl: playlist?.spotifyUrl,
-    id,
-  });
-
-  const handleGoHome = useCallback(() => {
-    navigate(Path.HOME);
-  }, [navigate]);
+    handleGoHome,
+  } = usePlaylistDetailController();
 
   if (isPlaylistsLoading || isTracksLoading) {
     return <PlaylistSkeleton />;
