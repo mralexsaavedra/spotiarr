@@ -56,15 +56,12 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         variant="secondary"
         size="md"
         className={`!h-10 !w-36 !rounded-full shadow-lg border-2 justify-center ${
-          !isSaved
-            ? "bg-transparent border-white/10 text-white/30 cursor-not-allowed"
-            : isSubscribed
-              ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400"
-              : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10"
+          isSubscribed
+            ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400"
+            : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10"
         }`}
         onClick={onToggleSubscription}
-        disabled={!isSaved}
-        title={!isSaved ? "Download to enable actions" : isSubscribed ? "Unsubscribe" : "Subscribe"}
+        title={isSubscribed ? "Unsubscribe" : "Subscribe"}
       >
         <div className="flex items-center justify-center gap-2">
           <FontAwesomeIcon
