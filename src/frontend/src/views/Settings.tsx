@@ -3,11 +3,11 @@ import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { PageHeader } from "../components/atoms/PageHeader";
 import { SettingItem } from "../components/molecules/SettingItem";
-import { useSettingsForm } from "../hooks/useSettingsForm";
+import { useSettingsController } from "../hooks/controllers/useSettingsController";
 
 export const Settings: FC = () => {
   const { settings, values, isLoading, isSaving, handleSubmit, handleChange, handleReset } =
-    useSettingsForm();
+    useSettingsController();
 
   return (
     <section className="flex-1 bg-background px-4 md:px-8 py-6">

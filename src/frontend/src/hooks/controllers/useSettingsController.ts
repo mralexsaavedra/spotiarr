@@ -8,12 +8,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useUpdateSettingsMutation } from "./mutations/useUpdateSettingsMutation";
-import { useSettingsMetadataQuery } from "./queries/useSettingsMetadataQuery";
-import { useSettingsQuery } from "./queries/useSettingsQuery";
-import { useSupportedFormatsQuery } from "./queries/useSupportedFormatsQuery";
+import { useUpdateSettingsMutation } from "../mutations/useUpdateSettingsMutation";
+import { useSettingsMetadataQuery } from "../queries/useSettingsMetadataQuery";
+import { useSettingsQuery } from "../queries/useSettingsQuery";
+import { useSupportedFormatsQuery } from "../queries/useSupportedFormatsQuery";
 
-export const useSettingsForm = () => {
+export const useSettingsController = () => {
   const { data: settingsData = [], isLoading: settingsLoading } = useSettingsQuery();
   const { data: metadata = {}, isLoading: metadataLoading } = useSettingsMetadataQuery();
   const { data: availableFormats = ["mp3"] } = useSupportedFormatsQuery();
