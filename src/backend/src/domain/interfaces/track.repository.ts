@@ -1,4 +1,4 @@
-import type { ITrack } from "@spotiarr/shared";
+import type { ITrack, TrackStatusEnum } from "@spotiarr/shared";
 
 export interface TrackRepository {
   findAll(where?: Partial<ITrack>): Promise<ITrack[]>;
@@ -16,4 +16,6 @@ export interface TrackRepository {
   delete(id: string): Promise<void>;
 
   deleteAll(ids: string[]): Promise<void>;
+
+  findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]>;
 }

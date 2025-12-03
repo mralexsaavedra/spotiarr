@@ -137,6 +137,12 @@ export class PlaylistService {
       const isTrack = urlType === SpotifyUrlType.Track;
       const isAlbum = urlType === SpotifyUrlType.Album;
 
+      // Optimization: Fetch all existing tracks for this playlist once
+      const existingTracks = await this.trackService.getAllByPlaylist(playlist.id);
+      const existingTrackKeys = new Set(
+        existingTracks.map((t) => `${t.artist}|${t.name}|${t.spotifyUrl || "undefined"}`),
+      );
+
       for (let i = 0; i < (tracks ?? []).length; i++) {
         const track = tracks[i];
 
@@ -154,17 +160,11 @@ export class PlaylistService {
           trackUrl: track.trackUrl,
         };
 
-        const isExist = !!(
-          await this.trackService.getAll({
-            artist: track2Save.artist,
-            name: track2Save.name,
-            spotifyUrl: track2Save.spotifyUrl ?? undefined,
-            playlistId: playlist.id,
-          })
-        ).length;
+        const key = `${track2Save.artist}|${track2Save.name}|${track2Save.spotifyUrl || "undefined"}`;
 
-        if (!isExist) {
+        if (!existingTrackKeys.has(key)) {
           await this.trackService.create({ ...track2Save, playlistId: playlist.id });
+          existingTrackKeys.add(key);
         }
       }
     }

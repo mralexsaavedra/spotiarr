@@ -1,4 +1,4 @@
-import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import { TrackStatusEnum } from "@spotiarr/shared";
 import cron from "node-cron";
 import { container } from "../../container";
 
@@ -41,14 +41,9 @@ export const cleanStuckTracksJob = cron.schedule("* * * * *", async () => {
       return;
     }
 
-    const allTracks = await trackService.getAll();
-    const stuckTracks = allTracks.filter(
-      (track: ITrack) =>
-        (track.status === TrackStatusEnum.Queued ||
-          track.status === TrackStatusEnum.Downloading ||
-          track.status === TrackStatusEnum.Searching) &&
-        track.createdAt &&
-        Date.now() - track.createdAt > safeTimeout * 60 * 1000,
+    const stuckTracks = await trackService.findStuckTracks(
+      [TrackStatusEnum.Queued, TrackStatusEnum.Downloading, TrackStatusEnum.Searching],
+      now - safeTimeout * 60 * 1000,
     );
 
     if (stuckTracks.length > 0) {

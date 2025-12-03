@@ -91,6 +91,17 @@ export class PrismaTrackRepository implements TrackRepository {
     await prisma.track.deleteMany({ where: { id: { in: ids } } });
   }
 
+  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
+    const tracks = await prisma.track.findMany({
+      where: {
+        status: { in: statuses },
+        createdAt: { lt: BigInt(createdBefore) },
+      },
+      include: { playlist: true },
+    });
+    return tracks.map((t) => this.mapToITrack(t));
+  }
+
   private mapToITrack(track: DbTrack): ITrack {
     return {
       id: track.id,

@@ -115,4 +115,8 @@ export class TrackService {
   getFolderName(track: ITrack): Promise<string> {
     return this.trackFileHelper.getFolderName(track);
   }
+
+  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
+    return this.repository.findStuckTracks(statuses, createdBefore);
+  }
 }
