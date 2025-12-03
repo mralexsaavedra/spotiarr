@@ -122,6 +122,7 @@ export const PlaylistPreview: FC = () => {
       }
       tracks={tracks}
       onDownloadTrack={handleDownloadTrack}
+      isDownloading={isButtonLoading}
     />
   );
 };

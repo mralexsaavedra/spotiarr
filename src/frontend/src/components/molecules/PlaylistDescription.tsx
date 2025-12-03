@@ -4,14 +4,16 @@ interface PlaylistDescriptionProps {
   description?: string | null;
   completedCount: number;
   totalCount: number;
+  isDownloading?: boolean;
 }
 
 export const PlaylistDescription: FC<PlaylistDescriptionProps> = ({
   description,
   completedCount,
   totalCount,
+  isDownloading,
 }) => {
-  if (completedCount > 0) {
+  if (completedCount > 0 || (isDownloading && totalCount > 0)) {
     return (
       <div className="mt-4 max-w-md">
         <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
