@@ -1,6 +1,8 @@
 <div align="center">
 
-![SpotiArr](assets/logo.svg)
+<a href="https://github.com/mralexsaavedra/spotiarr">
+  <img src="assets/logo.svg" alt="SpotiArr Logo" width="160" height="160">
+</a>
 
 # SpotiArr
 
