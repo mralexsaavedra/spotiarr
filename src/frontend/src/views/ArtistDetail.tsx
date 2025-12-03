@@ -85,11 +85,7 @@ export const ArtistDetail: FC = () => {
             )}
           </Button>
 
-          {artist?.spotifyUrl && (
-            <SpotifyLinkButton url={artist.spotifyUrl}>
-              <span className="hidden md:inline">Open in Spotify</span>
-            </SpotifyLinkButton>
-          )}
+          {artist?.spotifyUrl && <SpotifyLinkButton url={artist.spotifyUrl} />}
         </div>
 
         {/* Popular Tracks Section */}

@@ -3,7 +3,6 @@ import { Button, ButtonProps } from "./Button";
 
 interface SpotifyLinkButtonProps extends Omit<ButtonProps, "onClick" | "children"> {
   url: string;
-  children?: ReactNode;
 }
 
 export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
@@ -11,7 +10,6 @@ export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
   className = "",
   variant = "secondary",
   size = "md",
-  children,
   ...props
 }) => {
   const handleClick = useCallback((e: MouseEvent<HTMLAnchorElement>) => {
@@ -33,7 +31,7 @@ export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
         icon={["fab", "spotify"]}
         {...props}
       >
-        {children || "Open in Spotify"}
+        <span className="hidden md:inline">Open in Spotify</span>
       </Button>
     </a>
   );

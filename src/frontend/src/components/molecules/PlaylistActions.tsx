@@ -74,11 +74,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </div>
       </Button>
 
-      {spotifyUrl && (
-        <SpotifyLinkButton url={spotifyUrl}>
-          <span className="hidden md:inline">Open in Spotify</span>
-        </SpotifyLinkButton>
-      )}
+      {spotifyUrl && <SpotifyLinkButton url={spotifyUrl} />}
 
       <div className="flex-1" />
 
