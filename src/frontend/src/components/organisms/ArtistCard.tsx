@@ -17,7 +17,7 @@ export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick 
   return (
     <article
       key={id}
-      className="group p-3 rounded-md hover:bg-white/10 transition-colors cursor-pointer flex flex-col gap-3"
+      className="group p-3 rounded-md hover:bg-background-hover transition-colors cursor-pointer flex flex-col gap-3"
       onClick={handleCardClick}
     >
       <div className="w-full aspect-square rounded-full overflow-hidden bg-zinc-800 shadow-lg relative">
