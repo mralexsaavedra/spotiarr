@@ -143,6 +143,8 @@ export class PlaylistService {
         existingTracks.map((t) => `${t.artist}|${t.name}|${t.spotifyUrl || "undefined"}`),
       );
 
+      let hasNewTracks = false;
+
       for (let i = 0; i < (tracks ?? []).length; i++) {
         const track = tracks[i];
 
@@ -158,6 +160,7 @@ export class PlaylistService {
           spotifyUrl: track.previewUrl ?? undefined,
           artists: track.artists,
           trackUrl: track.trackUrl,
+          durationMs: track.durationMs,
         };
 
         const key = `${track2Save.artist}|${track2Save.name}|${track2Save.spotifyUrl || "undefined"}`;
@@ -165,7 +168,12 @@ export class PlaylistService {
         if (!existingTrackKeys.has(key)) {
           await this.trackService.create({ ...track2Save, playlistId: playlist.id });
           existingTrackKeys.add(key);
+          hasNewTracks = true;
         }
+      }
+
+      if (hasNewTracks) {
+        this.eventBus.emit("playlists-updated");
       }
     }
   }
