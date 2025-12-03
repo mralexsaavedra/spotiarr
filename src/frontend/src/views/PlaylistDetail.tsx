@@ -94,7 +94,8 @@ export const PlaylistDetail: FC = () => {
       hasFailed={hasFailed}
       isRetrying={retryFailedTracks.isPending}
       onToggleSubscription={handleToggleSubscription}
-      onDownload={() => {}}
+      onDownloadTrack={(track) => handleRetryTrack(track.id)}
+      onDownload={handleRetryFailed}
     />
   );
 };

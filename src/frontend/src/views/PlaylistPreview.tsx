@@ -7,6 +7,7 @@ import { Playlist } from "../components/organisms/Playlist";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { useDeletePlaylistMutation } from "../hooks/mutations/useDeletePlaylistMutation";
+import { useUpdatePlaylistMutation } from "../hooks/mutations/useUpdatePlaylistMutation";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
 import { usePlaylistsQuery } from "../hooks/queries/usePlaylistsQuery";
 import { useDownloadStatus } from "../hooks/useDownloadStatus";
@@ -24,11 +25,14 @@ export const PlaylistPreview: FC = () => {
   const { data: playlists } = usePlaylistsQuery();
   const deletePlaylist = useDeletePlaylistMutation();
   const createPlaylist = useCreatePlaylistMutation();
+  const updatePlaylist = useUpdatePlaylistMutation();
   const { isPlaylistDownloaded, isPlaylistDownloading, getTrackStatus } = useDownloadStatus();
 
-  const savedPlaylistId = useMemo(() => {
-    return playlists?.find((p) => p.spotifyUrl === spotifyUrl)?.id;
+  const savedPlaylist = useMemo(() => {
+    return playlists?.find((p) => p.spotifyUrl === spotifyUrl);
   }, [playlists, spotifyUrl]);
+
+  const savedPlaylistId = savedPlaylist?.id;
 
   const playlist: PlaylistWithStats | undefined = useMemo(() => {
     if (!previewData || !spotifyUrl) {
@@ -42,7 +46,7 @@ export const PlaylistPreview: FC = () => {
       coverUrl: previewData.coverUrl || undefined,
       type: (previewData.type as PlaylistTypeEnum) || PlaylistTypeEnum.Playlist,
       spotifyUrl: spotifyUrl,
-      subscribed: false,
+      subscribed: savedPlaylist?.subscribed ?? false,
       createdAt: Date.now(),
       stats: {
         completedCount: 0,
@@ -58,7 +62,7 @@ export const PlaylistPreview: FC = () => {
         isCompleted: false,
       },
     };
-  }, [previewData, spotifyUrl]);
+  }, [previewData, spotifyUrl, savedPlaylist?.subscribed]);
 
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
@@ -114,6 +118,33 @@ export const PlaylistPreview: FC = () => {
     [createPlaylist],
   );
 
+  const handleRetryTrack = useCallback(
+    (trackId: string) => {
+      const track = tracks.find((t) => t.id === trackId);
+      if (track?.trackUrl) {
+        createPlaylist.mutate(track.trackUrl);
+      }
+    },
+    [tracks, createPlaylist],
+  );
+
+  const handleRetryFailed = useCallback(() => {
+    tracks.forEach((track) => {
+      if (track.status === TrackStatusEnum.Error && track.trackUrl) {
+        createPlaylist.mutate(track.trackUrl);
+      }
+    });
+  }, [tracks, createPlaylist]);
+
+  const handleToggleSubscription = useCallback(() => {
+    if (savedPlaylistId && playlist) {
+      updatePlaylist.mutate({
+        id: savedPlaylistId,
+        data: { subscribed: !playlist.subscribed },
+      });
+    }
+  }, [savedPlaylistId, playlist, updatePlaylist]);
+
   const handleConfirmDelete = useCallback(() => {
     if (savedPlaylistId) {
       deletePlaylist.mutate(savedPlaylistId);
@@ -123,6 +154,10 @@ export const PlaylistPreview: FC = () => {
 
   const hasDownloadedTracks = useMemo(() => {
     return tracks.some((t) => t.status === TrackStatusEnum.Completed);
+  }, [tracks]);
+
+  const hasFailed = useMemo(() => {
+    return tracks.some((t) => t.status === TrackStatusEnum.Error);
   }, [tracks]);
 
   const isSaved = !!savedPlaylistId || hasDownloadedTracks;
@@ -143,17 +178,17 @@ export const PlaylistPreview: FC = () => {
     <Playlist
       playlist={playlist}
       tracks={tracks}
-      hasFailed={false}
+      hasFailed={hasFailed}
       isRetrying={false}
       isDownloading={isButtonLoading}
       isDownloaded={isDownloaded}
       isSaved={isSaved}
       onDownloadTrack={handleDownloadTrack}
       onDownload={handleDownload}
-      onRetryTrack={() => {}}
+      onRetryTrack={handleRetryTrack}
       onConfirmDelete={handleConfirmDelete}
-      onRetryFailed={() => {}}
-      onToggleSubscription={() => {}}
+      onRetryFailed={handleRetryFailed}
+      onToggleSubscription={handleToggleSubscription}
     />
   );
 };

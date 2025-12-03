@@ -10,12 +10,12 @@ interface PlaylistProps {
   playlist: PlaylistWithStats;
   tracks: Track[];
   isDownloading: boolean;
-  isDownloaded?: boolean;
+  isDownloaded: boolean;
   hasFailed: boolean;
   isRetrying: boolean;
   isSaved?: boolean;
   onRetryTrack: (trackId: string) => void;
-  onDownloadTrack?: (track: Track) => void;
+  onDownloadTrack: (track: Track) => void;
   onConfirmDelete: (() => void) | undefined;
   onRetryFailed: () => void;
   onToggleSubscription: () => void;
