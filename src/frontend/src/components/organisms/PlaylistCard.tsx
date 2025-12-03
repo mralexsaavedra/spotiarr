@@ -21,6 +21,14 @@ export const PlaylistCard: FC<PlaylistCardProps> = memo(
         className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-colors duration-300 cursor-pointer block"
       >
         <div className="relative aspect-square mb-4 rounded-md overflow-hidden shadow-lg bg-background-hover">
+          {playlist.subscribed && (
+            <div
+              className="absolute top-2 right-2 z-10 bg-black/60 rounded-full w-8 h-8 flex items-center justify-center backdrop-blur-sm shadow-md"
+              title="Subscribed"
+            >
+              <FontAwesomeIcon icon={["fas", "bell"]} className="text-green-500 text-sm" />
+            </div>
+          )}
           {playlist.coverUrl ? (
             <img
               src={playlist.coverUrl}
@@ -64,13 +72,6 @@ export const PlaylistCard: FC<PlaylistCardProps> = memo(
               </>
             ) : (
               <span>{totalCount} tracks</span>
-            )}
-
-            {playlist.subscribed && !isDownloading && !hasErrors && !isCompleted && (
-              <>
-                <span>•</span>
-                <span className="text-primary text-xs">Subscribed</span>
-              </>
             )}
           </div>
         </div>
