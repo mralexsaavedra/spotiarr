@@ -9,3 +9,9 @@ body {
   margin: 0;
   @apply bg-background text-text-primary;
 }
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

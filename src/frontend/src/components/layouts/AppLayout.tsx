@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Outlet } from "react-router-dom";
 import { Path } from "../../routes/routes";
-import { useUIStore } from "../../store/useUIStore";
+import { BottomNavigation } from "../organisms/BottomNavigation";
 import { Header } from "../organisms/Header";
 import { Sidebar } from "../organisms/Sidebar";
 
@@ -11,22 +11,17 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: FC<AppLayoutProps> = ({ pathname, version }) => {
-  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
-
   return (
     <div className="flex min-h-screen bg-background text-text-primary">
-      <Sidebar
-        pathname={pathname}
-        version={version}
-        isMobileMenuOpen={isMobileMenuOpen}
-        closeMobileMenu={closeMobileMenu}
-      />
+      <Sidebar pathname={pathname} version={version} />
 
-      <main className="flex-1 flex flex-col bg-background ml-0 md:ml-64">
-        <Header onToggleMobileMenu={toggleMobileMenu} />
+      <main className="flex-1 flex flex-col bg-background ml-0 md:ml-64 pb-20 md:pb-0">
+        <Header />
 
         <Outlet />
       </main>
+
+      <BottomNavigation pathname={pathname} />
     </div>
   );
 };

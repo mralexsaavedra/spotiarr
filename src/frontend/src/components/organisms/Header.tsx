@@ -3,11 +3,7 @@ import { FC } from "react";
 import { Link } from "react-router-dom";
 import { useHeaderController } from "../../hooks/controllers/useHeaderController";
 
-interface HeaderProps {
-  onToggleMobileMenu: () => void;
-}
-
-export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
+export const Header: FC = () => {
   const { url, handleDownload, isPending, isValidUrl, handleChangeUrl, handleKeyUp } =
     useHeaderController();
 
@@ -17,13 +13,6 @@ export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-white/10 px-4 md:px-8 py-3">
       <div className="flex items-center justify-center gap-4">
         <div className="flex items-center gap-3 md:hidden mr-auto">
-          <button
-            onClick={onToggleMobileMenu}
-            className="p-2 rounded-full hover:bg-white/10 transition"
-            aria-label="Open menu"
-          >
-            <FontAwesomeIcon icon="bars" className="text-text-primary text-lg" />
-          </button>
           <Link to="/" className="flex items-center gap-2">
             <img src="/logo.svg" alt="SpotiArr Logo" className="w-7 h-7" />
             <span className="text-lg font-bold text-text-primary">SpotiArr</span>
