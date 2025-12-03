@@ -144,7 +144,9 @@ export const useDownloadStatus = () => {
           totalTracks = item.totalTracks;
         }
 
-        if (!url) return;
+        if (!url) {
+          return;
+        }
 
         const status = playlistStatusMap.get(url);
         let isDownloaded = status === PlaylistStatusEnum.Completed;
@@ -178,7 +180,10 @@ export const useDownloadStatus = () => {
       const statusMap = new Map<string, TrackStatusEnum>();
 
       urls.forEach((url) => {
-        if (!url) return;
+        if (!url) {
+          return;
+        }
+
         const status = trackStatusMap.get(url);
         if (status) {
           statusMap.set(url, status);

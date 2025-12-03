@@ -55,7 +55,10 @@ export const ArtistDetail: FC = () => {
 
   const handleDownload = useCallback(
     (url?: string) => {
-      if (!url) return;
+      if (!url) {
+        return;
+      }
+
       createPlaylistMutation.mutate(url);
     },
     [createPlaylistMutation],

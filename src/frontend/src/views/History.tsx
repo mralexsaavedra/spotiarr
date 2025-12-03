@@ -21,7 +21,10 @@ export const History: FC = () => {
     (event: MouseEvent<HTMLButtonElement>, playlistSpotifyUrl: string | null) => {
       event.preventDefault();
       event.stopPropagation();
-      if (!playlistSpotifyUrl) return;
+
+      if (!playlistSpotifyUrl) {
+        return;
+      }
 
       recreatePlaylist.mutate(playlistSpotifyUrl);
     },

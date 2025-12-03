@@ -29,7 +29,9 @@ export const useSettingsForm = () => {
   );
 
   useEffect(() => {
-    if (settingsLoading || metadataLoading || Object.keys(metadata).length === 0) return;
+    if (settingsLoading || metadataLoading || Object.keys(metadata).length === 0) {
+      return;
+    }
 
     setValues((prev) => {
       // If values are already initialized, don't overwrite them to prevent losing user input

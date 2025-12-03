@@ -34,7 +34,9 @@ router.get("/", (req: Request, res: Response) => {
 });
 
 export function emitSseEvent(event: string, data: unknown = {}): void {
-  if (clients.length === 0) return;
+  if (clients.length === 0) {
+    return;
+  }
 
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   for (const client of clients) {

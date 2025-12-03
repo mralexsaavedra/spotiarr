@@ -172,12 +172,16 @@ export class DownloadTrackUseCase {
   }
 
   private async generateM3uIfNeeded(track: ITrack): Promise<void> {
-    if (!track.playlistId) return;
+    if (!track.playlistId) {
+      return;
+    }
 
     try {
       const playlist = await this.playlistRepository.findOne(track.playlistId);
       // Only generate M3U for actual playlists
-      if (!playlist || !playlist.name || playlist.type !== "playlist") return;
+      if (!playlist || !playlist.name || playlist.type !== "playlist") {
+        return;
+      }
 
       const playlistTracks = await this.trackRepository.findAllByPlaylist(track.playlistId);
       const hasMultipleTracks = playlistTracks.length > 0;

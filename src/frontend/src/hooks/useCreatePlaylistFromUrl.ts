@@ -13,7 +13,9 @@ export const useCreatePlaylistFromUrl = () => {
   }, []);
 
   const handleDownload = useCallback(() => {
-    if (!normalizedUrl) return;
+    if (!normalizedUrl) {
+      return;
+    }
 
     createPlaylist.mutate(normalizedUrl);
     setUrl("");

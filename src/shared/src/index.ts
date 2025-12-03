@@ -78,6 +78,7 @@ export interface IPlaylist {
   createdAt?: number;
   coverUrl?: string;
   artistImageUrl?: string;
+  description?: string;
   tracks?: ITrack[];
 }
 
