@@ -6,11 +6,12 @@ Thank you for considering contributing to SpotiArr! This document explains how t
 
 > Already have Node, pnpm, Redis, FFmpeg, and yt-dlp installed? Follow this checklist and you are ready to hack:
 
-1. `git clone https://github.com/YOUR_USERNAME/spotiarr.git && cd spotiarr`
-2. `pnpm install`
-3. `cp .env.example .env` → add Spotify credentials + set `REDIS_HOST=localhost`
-4. Ensure Redis is running locally (service, Docker, or Brew)
-5. `pnpm dev` (runs backend + frontend together)
+1. `git clone https://github.com/mralexsaavedra/spotiarr.git && cd spotiarr`
+2. `corepack enable`
+3. `pnpm install`
+4. `cp .env.example .env` → add Spotify credentials + set `REDIS_HOST=localhost`
+5. Ensure Redis is running locally (service, Docker, or Brew)
+6. `pnpm dev` (runs backend + frontend together)
 
 Need more detail? Keep reading 👇
 
@@ -21,7 +22,7 @@ Need more detail? Keep reading 👇
 **Core tools**
 
 - Node.js v24 LTS or higher (`nvm use` recommended)
-- pnpm v9.0.0 or higher (`corepack enable` or `npm install -g pnpm`)
+- pnpm v10.0.0 or higher (`corepack enable` recommended)
 - Python 3.11 or 3.12 (native addons such as `better-sqlite3`)
 
 **Media + queue services**
@@ -44,6 +45,7 @@ cd spotiarr
 2. **Install deps**
 
 ```bash
+corepack enable
 pnpm install
 ```
 
@@ -93,11 +95,11 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 
 ### Running the Development Environment
 
-| Command        | What it does                               | Ports |
-| -------------- | ------------------------------------------- | ----- |
-| `pnpm dev`     | Backend + frontend concurrently             | 3000 / 5173 |
-| `pnpm start:be`| Backend only (API + SSE)                    | 3000 |
-| `pnpm start:fe`| Frontend only (Vite dev server with HMR)    | 5173 |
+| Command         | What it does                             | Ports       |
+| --------------- | ---------------------------------------- | ----------- |
+| `pnpm dev`      | Backend + frontend concurrently          | 3000 / 5173 |
+| `pnpm start:be` | Backend only (API + SSE)                 | 3000        |
+| `pnpm start:fe` | Frontend only (Vite dev server with HMR) | 5173        |
 
 ## Project Structure
 
@@ -180,14 +182,14 @@ spotiarr/
 
 ## Pull Request Checklist
 
-| ✅ Verify before submitting | 📝 Include in PR description |
-| --------------------------- | ---------------------------- |
-| Code matches style guides   | Summary of changes           |
-| `pnpm lint` passes          | Motivation / context         |
-| `pnpm format` applied       | Verification steps (commands) |
-| Pre-commit hooks succeed    | Screenshots/videos for UI work |
-| No stray `console.log`      | Breaking changes (if any)    |
-| Docs/tests updated when needed | Related issue numbers     |
+| ✅ Verify before submitting    | 📝 Include in PR description   |
+| ------------------------------ | ------------------------------ |
+| Code matches style guides      | Summary of changes             |
+| `pnpm lint` passes             | Motivation / context           |
+| `pnpm format` applied          | Verification steps (commands)  |
+| Pre-commit hooks succeed       | Screenshots/videos for UI work |
+| No stray `console.log`         | Breaking changes (if any)      |
+| Docs/tests updated when needed | Related issue numbers          |
 
 **Review process**
 
