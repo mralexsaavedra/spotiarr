@@ -1,34 +1,15 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ChangeEvent, FC, KeyboardEvent, useCallback } from "react";
+import { FC } from "react";
 import { Link } from "react-router-dom";
-import { useCreatePlaylistFromUrl } from "../../hooks/useCreatePlaylistFromUrl";
+import { useHeaderController } from "../../hooks/controllers/useHeaderController";
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
 }
 
 export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
-  const { url, setUrl, handleDownload, isPending, isValidUrl } = useCreatePlaylistFromUrl();
-
-  const handleToggleMobileMenu = useCallback(() => {
-    onToggleMobileMenu();
-  }, [onToggleMobileMenu]);
-
-  const handleChangeUrl = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setUrl(event.target.value);
-    },
-    [setUrl],
-  );
-
-  const handleKeyUp = useCallback(
-    (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter" && isValidUrl) {
-        handleDownload();
-      }
-    },
-    [handleDownload, isValidUrl],
-  );
+  const { url, handleDownload, isPending, isValidUrl, handleChangeUrl, handleKeyUp } =
+    useHeaderController();
 
   const isDownloadDisabled = !isValidUrl || isPending;
 
@@ -37,7 +18,7 @@ export const Header: FC<HeaderProps> = ({ onToggleMobileMenu }) => {
       <div className="flex items-center justify-center gap-4">
         <div className="flex items-center gap-3 md:hidden mr-auto">
           <button
-            onClick={handleToggleMobileMenu}
+            onClick={onToggleMobileMenu}
             className="p-2 rounded-full hover:bg-white/10 transition"
             aria-label="Open menu"
           >
