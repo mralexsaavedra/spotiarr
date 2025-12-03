@@ -1,3 +1,4 @@
+import { ApiRoutes } from "@spotiarr/shared";
 import { Router, type Router as ExpressRouter } from "express";
 import artistRoutes from "./artist.routes";
 import authRoutes from "./auth.routes";
@@ -12,16 +13,16 @@ import trackRoutes from "./track.routes";
 const router: ExpressRouter = Router();
 
 // Health check (no auth required)
-router.use("/health", healthRoutes);
+router.use(ApiRoutes.HEALTH, healthRoutes);
 
 // API Routes
-router.use("/playlist", playlistRoutes);
-router.use("/track", trackRoutes);
-router.use("/history", historyRoutes);
-router.use("/settings", settingsRoutes);
-router.use("/events", eventsRoutes);
-router.use("/feed", feedRoutes);
-router.use("/artist", artistRoutes);
-router.use("/auth", authRoutes);
+router.use(ApiRoutes.PLAYLIST, playlistRoutes);
+router.use(ApiRoutes.TRACK, trackRoutes);
+router.use(ApiRoutes.HISTORY, historyRoutes);
+router.use(ApiRoutes.SETTINGS, settingsRoutes);
+router.use(ApiRoutes.EVENTS, eventsRoutes);
+router.use(ApiRoutes.FEED, feedRoutes);
+router.use(ApiRoutes.ARTIST, artistRoutes);
+router.use(ApiRoutes.AUTH, authRoutes);
 
 export default router;

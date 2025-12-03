@@ -1,3 +1,4 @@
+import { ApiRoutes } from "@spotiarr/shared";
 import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
@@ -25,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API Routes
-app.use("/api", routes);
+app.use(ApiRoutes.BASE, routes);
 
 // Serve static files (frontend)
 const frontendPath = path.resolve(__dirname, "../../frontend/dist");

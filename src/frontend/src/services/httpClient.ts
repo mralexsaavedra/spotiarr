@@ -1,6 +1,4 @@
-import { ApiErrorCode, ApiErrorShape } from "@spotiarr/shared";
-
-const API_BASE = "/api";
+import { ApiErrorCode, ApiErrorShape, ApiRoutes } from "@spotiarr/shared";
 
 export class HttpClient {
   private async handleResponse<T>(response: Response): Promise<T> {
@@ -60,8 +58,7 @@ export class HttpClient {
   }
 
   async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = endpoint.startsWith(API_BASE) ? endpoint : `${API_BASE}${endpoint}`;
-    const response = await fetch(url, {
+    const response = await fetch(`${ApiRoutes.BASE}${endpoint}`, {
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,

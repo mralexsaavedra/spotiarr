@@ -11,7 +11,7 @@ export const useServerEvents = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const eventSource = new EventSource(ApiRoutes.EVENTS);
+    const eventSource = new EventSource(`${ApiRoutes.BASE}${ApiRoutes.EVENTS}`);
 
     eventSource.addEventListener("playlists-updated", () => {
       queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
