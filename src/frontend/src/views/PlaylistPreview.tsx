@@ -24,7 +24,7 @@ export const PlaylistPreview: FC = () => {
   const spotifyUrl = useMemo(() => searchParams.get("url"), [searchParams]);
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
 
-  const isDownloaded = isPlaylistDownloaded(spotifyUrl);
+  const isDownloaded = isPlaylistDownloaded(spotifyUrl, previewData?.tracks?.length);
   const isDownloading = isPlaylistDownloading(spotifyUrl);
 
   const tracks: Track[] = useMemo(() => {
@@ -82,6 +82,11 @@ export const PlaylistPreview: FC = () => {
     return <PreviewError error={error} onGoBack={handleGoBack} />;
   }
 
+  const isButtonLoading =
+    createPlaylist.isPending ||
+    isDownloading ||
+    (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
+
   return (
     <PlaylistView
       title={previewData?.name || "Preview"}
@@ -99,15 +104,15 @@ export const PlaylistPreview: FC = () => {
                 : "bg-green-500 hover:bg-green-600 hover:scale-105"
             }`}
             onClick={handleDownload}
-            loading={createPlaylist.isPending || isDownloading}
-            disabled={isDownloaded || isDownloading || createPlaylist.isPending}
+            loading={isButtonLoading}
+            disabled={isDownloaded || isButtonLoading}
             title={
-              isDownloaded ? "Downloaded" : isDownloading ? "Downloading..." : "Download Playlist"
+              isDownloaded ? "Downloaded" : isButtonLoading ? "Downloading..." : "Download Playlist"
             }
           >
             {isDownloaded ? (
               <FontAwesomeIcon icon="check" className="text-xl" />
-            ) : !(isDownloading || createPlaylist.isPending) ? (
+            ) : !isButtonLoading ? (
               <FontAwesomeIcon icon="download" className="text-xl" />
             ) : null}
           </Button>

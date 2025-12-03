@@ -12,33 +12,33 @@ interface PlaylistMetadataProps {
 
 interface MetadataRendererProps {
   artists: { name: string; url?: string }[];
-  onStopPropagation: (e: MouseEvent) => void;
+  onClick: (e: MouseEvent) => void;
   firstTrack?: Track;
 }
 
-const AlbumMetadata: FC<MetadataRendererProps> = ({ artists, onStopPropagation }) => (
+const AlbumMetadata: FC<MetadataRendererProps> = ({ artists, onClick }) => (
   <ArtistLinks
     artists={artists}
     className="font-bold text-white"
     linkClassName="hover:underline"
-    onLinkClick={onStopPropagation}
+    onLinkClick={onClick}
   />
 );
 
-const TrackMetadata: FC<MetadataRendererProps> = ({ artists, firstTrack, onStopPropagation }) => (
+const TrackMetadata: FC<MetadataRendererProps> = ({ artists, firstTrack, onClick }) => (
   <>
     <ArtistLinks
       artists={artists}
       className="font-bold text-white"
       linkClassName="hover:underline"
-      onLinkClick={onStopPropagation}
+      onLinkClick={onClick}
     />
     <span className="text-text-primary mx-1">•</span>
     {firstTrack?.albumUrl ? (
       <Link
         to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}
         className="font-medium text-white hover:underline transition-colors"
-        onClick={onStopPropagation}
+        onClick={onClick}
       >
         {firstTrack?.album || "Unknown Album"}
       </Link>
@@ -78,12 +78,10 @@ export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks }) =>
   }, []);
 
   if (artists.length === 0) {
-    return <DefaultMetadata artists={[]} onStopPropagation={handleStopPropagation} />;
+    return <DefaultMetadata artists={[]} onClick={handleStopPropagation} />;
   }
 
   const Renderer = METADATA_RENDERERS[typeLower] || DefaultMetadata;
 
-  return (
-    <Renderer artists={artists} firstTrack={firstTrack} onStopPropagation={handleStopPropagation} />
-  );
+  return <Renderer artists={artists} firstTrack={firstTrack} onClick={handleStopPropagation} />;
 };
