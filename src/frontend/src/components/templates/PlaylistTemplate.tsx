@@ -1,4 +1,4 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, ReactNode, useMemo } from "react";
 import { Track } from "../../types/track";
 import { formatPlaylistTitle } from "../../utils/playlist";
@@ -8,9 +8,9 @@ import { PlaylistHeader } from "../molecules/PlaylistHeader";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
 import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
 
-interface PlaylistViewProps {
+interface PlaylistTemplateProps {
   title: string;
-  type: string;
+  type: PlaylistTypeEnum;
   coverUrl: string | null;
   description?: string | null;
   actions: ReactNode;
@@ -20,7 +20,7 @@ interface PlaylistViewProps {
   isDownloading?: boolean;
 }
 
-export const PlaylistView: FC<PlaylistViewProps> = ({
+export const PlaylistTemplate: FC<PlaylistTemplateProps> = ({
   title: rawTitle,
   type,
   coverUrl,

@@ -1,31 +1,56 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "../components/atoms/Button";
-import { SpotifyLinkButton } from "../components/atoms/SpotifyLinkButton";
 import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
 import { PreviewError } from "../components/molecules/PreviewError";
+import { Playlist } from "../components/organisms/Playlist";
 import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
-import { PlaylistView } from "../components/templates/PlaylistView";
 import { useCreatePlaylistMutation } from "../hooks/mutations/useCreatePlaylistMutation";
 import { usePlaylistPreviewQuery } from "../hooks/queries/usePlaylistPreviewQuery";
 import { useDownloadStatus } from "../hooks/useDownloadStatus";
 import { Path } from "../routes/routes";
+import { PlaylistWithStats } from "../types/playlist";
 import { Track } from "../types/track";
 
 export const PlaylistPreview: FC = () => {
   const [searchParams] = useSearchParams();
+  const spotifyUrl = searchParams.get("url");
   const navigate = useNavigate();
+
+  const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
 
   const createPlaylist = useCreatePlaylistMutation();
   const { isPlaylistDownloaded, isPlaylistDownloading, getTrackStatus } = useDownloadStatus();
 
-  const spotifyUrl = useMemo(() => searchParams.get("url"), [searchParams]);
-  const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
+  const playlist: PlaylistWithStats | undefined = useMemo(() => {
+    if (!previewData || !spotifyUrl) {
+      return undefined;
+    }
 
-  const isDownloaded = isPlaylistDownloaded(spotifyUrl, previewData?.tracks?.length);
-  const isDownloading = isPlaylistDownloading(spotifyUrl);
+    return {
+      id: "preview",
+      name: previewData.name,
+      description: previewData.description || undefined,
+      coverUrl: previewData.coverUrl || undefined,
+      type: (previewData.type as PlaylistTypeEnum) || PlaylistTypeEnum.Playlist,
+      spotifyUrl: spotifyUrl,
+      subscribed: false,
+      createdAt: Date.now(),
+      stats: {
+        completedCount: 0,
+        downloadingCount: 0,
+        searchingCount: 0,
+        queuedCount: 0,
+        activeCount: 0,
+        errorCount: 0,
+        totalCount: previewData.tracks.length,
+        progress: 0,
+        isDownloading: false,
+        hasErrors: false,
+        isCompleted: false,
+      },
+    };
+  }, [previewData, spotifyUrl]);
 
   const tracks: Track[] = useMemo(() => {
     if (!previewData?.tracks) return [];
@@ -43,16 +68,31 @@ export const PlaylistPreview: FC = () => {
         status: status || TrackStatusEnum.New,
         trackUrl: t.trackUrl,
         albumUrl: t.albumUrl,
+        playlistId: "preview",
       };
     });
   }, [previewData, getTrackStatus]);
+
+  const isDownloaded = isPlaylistDownloaded(spotifyUrl, tracks.length);
+  const isDownloading = isPlaylistDownloading(spotifyUrl);
+
+  const isButtonLoading =
+    createPlaylist.isPending ||
+    isDownloading ||
+    (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
+
+  const handleGoHome = useCallback(() => {
+    navigate(Path.HOME);
+  }, [navigate]);
 
   const handleGoBack = useCallback(() => {
     navigate(Path.RELEASES);
   }, [navigate]);
 
   const handleDownload = useCallback(() => {
-    if (!spotifyUrl) return;
+    if (!spotifyUrl) {
+      return;
+    }
 
     createPlaylist.mutate(spotifyUrl);
   }, [spotifyUrl, createPlaylist]);
@@ -66,14 +106,6 @@ export const PlaylistPreview: FC = () => {
     [createPlaylist],
   );
 
-  const handleGoHome = useCallback(() => {
-    navigate(Path.HOME);
-  }, [navigate]);
-
-  if (!spotifyUrl) {
-    return <PlaylistNotFound onGoHome={handleGoHome} />;
-  }
-
   if (isLoading) {
     return <PlaylistSkeleton />;
   }
@@ -82,47 +114,24 @@ export const PlaylistPreview: FC = () => {
     return <PreviewError error={error} onGoBack={handleGoBack} />;
   }
 
-  const isButtonLoading =
-    createPlaylist.isPending ||
-    isDownloading ||
-    (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
+  if (!playlist) {
+    return <PlaylistNotFound onGoHome={handleGoHome} />;
+  }
 
   return (
-    <PlaylistView
-      title={previewData?.name || "Preview"}
-      type={previewData?.type || "preview"}
-      coverUrl={previewData?.coverUrl || null}
-      description={previewData?.description}
-      actions={
-        <div className="flex items-center gap-4">
-          <Button
-            variant="primary"
-            size="lg"
-            className={`!w-14 !h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
-              isDownloaded
-                ? "bg-green-500 hover:bg-green-600 cursor-default"
-                : "bg-green-500 hover:bg-green-600 hover:scale-105"
-            }`}
-            onClick={handleDownload}
-            loading={isButtonLoading}
-            disabled={isDownloaded || isButtonLoading}
-            title={
-              isDownloaded ? "Downloaded" : isButtonLoading ? "Downloading..." : "Download Playlist"
-            }
-          >
-            {isDownloaded ? (
-              <FontAwesomeIcon icon="check" className="text-xl" />
-            ) : !isButtonLoading ? (
-              <FontAwesomeIcon icon="download" className="text-xl" />
-            ) : null}
-          </Button>
-
-          <SpotifyLinkButton url={spotifyUrl} />
-        </div>
-      }
+    <Playlist
+      playlist={playlist}
       tracks={tracks}
-      onDownloadTrack={handleDownloadTrack}
+      hasFailed={false}
+      isRetrying={false}
       isDownloading={isButtonLoading}
+      isDownloaded={isDownloaded}
+      onDownloadTrack={handleDownloadTrack}
+      onDownload={handleDownload}
+      onRetryTrack={() => {}}
+      onConfirmDelete={() => {}}
+      onRetryFailed={() => {}}
+      onToggleSubscription={() => {}}
     />
   );
 };
