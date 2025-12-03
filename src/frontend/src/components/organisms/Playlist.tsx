@@ -1,10 +1,15 @@
-import { PlaylistTypeEnum } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, useCallback, useMemo, useState } from "react";
 import { PlaylistWithStats } from "../../types/playlist";
 import { Track } from "../../types/track";
+import { formatPlaylistTitle } from "../../utils/playlist";
 import { ConfirmModal } from "../molecules/ConfirmModal";
+import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistActions } from "../molecules/PlaylistActions";
-import { PlaylistTemplate } from "../templates/PlaylistTemplate";
+import { PlaylistDescription } from "../molecules/PlaylistDescription";
+import { PlaylistHeader } from "../molecules/PlaylistHeader";
+import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
+import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
 
 interface PlaylistProps {
   playlist: PlaylistWithStats;
@@ -60,50 +65,75 @@ export const Playlist: FC<PlaylistProps> = ({
     onRetryFailed?.();
   }, [hasFailed, onRetryFailed]);
 
-  const actions = useMemo(
-    () => (
-      <PlaylistActions
-        isSubscribed={!!playlist?.subscribed}
-        hasFailed={hasFailed}
-        isRetrying={isRetrying}
-        isDownloading={isDownloading}
-        isDownloaded={isDownloaded ?? false}
-        isSaved={isSaved}
-        onToggleSubscription={onToggleSubscription}
-        onRetryFailed={handleRetryFailed}
-        onDelete={handleDelete}
-        onDownload={onDownload}
-        spotifyUrl={playlist?.spotifyUrl || ""}
-      />
-    ),
-    [
-      playlist?.subscribed,
-      playlist?.spotifyUrl,
-      hasFailed,
-      isRetrying,
-      isDownloading,
-      isDownloaded,
-      isSaved,
-      onToggleSubscription,
-      handleRetryFailed,
-      handleDelete,
-      onDownload,
-    ],
+  const totalCount = tracks.length;
+  const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
+
+  const displayTitle = useMemo(
+    () =>
+      formatPlaylistTitle(
+        playlist.name || "Unnamed Playlist",
+        playlist.type || PlaylistTypeEnum.Playlist,
+        tracks,
+      ),
+    [playlist.name, playlist.type, tracks],
   );
 
   return (
     <>
-      <PlaylistTemplate
-        title={playlist.name || "Unnamed Playlist"}
-        type={playlist.type || PlaylistTypeEnum.Playlist}
-        coverUrl={playlist.coverUrl || null}
-        description={playlist.description}
-        isDownloading={isDownloading}
-        actions={actions}
-        tracks={tracks}
-        onRetryTrack={onRetryTrack}
-        onDownloadTrack={onDownloadTrack}
-      />
+      <div className="flex-1 bg-background text-text-primary">
+        <PlaylistHeader
+          title={displayTitle}
+          type={playlist.type || PlaylistTypeEnum.Playlist}
+          coverUrl={playlist.coverUrl || null}
+          description={
+            <PlaylistDescription
+              description={playlist.description}
+              completedCount={completedCount}
+              totalCount={totalCount}
+              isDownloading={isDownloading}
+            />
+          }
+          metadata={
+            <PlaylistMetadata type={playlist.type || PlaylistTypeEnum.Playlist} tracks={tracks} />
+          }
+          totalCount={totalCount}
+        />
+
+        {/* Action Bar */}
+        <div className="px-6 md:px-8 py-6 bg-gradient-to-b from-black/20 to-background">
+          <PlaylistActions
+            isSubscribed={!!playlist?.subscribed}
+            hasFailed={hasFailed}
+            isRetrying={isRetrying}
+            isDownloading={isDownloading}
+            isDownloaded={isDownloaded ?? false}
+            isSaved={isSaved}
+            onToggleSubscription={onToggleSubscription}
+            onRetryFailed={handleRetryFailed}
+            onDelete={handleDelete}
+            onDownload={onDownload}
+            spotifyUrl={playlist?.spotifyUrl || ""}
+          />
+        </div>
+
+        {/* Content */}
+        <div className="px-6 md:px-8 pb-8">
+          {tracks.length === 0 ? (
+            <EmptyState
+              icon="music"
+              title="No tracks in this playlist yet"
+              description="Tracks you download or sync will appear here."
+              className="py-12"
+            />
+          ) : (
+            <PlaylistTracksList
+              tracks={tracks}
+              onRetryTrack={onRetryTrack}
+              onDownloadTrack={onDownloadTrack}
+            />
+          )}
+        </div>
+      </div>
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}
