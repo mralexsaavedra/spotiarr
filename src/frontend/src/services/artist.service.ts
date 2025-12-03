@@ -1,9 +1,9 @@
-import { ArtistDetail, ArtistRelease } from "@spotiarr/shared";
+import { ApiRoutes, ArtistDetail, ArtistRelease } from "@spotiarr/shared";
 import { httpClient } from "./httpClient";
 
 export const artistService = {
   getReleases: async (): Promise<ArtistRelease[]> => {
-    return httpClient.get<ArtistRelease[]>("/feed/releases");
+    return httpClient.get<ArtistRelease[]>(`${ApiRoutes.FEED}/releases`);
   },
 
   getFollowedArtists: async (): Promise<
@@ -21,11 +21,11 @@ export const artistService = {
         image: string | null;
         spotifyUrl: string | null;
       }[]
-    >("/feed/artists");
+    >(`${ApiRoutes.FEED}/artists`);
   },
 
   getArtistDetail: async (artistId: string, limit: number = 12): Promise<ArtistDetail> => {
-    return httpClient.get<ArtistDetail>(`/artist/${artistId}?limit=${limit}`);
+    return httpClient.get<ArtistDetail>(`${ApiRoutes.ARTIST}/${artistId}?limit=${limit}`);
   },
 
   getArtistAlbums: async (
@@ -34,7 +34,7 @@ export const artistService = {
     offset: number = 0,
   ): Promise<ArtistRelease[]> => {
     return httpClient.get<ArtistRelease[]>(
-      `/artist/${artistId}/albums?limit=${limit}&offset=${offset}`,
+      `${ApiRoutes.ARTIST}/${artistId}/albums?limit=${limit}&offset=${offset}`,
     );
   },
 };

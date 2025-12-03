@@ -1,3 +1,4 @@
+import { ApiRoutes } from "@spotiarr/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import {
@@ -10,7 +11,7 @@ export const useServerEvents = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const eventSource = new EventSource("/api/events");
+    const eventSource = new EventSource(ApiRoutes.EVENTS);
 
     eventSource.addEventListener("playlists-updated", () => {
       queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
