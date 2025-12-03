@@ -46,13 +46,22 @@ export const usePlaylistController = ({
   }, [spotifyUrl, createPlaylist]);
 
   const handleToggleSubscription = useCallback(() => {
-    if (!playlist || !id) return;
-
-    updatePlaylist.mutate({
-      id,
-      data: { subscribed: !playlist.subscribed },
-    });
-  }, [playlist, id, updatePlaylist]);
+    if (id && playlist) {
+      updatePlaylist.mutate({
+        id,
+        data: { subscribed: !playlist.subscribed },
+      });
+    } else if (spotifyUrl) {
+      createPlaylist.mutate(spotifyUrl, {
+        onSuccess: (newPlaylist) => {
+          updatePlaylist.mutate({
+            id: newPlaylist.id,
+            data: { subscribed: true },
+          });
+        },
+      });
+    }
+  }, [playlist, id, spotifyUrl, updatePlaylist, createPlaylist]);
 
   const handleDelete = useCallback(() => {
     if (!id) return;
