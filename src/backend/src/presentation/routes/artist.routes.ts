@@ -1,9 +1,9 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { SpotifyApiService } from "../../infrastructure/external/spotify-api.service";
+import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();
-const spotifyApiService = SpotifyApiService.getInstance();
+const { spotifyApiService } = container;
 
 // GET /api/artist/:id - Artist detail (metadata + top tracks)
 router.get(

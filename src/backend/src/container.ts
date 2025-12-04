@@ -11,7 +11,7 @@ import { SpotifyService } from "./infrastructure/external/spotify.service";
 import { YoutubeService } from "./infrastructure/external/youtube.service";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
 import { SseEventBus } from "./infrastructure/messaging/sse-event-bus";
-import { FileSystemFileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
+import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
 
 // Repositories
@@ -23,14 +23,14 @@ const settingsRepository = new PrismaSettingsRepository();
 // Services (Base)
 const settingsService = new SettingsService(settingsRepository);
 const utilsService = new UtilsService();
-const m3uService = new FileSystemFileSystemM3uService(settingsService);
-const youtubeService = new YoutubeService();
+const m3uService = new FileSystemM3uService(settingsService);
+const youtubeService = new YoutubeService(settingsService);
 const trackFileHelper = new FileSystemTrackPathService(settingsService, utilsService);
 const queueService = new BullMqTrackQueueService();
 const eventBus = new SseEventBus();
 
 // Spotify
-const spotifyApiService = SpotifyApiService.getInstance();
+const spotifyApiService = SpotifyApiService.getInstance(settingsService);
 const spotifyService = new SpotifyService(spotifyApiService);
 
 // Domain Services (with DI)
@@ -61,6 +61,7 @@ export const container = {
   playlistService,
   trackService,
   spotifyService,
+  spotifyApiService,
   settingsService,
   queueService,
   eventBus,

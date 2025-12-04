@@ -6,7 +6,7 @@ import { TrackRepository } from "../../domain/repositories/track.repository";
 import { TrackQueueService } from "../../domain/services/track-queue.service";
 import { SpotifyService } from "../../infrastructure/external/spotify.service";
 import { YoutubeService } from "../../infrastructure/external/youtube.service";
-import { FileSystemFileSystemM3uService } from "../../infrastructure/services/file-system-m3u.service";
+import { FileSystemM3uService } from "../../infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "../../infrastructure/services/file-system-track-path.service";
 import { CreateTrackUseCase } from "../use-cases/tracks/create-track.use-case";
 import { DeleteTrackUseCase } from "../use-cases/tracks/delete-track.use-case";
@@ -23,7 +23,7 @@ export interface TrackServiceDependencies {
   queueService: TrackQueueService;
   trackFileHelper: FileSystemTrackPathService;
   youtubeService: YoutubeService;
-  m3uService: FileSystemFileSystemM3uService;
+  m3uService: FileSystemM3uService;
   utilsService: UtilsService;
   settingsService: SettingsService;
   playlistRepository: PlaylistRepository;

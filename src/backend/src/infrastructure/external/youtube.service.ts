@@ -26,9 +26,7 @@ interface CoverTags extends NodeID3.Tags {
 
 export class YoutubeService {
   private readonly ytDlpPath: string;
-  private readonly settingsService: SettingsService;
-
-  constructor() {
+  constructor(private readonly settingsService: SettingsService) {
     // Auto-detect yt-dlp path from system PATH
     try {
       const systemPath = execSync("which yt-dlp", {
@@ -52,7 +50,6 @@ export class YoutubeService {
       console.warn("yt-dlp not found in PATH, will try default 'yt-dlp' command", e);
       this.ytDlpPath = "yt-dlp";
     }
-    this.settingsService = new SettingsService();
   }
 
   async findOnYoutubeOne(artist: string, name: string): Promise<string> {

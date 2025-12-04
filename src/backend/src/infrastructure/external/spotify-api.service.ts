@@ -91,16 +91,15 @@ export class SpotifyApiService {
   private static instance: SpotifyApiService | null = null;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
-  private readonly settingsService: SettingsService;
   private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private constructor(private readonly settingsService: SettingsService) {}
 
-  private constructor() {
-    this.settingsService = new SettingsService();
-  }
-
-  static getInstance(): SpotifyApiService {
+  static getInstance(settingsService?: SettingsService): SpotifyApiService {
     if (!SpotifyApiService.instance) {
-      SpotifyApiService.instance = new SpotifyApiService();
+      if (!settingsService) {
+        throw new Error("SettingsService must be provided when initializing SpotifyApiService");
+      }
+      SpotifyApiService.instance = new SpotifyApiService(settingsService);
     }
     return SpotifyApiService.instance;
   }

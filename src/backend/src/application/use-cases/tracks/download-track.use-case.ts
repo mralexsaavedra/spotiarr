@@ -7,7 +7,7 @@ import { PlaylistRepository } from "../../../domain/repositories/playlist.reposi
 import { TrackRepository } from "../../../domain/repositories/track.repository";
 import { SpotifyService } from "../../../infrastructure/external/spotify.service";
 import { YoutubeService } from "../../../infrastructure/external/youtube.service";
-import { FileSystemFileSystemM3uService } from "../../../infrastructure/services/file-system-m3u.service";
+import { FileSystemM3uService } from "../../../infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "../../../infrastructure/services/file-system-track-path.service";
 import { UtilsService } from "../../services/utils.service";
 
@@ -15,7 +15,7 @@ export class DownloadTrackUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
     private readonly youtubeService: YoutubeService,
-    private readonly m3uService: FileSystemFileSystemM3uService,
+    private readonly m3uService: FileSystemM3uService,
     private readonly utilsService: UtilsService,
     private readonly trackFileHelper: FileSystemTrackPathService,
     private readonly playlistRepository: PlaylistRepository,
