@@ -46,11 +46,15 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 1. **Get Spotify API credentials** (free):
    - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create an app → note your `Client ID` and `Client Secret`
-   - Set redirect URI: `http://localhost:3000/api/auth/spotify/callback`
+   - **Set redirect URI based on your setup:**
+     - **Local development:** `http://127.0.0.1:5173/api/auth/spotify/callback`
+     - **Production (Docker):** `https://YOUR_SERVER_IP:3000/api/auth/spotify/callback`
+       - Replace `YOUR_SERVER_IP` with your actual server IP
+       - ⚠️ **Must use HTTPS** for non-localhost IPs (certificates auto-generated in Docker)
 
 2. **Run with Docker Compose** (recommended):
 
-   Includes Redis + health checks + persistent storage.
+   Includes Redis + health checks + persistent storage + automatic HTTPS.
 
 ```bash
 # 1. Clone repo
@@ -58,13 +62,18 @@ git clone https://github.com/mralexsaavedra/spotiarr.git && cd spotiarr
 
 # 2. Configure
 cp .env.example .env
-# Edit .env → add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET
+# Edit .env → add:
+#   SPOTIFY_CLIENT_ID=your_client_id
+#   SPOTIFY_CLIENT_SECRET=your_client_secret
+#   PUBLIC_HOST=your_server_ip
 
 # 3. Start
 docker compose up -d
 ```
 
-3. **Open** → http://localhost:3000 (or your configured `BASE_URL`) 🎉
+3. **Open** → `https://YOUR_SERVER_IP:3000` 🎉
+   - Accept the self-signed certificate warning (first time only)
+   - Login with Spotify to authorize the app
 
 ## 📦 Installation
 
@@ -98,15 +107,22 @@ pnpm dev
 
 ### Environment Variables
 
-| Variable                | Required | Default                                   | Description                                                 |
-| ----------------------- | -------- | ----------------------------------------- | ----------------------------------------------------------- |
-| `SPOTIFY_CLIENT_ID`     | ✅       | -                                         | Spotify app Client ID                                       |
-| `SPOTIFY_CLIENT_SECRET` | ✅       | -                                         | Spotify app Client Secret                                   |
-| `BASE_URL`              | ❌       | `http://127.0.0.1:3000`                   | Public URL of the app (e.g. `https://my-domain.com`)        |
-| `SPOTIFY_REDIRECT_URI`  | ❌       | `BASE_URL` + `/api/auth/spotify/callback` | Override OAuth callback if needed                           |
-| `REDIS_HOST`            | ❌       | `localhost`                               | Redis hostname (`redis` for Docker)                         |
-| `REDIS_PORT`            | ❌       | `6379`                                    | Redis port                                                  |
-| `YT_COOKIES`            | ❌       | -                                         | YouTube cookies for yt-dlp ([how to get](#youtube-cookies)) |
+| Variable                | Required | Default        | Description                                                                        |
+| ----------------------- | -------- | -------------- | ---------------------------------------------------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | ✅       | -              | Spotify app Client ID                                                              |
+| `SPOTIFY_CLIENT_SECRET` | ✅       | -              | Spotify app Client Secret                                                          |
+| `PUBLIC_HOST`           | ❌       | `localhost`    | Public hostname or IP (e.g., `X.X.X.X` or `spotiarr.yourdomain.com`)               |
+| `SPOTIFY_REDIRECT_URI`  | ❌       | Auto-generated | Override OAuth callback if needed (auto-built from `PUBLIC_HOST`)                  |
+| `REDIS_HOST`            | ❌       | `localhost`    | Redis hostname (`redis` for Docker)                                                |
+| `REDIS_PORT`            | ❌       | `6379`         | Redis port                                                                         |
+| `YT_COOKIES`            | ❌       | -              | YouTube cookies for yt-dlp ([how to get](#youtube-cookies))                        |
+| `NODE_ENV`              | ❌       | `development`  | Environment mode (`development` = HTTP, `production` = HTTPS) - auto-set in Docker |
+| `DATABASE_URL`          | ❌       | Auto-set       | SQLite database path - auto-configured                                             |
+
+**Note:** Protocol (HTTP/HTTPS) and port are automatic based on `NODE_ENV`:
+
+- **Development:** `http://localhost:5173` (Vite dev server)
+- **Production:** `https://PUBLIC_HOST:3000` (with auto-generated SSL certificates)
 
 ### In-App Settings
 
