@@ -1,17 +1,16 @@
-import {
-  DownloadStatusResponse,
-  PlaylistPreview,
-  TrackStatusEnum,
-  type IPlaylist,
-} from "@spotiarr/shared";
+import { DownloadStatusResponse, PlaylistPreview, type IPlaylist } from "@spotiarr/shared";
 import { EventBus } from "../../domain/events/event-bus";
 import { PlaylistRepository } from "../../domain/repositories/playlist.repository";
 import { SpotifyService } from "../../infrastructure/external/spotify.service";
 import { AppError } from "../../presentation/middleware/error-handler";
 import { CreatePlaylistUseCase } from "../use-cases/playlists/create-playlist.use-case";
+import { DeletePlaylistUseCase } from "../use-cases/playlists/delete-playlist.use-case";
 import { GetPlaylistPreviewUseCase } from "../use-cases/playlists/get-playlist-preview.use-case";
+import { GetPlaylistsUseCase } from "../use-cases/playlists/get-playlists.use-case";
 import { GetSystemStatusUseCase } from "../use-cases/playlists/get-system-status.use-case";
+import { RetryPlaylistDownloadsUseCase } from "../use-cases/playlists/retry-playlist-downloads.use-case";
 import { SyncSubscribedPlaylistsUseCase } from "../use-cases/playlists/sync-subscribed-playlists.use-case";
+import { UpdatePlaylistUseCase } from "../use-cases/playlists/update-playlist.use-case";
 import { SettingsService } from "./settings.service";
 import { TrackService } from "./track.service";
 
@@ -30,6 +29,10 @@ export class PlaylistService {
   private readonly getSystemStatusUseCase: GetSystemStatusUseCase;
   private readonly getPlaylistPreviewUseCase: GetPlaylistPreviewUseCase;
   private readonly syncSubscribedPlaylistsUseCase: SyncSubscribedPlaylistsUseCase;
+  private readonly getPlaylistsUseCase: GetPlaylistsUseCase;
+  private readonly deletePlaylistUseCase: DeletePlaylistUseCase;
+  private readonly updatePlaylistUseCase: UpdatePlaylistUseCase;
+  private readonly retryPlaylistDownloadsUseCase: RetryPlaylistDownloadsUseCase;
   private readonly eventBus: EventBus;
 
   constructor(deps: PlaylistServiceDependencies) {
@@ -52,42 +55,29 @@ export class PlaylistService {
       this.trackService,
       this.eventBus,
     );
+    this.getPlaylistsUseCase = new GetPlaylistsUseCase(this.repository);
+    this.deletePlaylistUseCase = new DeletePlaylistUseCase(this.repository, this.eventBus);
+    this.updatePlaylistUseCase = new UpdatePlaylistUseCase(this.repository, this.eventBus);
+    this.retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
+      this.repository,
+      this.trackService,
+    );
   }
 
   async findAll(includesTracks = true, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {
-    const playlists = await this.repository.findAll(includesTracks, where);
-    return playlists.map((p) => p.toPrimitive());
+    return this.getPlaylistsUseCase.findAll(includesTracks, where);
   }
 
   async findOne(id: string): Promise<IPlaylist | null> {
-    const playlist = await this.repository.findOne(id);
-    return playlist ? playlist.toPrimitive() : null;
+    return this.getPlaylistsUseCase.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
-    const existing = await this.repository.findOne(id);
-    if (!existing) {
-      throw new AppError(404, "playlist_not_found");
-    }
-
-    await this.repository.delete(id);
-    this.eventBus.emit("playlists-updated");
+    return this.deletePlaylistUseCase.execute(id);
   }
 
   async removeCompleted(): Promise<void> {
-    const playlists = await this.findAll(true);
-    const completedPlaylists = playlists.filter((playlist) => {
-      if (!playlist.tracks || playlist.tracks.length === 0) return false;
-      return playlist.tracks.every((track) => track.status === TrackStatusEnum.Completed);
-    });
-
-    for (const playlist of completedPlaylists) {
-      await this.repository.delete(playlist.id);
-    }
-
-    if (completedPlaylists.length > 0) {
-      this.eventBus.emit("playlists-updated");
-    }
+    return this.deletePlaylistUseCase.removeCompleted();
   }
 
   async create(playlist: IPlaylist): Promise<IPlaylist> {
@@ -102,33 +92,15 @@ export class PlaylistService {
   }
 
   async save(playlist: IPlaylist): Promise<IPlaylist> {
-    const savedPlaylist = await this.repository.save(playlist);
-    this.eventBus.emit("playlists-updated");
-    return savedPlaylist.toPrimitive();
+    return this.updatePlaylistUseCase.save(playlist);
   }
 
   async update(id: string, playlist: Partial<IPlaylist>): Promise<void> {
-    const existing = await this.repository.findOne(id);
-    if (!existing) {
-      throw new AppError(404, "playlist_not_found");
-    }
-
-    await this.repository.update(id, playlist);
-    this.eventBus.emit("playlists-updated");
+    return this.updatePlaylistUseCase.execute(id, playlist);
   }
 
   async retryFailedOfPlaylist(id: string): Promise<void> {
-    const playlist = await this.repository.findOne(id);
-    if (!playlist) {
-      throw new AppError(404, "playlist_not_found");
-    }
-
-    const tracks = await this.trackService.getAllByPlaylist(id);
-    for (const track of tracks) {
-      if (track.status === TrackStatusEnum.Error && track.id) {
-        await this.trackService.retry(track.id);
-      }
-    }
+    return this.retryPlaylistDownloadsUseCase.execute(id);
   }
 
   async checkSubscribedPlaylists(): Promise<void> {
