@@ -15,12 +15,12 @@ app.use(
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
         "img-src": ["'self'", "data:", "https:"],
-        "script-src": ["'self'", "'unsafe-inline'"], // Needed for some inline scripts if any
-        "style-src": ["'self'", "https:", "'unsafe-inline'"], // Needed for inline styles
-        "upgrade-insecure-requests": null, // This removes the directive cleanly
+        "script-src": ["'self'", "'unsafe-inline'"],
+        "style-src": ["'self'", "https:", "'unsafe-inline'"],
+        "upgrade-insecure-requests": null,
       },
     },
-    hsts: false, // Disable HSTS for local dev
+    hsts: false,
   }),
 );
 app.use(cors());
