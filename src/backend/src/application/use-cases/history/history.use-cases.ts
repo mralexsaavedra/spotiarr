@@ -158,7 +158,7 @@ export class HistoryUseCases {
       .map((p) => ({
         ...p,
         trackCount: p.trackIds.size,
-        trackIds: undefined, // Remove trackIds from output
+        trackIds: undefined,
       }))
       .sort((a, b) => b.lastCompletedAt - a.lastCompletedAt);
   }

@@ -12,10 +12,7 @@ import trackRoutes from "./track.routes";
 
 const router: ExpressRouter = Router();
 
-// Health check (no auth required)
 router.use(ApiRoutes.HEALTH, healthRoutes);
-
-// API Routes
 router.use(ApiRoutes.PLAYLIST, playlistRoutes);
 router.use(ApiRoutes.TRACK, trackRoutes);
 router.use(ApiRoutes.HISTORY, historyRoutes);

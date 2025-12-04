@@ -34,14 +34,12 @@ export class Playlist {
     return this.props.createdAt;
   }
 
-  // Domain Logic
-
   updateDetails(name: string, type: PlaylistTypeEnum, coverUrl?: string, artistImageUrl?: string) {
     this.props.name = name;
     this.props.type = type;
     this.props.coverUrl = coverUrl;
     this.props.artistImageUrl = artistImageUrl;
-    this.props.error = undefined; // Clear error on successful update
+    this.props.error = undefined;
   }
 
   markAsSubscribed() {

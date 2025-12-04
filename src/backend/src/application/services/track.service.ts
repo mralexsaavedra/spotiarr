@@ -1,13 +1,13 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { EventBus } from "../../domain/events/event-bus";
-import { TrackQueueService } from "../../domain/interfaces/track-queue.interface";
 import { HistoryRepository } from "../../domain/repositories/history.repository";
 import { PlaylistRepository } from "../../domain/repositories/playlist.repository";
 import { TrackRepository } from "../../domain/repositories/track.repository";
+import { TrackQueueService } from "../../domain/services/track-queue.service";
 import { SpotifyService } from "../../infrastructure/external/spotify.service";
 import { YoutubeService } from "../../infrastructure/external/youtube.service";
-import { M3uService } from "../../infrastructure/file-system/m3u.service";
-import { TrackFileHelper } from "../../infrastructure/file-system/track-file.helper";
+import { FileSystemM3uService } from "../../infrastructure/services/file-system-m3u.service";
+import { FileSystemTrackPathService } from "../../infrastructure/services/file-system-track-path.service";
 import { CreateTrackUseCase } from "../use-cases/tracks/create-track.use-case";
 import { DeleteTrackUseCase } from "../use-cases/tracks/delete-track.use-case";
 import { DownloadTrackUseCase } from "../use-cases/tracks/download-track.use-case";
@@ -20,9 +20,9 @@ import { UtilsService } from "./utils.service";
 export interface TrackServiceDependencies {
   repository: TrackRepository;
   queueService: TrackQueueService;
-  trackFileHelper: TrackFileHelper;
+  trackFileHelper: FileSystemTrackPathService;
   youtubeService: YoutubeService;
-  m3uService: M3uService;
+  m3uService: FileSystemM3uService;
   utilsService: UtilsService;
   settingsService: SettingsService;
   playlistRepository: PlaylistRepository;
@@ -34,7 +34,7 @@ export interface TrackServiceDependencies {
 export class TrackService {
   private readonly repository: TrackRepository;
   private readonly queueService: TrackQueueService;
-  private readonly trackFileHelper: TrackFileHelper;
+  private readonly trackFileHelper: FileSystemTrackPathService;
   private readonly searchTrackOnYoutubeUseCase: SearchTrackOnYoutubeUseCase;
   private readonly downloadTrackUseCase: DownloadTrackUseCase;
   private readonly createTrackUseCase: CreateTrackUseCase;

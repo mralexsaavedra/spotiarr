@@ -8,10 +8,10 @@ import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.re
 import { SpotifyApiService } from "./infrastructure/external/spotify-api.service";
 import { SpotifyService } from "./infrastructure/external/spotify.service";
 import { YoutubeService } from "./infrastructure/external/youtube.service";
-import { M3uService } from "./infrastructure/file-system/m3u.service";
-import { TrackFileHelper } from "./infrastructure/file-system/track-file.helper";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
 import { SseEventBus } from "./infrastructure/messaging/sse-event-bus";
+import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
+import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
 
 // Repositories
 const playlistRepository = new PrismaPlaylistRepository();
@@ -21,9 +21,9 @@ const historyRepository = new PrismaHistoryRepository();
 // Services (Base)
 const settingsService = new SettingsService();
 const utilsService = new UtilsService();
-const m3uService = new M3uService();
+const m3uService = new FileSystemM3uService();
 const youtubeService = new YoutubeService();
-const trackFileHelper = new TrackFileHelper();
+const trackFileHelper = new FileSystemTrackPathService();
 const queueService = new BullMqTrackQueueService();
 const eventBus = new SseEventBus();
 

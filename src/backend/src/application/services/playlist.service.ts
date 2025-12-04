@@ -127,7 +127,6 @@ export class PlaylistService {
       try {
         tracks = await this.spotifyService.getPlaylistTracks(playlist.spotifyUrl);
       } catch (error) {
-        // Mirror the previous behaviour of marking the playlist with an error.
         await this.update(playlist.id, {
           ...playlist,
           error: error instanceof Error ? error.message : String(error),
@@ -139,7 +138,6 @@ export class PlaylistService {
       const isTrack = urlType === SpotifyUrlType.Track;
       const isAlbum = urlType === SpotifyUrlType.Album;
 
-      // Optimization: Fetch all existing tracks for this playlist once
       const existingTracks = await this.trackService.getAllByPlaylist(playlist.id);
       const existingTrackKeys = new Set(
         existingTracks.map((t) => `${t.artist}|${t.name}|${t.spotifyUrl || "undefined"}`),

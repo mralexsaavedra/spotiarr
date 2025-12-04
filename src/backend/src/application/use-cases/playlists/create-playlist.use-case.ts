@@ -43,12 +43,10 @@ export class CreatePlaylistUseCase {
 
     const playlist = new Playlist(playlistData);
 
-    // Step 1: Fetch playlist details from Spotify
     try {
       detail = await this.spotifyService.getPlaylistDetail(playlist.spotifyUrl);
       console.debug(`Playlist detail retrieved with ${detail.tracks?.length || 0} tracks`);
 
-      // Format name for tracks, albums and artists
       let displayName = detail.name;
       if ((detail.type === "track" || detail.type === "album") && detail.tracks?.length > 0) {
         const firstTrack = detail.tracks[0];
@@ -57,7 +55,6 @@ export class CreatePlaylistUseCase {
           displayName = `${artistName} - ${detail.name}`;
         }
       } else if (detail.type === "artist") {
-        // For artists, keep just the artist name
         displayName = detail.name;
       }
 

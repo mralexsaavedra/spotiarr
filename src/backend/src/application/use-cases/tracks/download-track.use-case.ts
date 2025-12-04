@@ -7,17 +7,17 @@ import { PlaylistRepository } from "../../../domain/repositories/playlist.reposi
 import { TrackRepository } from "../../../domain/repositories/track.repository";
 import { SpotifyService } from "../../../infrastructure/external/spotify.service";
 import { YoutubeService } from "../../../infrastructure/external/youtube.service";
-import { M3uService } from "../../../infrastructure/file-system/m3u.service";
-import { TrackFileHelper } from "../../../infrastructure/file-system/track-file.helper";
+import { FileSystemM3uService } from "../../../infrastructure/services/file-system-m3u.service";
+import { FileSystemTrackPathService } from "../../../infrastructure/services/file-system-track-path.service";
 import { UtilsService } from "../../services/utils.service";
 
 export class DownloadTrackUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
     private readonly youtubeService: YoutubeService,
-    private readonly m3uService: M3uService,
+    private readonly m3uService: FileSystemM3uService,
     private readonly utilsService: UtilsService,
-    private readonly trackFileHelper: TrackFileHelper,
+    private readonly trackFileHelper: FileSystemTrackPathService,
     private readonly playlistRepository: PlaylistRepository,
     private readonly spotifyService: SpotifyService,
     private readonly downloadHistoryRepository: HistoryRepository,
@@ -181,17 +181,19 @@ export class DownloadTrackUseCase {
     }
 
     try {
-      const playlist = await this.playlistRepository.findOne(track.playlistId);
+      const playlistEntity = await this.playlistRepository.findOne(track.playlistId);
       // Only generate M3U for actual playlists
-      if (!playlist || !playlist.name || playlist.type !== "playlist") {
+      if (!playlistEntity || !playlistEntity.name || playlistEntity.type !== "playlist") {
         return;
       }
+      const playlist = playlistEntity.toPrimitive();
 
-      const playlistTracks = await this.trackRepository.findAllByPlaylist(track.playlistId);
+      const playlistTracksEntities = await this.trackRepository.findAllByPlaylist(track.playlistId);
+      const playlistTracks = playlistTracksEntities.map((t) => t.toPrimitive());
       const hasMultipleTracks = playlistTracks.length > 0;
 
       if (hasMultipleTracks) {
-        const playlistFolderPath = this.utilsService.getPlaylistFolderPath(playlist.name);
+        const playlistFolderPath = this.utilsService.getPlaylistFolderPath(playlist.name!);
         await this.m3uService.generateM3uFile(playlist, playlistTracks, playlistFolderPath);
 
         const completedCount = this.m3uService.getCompletedTracksCount(playlistTracks);

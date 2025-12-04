@@ -1,5 +1,5 @@
 import type { ITrack } from "@spotiarr/shared";
-import type { TrackQueueService } from "../../domain/interfaces/track-queue.interface";
+import type { TrackQueueService } from "../../domain/services/track-queue.service";
 import { getTrackDownloadQueue, getTrackSearchQueue } from "../setup/queues";
 
 export class BullMqTrackQueueService implements TrackQueueService {

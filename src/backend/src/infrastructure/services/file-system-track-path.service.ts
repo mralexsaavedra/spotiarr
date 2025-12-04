@@ -2,7 +2,7 @@ import type { ITrack } from "@spotiarr/shared";
 import { SettingsService } from "../../application/services/settings.service";
 import { UtilsService } from "../../application/services/utils.service";
 
-export class TrackFileHelper {
+export class FileSystemTrackPathService {
   private utilsService: UtilsService;
   private settingsService: SettingsService;
 

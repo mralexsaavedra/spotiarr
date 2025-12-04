@@ -28,11 +28,8 @@ export class Track {
     return this.props.trackUrl;
   }
 
-  // Domain Logic / Behavior
-
   markAsDownloading() {
     if (this.props.status === TrackStatusEnum.Completed) {
-      // Maybe we shouldn't download if already completed?
       // Domain rules go here.
     }
     this.props.status = TrackStatusEnum.Downloading;

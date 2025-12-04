@@ -17,7 +17,6 @@ export class SpotifyService {
 
     try {
       if (urlType === SpotifyUrlType.Track) {
-        // Handle single track
         const trackId = SpotifyUrlHelper.extractId(spotifyUrl);
         const track = await this.spotifyApiService.getTrackDetails(trackId);
 
@@ -28,7 +27,6 @@ export class SpotifyService {
           type,
         };
       } else if (urlType === SpotifyUrlType.Album) {
-        // Handle album
         const albumId = SpotifyUrlHelper.extractId(spotifyUrl);
         const tracks = await this.spotifyApiService.getAlbumTracks(albumId);
 
@@ -39,7 +37,6 @@ export class SpotifyService {
           type,
         };
       } else if (urlType === SpotifyUrlType.Playlist) {
-        // Handle playlist
         const metadata = await this.spotifyApiService.getPlaylistMetadata(spotifyUrl);
 
         const tracks = await this.spotifyApiService.getAllPlaylistTracks(spotifyUrl);
@@ -51,7 +48,6 @@ export class SpotifyService {
           type,
         };
       } else if (urlType === SpotifyUrlType.Artist) {
-        // Handle artist: use Spotify API to get artist metadata and top tracks
         const artistId = SpotifyUrlHelper.extractId(spotifyUrl);
         const artistDetails = await this.spotifyApiService.getArtistDetails(artistId);
         const tracks = await this.spotifyApiService.getArtistTopTracks(artistId);
