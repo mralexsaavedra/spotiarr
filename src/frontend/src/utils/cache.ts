@@ -1,7 +1,9 @@
+import { APP_CONFIG } from "../config/app";
+
 export const getCacheMinutesFromSettings = (
   settings: Array<{ key: string; value: string }>,
-  key = "RELEASES_CACHE_MINUTES",
-  fallback = 5,
+  key = APP_CONFIG.CACHE.RELEASES_CACHE_KEY,
+  fallback = APP_CONFIG.CACHE.DEFAULT_MINUTES,
 ): number => {
   const setting = settings.find((s) => s.key === key);
 

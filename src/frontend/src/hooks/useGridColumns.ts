@@ -1,25 +1,28 @@
 import { useEffect, useState } from "react";
+import { APP_CONFIG } from "../config/app";
+
+const { BREAKPOINTS, COLUMNS } = APP_CONFIG.GRID;
 
 export const useGridColumns = () => {
-  const [columns, setColumns] = useState(2);
+  const [columns, setColumns] = useState<number>(COLUMNS.MOBILE);
 
   useEffect(() => {
     const updateColumns = () => {
       const width = window.innerWidth;
-      if (width >= 2560) {
-        setColumns(8); // ultrawide
-      } else if (width >= 1920) {
-        setColumns(6); // 2k/full hd large
-      } else if (width >= 1280) {
-        setColumns(5); // xl
-      } else if (width >= 1024) {
-        setColumns(4); // lg
-      } else if (width >= 768) {
-        setColumns(3); // md
-      } else if (width >= 640) {
-        setColumns(2); // sm
+      if (width >= BREAKPOINTS.ULTRAWIDE) {
+        setColumns(COLUMNS.ULTRAWIDE);
+      } else if (width >= BREAKPOINTS.LARGE) {
+        setColumns(COLUMNS.LARGE);
+      } else if (width >= BREAKPOINTS.XL) {
+        setColumns(COLUMNS.XL);
+      } else if (width >= BREAKPOINTS.LG) {
+        setColumns(COLUMNS.LG);
+      } else if (width >= BREAKPOINTS.MD) {
+        setColumns(COLUMNS.MD);
+      } else if (width >= BREAKPOINTS.SM) {
+        setColumns(COLUMNS.SM);
       } else {
-        setColumns(2); // mobile
+        setColumns(COLUMNS.MOBILE);
       }
     };
 

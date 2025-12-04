@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { artistService } from "../../services/artist.service";
 import { getCacheMinutesFromSettings } from "../../utils/cache";
 import { mapSpotifyError } from "../../utils/spotify";
-import { FOLLOWED_ARTISTS_QUERY_KEY } from "../queryKeys";
+import { queryKeys } from "../queryKeys";
 import { useSettingsQuery } from "./useSettingsQuery";
 
 interface FollowedArtist {
@@ -28,7 +28,7 @@ export const useFollowedArtistsQuery = (): UseFollowedArtistsState => {
   }, [settings]);
 
   const { data, isLoading, error } = useQuery<FollowedArtist[], Error>({
-    queryKey: FOLLOWED_ARTISTS_QUERY_KEY,
+    queryKey: queryKeys.followedArtists,
     queryFn: () => artistService.getFollowedArtists(),
     staleTime: 1000 * 60 * cacheMinutes,
   });

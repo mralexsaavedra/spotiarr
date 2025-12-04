@@ -6,16 +6,17 @@ import { BrowserRouter } from "react-router-dom";
 import { App } from "./app/App";
 import { ErrorBoundary } from "./components/errors/ErrorBoundary";
 import { ErrorFallback } from "./components/errors/ErrorFallback";
+import { APP_CONFIG } from "./config/app";
 import "./icons";
 import "./index.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes
+      staleTime: APP_CONFIG.QUERY.STALE_TIME,
+      gcTime: APP_CONFIG.QUERY.GC_TIME,
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: APP_CONFIG.QUERY.RETRY_COUNT,
     },
   },
 });

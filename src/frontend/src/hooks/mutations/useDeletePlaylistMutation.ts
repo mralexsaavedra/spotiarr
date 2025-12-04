@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { playlistService } from "../../services/playlist.service";
 import type { Playlist } from "../../types/playlist";
-import { PLAYLISTS_QUERY_KEY } from "../queryKeys";
+import { queryKeys } from "../queryKeys";
 
 export const useDeletePlaylistMutation = () => {
   const queryClient = useQueryClient();
@@ -9,10 +9,10 @@ export const useDeletePlaylistMutation = () => {
   return useMutation({
     mutationFn: (id: string) => playlistService.deletePlaylist(id),
     onMutate: async (id: string) => {
-      await queryClient.cancelQueries({ queryKey: PLAYLISTS_QUERY_KEY });
-      const previous = queryClient.getQueryData<Playlist[]>(PLAYLISTS_QUERY_KEY);
+      await queryClient.cancelQueries({ queryKey: queryKeys.playlists });
+      const previous = queryClient.getQueryData<Playlist[]>(queryKeys.playlists);
 
-      queryClient.setQueryData<Playlist[]>(PLAYLISTS_QUERY_KEY, (old = []) =>
+      queryClient.setQueryData<Playlist[]>(queryKeys.playlists, (old = []) =>
         old.filter((p) => p.id !== id),
       );
 
@@ -20,11 +20,11 @@ export const useDeletePlaylistMutation = () => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(PLAYLISTS_QUERY_KEY, context.previous);
+        queryClient.setQueryData(queryKeys.playlists, context.previous);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
     },
   });
 };

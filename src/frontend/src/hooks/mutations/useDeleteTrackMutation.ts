@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { trackService } from "../../services/track.service";
 import { Track } from "../../types/track";
-import { tracksQueryKey } from "../queryKeys";
+import { queryKeys } from "../queryKeys";
 
 export const useDeleteTrackMutation = (playlistId: string) => {
   const queryClient = useQueryClient();
@@ -9,10 +9,10 @@ export const useDeleteTrackMutation = (playlistId: string) => {
   return useMutation<void, unknown, string, { previous?: Track[] }>({
     mutationFn: (trackId: string) => trackService.deleteTrack(trackId),
     onMutate: async (trackId: string) => {
-      await queryClient.cancelQueries({ queryKey: tracksQueryKey(playlistId) });
-      const previous = queryClient.getQueryData<Track[]>(tracksQueryKey(playlistId));
+      await queryClient.cancelQueries({ queryKey: queryKeys.tracks(playlistId) });
+      const previous = queryClient.getQueryData<Track[]>(queryKeys.tracks(playlistId));
 
-      queryClient.setQueryData<Track[] | undefined>(tracksQueryKey(playlistId), (old = []) =>
+      queryClient.setQueryData<Track[] | undefined>(queryKeys.tracks(playlistId), (old = []) =>
         old.filter((t) => t.id !== trackId),
       );
 
@@ -20,11 +20,11 @@ export const useDeleteTrackMutation = (playlistId: string) => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(tracksQueryKey(playlistId), context.previous);
+        queryClient.setQueryData(queryKeys.tracks(playlistId), context.previous);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: tracksQueryKey(playlistId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tracks(playlistId) });
     },
   });
 };

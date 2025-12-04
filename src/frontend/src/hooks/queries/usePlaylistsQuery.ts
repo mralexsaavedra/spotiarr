@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { playlistService } from "../../services/playlist.service";
 import { Playlist, PlaylistWithStats } from "../../types/playlist";
 import { calculatePlaylistStats } from "../../utils/playlist";
-import { PLAYLISTS_QUERY_KEY } from "../queryKeys";
+import { queryKeys } from "../queryKeys";
 
 export const usePlaylistsQuery = () => {
   return useQuery<Playlist[], Error, PlaylistWithStats[]>({
-    queryKey: PLAYLISTS_QUERY_KEY,
+    queryKey: queryKeys.playlists,
     queryFn: () => playlistService.getPlaylists(),
     select: (data) =>
       data.map((playlist) => ({

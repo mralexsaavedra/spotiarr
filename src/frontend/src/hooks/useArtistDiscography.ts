@@ -1,6 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DiscographyFilter } from "../components/molecules/ArtistDiscographyFilters";
+import { APP_CONFIG } from "../config/app";
 import { useArtistAlbumsQuery } from "./queries/useArtistAlbumsQuery";
 
 interface UseArtistDiscographyProps {
@@ -12,7 +13,7 @@ interface UseArtistDiscographyProps {
 export const useArtistDiscography = ({
   artistId,
   initialAlbums,
-  pageSize = 12,
+  pageSize = APP_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE,
 }: UseArtistDiscographyProps) => {
   const [filter, setFilter] = useState<DiscographyFilter>("all");
   const [visibleItems, setVisibleItems] = useState(pageSize);

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { playlistService } from "../../services/playlist.service";
 import type { Playlist } from "../../types/playlist";
-import { PLAYLISTS_QUERY_KEY } from "../queryKeys";
+import { queryKeys } from "../queryKeys";
 
 export const useUpdatePlaylistMutation = () => {
   const queryClient = useQueryClient();
@@ -10,10 +10,10 @@ export const useUpdatePlaylistMutation = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Playlist> }) =>
       playlistService.updatePlaylist(id, data),
     onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: PLAYLISTS_QUERY_KEY });
-      const previous = queryClient.getQueryData<Playlist[]>(PLAYLISTS_QUERY_KEY);
+      await queryClient.cancelQueries({ queryKey: queryKeys.playlists });
+      const previous = queryClient.getQueryData<Playlist[]>(queryKeys.playlists);
 
-      queryClient.setQueryData<Playlist[]>(PLAYLISTS_QUERY_KEY, (old = []) =>
+      queryClient.setQueryData<Playlist[]>(queryKeys.playlists, (old = []) =>
         old.map((p) => (p.id === id ? { ...p, ...data } : p)),
       );
 
@@ -21,7 +21,7 @@ export const useUpdatePlaylistMutation = () => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(PLAYLISTS_QUERY_KEY, context.previous);
+        queryClient.setQueryData(queryKeys.playlists, context.previous);
       }
     },
   });

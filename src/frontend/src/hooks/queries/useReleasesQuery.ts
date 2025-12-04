@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { artistService } from "../../services/artist.service";
 import { getCacheMinutesFromSettings } from "../../utils/cache";
 import { mapSpotifyError } from "../../utils/spotify";
-import { RELEASES_QUERY_KEY } from "../queryKeys";
+import { queryKeys } from "../queryKeys";
 import { useSettingsQuery } from "./useSettingsQuery";
 
 interface UseReleasesState {
@@ -21,7 +21,7 @@ export const useReleasesQuery = (): UseReleasesState => {
   }, [settings]);
 
   const { data, isLoading, error } = useQuery<ArtistRelease[], Error>({
-    queryKey: RELEASES_QUERY_KEY,
+    queryKey: queryKeys.releases,
     queryFn: () => artistService.getReleases(),
     staleTime: 1000 * 60 * cacheMinutes,
   });
