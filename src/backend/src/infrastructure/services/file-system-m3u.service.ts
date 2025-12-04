@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { SettingsService } from "../../application/services/settings.service";
 
-export class FileSystemM3uService {
+export class FileSystemFileSystemM3uService {
   constructor(private readonly settingsService: SettingsService) {}
 
   /**
