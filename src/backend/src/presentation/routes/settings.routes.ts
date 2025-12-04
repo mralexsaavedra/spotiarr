@@ -1,7 +1,7 @@
 import { SupportedAudioFormat } from "@spotiarr/shared";
 import { Router, type Router as ExpressRouter } from "express";
+import { SettingsUseCases } from "../../application/use-cases/settings/settings.use-cases";
 import { SETTINGS_METADATA } from "../../constants/settings-metadata";
-import { SettingsUseCases } from "../../domain/settings/settings.use-cases";
 import { PrismaSettingsRepository } from "../../infrastructure/database/prisma-settings.repository";
 import { asyncHandler } from "../middleware/async-handler";
 

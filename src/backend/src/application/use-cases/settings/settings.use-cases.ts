@@ -1,6 +1,6 @@
 import type { SettingItem } from "@spotiarr/shared";
-import { SpotifyApiService } from "../../infrastructure/external/spotify-api.service";
-import type { SettingsRepository } from "../interfaces/settings.repository";
+import type { SettingsRepository } from "../../../domain/interfaces/settings.repository";
+import { SpotifyApiService } from "../../../infrastructure/external/spotify-api.service";
 
 export interface SettingsUseCaseDependencies {
   repository: SettingsRepository;

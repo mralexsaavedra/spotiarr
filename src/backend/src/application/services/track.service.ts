@@ -4,13 +4,16 @@ import { HistoryRepository } from "../../domain/interfaces/history.repository";
 import { PlaylistRepository } from "../../domain/interfaces/playlist.repository";
 import { TrackQueueService } from "../../domain/interfaces/track-queue.interface";
 import { TrackRepository } from "../../domain/interfaces/track.repository";
-import { DownloadTrackUseCase } from "../../domain/tracks/download-track.use-case";
-import { SearchTrackOnYoutubeUseCase } from "../../domain/tracks/search-track-on-youtube.use-case";
 import { SpotifyService } from "../../infrastructure/external/spotify.service";
 import { YoutubeService } from "../../infrastructure/external/youtube.service";
 import { M3uService } from "../../infrastructure/file-system/m3u.service";
 import { TrackFileHelper } from "../../infrastructure/file-system/track-file.helper";
-import { AppError } from "../../presentation/middleware/error-handler";
+import { CreateTrackUseCase } from "../use-cases/tracks/create-track.use-case";
+import { DeleteTrackUseCase } from "../use-cases/tracks/delete-track.use-case";
+import { DownloadTrackUseCase } from "../use-cases/tracks/download-track.use-case";
+import { GetTracksUseCase } from "../use-cases/tracks/get-tracks.use-case";
+import { RetryTrackDownloadUseCase } from "../use-cases/tracks/retry-track-download.use-case";
+import { SearchTrackOnYoutubeUseCase } from "../use-cases/tracks/search-track-on-youtube.use-case";
 import { SettingsService } from "./settings.service";
 import { UtilsService } from "./utils.service";
 
@@ -34,6 +37,10 @@ export class TrackService {
   private readonly trackFileHelper: TrackFileHelper;
   private readonly searchTrackOnYoutubeUseCase: SearchTrackOnYoutubeUseCase;
   private readonly downloadTrackUseCase: DownloadTrackUseCase;
+  private readonly createTrackUseCase: CreateTrackUseCase;
+  private readonly deleteTrackUseCase: DeleteTrackUseCase;
+  private readonly getTracksUseCase: GetTracksUseCase;
+  private readonly retryTrackDownloadUseCase: RetryTrackDownloadUseCase;
 
   constructor(deps: TrackServiceDependencies) {
     this.repository = deps.repository;
@@ -59,32 +66,34 @@ export class TrackService {
       deps.historyRepository,
       deps.eventBus,
     );
+
+    this.createTrackUseCase = new CreateTrackUseCase(this.repository, this.queueService);
+    this.deleteTrackUseCase = new DeleteTrackUseCase(this.repository);
+    this.getTracksUseCase = new GetTracksUseCase(this.repository);
+    this.retryTrackDownloadUseCase = new RetryTrackDownloadUseCase(
+      this.repository,
+      this.queueService,
+    );
   }
 
   getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
-    return this.repository.findAll(where);
+    return this.getTracksUseCase.getAll(where);
   }
 
   getAllByPlaylist(id: string): Promise<ITrack[]> {
-    return this.repository.findAllByPlaylist(id);
+    return this.getTracksUseCase.getAllByPlaylist(id);
   }
 
   get(id: string): Promise<ITrack | null> {
-    return this.repository.findOne(id);
+    return this.getTracksUseCase.get(id);
   }
 
   async remove(id: string): Promise<void> {
-    const existing = await this.get(id);
-    if (!existing) {
-      throw new AppError(404, "track_not_found");
-    }
-
-    await this.repository.delete(id);
+    return this.deleteTrackUseCase.execute(id);
   }
 
   async create(track: Partial<ITrack>): Promise<void> {
-    const savedTrack = await this.repository.save(track as ITrack);
-    await this.queueService.enqueueSearchTrack(savedTrack);
+    return this.createTrackUseCase.execute(track);
   }
 
   async update(id: string, track: Partial<ITrack>): Promise<void> {
@@ -92,12 +101,7 @@ export class TrackService {
   }
 
   async retry(id: string): Promise<void> {
-    const track = await this.repository.findOneWithPlaylist(id);
-    if (!track) {
-      throw new AppError(404, "track_not_found");
-    }
-    await this.queueService.enqueueSearchTrack(track);
-    await this.update(id, { status: TrackStatusEnum.New });
+    return this.retryTrackDownloadUseCase.execute(id);
   }
 
   async findOnYoutube(track: ITrack): Promise<void> {
