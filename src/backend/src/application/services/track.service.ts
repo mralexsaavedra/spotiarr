@@ -1,9 +1,9 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { EventBus } from "../../domain/events/event-bus";
-import { HistoryRepository } from "../../domain/interfaces/history-repository.interface";
-import { PlaylistRepository } from "../../domain/interfaces/playlist-repository.interface";
 import { TrackQueueService } from "../../domain/interfaces/track-queue.interface";
-import { TrackRepository } from "../../domain/interfaces/track-repository.interface";
+import { HistoryRepository } from "../../domain/repositories/history.repository";
+import { PlaylistRepository } from "../../domain/repositories/playlist.repository";
+import { TrackRepository } from "../../domain/repositories/track.repository";
 import { SpotifyService } from "../../infrastructure/external/spotify.service";
 import { YoutubeService } from "../../infrastructure/external/youtube.service";
 import { M3uService } from "../../infrastructure/file-system/m3u.service";

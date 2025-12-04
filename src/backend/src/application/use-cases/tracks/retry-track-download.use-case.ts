@@ -1,5 +1,5 @@
 import type { TrackQueueService } from "../../../domain/interfaces/track-queue.interface";
-import type { TrackRepository } from "../../../domain/interfaces/track-repository.interface";
+import type { TrackRepository } from "../../../domain/repositories/track.repository";
 import { AppError } from "../../../presentation/middleware/error-handler";
 
 export class RetryTrackDownloadUseCase {

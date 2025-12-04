@@ -7,7 +7,7 @@ import {
 } from "@spotiarr/shared";
 import { EventBus } from "../../domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../domain/helpers/spotify-url.helper";
-import { PlaylistRepository } from "../../domain/interfaces/playlist-repository.interface";
+import { PlaylistRepository } from "../../domain/repositories/playlist.repository";
 import { SpotifyService, type PlaylistTrack } from "../../infrastructure/external/spotify.service";
 import { AppError } from "../../presentation/middleware/error-handler";
 import { CreatePlaylistUseCase } from "../use-cases/playlists/create-playlist.use-case";
