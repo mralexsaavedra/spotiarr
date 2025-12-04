@@ -1,4 +1,9 @@
-import { PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
+import {
+  PlaylistStatusEnum,
+  PlaylistTypeEnum,
+  TrackStatusEnum,
+  type IPlaylist,
+} from "@spotiarr/shared";
 
 export class Playlist {
   constructor(private readonly props: IPlaylist) {}
@@ -56,5 +61,27 @@ export class Playlist {
 
   toPrimitive(): IPlaylist {
     return { ...this.props };
+  }
+
+  calculateStatus(): PlaylistStatusEnum {
+    if (this.props.error) return PlaylistStatusEnum.Error;
+
+    const tracks = this.props.tracks ?? [];
+    const totalCount = tracks.length;
+    const completedCount = tracks.filter((t) => t.status === TrackStatusEnum.Completed).length;
+    const failedCount = tracks.filter((t) => t.status === TrackStatusEnum.Error).length;
+    const hasTracks = totalCount > 0;
+
+    if (hasTracks && completedCount === totalCount) {
+      return PlaylistStatusEnum.Completed;
+    }
+
+    if (failedCount > 0) {
+      return PlaylistStatusEnum.Warning;
+    }
+
+    if (this.props.subscribed) return PlaylistStatusEnum.Subscribed;
+
+    return PlaylistStatusEnum.InProgress;
   }
 }
