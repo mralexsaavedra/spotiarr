@@ -29,6 +29,6 @@ else
     echo "🔒 SSL certificates found in config directory."
 fi
 
-# Switch to 'node' user (uid 1000) and execute the command
-echo "🚀 Starting application as user 'node' (1000)..."
+# Switch to user with uid 1000 and execute the command
+echo "🚀 Starting application as user with uid 1000..."
 exec su-exec 1000:1000 "$@"
