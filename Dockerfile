@@ -54,10 +54,10 @@ RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 # Generate Prisma Client for production
 RUN pnpm --filter backend prisma:generate
 
-# Default downloads path inside the container; can be overridden by env if needed
+# Default environment variables
 ENV NODE_ENV=production
 ENV DOWNLOADS_PATH=/downloads
-ENV BASE_URL=http://127.0.0.1:3000
+ENV PUBLIC_HOST=127.0.0.1
 ENV DATABASE_URL="file:/spotiarr/config/db.sqlite"
 
 EXPOSE 3000

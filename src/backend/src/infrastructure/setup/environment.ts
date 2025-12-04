@@ -9,7 +9,7 @@ const envSchema = z
     SPOTIFY_USER_ACCESS_TOKEN: z.string().optional(),
 
     // App
-    BASE_URL: z.string().url().optional().default("http://127.0.0.1:3000"),
+    PUBLIC_HOST: z.string().min(1, "PUBLIC_HOST is required").default("localhost"),
 
     // Redis
     REDIS_HOST: z.string().min(1, "REDIS_HOST is required"),
@@ -23,12 +23,16 @@ const envSchema = z
     DATABASE_URL: z.string().optional(),
   })
   .transform((data) => {
+    // Construct BASE_URL from environment and host
+    const protocol = data.NODE_ENV === "production" ? "https" : "http";
+    const port = data.NODE_ENV === "production" ? "3000" : "5173"; // Vite port in dev
+    const BASE_URL = `${protocol}://${data.PUBLIC_HOST}:${port}`;
+
     if (!data.SPOTIFY_REDIRECT_URI) {
-      // Remove trailing slash if present
-      const baseUrl = data.BASE_URL.replace(/\/$/, "");
-      data.SPOTIFY_REDIRECT_URI = `${baseUrl}/api/auth/spotify/callback`;
+      data.SPOTIFY_REDIRECT_URI = `${BASE_URL}/api/auth/spotify/callback`;
     }
-    return data as typeof data & { SPOTIFY_REDIRECT_URI: string };
+
+    return { ...data, BASE_URL, SPOTIFY_REDIRECT_URI: data.SPOTIFY_REDIRECT_URI };
   });
 
 export type Env = z.infer<typeof envSchema>;
