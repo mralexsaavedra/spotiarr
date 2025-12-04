@@ -14,6 +14,7 @@ import { DownloadTrackUseCase } from "../use-cases/tracks/download-track.use-cas
 import { GetTracksUseCase } from "../use-cases/tracks/get-tracks.use-case";
 import { RetryTrackDownloadUseCase } from "../use-cases/tracks/retry-track-download.use-case";
 import { SearchTrackOnYoutubeUseCase } from "../use-cases/tracks/search-track-on-youtube.use-case";
+import { UpdateTrackUseCase } from "../use-cases/tracks/update-track.use-case";
 import { SettingsService } from "./settings.service";
 import { UtilsService } from "./utils.service";
 
@@ -41,6 +42,7 @@ export class TrackService {
   private readonly deleteTrackUseCase: DeleteTrackUseCase;
   private readonly getTracksUseCase: GetTracksUseCase;
   private readonly retryTrackDownloadUseCase: RetryTrackDownloadUseCase;
+  private readonly updateTrackUseCase: UpdateTrackUseCase;
 
   constructor(deps: TrackServiceDependencies) {
     this.repository = deps.repository;
@@ -74,6 +76,7 @@ export class TrackService {
       this.repository,
       this.queueService,
     );
+    this.updateTrackUseCase = new UpdateTrackUseCase(this.repository);
   }
 
   getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
@@ -97,7 +100,7 @@ export class TrackService {
   }
 
   async update(id: string, track: Partial<ITrack>): Promise<void> {
-    await this.repository.update(id, track);
+    await this.updateTrackUseCase.execute(id, track);
   }
 
   async retry(id: string): Promise<void> {
@@ -121,6 +124,6 @@ export class TrackService {
   }
 
   async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
-    return this.repository.findStuckTracks(statuses, createdBefore);
+    return this.getTracksUseCase.findStuckTracks(statuses, createdBefore);
   }
 }

@@ -4,11 +4,7 @@ import * as path from "path";
 import { SettingsService } from "../../application/services/settings.service";
 
 export class FileSystemM3uService {
-  private readonly settingsService: SettingsService;
-
-  constructor() {
-    this.settingsService = new SettingsService();
-  }
+  constructor(private readonly settingsService: SettingsService) {}
 
   /**
    * Generates an M3U8 file for a playlist

@@ -3,13 +3,10 @@ import { SettingsService } from "../../application/services/settings.service";
 import { UtilsService } from "../../application/services/utils.service";
 
 export class FileSystemTrackPathService {
-  private utilsService: UtilsService;
-  private settingsService: SettingsService;
-
-  constructor() {
-    this.utilsService = new UtilsService();
-    this.settingsService = new SettingsService();
-  }
+  constructor(
+    private readonly settingsService: SettingsService,
+    private readonly utilsService: UtilsService,
+  ) {}
 
   async getTrackFileName(track: ITrack, playlistName?: string): Promise<string> {
     const format = await this.settingsService.getString("FORMAT");

@@ -1,4 +1,4 @@
-import type { ITrack } from "@spotiarr/shared";
+import type { ITrack, TrackStatusEnum } from "@spotiarr/shared";
 import type { TrackRepository } from "../../../domain/repositories/track.repository";
 
 export class GetTracksUseCase {
@@ -17,5 +17,10 @@ export class GetTracksUseCase {
   async get(id: string): Promise<ITrack | null> {
     const track = await this.trackRepository.findOne(id);
     return track ? track.toPrimitive() : null;
+  }
+
+  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
+    const tracks = await this.trackRepository.findStuckTracks(statuses, createdBefore);
+    return tracks.map((t) => t.toPrimitive());
   }
 }
