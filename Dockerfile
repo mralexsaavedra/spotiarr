@@ -56,8 +56,10 @@ RUN pnpm --filter backend prisma:generate
 
 # Default environment variables
 ENV NODE_ENV=production
-ENV DOWNLOADS_PATH=/downloads
 ENV PUBLIC_HOST=127.0.0.1
+ENV REDIS_HOST=redis
+ENV REDIS_PORT=6379
+ENV DOWNLOADS_PATH=/downloads
 ENV DATABASE_URL="file:/spotiarr/config/db.sqlite"
 
 EXPOSE 3000

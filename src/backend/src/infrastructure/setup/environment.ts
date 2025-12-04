@@ -11,12 +11,16 @@ const envSchema = z
     // App
     PUBLIC_HOST: z.string().min(1, "PUBLIC_HOST is required").default("localhost"),
 
-    // Redis
-    REDIS_HOST: z.string().min(1, "REDIS_HOST is required"),
-    REDIS_PORT: z.string().regex(/^\d+$/, "REDIS_PORT must be a number").transform(Number),
+    // Redis (auto-configured based on environment)
+    REDIS_HOST: z.string().min(1).default("localhost"),
+    REDIS_PORT: z
+      .string()
+      .regex(/^\d+$/, "REDIS_PORT must be a number")
+      .default("6379")
+      .transform(Number),
 
-    // Downloads
-    DOWNLOADS_PATH: z.string().min(1, "DOWNLOADS_PATH is required"),
+    // Downloads (auto-configured based on environment)
+    DOWNLOADS_PATH: z.string().min(1).default("./downloads"),
 
     // Optional
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
