@@ -21,6 +21,8 @@ app.use(
       },
     },
     hsts: false,
+    crossOriginOpenerPolicy: false,
+    originAgentCluster: false,
   }),
 );
 app.use(cors());
