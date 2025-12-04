@@ -1,4 +1,5 @@
 import { PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
+import { Playlist } from "../../../domain/entities/playlist.entity";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../../domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "../../../domain/interfaces/playlist.repository";
 import { SpotifyService } from "../../../infrastructure/external/spotify.service";
@@ -37,9 +38,10 @@ export class CreatePlaylistUseCase {
     private readonly settingsService: SettingsService,
   ) {}
 
-  async execute(playlist: IPlaylist): Promise<IPlaylist> {
+  async execute(playlistData: IPlaylist): Promise<IPlaylist> {
     let detail: PlaylistDetail | undefined;
-    let playlist2Save: IPlaylist;
+
+    const playlist = new Playlist(playlistData);
 
     // Step 1: Fetch playlist details from Spotify
     try {
@@ -66,29 +68,27 @@ export class CreatePlaylistUseCase {
 
       const autoSubscribe = await this.settingsService.getBoolean("AUTO_SUBSCRIBE_NEW_PLAYLISTS");
 
-      playlist2Save = {
-        ...playlist,
-        name: displayName,
-        coverUrl: detail.image,
-        type: detail.type as PlaylistTypeEnum,
-        artistImageUrl: artistImageUrl ?? undefined,
-        subscribed: autoSubscribe,
-      };
+      playlist.updateDetails(
+        displayName,
+        detail.type as PlaylistTypeEnum,
+        detail.image,
+        artistImageUrl ?? undefined,
+      );
+
+      if (autoSubscribe) {
+        playlist.markAsSubscribed();
+      }
     } catch (error) {
       console.error(
         `Error getting playlist details: ${playlist.spotifyUrl}`,
         error instanceof Error ? error.stack : String(error),
       );
-      playlist2Save = {
-        ...playlist,
-        error: error instanceof Error ? error.message : String(error),
-      };
+      playlist.markAsError(error instanceof Error ? error.message : String(error));
     }
 
-    // Step 2: Save playlist
-    const savedPlaylist = await this.playlistRepository.save(playlist2Save);
+    const savedPlaylistEntity = await this.playlistRepository.save(playlist);
+    const savedPlaylist = savedPlaylistEntity.toPrimitive();
 
-    // Step 3: Process tracks if available
     if (detail?.tracks && detail.tracks.length > 0) {
       await this.processTracks(savedPlaylist, detail.tracks);
     } else {

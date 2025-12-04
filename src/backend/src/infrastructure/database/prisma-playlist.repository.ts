@@ -1,52 +1,57 @@
-import type { Playlist, Track as DbTrack, Prisma } from "@prisma/client";
+import type { Playlist as DbPlaylist, Track as DbTrack, Prisma } from "@prisma/client";
 import type { IPlaylist, TrackArtist } from "@spotiarr/shared";
+import { Playlist } from "../../domain/entities/playlist.entity";
 import type { PlaylistRepository } from "../../domain/interfaces/playlist.repository";
 import { prisma } from "../setup/prisma";
 
 export class PrismaPlaylistRepository implements PlaylistRepository {
-  async findAll(includesTracks = false, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {
+  async findAll(includesTracks = false, where?: Partial<IPlaylist>): Promise<Playlist[]> {
     const playlists = await prisma.playlist.findMany({
       where: where as Prisma.PlaylistWhereInput | undefined,
       include: { tracks: includesTracks },
     });
-    return playlists.map(this.mapToIPlaylist);
+    return playlists.map((p) => this.mapToPlaylist(p));
   }
 
-  async findOne(id: string): Promise<IPlaylist | null> {
+  async findOne(id: string): Promise<Playlist | null> {
     const playlist = await prisma.playlist.findUnique({
       where: { id },
       include: { tracks: true },
     });
-    return playlist ? this.mapToIPlaylist(playlist) : null;
+    return playlist ? this.mapToPlaylist(playlist) : null;
   }
 
-  async save(playlist: IPlaylist): Promise<IPlaylist> {
+  async save(playlist: IPlaylist | Playlist): Promise<Playlist> {
+    const data = playlist instanceof Playlist ? playlist.toPrimitive() : playlist;
+
     const created = await prisma.playlist.create({
       data: {
-        id: playlist.id,
-        name: playlist.name,
-        type: playlist.type,
-        spotifyUrl: playlist.spotifyUrl,
-        error: playlist.error,
-        subscribed: playlist.subscribed ?? false,
-        createdAt: playlist.createdAt ? BigInt(playlist.createdAt) : BigInt(Date.now()),
-        coverUrl: playlist.coverUrl,
-        artistImageUrl: playlist.artistImageUrl,
+        id: data.id,
+        name: data.name,
+        type: data.type,
+        spotifyUrl: data.spotifyUrl,
+        error: data.error,
+        subscribed: data.subscribed ?? false,
+        createdAt: data.createdAt ? BigInt(data.createdAt) : BigInt(Date.now()),
+        coverUrl: data.coverUrl,
+        artistImageUrl: data.artistImageUrl,
       },
     });
-    return this.mapToIPlaylist(created);
+    return this.mapToPlaylist(created);
   }
 
-  async update(id: string, playlist: Partial<IPlaylist>): Promise<void> {
+  async update(id: string, playlist: Partial<IPlaylist> | Playlist): Promise<void> {
+    const data = playlist instanceof Playlist ? playlist.toPrimitive() : playlist;
+
     await prisma.playlist.update({
       where: { id },
       data: {
-        name: playlist.name,
-        type: playlist.type,
-        error: playlist.error,
-        subscribed: playlist.subscribed,
-        coverUrl: playlist.coverUrl,
-        artistImageUrl: playlist.artistImageUrl,
+        name: data.name,
+        type: data.type,
+        error: data.error,
+        subscribed: data.subscribed,
+        coverUrl: data.coverUrl,
+        artistImageUrl: data.artistImageUrl,
       },
     });
   }
@@ -55,8 +60,8 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
     await prisma.playlist.delete({ where: { id } });
   }
 
-  private mapToIPlaylist(playlist: Playlist & { tracks?: DbTrack[] }): IPlaylist {
-    return {
+  private mapToPlaylist(playlist: DbPlaylist & { tracks?: DbTrack[] }): Playlist {
+    const iPlaylist: IPlaylist = {
       id: playlist.id,
       name: playlist.name ?? undefined,
       type: (playlist.type as IPlaylist["type"]) ?? undefined,
@@ -89,5 +94,6 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
         playlistId: track.playlistId ?? undefined,
       })),
     };
+    return new Playlist(iPlaylist);
   }
 }

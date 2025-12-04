@@ -43,12 +43,14 @@ export class PlaylistService {
     );
   }
 
-  findAll(includesTracks = true, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {
-    return this.repository.findAll(includesTracks, where);
+  async findAll(includesTracks = true, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {
+    const playlists = await this.repository.findAll(includesTracks, where);
+    return playlists.map((p) => p.toPrimitive());
   }
 
-  findOne(id: string): Promise<IPlaylist | null> {
-    return this.repository.findOne(id);
+  async findOne(id: string): Promise<IPlaylist | null> {
+    const playlist = await this.repository.findOne(id);
+    return playlist ? playlist.toPrimitive() : null;
   }
 
   async remove(id: string): Promise<void> {
@@ -91,7 +93,7 @@ export class PlaylistService {
   async save(playlist: IPlaylist): Promise<IPlaylist> {
     const savedPlaylist = await this.repository.save(playlist);
     this.eventBus.emit("playlists-updated");
-    return savedPlaylist;
+    return savedPlaylist.toPrimitive();
   }
 
   async update(id: string, playlist: Partial<IPlaylist>): Promise<void> {
