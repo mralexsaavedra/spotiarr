@@ -10,6 +10,12 @@ export const useUpdateSettingsMutation = () => {
       settingsService.updateSettings(settings),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.settings });
+      queryClient.invalidateQueries({ queryKey: queryKeys.releases });
+      queryClient.invalidateQueries({ queryKey: queryKeys.followedArtists });
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "artist-detail" || query.queryKey[0] === "artist-albums",
+      });
     },
   });
 };
