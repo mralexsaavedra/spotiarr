@@ -22,7 +22,9 @@ const ERROR_RENDERERS: Partial<Record<ApiErrorCode, FC<ErrorRendererProps>>> = {
     </div>
   ),
   spotify_rate_limited: ({ className }) => (
-    <div className={`flex items-center gap-2 text-text-secondary ${className}`}>
+    <div
+      className={`flex-1 flex items-center justify-center gap-2 text-text-secondary ${className}`}
+    >
       <RateLimitedMessage />
     </div>
   ),
