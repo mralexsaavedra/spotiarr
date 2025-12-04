@@ -101,6 +101,30 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 | `pnpm start:be` | Backend only (API + SSE)                 | 3000        |
 | `pnpm start:fe` | Frontend only (Vite dev server with HMR) | 5173        |
 
+### Environment Variables
+
+**User-facing variables** (documented in README):
+
+- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` - Required
+- `PUBLIC_HOST` - Public hostname/IP (default: `localhost`)
+- `YT_COOKIES` - Optional YouTube cookies
+
+**Internal/Auto-configured variables** (for developers):
+
+| Variable               | Default (dev)  | Default (prod)                    | Description                            |
+| ---------------------- | -------------- | --------------------------------- | -------------------------------------- |
+| `NODE_ENV`             | `development`  | `production` (set in Dockerfile)  | Controls HTTP vs HTTPS, port selection |
+| `SPOTIFY_REDIRECT_URI` | Auto-generated | Auto-generated from `PUBLIC_HOST` | OAuth callback URL                     |
+| `REDIS_HOST`           | `localhost`    | `redis` (Docker service name)     | Redis hostname                         |
+| `REDIS_PORT`           | `6379`         | `6379`                            | Redis port                             |
+| `DATABASE_URL`         | Auto-set       | `file:/spotiarr/config/db.sqlite` | SQLite database path                   |
+| `DOWNLOADS_PATH`       | `./downloads`  | `/downloads` (Docker volume)      | Where downloaded files are saved       |
+
+**How URLs are constructed:**
+
+- **Development:** `http://PUBLIC_HOST:5173` (Vite dev server)
+- **Production:** `https://PUBLIC_HOST:3000` (backend with auto-generated SSL certs)
+
 ## Project Structure
 
 ```

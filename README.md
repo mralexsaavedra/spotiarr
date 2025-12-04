@@ -107,22 +107,21 @@ pnpm dev
 
 ### Environment Variables
 
-| Variable                | Required | Default        | Description                                                                        |
-| ----------------------- | -------- | -------------- | ---------------------------------------------------------------------------------- |
-| `SPOTIFY_CLIENT_ID`     | ✅       | -              | Spotify app Client ID                                                              |
-| `SPOTIFY_CLIENT_SECRET` | ✅       | -              | Spotify app Client Secret                                                          |
-| `PUBLIC_HOST`           | ❌       | `localhost`    | Public hostname or IP (e.g., `X.X.X.X` or `spotiarr.yourdomain.com`)               |
-| `SPOTIFY_REDIRECT_URI`  | ❌       | Auto-generated | Override OAuth callback if needed (auto-built from `PUBLIC_HOST`)                  |
-| `REDIS_HOST`            | ❌       | `localhost`    | Redis hostname (`redis` for Docker)                                                |
-| `REDIS_PORT`            | ❌       | `6379`         | Redis port                                                                         |
-| `YT_COOKIES`            | ❌       | -              | YouTube cookies for yt-dlp ([how to get](#youtube-cookies))                        |
-| `NODE_ENV`              | ❌       | `development`  | Environment mode (`development` = HTTP, `production` = HTTPS) - auto-set in Docker |
-| `DATABASE_URL`          | ❌       | Auto-set       | SQLite database path - auto-configured                                             |
+**User-configurable variables:**
 
-**Note:** Protocol (HTTP/HTTPS) and port are automatic based on `NODE_ENV`:
+| Variable                | Required | Default     | Description                                                          |
+| ----------------------- | -------- | ----------- | -------------------------------------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | ✅       | -           | Spotify app Client ID                                                |
+| `SPOTIFY_CLIENT_SECRET` | ✅       | -           | Spotify app Client Secret                                            |
+| `PUBLIC_HOST`           | ❌       | `localhost` | Public hostname or IP (e.g., `X.X.X.X` or `spotiarr.yourdomain.com`) |
+| `YT_COOKIES`            | ❌       | -           | YouTube cookies for yt-dlp ([how to get](#youtube-cookies))          |
+
+**Note:** Protocol (HTTP/HTTPS) and port are automatic based on environment:
 
 - **Development:** `http://localhost:5173` (Vite dev server)
 - **Production:** `https://PUBLIC_HOST:3000` (with auto-generated SSL certificates)
+
+> For advanced/internal variables, see [CONTRIBUTING.md](CONTRIBUTING.md#environment-variables)
 
 ### In-App Settings
 
