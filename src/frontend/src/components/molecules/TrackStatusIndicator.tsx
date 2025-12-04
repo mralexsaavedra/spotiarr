@@ -23,16 +23,24 @@ const STATUS_RENDERERS: Partial<
         <FontAwesomeIcon icon="rotate-right" />
       </button>
     ) : (
-      <FontAwesomeIcon icon="triangle-exclamation" className="text-red-500" title="Error" />
+      <span title="Error" className="cursor-help">
+        <FontAwesomeIcon icon="triangle-exclamation" className="text-red-500" />
+      </span>
     ),
   [TrackStatusEnum.Downloading]: () => (
-    <FontAwesomeIcon icon="spinner" spin className="text-primary" title="Downloading..." />
+    <span title="Downloading..." className="cursor-wait">
+      <FontAwesomeIcon icon="spinner" spin className="text-primary" />
+    </span>
   ),
   [TrackStatusEnum.Queued]: () => (
-    <FontAwesomeIcon icon={["far", "clock"]} className="text-text-secondary" title="Queued" />
+    <span title="Queued" className="cursor-help">
+      <FontAwesomeIcon icon={["far", "clock"]} className="text-text-secondary" />
+    </span>
   ),
   [TrackStatusEnum.Searching]: () => (
-    <FontAwesomeIcon icon="magnifying-glass" className="text-text-secondary" title="Searching..." />
+    <span title="Searching..." className="cursor-wait">
+      <FontAwesomeIcon icon="magnifying-glass" className="text-text-secondary" />
+    </span>
   ),
 };
 
