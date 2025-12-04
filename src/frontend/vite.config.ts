@@ -23,22 +23,16 @@ export default defineConfig({
       },
     },
     fs: {
-      allow: [
-        // Monorepo shared code one level up
-        resolve(__dirname, ".."),
-        // Project root (where top-level node_modules/.pnpm lives)
-        resolve(__dirname, "..", ".."),
-      ],
+      allow: [resolve(__dirname, ".."), resolve(__dirname, "..", "..")],
     },
   },
   build: {
     outDir: "./dist",
     emptyOutDir: true,
-    sourcemap: false, // Disable source maps in production for smaller bundle
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor chunks for better caching
           "react-vendor": ["react", "react-dom", "react-router-dom"],
           "query-vendor": ["@tanstack/react-query"],
           "fontawesome-vendor": [
@@ -51,9 +45,7 @@ export default defineConfig({
         },
       },
     },
-    // Increase chunk size warning limit (default is 500kb)
     chunkSizeWarningLimit: 1000,
-    // Minification settings
     minify: "esbuild",
     target: "esnext",
   },

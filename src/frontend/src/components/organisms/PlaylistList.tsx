@@ -12,7 +12,6 @@ const PlaylistListItem: FC<PlaylistListItemProps> = memo(
   ({ playlist, onClick }) => {
     return <PlaylistCard playlist={playlist} stats={playlist.stats} onClick={onClick} />;
   },
-  // Custom comparator: only re-render if playlist data changes
   (prevProps, nextProps) => {
     return (
       prevProps.playlist.id === nextProps.playlist.id &&

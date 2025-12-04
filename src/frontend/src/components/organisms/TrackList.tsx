@@ -76,7 +76,6 @@ const TrackListItem: FC<TrackListItemProps> = memo(
     );
   },
   (prevProps, nextProps) => {
-    // Custom comparator: only re-render if data props change
     return (
       prevProps.track.id === nextProps.track.id &&
       prevProps.status === nextProps.status &&
@@ -93,7 +92,6 @@ interface TrackListProps {
 export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
   const { getBulkTrackStatus } = useDownloadStatusContext();
 
-  // Pre-calculate track statuses for all tracks (performance optimization)
   const trackStatusesMap = useMemo(() => {
     const urls = tracks.map((t) => t.trackUrl);
     return getBulkTrackStatus(urls);

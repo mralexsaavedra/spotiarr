@@ -7,6 +7,6 @@ export const useDownloadStatusQuery = () => {
   return useQuery<DownloadStatusResponse>({
     queryKey: queryKeys.downloadStatus,
     queryFn: () => playlistService.getDownloadStatus(),
-    staleTime: Infinity, // Keep data fresh until invalidated
+    staleTime: Infinity,
   });
 };

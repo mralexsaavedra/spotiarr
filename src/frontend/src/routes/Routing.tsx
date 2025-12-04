@@ -5,7 +5,6 @@ import { RouteErrorBoundary } from "../components/errors/RouteErrorBoundary";
 import { AppLayout } from "../components/layouts/AppLayout";
 import { Path } from "./routes";
 
-// Lazy load views
 const Home = lazy(() => import("../views/Home").then((module) => ({ default: module.Home })));
 const PlaylistDetail = lazy(() =>
   import("../views/PlaylistDetail").then((module) => ({ default: module.PlaylistDetail })),

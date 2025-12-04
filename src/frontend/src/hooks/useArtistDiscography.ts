@@ -71,10 +71,8 @@ export const useArtistDiscography = ({
   }, [allAlbums, filter]);
 
   const handleShowMore = useCallback(() => {
-    // Increase visible items
     setVisibleItems((prev) => prev + pageSize);
 
-    // Trigger fetch if we need more albums
     if (!hasFetchedAll && visibleItems + pageSize >= allAlbums.length) {
       setOffset((prev) => prev + pageSize);
     }

@@ -52,7 +52,7 @@ export const useArtistDetailController = () => {
       name: t.name,
       artist: artist.name,
       artists: [{ name: artist.name, url: artist.spotifyUrl || "" }],
-      album: "", // Top tracks don't always have album info here
+      album: "",
       durationMs: t.durationMs,
       status: TrackStatusEnum.New,
       trackUrl: t.trackUrl,

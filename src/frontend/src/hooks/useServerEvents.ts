@@ -12,7 +12,6 @@ export const useServerEvents = () => {
     eventSource.addEventListener("playlists-updated", () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
       queryClient.invalidateQueries({ queryKey: queryKeys.downloadStatus });
-      // Invalidate all track queries as well, since track status affects playlist state
       queryClient.invalidateQueries({
         predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "tracks",
       });
@@ -24,7 +23,6 @@ export const useServerEvents = () => {
 
     eventSource.onerror = (error) => {
       console.error("EventSource failed:", error);
-      // Do not close explicitly; let the browser attempt to reconnect
     };
 
     return () => {

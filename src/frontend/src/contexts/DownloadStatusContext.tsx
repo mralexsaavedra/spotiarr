@@ -20,7 +20,6 @@ const DownloadStatusContext = createContext<DownloadStatusContextValue | null>(n
 export const DownloadStatusProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { data } = useDownloadStatusQuery();
 
-  // Convert API response (Records) to Maps
   const { playlistStatusMap, trackStatusMap, albumTrackCountMap } = useMemo(() => {
     if (!data) {
       return {
@@ -59,11 +58,9 @@ export const DownloadStatusProvider: FC<{ children: ReactNode }> = ({ children }
     (url: string | null | undefined, expectedTrackCount?: number): boolean => {
       if (!url) return false;
 
-      // Check if the playlist/album itself is downloaded
       const status = getPlaylistStatus(url);
       if (status === PlaylistStatusEnum.Completed) return true;
 
-      // Check if we have enough tracks downloaded
       if (expectedTrackCount && expectedTrackCount > 0) {
         const downloadedCount = albumTrackCountMap.get(url) || 0;
         if (downloadedCount >= expectedTrackCount) return true;
@@ -127,7 +124,6 @@ export const DownloadStatusProvider: FC<{ children: ReactNode }> = ({ children }
         const status = playlistStatusMap.get(url);
         let isDownloaded = status === PlaylistStatusEnum.Completed;
 
-        // Check track count if not already marked as downloaded
         if (!isDownloaded && totalTracks && totalTracks > 0) {
           const downloadedCount = albumTrackCountMap.get(url) || 0;
           if (downloadedCount >= totalTracks) {

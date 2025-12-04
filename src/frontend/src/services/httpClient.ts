@@ -19,7 +19,6 @@ export class HttpClient {
         message = shape.message;
       }
 
-      // Global error handling for common Spotify errors
       if (errorCode === "missing_user_access_token") {
         throw new Error("missing_user_access_token");
       }
@@ -28,24 +27,7 @@ export class HttpClient {
         throw new Error("spotify_rate_limited");
       }
 
-      // Specific error handling can be done by the caller if they catch the error,
-      // but we throw a structured error or a standard Error with the message.
-      // For now, we replicate the existing behavior of throwing Errors with specific messages or codes.
-
       if (errorCode) {
-        // If we have a specific error code, we might want to throw that as the message
-        // so callers can check `error.message === 'invalid_playlist_payload'` etc.
-        // The original code did this for 'invalid_playlist_payload'.
-        // It also did it for the spotify errors above.
-        // For others, it threw `message` or `API Error: ...`.
-
-        // Let's throw the errorCode if it exists, otherwise the message.
-        // But wait, the original code only did this for specific codes.
-        // For `createPlaylist`, it checked `invalid_playlist_payload`.
-        // For `getReleases`, it checked `missing_user_access_token`.
-
-        // To be safe and generic, let's attach the errorCode to the Error object
-        // so callers can check it.
         const error = new Error(message ?? errorCode ?? `API Error: ${response.statusText}`);
         (error as any).code = errorCode;
         throw error;

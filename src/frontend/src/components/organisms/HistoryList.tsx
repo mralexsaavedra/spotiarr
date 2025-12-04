@@ -116,7 +116,6 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
       </div>
     );
   },
-  // Custom comparator: only re-render if data props change
   (prevProps, nextProps) => {
     return (
       prevProps.item.playlistSpotifyUrl === nextProps.item.playlistSpotifyUrl &&
@@ -153,7 +152,6 @@ export const HistoryList: FC<HistoryListProps> = ({
     return map;
   }, [activePlaylists]);
 
-  // Pre-calculate download states for all history items (performance optimization)
   const downloadStatesMap = useMemo(() => {
     const urls = history.map((item) => item.playlistSpotifyUrl);
     return getBulkPlaylistStatus(urls);

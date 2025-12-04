@@ -66,7 +66,6 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
       />
     );
   },
-  // Custom comparator: only re-render if data props change
   (prevProps, nextProps) => {
     return (
       prevProps.album.albumId === nextProps.album.albumId &&
@@ -96,7 +95,6 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     [filteredAlbums, visibleItems],
   );
 
-  // Pre-calculate download states for all displayed albums (performance optimization)
   const downloadStatesMap = useMemo(() => {
     const items = displayedItems.map((album) => ({
       url: album.spotifyUrl,

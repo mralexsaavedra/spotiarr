@@ -46,7 +46,6 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
       />
     );
   },
-  // Custom comparator: only re-render if data props change, ignore callback changes
   (prevProps, nextProps) => {
     return (
       prevProps.release.albumId === nextProps.release.albumId &&
@@ -72,7 +71,6 @@ export const ReleasesList: FC<ReleasesListProps> = ({
 }) => {
   const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
-  // Pre-calculate download states for all releases (performance optimization)
   const downloadStatesMap = useMemo(() => {
     const urls = releases.map((r) => r.spotifyUrl);
     return getBulkPlaylistStatus(urls);

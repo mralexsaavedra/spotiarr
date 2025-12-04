@@ -34,8 +34,6 @@ export const useSettingsController = () => {
     }
 
     setValues((prev) => {
-      // If values are already initialized, don't overwrite them to prevent losing user input
-      // during background refetches.
       if (Object.keys(prev).length > 0) return prev;
 
       const newValues: Record<string, string> = {};
