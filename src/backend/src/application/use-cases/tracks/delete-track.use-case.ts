@@ -1,4 +1,4 @@
-import type { TrackRepository } from "../../../domain/interfaces/track.repository";
+import type { TrackRepository } from "../../../domain/interfaces/track-repository.interface";
 import { AppError } from "../../../presentation/middleware/error-handler";
 
 export class DeleteTrackUseCase {

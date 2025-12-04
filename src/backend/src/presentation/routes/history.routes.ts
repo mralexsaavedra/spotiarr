@@ -1,5 +1,5 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { HistoryUseCases } from "../../domain/history/history.use-cases";
+import { HistoryUseCases } from "../../application/use-cases/history/history.use-cases";
 import { PrismaHistoryRepository } from "../../infrastructure/database/prisma-history.repository";
 import { asyncHandler } from "../middleware/async-handler";
 

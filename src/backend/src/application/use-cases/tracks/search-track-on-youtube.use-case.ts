@@ -1,7 +1,7 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { EventBus } from "../../../domain/events/event-bus";
 import type { TrackQueueService } from "../../../domain/interfaces/track-queue.interface";
-import { TrackRepository } from "../../../domain/interfaces/track.repository";
+import { TrackRepository } from "../../../domain/interfaces/track-repository.interface";
 import { YoutubeService } from "../../../infrastructure/external/youtube.service";
 import { SettingsService } from "../../services/settings.service";
 

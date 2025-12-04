@@ -1,5 +1,5 @@
 import type { DownloadHistoryItem, ITrack } from "@spotiarr/shared";
-import type { HistoryRepository } from "../../domain/interfaces/history.repository";
+import type { HistoryRepository } from "../../domain/interfaces/history-repository.interface";
 import { prisma } from "../setup/prisma";
 
 export class PrismaHistoryRepository implements HistoryRepository {

@@ -1,7 +1,7 @@
 import { PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
 import { Playlist } from "../../../domain/entities/playlist.entity";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../../domain/helpers/spotify-url.helper";
-import type { PlaylistRepository } from "../../../domain/interfaces/playlist.repository";
+import type { PlaylistRepository } from "../../../domain/interfaces/playlist-repository.interface";
 import { SpotifyService } from "../../../infrastructure/external/spotify.service";
 import { SettingsService } from "../../services/settings.service";
 import { TrackService } from "../../services/track.service";

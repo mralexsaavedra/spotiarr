@@ -1,5 +1,5 @@
 import type { SettingItem } from "@spotiarr/shared";
-import type { SettingsRepository } from "../../domain/interfaces/settings.repository";
+import type { SettingsRepository } from "../../domain/interfaces/settings-repository.interface";
 import { prisma } from "../setup/prisma";
 
 export class PrismaSettingsRepository implements SettingsRepository {

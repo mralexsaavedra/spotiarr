@@ -1,7 +1,7 @@
 import type { Prisma, Track as DbTrack } from "@prisma/client";
 import type { ITrack, TrackArtist, TrackStatusEnum } from "@spotiarr/shared";
 import { Track } from "../../domain/entities/track.entity";
-import type { TrackRepository } from "../../domain/interfaces/track.repository";
+import type { TrackRepository } from "../../domain/interfaces/track-repository.interface";
 import { prisma } from "../setup/prisma";
 
 export class PrismaTrackRepository implements TrackRepository {
