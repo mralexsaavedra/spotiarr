@@ -1,14 +1,14 @@
 import { SUPPORTED_AUDIO_FORMATS, SupportedAudioFormat, type ITrack } from "@spotiarr/shared";
-import { execSync } from "child_process";
+import { execFile, execSync } from "child_process";
 import * as fs from "fs";
 import * as NodeID3 from "node-id3";
 import * as os from "os";
 import { join } from "path";
+import { promisify } from "util";
 import { YtDlp } from "ytdlp-nodejs";
 import { SettingsService } from "../../application/services/settings.service";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import yts = require("yt-search");
+const execFilePromise = promisify(execFile);
 
 const HEADERS = {
   "User-Agent":
@@ -54,10 +54,35 @@ export class YoutubeService {
 
   async findOnYoutubeOne(artist: string, name: string): Promise<string> {
     console.debug(`Searching ${artist} - ${name} on YT`);
-    const results = await yts(`${artist} - ${name}`);
-    const url = results.videos[0].url;
-    console.debug(`Found ${artist} - ${name} on ${url}`);
-    return url;
+
+    const args = [
+      "--print",
+      "webpage_url",
+      `ytsearch1:${artist} - ${name}`,
+      "--no-warnings",
+      "--no-playlist",
+      "--user-agent",
+      HEADERS["User-Agent"],
+    ];
+
+    if (process.env["YT_COOKIES"]) {
+      args.push("--cookies-from-browser", process.env["YT_COOKIES"]);
+    }
+
+    try {
+      const { stdout } = await execFilePromise(this.ytDlpPath, args);
+      const url = stdout.trim();
+
+      if (!url) {
+        throw new Error("No results found");
+      }
+
+      console.debug(`Found ${artist} - ${name} on ${url}`);
+      return url;
+    } catch (error) {
+      console.error(`Error searching ${artist} - ${name} with yt-dlp:`, error);
+      throw error;
+    }
   }
 
   async downloadAndFormat(track: ITrack, output: string): Promise<void> {
