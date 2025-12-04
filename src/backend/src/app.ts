@@ -10,16 +10,27 @@ import routes from "./presentation/routes";
 export const app: Express = express();
 
 // Security middleware
-const cspDirectives = helmet.contentSecurityPolicy.getDefaultDirectives();
-delete cspDirectives["upgrade-insecure-requests"];
-cspDirectives["img-src"] = ["'self'", "data:", "https:"];
-
+// Security middleware
 app.use(
   helmet({
     contentSecurityPolicy: {
-      directives: cspDirectives,
+      useDefaults: false,
+      directives: {
+        "default-src": ["'self'"],
+        "base-uri": ["'self'"],
+        "font-src": ["'self'", "https:", "data:"],
+        "form-action": ["'self'"],
+        "frame-ancestors": ["'self'"],
+        "img-src": ["'self'", "data:", "https:"],
+        "object-src": ["'none'"],
+        "script-src": ["'self'"],
+        "script-src-attr": ["'none'"],
+        "style-src": ["'self'", "https:", "'unsafe-inline'"],
+        "connect-src": ["'self'"],
+        // Explicitly NO upgrade-insecure-requests
+      },
     },
-    // Disable HSTS and upgrade-insecure-requests for local/http environments
+    // Disable HSTS and other strict headers for local/http environments
     hsts: false,
     crossOriginOpenerPolicy: false,
     crossOriginEmbedderPolicy: false,
