@@ -28,8 +28,13 @@ const envSchema = z
   })
   .transform((data) => {
     // Construct BASE_URL from environment and host
-    const protocol = data.NODE_ENV === "production" ? "https" : "http";
-    const port = data.NODE_ENV === "production" ? "3000" : "5173"; // Vite port in dev
+    // Development: http://localhost:5173 (Vite dev server)
+    // Production: http://localhost:3000 (local build) or https://IP:3000 (Docker with certs)
+    const isDevelopment = data.NODE_ENV === "development";
+    const isLocalhost = data.PUBLIC_HOST === "localhost" || data.PUBLIC_HOST === "127.0.0.1";
+
+    const protocol = isDevelopment || isLocalhost ? "http" : "https";
+    const port = isDevelopment ? "5173" : "3000";
     const BASE_URL = `${protocol}://${data.PUBLIC_HOST}:${port}`;
 
     if (!data.SPOTIFY_REDIRECT_URI) {
