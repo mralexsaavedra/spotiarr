@@ -31,7 +31,7 @@ FROM node:24-alpine
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install runtime dependencies
-RUN apk add --no-cache ffmpeg yt-dlp python3 curl
+RUN apk add --no-cache ffmpeg yt-dlp python3 curl openssl
 
 WORKDIR /spotiarr
 
@@ -40,6 +40,10 @@ RUN mkdir -p /downloads && chown -R node:node /downloads /spotiarr
 
 # Copy root configuration with correct ownership
 COPY --from=builder --chown=node:node /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
+
+# Copy entrypoint script
+COPY --chown=node:node docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 # Copy entire src directory with correct ownership
 COPY --from=builder --chown=node:node /spotiarr/src/ ./src/
@@ -59,8 +63,9 @@ ENV BASE_URL=http://127.0.0.1:3000
 
 EXPOSE 3000
 
-# Healthcheck to ensure the service is running
+# Healthcheck to ensure the service is running (using -k to ignore self-signed cert errors if https)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+  CMD curl -f -k http://localhost:3000/api/health || curl -f -k https://localhost:3000/api/health || exit 1
 
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["sh", "-c", "pnpm --filter backend prisma:migrate:deploy && pnpm start"]
