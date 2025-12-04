@@ -31,25 +31,22 @@ FROM node:24-alpine
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install runtime dependencies
-RUN apk add --no-cache ffmpeg yt-dlp python3 curl openssl
+RUN apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec
 
 WORKDIR /spotiarr
 
-# Create downloads directory and set permissions
-RUN mkdir -p /downloads && chown -R node:node /downloads /spotiarr
+# Create downloads directory
+RUN mkdir -p /downloads
 
-# Copy root configuration with correct ownership
-COPY --from=builder --chown=node:node /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
+# Copy root configuration
+COPY --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
 
 # Copy entrypoint script
-COPY --chown=node:node docker-entrypoint.sh ./
+COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# Copy entire src directory with correct ownership
-COPY --from=builder --chown=node:node /spotiarr/src/ ./src/
-
-# Switch to non-root user
-USER node
+# Copy entire src directory
+COPY --from=builder /spotiarr/src/ ./src/
 
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts

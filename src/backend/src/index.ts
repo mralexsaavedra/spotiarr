@@ -66,7 +66,7 @@ async function bootstrap() {
 
   // Start server
   server.listen(PORT, "0.0.0.0", () => {
-    console.log(`\n✅ Server running on ${protocol}://0.0.0.0:${PORT}`);
+    console.log(`\n✅ Server running on ${env.BASE_URL}`);
     console.log(`📡 API available at ${env.BASE_URL}/api`);
   });
 }
