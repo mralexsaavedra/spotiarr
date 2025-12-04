@@ -3,15 +3,16 @@ set -e
 
 echo "🔧 Entrypoint started..."
 
-# Fix permissions for config and downloads directories
-# We do this as root before switching to node user
+# Fix permissions for config directory (recursive is fine here, it's small)
 echo "🔧 Fixing permissions for /spotiarr/config..."
 mkdir -p /spotiarr/config
 chown -R 1000:1000 /spotiarr/config
 
-echo "🔧 Fixing permissions for /downloads..."
+# Fix permissions for /downloads ROOT ONLY (avoid recursive chown on large libraries)
+echo "🔧 Ensuring /downloads is writable..."
 mkdir -p /downloads
-chown -R 1000:1000 /downloads
+# Only chown the directory itself, not contents
+chown 1000:1000 /downloads
 
 # Check if certificates exist in the config volume
 if [ ! -f "/spotiarr/config/server.key" ] || [ ! -f "/spotiarr/config/server.cert" ]; then
