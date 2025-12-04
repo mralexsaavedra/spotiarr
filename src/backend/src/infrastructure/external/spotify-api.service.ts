@@ -144,12 +144,37 @@ export class SpotifyApiService {
       this.log(`Getting playlist metadata for ${spotifyUrl}`);
 
       const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
-      const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/playlists/${playlistId}?market=US`,
-      );
+      const url = `https://api.spotify.com/v1/playlists/${playlistId}?market=US`;
+
+      // Try with app token first
+      let response = await this.fetchWithAppToken(url);
+
+      // If we get a 404, try with user token (some playlists require user auth)
+      if (response.status === 404) {
+        this.log(`Playlist not accessible with app token, trying user token...`, "warn");
+        try {
+          response = await this.fetchWithUserToken(url);
+        } catch (userTokenError) {
+          // If user token is not available, throw a more helpful error
+          if ((userTokenError as Error & { code?: string }).code === "MISSING_SPOTIFY_USER_TOKEN") {
+            throw new Error(
+              `This playlist requires user authentication. Please configure your Spotify user access token in Settings or set SPOTIFY_USER_ACCESS_TOKEN in your .env file. Playlist ID: ${playlistId}`,
+            );
+          }
+          throw userTokenError;
+        }
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
+
+        // Provide more helpful error messages
+        if (response.status === 404) {
+          throw new Error(
+            `Playlist not found or not accessible. This may be a private playlist or a region-restricted playlist. Playlist ID: ${playlistId}`,
+          );
+        }
+
         throw new Error(`Failed to get playlist metadata: ${response.status} ${errorText}`);
       }
 
@@ -160,7 +185,7 @@ export class SpotifyApiService {
         image: data.images?.[0]?.url ?? "",
       };
     } catch (error) {
-      this.log(`Failed to get playlist metadata: ${(error as Error).message}`);
+      this.log(`Failed to get playlist metadata: ${(error as Error).message}`, "error");
       throw error;
     }
   }
@@ -998,16 +1023,51 @@ export class SpotifyApiService {
         const allTracks: NormalizedTrack[] = [];
         let offset = 0;
         let hasMoreTracks = true;
+        let useUserToken = false; // Track if we need to use user token
 
         while (hasMoreTracks) {
           this.log(`Fetching tracks from Spotify API with offset ${offset}`);
 
-          const response = await this.fetchWithAppToken(
-            `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&market=US&fields=items(track(name,artists(name,external_urls),preview_url,external_urls,album(name,release_date,images,external_urls),track_number,duration_ms)),next`,
-          );
+          const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&market=US&fields=items(track(name,artists(name,external_urls),preview_url,external_urls,album(name,release_date,images,external_urls),track_number,duration_ms)),next`;
+
+          let response: Response;
+
+          // Use the appropriate token based on what worked before
+          if (useUserToken) {
+            response = await this.fetchWithUserToken(url);
+          } else {
+            // Try with app token first
+            response = await this.fetchWithAppToken(url);
+
+            // If we get a 404 on the first request, try with user token
+            if (response.status === 404 && offset === 0) {
+              this.log(`Playlist not accessible with app token, trying user token...`, "warn");
+              try {
+                response = await this.fetchWithUserToken(url);
+                useUserToken = true; // Remember to use user token for subsequent pages
+              } catch (userTokenError) {
+                if (
+                  (userTokenError as Error & { code?: string }).code ===
+                  "MISSING_SPOTIFY_USER_TOKEN"
+                ) {
+                  throw new Error(
+                    `This playlist requires user authentication. Please configure your Spotify user access token in Settings or set SPOTIFY_USER_ACCESS_TOKEN in your .env file. Playlist ID: ${playlistId}`,
+                  );
+                }
+                throw userTokenError;
+              }
+            }
+          }
 
           if (!response.ok) {
             const errorText = await response.text();
+
+            if (response.status === 404) {
+              throw new Error(
+                `Playlist not found or not accessible. This may be a private playlist or a region-restricted playlist. Playlist ID: ${playlistId}`,
+              );
+            }
+
             this.log(`Spotify API error: ${response.status} ${errorText}`);
             throw new Error(`Failed to fetch tracks: ${response.status}`);
           }

@@ -5,7 +5,9 @@ import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();
 const settingsRepository = new PrismaSettingsRepository();
-const SCOPES = ["user-follow-read"].join(" ");
+const SCOPES = ["user-follow-read", "playlist-read-private", "playlist-read-collaborative"].join(
+  " ",
+);
 
 // GET /api/auth/spotify/login - Redirect user to Spotify authorization page
 router.get(
@@ -88,6 +90,50 @@ router.get(
     // TODO: could store expiry if needed; for now we rely on manual refresh or future improvements
 
     res.redirect("/");
+  }),
+);
+
+// GET /api/auth/spotify/status - Check if user is authenticated with Spotify
+router.get(
+  "/spotify/status",
+  asyncHandler(async (_req, res) => {
+    try {
+      const accessToken = await settingsRepository.get("spotify_user_access_token");
+      const refreshToken = await settingsRepository.get("spotify_user_refresh_token");
+
+      res.json({
+        authenticated: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+      });
+    } catch {
+      res.json({
+        authenticated: false,
+        hasRefreshToken: false,
+      });
+    }
+  }),
+);
+
+// POST /api/auth/spotify/logout - Clear Spotify user tokens
+router.post(
+  "/spotify/logout",
+  asyncHandler(async (_req, res) => {
+    try {
+      await settingsRepository.delete("spotify_user_access_token");
+      await settingsRepository.delete("spotify_user_refresh_token");
+
+      res.json({
+        success: true,
+        message: "Successfully logged out from Spotify",
+      });
+    } catch (error) {
+      console.error("Failed to logout from Spotify", error);
+      res.status(500).json({
+        success: false,
+        error: "logout_failed",
+        message: "Failed to clear Spotify authentication",
+      });
+    }
   }),
 );
 

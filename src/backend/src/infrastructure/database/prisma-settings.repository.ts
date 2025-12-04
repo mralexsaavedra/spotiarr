@@ -26,4 +26,14 @@ export class PrismaSettingsRepository implements SettingsRepository {
       create: { key, value, updatedAt: BigInt(now) },
     });
   }
+
+  async delete(key: string): Promise<void> {
+    await prisma.setting
+      .delete({
+        where: { key },
+      })
+      .catch(() => {
+        // Ignore if key doesn't exist
+      });
+  }
 }
