@@ -54,6 +54,15 @@ export class Track {
     this.props.status = TrackStatusEnum.Queued;
   }
 
+  markAsSearching() {
+    this.props.status = TrackStatusEnum.Searching;
+  }
+
+  markAsNew() {
+    this.props.status = TrackStatusEnum.New;
+    this.props.error = undefined;
+  }
+
   toPrimitive(): ITrack {
     return { ...this.props };
   }

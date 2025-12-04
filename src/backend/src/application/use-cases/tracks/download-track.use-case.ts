@@ -1,4 +1,4 @@
-import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
 import { EventBus } from "../../../domain/events/event-bus";
@@ -24,26 +24,27 @@ export class DownloadTrackUseCase {
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(track: ITrack): Promise<void> {
-    // Validate track exists
-    if (!track.id || !(await this.trackRepository.findOne(track.id))) {
+  async execute(trackData: ITrack): Promise<void> {
+    // Validate track exists and get Entity
+    if (!trackData.id) return;
+    const track = await this.trackRepository.findOne(trackData.id);
+
+    if (!track || !track.id) {
       return;
     }
 
     // Validate required fields
-    this.validateTrack(track);
+    this.validateTrack(track.toPrimitive());
 
     // Update status to Downloading
-    await this.trackRepository.update(track.id, {
-      ...track,
-      status: TrackStatusEnum.Downloading,
-    });
+    track.markAsDownloading();
+    await this.trackRepository.update(track.id, track);
     this.eventBus.emit("playlists-updated");
 
     let error: string | undefined;
 
     try {
-      await this.downloadAndProcessTrack(track);
+      await this.downloadAndProcessTrack(track.toPrimitive());
     } catch (err) {
       console.error(
         `Failed to download track: ${track.artist} - ${track.name}`,
@@ -53,28 +54,30 @@ export class DownloadTrackUseCase {
     }
 
     // Update final status
-    const updatedTrack = {
-      ...track,
-      status: error ? TrackStatusEnum.Error : TrackStatusEnum.Completed,
-      ...(error ? { error } : {}),
-      ...(!error ? { completedAt: Date.now() } : {}),
-    };
+    if (error) {
+      track.markAsError(error);
+    } else {
+      track.markAsCompleted();
+    }
 
-    await this.trackRepository.update(track.id, updatedTrack);
+    await this.trackRepository.update(track.id, track);
 
     // Persist in download history when successful
     if (!error) {
       // We need playlist info; reload with relations so playlist is present
+      // Note: findOneWithPlaylist returns Track entity now
       const persistedTrack = await this.trackRepository.findOneWithPlaylist(track.id);
-      if (persistedTrack && persistedTrack.completedAt) {
-        await this.downloadHistoryRepository.createFromTrack(persistedTrack);
+      if (persistedTrack) {
+        // downloadHistoryRepository likely expects ITrack, check this later.
+        // Assuming it expects ITrack for now as we haven't touched it.
+        await this.downloadHistoryRepository.createFromTrack(persistedTrack.toPrimitive());
         this.eventBus.emit("download-history-updated");
       }
     }
 
     // Generate M3U if successful
     if (!error && track.playlistId) {
-      await this.generateM3uIfNeeded(track);
+      await this.generateM3uIfNeeded(track.toPrimitive());
     }
 
     // Notify playlists have changed (track status affects playlist state)

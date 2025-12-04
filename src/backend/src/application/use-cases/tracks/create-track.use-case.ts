@@ -10,6 +10,6 @@ export class CreateTrackUseCase {
 
   async execute(track: Partial<ITrack>): Promise<void> {
     const savedTrack = await this.trackRepository.save(track as ITrack);
-    await this.queueService.enqueueSearchTrack(savedTrack);
+    await this.queueService.enqueueSearchTrack(savedTrack.toPrimitive());
   }
 }

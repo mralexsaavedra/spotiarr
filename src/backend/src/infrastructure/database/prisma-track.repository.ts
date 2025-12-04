@@ -1,84 +1,89 @@
 import type { Prisma, Track as DbTrack } from "@prisma/client";
 import type { ITrack, TrackArtist, TrackStatusEnum } from "@spotiarr/shared";
+import { Track } from "../../domain/entities/track.entity";
 import type { TrackRepository } from "../../domain/interfaces/track.repository";
 import { prisma } from "../setup/prisma";
 
 export class PrismaTrackRepository implements TrackRepository {
-  async findAll(where?: Partial<ITrack>): Promise<ITrack[]> {
+  async findAll(where?: Partial<ITrack>): Promise<Track[]> {
     const tracks = await prisma.track.findMany({
       where: where as Prisma.TrackWhereInput | undefined,
       include: { playlist: true },
     });
-    return tracks.map((t) => this.mapToITrack(t));
+    return tracks.map((t) => this.mapToTrack(t));
   }
 
-  async findAllByPlaylist(playlistId: string): Promise<ITrack[]> {
+  async findAllByPlaylist(playlistId: string): Promise<Track[]> {
     const tracks = await prisma.track.findMany({
       where: { playlistId },
       include: { playlist: true },
     });
-    return tracks.map((t) => this.mapToITrack(t));
+    return tracks.map((t) => this.mapToTrack(t));
   }
 
-  async findOne(id: string): Promise<ITrack | null> {
+  async findOne(id: string): Promise<Track | null> {
     const track = await prisma.track.findUnique({ where: { id } });
-    return track ? this.mapToITrack(track) : null;
+    return track ? this.mapToTrack(track) : null;
   }
 
-  async findOneWithPlaylist(id: string): Promise<ITrack | null> {
+  async findOneWithPlaylist(id: string): Promise<Track | null> {
     const track = await prisma.track.findUnique({
       where: { id },
       include: { playlist: true },
     });
-    return track ? this.mapToITrack(track) : null;
+    return track ? this.mapToTrack(track) : null;
   }
 
-  async save(track: ITrack): Promise<ITrack> {
+  async save(track: ITrack | Track): Promise<Track> {
+    const data = track instanceof Track ? track.toPrimitive() : track;
+
     const created = await prisma.track.create({
       data: {
-        id: track.id,
-        name: track.name,
-        artist: track.artist,
-        album: track.album,
-        albumUrl: track.albumUrl ?? null,
-        albumYear: track.albumYear,
-        trackNumber: track.trackNumber,
-        durationMs: track.durationMs,
-        spotifyUrl: track.spotifyUrl,
-        trackUrl: track.trackUrl,
-        artists: (track.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput,
-        youtubeUrl: track.youtubeUrl,
-        status: track.status || "New",
-        error: track.error,
-        createdAt: track.createdAt ? BigInt(track.createdAt) : BigInt(Date.now()),
-        completedAt: track.completedAt ? BigInt(track.completedAt) : null,
-        playlistId: track.playlistId,
+        id: data.id,
+        name: data.name,
+        artist: data.artist,
+        album: data.album,
+        albumUrl: data.albumUrl ?? null,
+        albumYear: data.albumYear,
+        trackNumber: data.trackNumber,
+        durationMs: data.durationMs,
+        spotifyUrl: data.spotifyUrl,
+        trackUrl: data.trackUrl,
+        artists: (data.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput,
+        youtubeUrl: data.youtubeUrl,
+        status: data.status || "New",
+        error: data.error,
+        createdAt: data.createdAt ? BigInt(data.createdAt) : BigInt(Date.now()),
+        completedAt: data.completedAt ? BigInt(data.completedAt) : null,
+        playlistId: data.playlistId,
       },
     });
-    return this.mapToITrack(created);
+    return this.mapToTrack(created);
   }
 
-  async update(id: string, track: Partial<ITrack>): Promise<void> {
+  async update(id: string, track: Partial<ITrack> | Track): Promise<void> {
+    const data = track instanceof Track ? track.toPrimitive() : track;
+
     await prisma.track.update({
       where: { id },
       data: {
-        name: track.name,
-        artist: track.artist,
-        album: track.album,
-        albumUrl: track.albumUrl ?? null,
-        albumYear: track.albumYear,
-        trackNumber: track.trackNumber,
-        durationMs: track.durationMs,
-        spotifyUrl: track.spotifyUrl,
-        trackUrl: track.trackUrl,
+        name: data.name,
+        artist: data.artist,
+        album: data.album,
+        albumUrl: data.albumUrl ?? null,
+        albumYear: data.albumYear,
+        trackNumber: data.trackNumber,
+        durationMs: data.durationMs,
+        spotifyUrl: data.spotifyUrl,
+        trackUrl: data.trackUrl,
         artists:
-          track.artists !== undefined
-            ? ((track.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput)
+          data.artists !== undefined
+            ? ((data.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput)
             : undefined,
-        youtubeUrl: track.youtubeUrl,
-        status: track.status,
-        error: track.error,
-        completedAt: track.completedAt ? BigInt(track.completedAt) : undefined,
+        youtubeUrl: data.youtubeUrl,
+        status: data.status,
+        error: data.error,
+        completedAt: data.completedAt ? BigInt(data.completedAt) : undefined,
       },
     });
   }
@@ -91,7 +96,7 @@ export class PrismaTrackRepository implements TrackRepository {
     await prisma.track.deleteMany({ where: { id: { in: ids } } });
   }
 
-  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
+  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<Track[]> {
     const tracks = await prisma.track.findMany({
       where: {
         status: { in: statuses },
@@ -99,11 +104,11 @@ export class PrismaTrackRepository implements TrackRepository {
       },
       include: { playlist: true },
     });
-    return tracks.map((t) => this.mapToITrack(t));
+    return tracks.map((t) => this.mapToTrack(t));
   }
 
-  private mapToITrack(track: DbTrack): ITrack {
-    return {
+  private mapToTrack(track: DbTrack): Track {
+    const iTrack: ITrack = {
       id: track.id,
       name: track.name,
       artist: track.artist,
@@ -122,5 +127,6 @@ export class PrismaTrackRepository implements TrackRepository {
       completedAt: track.completedAt ? Number(track.completedAt) : undefined,
       playlistId: track.playlistId ?? undefined,
     };
+    return new Track(iTrack);
   }
 }

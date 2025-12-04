@@ -1,4 +1,3 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
 import type { TrackQueueService } from "../../../domain/interfaces/track-queue.interface";
 import type { TrackRepository } from "../../../domain/interfaces/track.repository";
 import { AppError } from "../../../presentation/middleware/error-handler";
@@ -14,7 +13,8 @@ export class RetryTrackDownloadUseCase {
     if (!track) {
       throw new AppError(404, "track_not_found");
     }
-    await this.queueService.enqueueSearchTrack(track);
-    await this.trackRepository.update(id, { status: TrackStatusEnum.New });
+    track.markAsNew();
+    await this.trackRepository.update(id, track);
+    await this.queueService.enqueueSearchTrack(track.toPrimitive());
   }
 }

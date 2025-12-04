@@ -24,39 +24,33 @@ export class SearchTrackOnYoutubeUseCase {
       return;
     }
 
-    await this.trackRepository.update(track.id, {
-      ...existingTrack,
-      status: TrackStatusEnum.Searching,
-    });
+    existingTrack.markAsSearching();
+    await this.trackRepository.update(track.id, existingTrack);
     this.eventBus.emit("playlists-updated");
-
-    let updatedTrack: ITrack;
 
     try {
       const youtubeUrl = await this.youtubeService.findOnYoutubeOne(
         existingTrack.artist,
         existingTrack.name,
       );
-      updatedTrack = { ...existingTrack, youtubeUrl, status: TrackStatusEnum.Queued };
+      existingTrack.markAsQueued(youtubeUrl);
     } catch (error) {
       console.error(
         `Failed to find track on YouTube: ${existingTrack.artist} - ${existingTrack.name}`,
         error instanceof Error ? error.stack : String(error),
       );
-      updatedTrack = {
-        ...existingTrack,
-        error: error instanceof Error ? error.message : String(error),
-        status: TrackStatusEnum.Error,
-      };
+      existingTrack.markAsError(error instanceof Error ? error.message : String(error));
     }
 
-    await this.trackRepository.update(track.id, updatedTrack);
+    await this.trackRepository.update(track.id, existingTrack);
     this.eventBus.emit("playlists-updated");
 
-    if (updatedTrack.youtubeUrl && updatedTrack.status === TrackStatusEnum.Queued) {
+    if (existingTrack.youtubeUrl && existingTrack.status === TrackStatusEnum.Queued) {
       const maxRetries = await this.settingsService.getNumber("DOWNLOAD_MAX_RETRIES");
       const safeMaxRetries = maxRetries >= 1 && maxRetries <= 10 ? maxRetries : 3;
-      await this.queueService.enqueueDownloadTrack(updatedTrack, { maxRetries: safeMaxRetries });
+      await this.queueService.enqueueDownloadTrack(existingTrack.toPrimitive(), {
+        maxRetries: safeMaxRetries,
+      });
     }
   }
 }

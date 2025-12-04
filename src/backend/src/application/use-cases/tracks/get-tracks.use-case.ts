@@ -5,14 +5,17 @@ export class GetTracksUseCase {
   constructor(private readonly trackRepository: TrackRepository) {}
 
   async getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
-    return this.trackRepository.findAll(where);
+    const tracks = await this.trackRepository.findAll(where);
+    return tracks.map((t) => t.toPrimitive());
   }
 
   async getAllByPlaylist(id: string): Promise<ITrack[]> {
-    return this.trackRepository.findAllByPlaylist(id);
+    const tracks = await this.trackRepository.findAllByPlaylist(id);
+    return tracks.map((t) => t.toPrimitive());
   }
 
   async get(id: string): Promise<ITrack | null> {
-    return this.trackRepository.findOne(id);
+    const track = await this.trackRepository.findOne(id);
+    return track ? track.toPrimitive() : null;
   }
 }
