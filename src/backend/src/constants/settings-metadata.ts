@@ -13,11 +13,11 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
   },
   PLAYLIST_CHECK_INTERVAL_MINUTES: {
     key: "PLAYLIST_CHECK_INTERVAL_MINUTES",
-    defaultValue: "1",
+    defaultValue: "60",
     type: "number",
     component: "input",
     section: "Playlists",
-    min: 1,
+    min: 30,
     max: 1440,
     label: "Playlist check interval (minutes)",
     description:
