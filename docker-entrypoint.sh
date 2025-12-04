@@ -12,7 +12,8 @@ chown -R 1000:1000 /spotiarr/config
 echo "🔧 Ensuring /downloads is writable..."
 mkdir -p /downloads
 # Only chown the directory itself, not contents
-chown 1000:1000 /downloads
+# This may fail if /downloads is a host mount - that's OK, continue anyway
+chown 1000:1000 /downloads 2>/dev/null || echo "⚠️  Could not change ownership of /downloads (host mount?). Continuing..."
 
 # Check if certificates exist in the config volume
 if [ ! -f "/spotiarr/config/server.key" ] || [ ! -f "/spotiarr/config/server.cert" ]; then
