@@ -1,7 +1,6 @@
 import { ApiRoutes } from "@spotiarr/shared";
 import cors from "cors";
 import express, { type Express } from "express";
-import fs from "fs";
 import helmet from "helmet";
 import path from "path";
 import { errorHandler } from "./presentation/middleware/error-handler";
@@ -10,31 +9,18 @@ import routes from "./presentation/routes";
 export const app: Express = express();
 
 // Security middleware
-// Security middleware
 app.use(
   helmet({
     contentSecurityPolicy: {
-      useDefaults: false,
       directives: {
-        "default-src": ["'self'"],
-        "base-uri": ["'self'"],
-        "font-src": ["'self'", "https:", "data:"],
-        "form-action": ["'self'"],
-        "frame-ancestors": ["'self'"],
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
         "img-src": ["'self'", "data:", "https:"],
-        "object-src": ["'none'"],
-        "script-src": ["'self'"],
-        "script-src-attr": ["'none'"],
-        "style-src": ["'self'", "https:", "'unsafe-inline'"],
-        "connect-src": ["'self'"],
-        // Explicitly NO upgrade-insecure-requests
+        "script-src": ["'self'", "'unsafe-inline'"], // Needed for some inline scripts if any
+        "style-src": ["'self'", "https:", "'unsafe-inline'"], // Needed for inline styles
+        "upgrade-insecure-requests": null, // This removes the directive cleanly
       },
     },
-    // Disable HSTS and other strict headers for local/http environments
-    hsts: false,
-    crossOriginOpenerPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    originAgentCluster: false,
+    hsts: false, // Disable HSTS for local dev
   }),
 );
 app.use(cors());
@@ -48,14 +34,6 @@ app.use(ApiRoutes.BASE, routes);
 
 // Serve static files (frontend)
 const frontendPath = path.resolve(__dirname, "../../frontend/dist");
-console.log("📂 Frontend Path:", frontendPath);
-
-if (fs.existsSync(frontendPath)) {
-  console.log("📂 Frontend files found:", fs.readdirSync(frontendPath));
-} else {
-  console.error("❌ Frontend path does not exist:", frontendPath);
-}
-
 app.use(express.static(frontendPath));
 
 // Catch-all for SPA routing (must come before error handler)
