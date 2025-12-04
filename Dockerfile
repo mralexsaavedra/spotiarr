@@ -55,6 +55,7 @@ RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 RUN pnpm --filter backend prisma:generate
 
 # Default downloads path inside the container; can be overridden by env if needed
+ENV NODE_ENV=production
 ENV DOWNLOADS_PATH=/downloads
 ENV BASE_URL=http://127.0.0.1:3000
 ENV DATABASE_URL="file:/spotiarr/config/db.sqlite"

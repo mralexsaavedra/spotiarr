@@ -19,12 +19,6 @@ const envSchema = z
     DOWNLOADS_PATH: z.string().min(1, "DOWNLOADS_PATH is required"),
 
     // Optional
-    PORT: z
-      .string()
-      .regex(/^\d+$/)
-      .transform(Number)
-      .optional()
-      .default("3000" as unknown as number),
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
     DATABASE_URL: z.string().optional(),
   })
