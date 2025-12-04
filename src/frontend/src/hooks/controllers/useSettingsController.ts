@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useToast } from "../../contexts/ToastContext";
 import { useUpdateSettingsMutation } from "../mutations/useUpdateSettingsMutation";
 import { useSettingsMetadataQuery } from "../queries/useSettingsMetadataQuery";
 import { useSettingsQuery } from "../queries/useSettingsQuery";
@@ -18,6 +19,7 @@ export const useSettingsController = () => {
   const { data: metadata = {}, isLoading: metadataLoading } = useSettingsMetadataQuery();
   const { data: availableFormats = ["mp3"] } = useSupportedFormatsQuery();
   const updateSettings = useUpdateSettingsMutation();
+  const { success, error } = useToast();
 
   const [values, setValues] = useState<Record<string, string>>({});
 
@@ -63,10 +65,17 @@ export const useSettingsController = () => {
         .filter((s): s is { key: string; value: string } => s !== null);
 
       if (settingsToUpdate.length > 0) {
-        updateSettings.mutate(settingsToUpdate);
+        updateSettings.mutate(settingsToUpdate, {
+          onSuccess: () => {
+            success("Settings saved successfully");
+          },
+          onError: () => {
+            error("Failed to save settings");
+          },
+        });
       }
     },
-    [values, metadata, getValue, updateSettings],
+    [values, metadata, getValue, updateSettings, success, error],
   );
 
   const handleChange = useCallback((key: string) => {
