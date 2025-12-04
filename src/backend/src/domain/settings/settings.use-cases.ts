@@ -1,4 +1,5 @@
 import type { SettingItem } from "@spotiarr/shared";
+import { SpotifyApiService } from "../../infrastructure/external/spotify-api.service";
 import type { SettingsRepository } from "../interfaces/settings.repository";
 
 export interface SettingsUseCaseDependencies {
@@ -14,5 +15,8 @@ export class SettingsUseCases {
 
   async update(key: string, value: string): Promise<void> {
     await this.deps.repository.set(key, value);
+
+    const spotifyService = SpotifyApiService.getInstance();
+    spotifyService.clearCache();
   }
 }

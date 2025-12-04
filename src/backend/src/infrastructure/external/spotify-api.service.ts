@@ -132,6 +132,11 @@ export class SpotifyApiService {
     });
   }
 
+  clearCache(): void {
+    this.cache.clear();
+    this.log("Cache cleared");
+  }
+
   private log(message: string, level: "debug" | "error" | "warn" = "debug") {
     const prefix = `[SpotifyApiService]`;
     if (level === "error") console.error(prefix, message);

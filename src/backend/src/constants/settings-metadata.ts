@@ -32,7 +32,6 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     label: "Automatically generate M3U playlists",
     description: "When enabled, an M3U file will be created/updated for each completed playlist.",
   },
-
   RELEASES_LOOKBACK_DAYS: {
     key: "RELEASES_LOOKBACK_DAYS",
     defaultValue: "14",
