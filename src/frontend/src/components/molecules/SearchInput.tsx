@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, FC, KeyboardEvent, useCallback } from "react";
+import { cn } from "../../utils/cn";
 
 interface SearchInputProps {
   value: string;
@@ -33,10 +34,10 @@ export const SearchInput: FC<SearchInputProps> = ({
   );
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={cn("relative", className)}>
       <FontAwesomeIcon
         icon="magnifying-glass"
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-xs pointer-events-none"
+        className="absolute text-xs -translate-y-1/2 pointer-events-none left-3 top-1/2 text-text-secondary"
       />
       <input
         type="text"

@@ -1,15 +1,18 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
+import { cn } from "../../utils/cn";
 
 interface LoadingProps {
+  message?: string;
   className?: string;
 }
 
-export const Loading: FC<LoadingProps> = ({ className = "" }) => {
+export const Loading: FC<LoadingProps> = ({ message, className = "" }) => {
   return (
-    <div className={`flex-1 flex items-center justify-center min-h-[50vh] ${className}`}>
-      <div className="relative w-12 h-12">
-        <div className="absolute top-0 left-0 w-full h-full border-4 border-background-elevated rounded-full"></div>
-        <div className="absolute top-0 left-0 w-full h-full border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+    <div className={cn("flex-1 flex items-center justify-center min-h-[50vh]", className)}>
+      <div className="space-y-3 text-center">
+        <FontAwesomeIcon icon="circle-notch" spin className="text-4xl text-primary" />
+        {message && <p className="text-text-secondary animate-pulse">{message}</p>}
       </div>
     </div>
   );

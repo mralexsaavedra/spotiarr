@@ -1,21 +1,22 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
+import { cn } from "../../utils/cn";
 
 interface EmptyStateProps {
   icon: IconProp;
   title: string;
-  description: string;
+  description?: string;
   className?: string;
 }
 
 export const EmptyState: FC<EmptyStateProps> = ({ icon, title, description, className = "" }) => {
   return (
-    <div className={`flex items-center justify-center py-16 ${className}`}>
-      <div className="text-center space-y-4 max-w-md px-4">
-        <FontAwesomeIcon icon={icon} className="text-6xl text-text-secondary" />
-        <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
-        <p className="text-text-secondary">{description}</p>
+    <div className={cn("flex items-center justify-center py-16", className)}>
+      <div className="space-y-2 text-center">
+        <FontAwesomeIcon icon={icon} className="mb-2 text-4xl opacity-50 text-text-secondary" />
+        <h3 className="text-lg font-bold text-text-primary">{title}</h3>
+        {description && <p className="max-w-sm text-sm text-text-secondary">{description}</p>}
       </div>
     </div>
   );
