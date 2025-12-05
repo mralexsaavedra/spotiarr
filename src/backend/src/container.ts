@@ -89,7 +89,6 @@ const trackService = new TrackService({
   getTracksUseCase,
   retryTrackDownloadUseCase,
   updateTrackUseCase,
-  trackFileHelper,
 });
 
 // Use Cases - Settings

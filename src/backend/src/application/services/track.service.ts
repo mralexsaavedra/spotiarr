@@ -1,5 +1,4 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
-import { FileSystemTrackPathService } from "../../infrastructure/services/file-system-track-path.service";
 import { CreateTrackUseCase } from "../use-cases/tracks/create-track.use-case";
 import { DeleteTrackUseCase } from "../use-cases/tracks/delete-track.use-case";
 import { DownloadTrackUseCase } from "../use-cases/tracks/download-track.use-case";
@@ -17,9 +16,6 @@ export interface TrackServiceDependencies {
   getTracksUseCase: GetTracksUseCase;
   retryTrackDownloadUseCase: RetryTrackDownloadUseCase;
   updateTrackUseCase: UpdateTrackUseCase;
-
-  // Helpers
-  trackFileHelper: FileSystemTrackPathService;
 }
 
 export class TrackService {
@@ -30,7 +26,6 @@ export class TrackService {
   private readonly getTracksUseCase: GetTracksUseCase;
   private readonly retryTrackDownloadUseCase: RetryTrackDownloadUseCase;
   private readonly updateTrackUseCase: UpdateTrackUseCase;
-  private readonly trackFileHelper: FileSystemTrackPathService;
 
   constructor(deps: TrackServiceDependencies) {
     this.searchTrackOnYoutubeUseCase = deps.searchTrackOnYoutubeUseCase;
@@ -40,7 +35,6 @@ export class TrackService {
     this.getTracksUseCase = deps.getTracksUseCase;
     this.retryTrackDownloadUseCase = deps.retryTrackDownloadUseCase;
     this.updateTrackUseCase = deps.updateTrackUseCase;
-    this.trackFileHelper = deps.trackFileHelper;
   }
 
   getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
@@ -77,14 +71,6 @@ export class TrackService {
 
   async downloadFromYoutube(track: ITrack): Promise<void> {
     return this.downloadTrackUseCase.execute(track);
-  }
-
-  getTrackFileName(track: ITrack): Promise<string> {
-    return this.trackFileHelper.getTrackFileName(track);
-  }
-
-  getFolderName(track: ITrack): Promise<string> {
-    return this.trackFileHelper.getFolderName(track);
   }
 
   async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
