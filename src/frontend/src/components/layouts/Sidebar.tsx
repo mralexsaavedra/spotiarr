@@ -102,11 +102,9 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
           )}
         </button>
 
-        {!isSidebarCollapsed && (
-          <div className="pt-4 border-t border-white/10 shrink-0">
-            <AppFooter />
-          </div>
-        )}
+        <div className="pt-4 border-t border-white/10 shrink-0">
+          <AppFooter collapsed={isSidebarCollapsed} />
+        </div>
       </div>
     </aside>
   );

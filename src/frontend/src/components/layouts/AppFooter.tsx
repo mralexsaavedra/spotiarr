@@ -1,12 +1,38 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { APP_VERSION } from "../../constants/version";
+import { APP_VERSION, BUY_ME_A_COFFEE_URL, GITHUB_RELEASE_URL } from "../../constants/version";
 import { cn } from "../../utils/cn";
 
 interface AppFooterProps {
   className?: string;
+  collapsed?: boolean;
 }
 
-export const AppFooter = ({ className = "" }: AppFooterProps) => {
+export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps) => {
+  if (collapsed) {
+    return (
+      <div className={cn("flex flex-col items-center gap-4 text-text-secondary pb-4", className)}>
+        <a
+          href={BUY_ME_A_COFFEE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-yellow-400 transition-colors hover:text-yellow-300"
+          title="Buy me a coffee"
+        >
+          <FontAwesomeIcon icon="mug-hot" className="text-xl" />
+        </a>
+        <a
+          href={GITHUB_RELEASE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] transition-colors hover:text-white"
+          title={`SpotiArr v${APP_VERSION}`}
+        >
+          v{APP_VERSION}
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -16,7 +42,7 @@ export const AppFooter = ({ className = "" }: AppFooterProps) => {
     >
       <div className="flex items-center gap-2">
         <a
-          href={`https://github.com/mralexsaavedra/spotiarr/releases/tag/v${APP_VERSION}`}
+          href={GITHUB_RELEASE_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm transition-colors hover:text-white"
@@ -25,7 +51,7 @@ export const AppFooter = ({ className = "" }: AppFooterProps) => {
         </a>
         <span className="text-white/20">|</span>
         <a
-          href="https://buymeacoffee.com/mralexsaavedra"
+          href={BUY_ME_A_COFFEE_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-yellow-400 transition-colors hover:text-yellow-300"
