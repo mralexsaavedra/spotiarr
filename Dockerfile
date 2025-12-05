@@ -4,7 +4,15 @@ FROM node:24-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install build dependencies
-RUN apk add --no-cache --break-glass python3 make g++
+# Workaround for busybox trigger error in ARM64 QEMU builds
+RUN set -eux; \
+    if [ -f /lib/apk/exec/busybox-*.trigger ]; then \
+        mv /lib/apk/exec/busybox-*.trigger /tmp/ || true; \
+    fi; \
+    apk add --no-cache python3 make g++; \
+    if [ -f /tmp/busybox-*.trigger ]; then \
+        mv /tmp/busybox-*.trigger /lib/apk/exec/ || true; \
+    fi
 
 WORKDIR /spotiarr
 
@@ -31,7 +39,15 @@ FROM node:24-alpine
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install runtime dependencies
-RUN apk add --no-cache --break-glass ffmpeg yt-dlp python3 curl openssl su-exec
+# Workaround for busybox trigger error in ARM64 QEMU builds
+RUN set -eux; \
+    if [ -f /lib/apk/exec/busybox-*.trigger ]; then \
+        mv /lib/apk/exec/busybox-*.trigger /tmp/ || true; \
+    fi; \
+    apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec; \
+    if [ -f /tmp/busybox-*.trigger ]; then \
+        mv /tmp/busybox-*.trigger /lib/apk/exec/ || true; \
+    fi
 
 WORKDIR /spotiarr
 
