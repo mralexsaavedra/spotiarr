@@ -1,9 +1,9 @@
 import { ApiRoutes } from "@spotiarr/shared";
 import { useCallback } from "react";
-import { useSpotifyLogoutMutation } from "./mutations/useSpotifyLogoutMutation";
-import { useSpotifyAuthStatusQuery } from "./queries/useSpotifyAuthStatusQuery";
+import { useSpotifyLogoutMutation } from "../mutations/useSpotifyLogoutMutation";
+import { useSpotifyAuthStatusQuery } from "../queries/useSpotifyAuthStatusQuery";
 
-export const useSpotifyAuth = () => {
+export const useSpotifyAuthController = () => {
   const { data, isLoading } = useSpotifyAuthStatusQuery();
   const logoutMutation = useSpotifyLogoutMutation();
 

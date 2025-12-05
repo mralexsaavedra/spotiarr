@@ -6,8 +6,8 @@ import { Path } from "../../routes/routes";
 import { Track } from "../../types";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../queries/useArtistDetailQuery";
-import { useArtistDiscography } from "../useArtistDiscography";
 import { useGridColumns } from "../useGridColumns";
+import { useArtistDiscographyController } from "./useArtistDiscographyController";
 
 const EMPTY_ALBUMS: ArtistRelease[] = [];
 
@@ -32,7 +32,7 @@ export const useArtistDetailController = () => {
     isLoadingMore,
     handleShowMore,
     canShowMore,
-  } = useArtistDiscography({
+  } = useArtistDiscographyController({
     artistId: id!,
     initialAlbums: artist?.albums || EMPTY_ALBUMS,
     pageSize: limit,

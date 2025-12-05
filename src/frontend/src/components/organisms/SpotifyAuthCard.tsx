@@ -1,15 +1,15 @@
 import { FC } from "react";
-import { useSpotifyAuth } from "../../hooks/useSpotifyAuth";
+import { useSpotifyAuthController } from "../../hooks/controllers/useSpotifyAuthController";
 import { Button } from "../atoms/Button";
 
 export const SpotifyAuthCard: FC = () => {
-  const { isAuthenticated, isLoading, login, logout } = useSpotifyAuth();
+  const { isAuthenticated, isLoading, login, logout } = useSpotifyAuthController();
 
   return (
-    <div className="bg-background-elevated rounded-lg p-6 space-y-4 border border-white/10">
+    <div className="p-6 space-y-4 border rounded-lg bg-background-elevated border-white/10">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-text-primary">
             <svg
               className="w-6 h-6"
               viewBox="0 0 24 24"
@@ -68,6 +68,7 @@ export const SpotifyAuthCard: FC = () => {
             variant="primary"
             size="md"
             loading={isLoading}
+            icon={["fab", "spotify"]}
           >
             Connect with Spotify
           </Button>
@@ -75,7 +76,7 @@ export const SpotifyAuthCard: FC = () => {
       </div>
 
       {!isAuthenticated && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
+        <div className="p-4 mt-4 border rounded-lg bg-blue-500/10 border-blue-500/20">
           <div className="flex gap-3">
             <svg
               className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"
@@ -92,7 +93,7 @@ export const SpotifyAuthCard: FC = () => {
             </svg>
             <div className="space-y-1">
               <p className="text-sm font-medium text-blue-400">Why connect?</p>
-              <ul className="text-xs text-blue-300 space-y-1 list-disc list-inside">
+              <ul className="space-y-1 text-xs text-blue-300 list-disc list-inside">
                 <li>Access Spotify editorial playlists (e.g., "Top 50", "Discover Weekly")</li>
                 <li>Import your personal and collaborative playlists</li>
                 <li>Sync your followed artists for new releases</li>
