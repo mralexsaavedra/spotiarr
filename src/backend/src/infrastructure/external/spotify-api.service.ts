@@ -1,4 +1,4 @@
-import { AlbumType, ArtistRelease } from "@spotiarr/shared";
+import { AlbumType, ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { SettingsService } from "../../application/services/settings.service";
 import { SpotifyUrlHelper } from "../../domain/helpers/spotify-url.helper";
 import { NormalizedTrack } from "../../types/spotify";
@@ -894,23 +894,9 @@ export class SpotifyApiService {
     }
   }
 
-  async getFollowedArtists(): Promise<
-    {
-      id: string;
-      name: string;
-      image: string | null;
-      spotifyUrl: string | null;
-    }[]
-  > {
+  async getFollowedArtists(): Promise<FollowedArtist[]> {
     const cacheKey = this.getCacheKey("getFollowedArtists");
-    const cached = await this.getFromCache<
-      {
-        id: string;
-        name: string;
-        image: string | null;
-        spotifyUrl: string | null;
-      }[]
-    >(cacheKey);
+    const cached = await this.getFromCache<FollowedArtist[]>(cacheKey);
     if (cached) {
       this.log("Returning cached followed artists list");
       return cached;

@@ -1,5 +1,4 @@
-import { ApiRoutes, ArtistDetail, ArtistRelease } from "@spotiarr/shared";
-import { FollowedArtist } from "../types/artist";
+import { ApiRoutes, ArtistDetail, ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { httpClient } from "./httpClient";
 
 export const artistService = {
