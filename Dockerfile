@@ -4,7 +4,7 @@ FROM node:24-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install build dependencies
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache --break-glass python3 make g++
 
 WORKDIR /spotiarr
 
@@ -31,7 +31,7 @@ FROM node:24-alpine
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 # Install runtime dependencies
-RUN apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec
+RUN apk add --no-cache --break-glass ffmpeg yt-dlp python3 curl openssl su-exec
 
 WORKDIR /spotiarr
 
