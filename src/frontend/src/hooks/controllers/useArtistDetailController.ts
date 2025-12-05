@@ -1,4 +1,4 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { ArtistRelease, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
@@ -8,6 +8,8 @@ import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutatio
 import { useArtistDetailQuery } from "../queries/useArtistDetailQuery";
 import { useArtistDiscography } from "../useArtistDiscography";
 import { useGridColumns } from "../useGridColumns";
+
+const EMPTY_ALBUMS: ArtistRelease[] = [];
 
 export const useArtistDetailController = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,7 +34,7 @@ export const useArtistDetailController = () => {
     canShowMore,
   } = useArtistDiscography({
     artistId: id!,
-    initialAlbums: artist?.albums || [],
+    initialAlbums: artist?.albums || EMPTY_ALBUMS,
     pageSize: limit,
   });
 
