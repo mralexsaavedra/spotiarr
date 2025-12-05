@@ -1,7 +1,7 @@
 import { FC, memo, useCallback } from "react";
 import { PlaylistWithStats } from "../../types";
+import { PlaylistCard } from "../molecules/PlaylistCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
-import { PlaylistCard } from "./PlaylistCard";
 
 interface PlaylistListItemProps {
   playlist: PlaylistWithStats;

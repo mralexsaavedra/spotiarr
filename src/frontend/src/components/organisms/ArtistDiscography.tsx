@@ -2,9 +2,9 @@ import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Button } from "../atoms/Button";
+import { AlbumCard } from "../molecules/AlbumCard";
 import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
 import { VirtualGrid } from "../molecules/VirtualGrid";
-import { AlbumCard } from "./AlbumCard";
 
 interface ArtistDiscographyProps {
   artistId: string;

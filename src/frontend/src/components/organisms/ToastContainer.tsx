@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { useToast } from "../../contexts/ToastContext";
-import { Toast } from "../atoms/Toast";
+import { Toast } from "../molecules/Toast";
 
 export const ToastContainer: FC = () => {
   const { toasts, removeToast } = useToast();

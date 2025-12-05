@@ -2,12 +2,12 @@ import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, useCallback, useState } from "react";
 import { PlaylistWithStats } from "../../types";
 import { Track } from "../../types";
-import { ConfirmModal } from "../molecules/ConfirmModal";
 import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistActions } from "../molecules/PlaylistActions";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistHeader } from "../molecules/PlaylistHeader";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
+import { ConfirmModal } from "../organisms/ConfirmModal";
 import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
 
 interface PlaylistProps {

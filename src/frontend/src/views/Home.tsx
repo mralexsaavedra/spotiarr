@@ -1,9 +1,9 @@
 import { FC } from "react";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
-import { ConfirmModal } from "../components/molecules/ConfirmModal";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { PageHeader } from "../components/molecules/PageHeader";
+import { ConfirmModal } from "../components/organisms/ConfirmModal";
 import { PlaylistList } from "../components/organisms/PlaylistList";
 import { useHomeController } from "../hooks/controllers/useHomeController";
 
@@ -19,7 +19,7 @@ export const Home: FC = () => {
   } = useHomeController();
 
   return (
-    <section className="w-full bg-background px-4 md:px-8 py-6">
+    <section className="w-full px-4 py-6 bg-background md:px-8">
       <div className="max-w-full">
         <PageHeader
           title="Your Library"

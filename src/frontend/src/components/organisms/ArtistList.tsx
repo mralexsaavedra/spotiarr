@@ -1,6 +1,6 @@
 import { FC, memo, useCallback } from "react";
+import { ArtistCard } from "../molecules/ArtistCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
-import { ArtistCard } from "./ArtistCard";
 
 interface Artist {
   id: string;
