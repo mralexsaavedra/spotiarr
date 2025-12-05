@@ -1,12 +1,11 @@
 import { SupportedAudioFormat } from "@spotiarr/shared";
 import { Router, type Router as ExpressRouter } from "express";
-import { SettingsUseCases } from "../../application/use-cases/settings/settings.use-cases";
 import { SETTINGS_METADATA } from "../../constants/settings-metadata";
-import { PrismaSettingsRepository } from "../../infrastructure/database/prisma-settings.repository";
+import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();
-const settingsUseCases = new SettingsUseCases({ repository: new PrismaSettingsRepository() });
+const { getSettingsUseCase, updateSettingUseCase } = container;
 
 const UI_SUPPORTED_FORMATS: SupportedAudioFormat[] = ["mp3", "m4a"];
 
@@ -14,7 +13,7 @@ const UI_SUPPORTED_FORMATS: SupportedAudioFormat[] = ["mp3", "m4a"];
 router.get(
   "/",
   asyncHandler(async (_req, res) => {
-    const settings = await settingsUseCases.getAll();
+    const settings = await getSettingsUseCase.execute();
     res.json({ data: settings });
   }),
 );
@@ -57,7 +56,7 @@ router.put(
       }
     }
 
-    await Promise.all(settings.map((s) => settingsUseCases.update(s.key, s.value)));
+    await Promise.all(settings.map((s) => updateSettingUseCase.execute(s.key, s.value)));
     res.status(204).send();
   }),
 );

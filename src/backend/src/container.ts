@@ -10,6 +10,8 @@ import { GetSystemStatusUseCase } from "./application/use-cases/playlists/get-sy
 import { RetryPlaylistDownloadsUseCase } from "./application/use-cases/playlists/retry-playlist-downloads.use-case";
 import { SyncSubscribedPlaylistsUseCase } from "./application/use-cases/playlists/sync-subscribed-playlists.use-case";
 import { UpdatePlaylistUseCase } from "./application/use-cases/playlists/update-playlist.use-case";
+import { GetSettingsUseCase } from "./application/use-cases/settings/get-settings.use-case";
+import { UpdateSettingUseCase } from "./application/use-cases/settings/update-setting.use-case";
 import { CreateTrackUseCase } from "./application/use-cases/tracks/create-track.use-case";
 import { DeleteTrackUseCase } from "./application/use-cases/tracks/delete-track.use-case";
 import { DownloadTrackUseCase } from "./application/use-cases/tracks/download-track.use-case";
@@ -85,6 +87,10 @@ const trackService = new TrackService({
   trackFileHelper,
 });
 
+// Use Cases - Settings
+const getSettingsUseCase = new GetSettingsUseCase(settingsRepository);
+const updateSettingUseCase = new UpdateSettingUseCase(settingsRepository, spotifyApiService);
+
 // Use Cases - Playlists
 const getSystemStatusUseCase = new GetSystemStatusUseCase(playlistRepository);
 const getPlaylistPreviewUseCase = new GetPlaylistPreviewUseCase(spotifyService);
@@ -132,6 +138,8 @@ export const container = {
   spotifyService,
   spotifyApiService,
   settingsService,
+  getSettingsUseCase,
+  updateSettingUseCase,
   queueService,
   eventBus,
 };
