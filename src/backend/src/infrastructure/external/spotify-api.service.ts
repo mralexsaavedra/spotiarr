@@ -1,7 +1,6 @@
-import { AlbumType, ArtistRelease, FollowedArtist } from "@spotiarr/shared";
+import { AlbumType, ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
 import { SettingsService } from "../../application/services/settings.service";
 import { SpotifyUrlHelper } from "../../domain/helpers/spotify-url.helper";
-import { NormalizedTrack } from "../../types/spotify";
 import { getEnv } from "../setup/environment";
 
 interface SpotifyExternalUrls {
