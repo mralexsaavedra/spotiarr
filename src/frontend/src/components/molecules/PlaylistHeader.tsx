@@ -1,5 +1,5 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, ReactNode } from "react";
+import { AppImage } from "../atoms/AppImage";
 
 interface PlaylistHeaderProps {
   title: string;
@@ -21,39 +21,32 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
   const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
 
   return (
-    <div className="bg-gradient-to-b from-zinc-800/80 to-background px-6 md:px-8 py-6">
-      <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
+    <div className="px-6 py-6 bg-gradient-to-b from-zinc-800/80 to-background md:px-8">
+      <div className="flex flex-col items-start gap-6 md:flex-row md:items-end">
         {/* Cover Image */}
-        <div className="w-48 h-48 md:w-60 md:h-60 shadow-2xl flex-shrink-0">
-          {coverUrl ? (
-            <img
-              src={coverUrl}
-              alt={title}
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-              className="w-full h-full object-cover shadow-lg"
-            />
-          ) : (
-            <div className="w-full h-full bg-background-elevated flex items-center justify-center">
-              <FontAwesomeIcon icon="music" className="text-6xl text-text-secondary" />
-            </div>
-          )}
+        <div className="flex-shrink-0 w-48 h-48 shadow-2xl md:w-60 md:h-60">
+          <AppImage
+            src={coverUrl || undefined}
+            alt={title}
+            loading="eager"
+            fetchPriority="high"
+            className="shadow-lg"
+          />
         </div>
 
         {/* Metadata */}
-        <div className="flex-1 min-w-0 space-y-4 md:space-y-2 mb-2 text-left w-full">
-          <span className="text-xs font-bold uppercase tracking-wider text-text-primary">
+        <div className="flex-1 w-full min-w-0 mb-2 space-y-4 text-left md:space-y-2">
+          <span className="text-xs font-bold tracking-wider uppercase text-text-primary">
             {typeLabel}
           </span>
-          <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-md break-words leading-tight">
+          <h1 className="text-2xl font-black leading-tight tracking-tighter text-white break-words sm:text-4xl md:text-6xl lg:text-8xl drop-shadow-md">
             {title}
           </h1>
 
           {description && (
-            <div className="mt-4 max-w-full md:max-w-md">
+            <div className="max-w-full mt-4 md:max-w-md">
               {typeof description === "string" ? (
-                <p className="text-text-secondary text-sm font-medium line-clamp-2">
+                <p className="text-sm font-medium text-text-secondary line-clamp-2">
                   {description}
                 </p>
               ) : (
@@ -62,7 +55,7 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
             </div>
           )}
 
-          <div className="flex items-center justify-start gap-1 text-sm font-medium text-text-primary mt-2 flex-wrap">
+          <div className="flex flex-wrap items-center justify-start gap-1 mt-2 text-sm font-medium text-text-primary">
             {metadata}
             <span className="text-text-secondary">•</span>
             <span className="text-text-secondary">{totalCount} songs</span>

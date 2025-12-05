@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { memo } from "react";
 import { Playlist, PlaylistStats } from "../../types";
 import { cn } from "../../utils/cn";
+import { AppImage } from "../atoms/AppImage";
 import { PlaylistStatusBadge } from "../molecules/PlaylistStatusBadge";
 
 interface PlaylistCardProps {
@@ -29,19 +30,12 @@ export const PlaylistCard = memo(({ playlist, stats, onClick, className }: Playl
             <FontAwesomeIcon icon={["fas", "bell"]} className="text-sm text-green-500" />
           </div>
         )}
-        {playlist.coverUrl ? (
-          <img
-            src={playlist.coverUrl}
-            alt={playlist.name || "Playlist cover"}
-            loading="lazy"
-            decoding="async"
-            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex items-center justify-center w-full h-full">
-            <FontAwesomeIcon icon="music" className="text-4xl text-text-secondary" />
-          </div>
-        )}
+        <AppImage
+          src={playlist.coverUrl || undefined}
+          alt={playlist.name || "Playlist cover"}
+          loading="lazy"
+          className="group-hover:scale-105"
+        />
       </div>
 
       <div className="flex flex-col gap-1">

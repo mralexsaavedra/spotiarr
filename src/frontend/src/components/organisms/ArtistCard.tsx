@@ -1,5 +1,5 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo } from "react";
+import { AppImage } from "../atoms/AppImage";
 
 interface ArtistCardProps {
   id: string;
@@ -17,26 +17,20 @@ export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick 
   return (
     <article
       key={id}
-      className="group p-3 rounded-md hover:bg-background-hover transition-colors cursor-pointer flex flex-col gap-3"
+      className="flex flex-col gap-3 p-3 transition-colors rounded-md cursor-pointer group hover:bg-background-hover"
       onClick={handleCardClick}
     >
-      <div className="w-full aspect-square rounded-full overflow-hidden bg-zinc-800 shadow-lg relative">
-        {image ? (
-          <img
-            src={image}
-            alt={name}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <FontAwesomeIcon icon="user" className="text-4xl text-zinc-600" />
-          </div>
-        )}
+      <div className="relative w-full overflow-hidden rounded-full shadow-lg aspect-square bg-zinc-800">
+        <AppImage
+          src={image || undefined}
+          alt={name}
+          loading="lazy"
+          fallbackIcon="user"
+          className="group-hover:scale-105"
+        />
       </div>
       <div className="flex flex-col min-w-0">
-        <h3 className="font-bold text-base text-white truncate">{name}</h3>
+        <h3 className="text-base font-bold text-white truncate">{name}</h3>
         <p className="text-sm text-zinc-400">Artist</p>
       </div>
     </article>

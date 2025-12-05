@@ -6,6 +6,7 @@ import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types";
 import { formatDuration } from "../../utils/date";
+import { AppImage } from "../atoms/AppImage";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 import { VirtualList } from "../molecules/VirtualList";
 
@@ -41,26 +42,25 @@ const TrackListItem: FC<TrackListItemProps> = memo(
         </div>
 
         {/* Title & Image */}
-        <div className="flex items-center gap-4 min-w-0">
-          {track.albumUrl && (
-            <img
-              src={track.albumUrl}
+        <div className="flex items-center min-w-0 gap-4">
+          <div className="flex-shrink-0 w-10 h-10">
+            <AppImage
+              src={track.albumUrl || undefined}
               alt={track.name}
               loading="lazy"
-              decoding="async"
-              className="w-10 h-10 rounded shadow-sm object-cover"
+              className="rounded shadow-sm"
             />
-          )}
+          </div>
           <div className="flex flex-col min-w-0">
             {track.trackUrl ? (
               <Link
                 to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
-                className="text-base font-medium truncate hover:underline text-white"
+                className="text-base font-medium text-white truncate hover:underline"
               >
                 {track.name}
               </Link>
             ) : (
-              <span className="text-base font-medium truncate text-white">{track.name}</span>
+              <span className="text-base font-medium text-white truncate">{track.name}</span>
             )}
           </div>
         </div>
@@ -68,7 +68,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(
         {/* Duration */}
         <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
           {isDownloaded && (
-            <FontAwesomeIcon icon="circle-check" className="text-green-500 text-base" />
+            <FontAwesomeIcon icon="circle-check" className="text-base text-green-500" />
           )}
           <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
         </div>

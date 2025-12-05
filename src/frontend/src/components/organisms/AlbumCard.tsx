@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { formatRelativeDate } from "../../utils/date";
+import { AppImage } from "../atoms/AppImage";
 
 interface AlbumCardProps {
   albumId: string;
@@ -58,23 +59,17 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
     return (
       <article
         key={`${albumId}-${artistId}`}
-        className="group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-all cursor-pointer"
+        className="p-4 transition-all rounded-md cursor-pointer group bg-background-elevated hover:bg-background-hover"
         onClick={onCardClick}
       >
-        <div className="relative aspect-square mb-4 rounded-md overflow-hidden bg-background-hover shadow-lg">
-          {coverUrl ? (
-            <img
-              src={coverUrl}
-              alt={albumName}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <FontAwesomeIcon icon="compact-disc" className="text-4xl text-text-secondary" />
-            </div>
-          )}
+        <div className="relative mb-4 overflow-hidden rounded-md shadow-lg aspect-square bg-background-hover">
+          <AppImage
+            src={coverUrl || undefined}
+            alt={albumName}
+            loading="lazy"
+            fallbackIcon="compact-disc"
+            className="group-hover:scale-105"
+          />
 
           {spotifyUrl && (
             <div
@@ -114,16 +109,16 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
         </div>
 
         <div className="space-y-1">
-          <h3 className="font-bold text-text-primary text-sm truncate group-hover:underline">
+          <h3 className="text-sm font-bold truncate text-text-primary group-hover:underline">
             {albumName}
           </h3>
           <span
-            className="text-xs text-text-secondary truncate hover:underline hover:text-text-primary block cursor-pointer"
+            className="block text-xs truncate cursor-pointer text-text-secondary hover:underline hover:text-text-primary"
             onClick={handleArtistClick}
           >
             {artistName}
           </span>
-          <div className="flex items-center gap-1 text-xs text-text-secondary truncate">
+          <div className="flex items-center gap-1 text-xs truncate text-text-secondary">
             <span>{typeLabel}</span>
             {dateDisplay && (
               <>
