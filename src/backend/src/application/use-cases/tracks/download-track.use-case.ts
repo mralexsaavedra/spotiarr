@@ -6,15 +6,17 @@ import { HistoryRepository } from "../../../domain/repositories/history.reposito
 import { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
 import { TrackRepository } from "../../../domain/repositories/track.repository";
 import { SpotifyService } from "../../../infrastructure/external/spotify.service";
-import { YoutubeService } from "../../../infrastructure/external/youtube.service";
+import { YoutubeDownloadService } from "../../../infrastructure/external/youtube-download.service";
 import { FileSystemM3uService } from "../../../infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "../../../infrastructure/services/file-system-track-path.service";
+import { MetadataService } from "../../../infrastructure/services/metadata.service";
 import { UtilsService } from "../../services/utils.service";
 
 export class DownloadTrackUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
-    private readonly youtubeService: YoutubeService,
+    private readonly youtubeDownloadService: YoutubeDownloadService,
+    private readonly metadataService: MetadataService,
     private readonly m3uService: FileSystemM3uService,
     private readonly utilsService: UtilsService,
     private readonly trackFileHelper: FileSystemTrackPathService,
@@ -117,7 +119,7 @@ export class DownloadTrackUseCase {
       fs.mkdirSync(trackDirectory, { recursive: true });
     }
 
-    await this.youtubeService.downloadAndFormat(track, trackFilePath);
+    await this.youtubeDownloadService.downloadAndFormat(track, trackFilePath);
 
     // Fetch specific track cover image (Album Cover) from Spotify
     let trackCoverUrl = "";
@@ -133,7 +135,7 @@ export class DownloadTrackUseCase {
     }
 
     // Embed ID3 cover (prefer specific track cover)
-    await this.youtubeService.addImage(
+    await this.metadataService.addImage(
       trackFilePath,
       trackCoverUrl || playlistCoverUrl || "",
       track.name,
@@ -147,7 +149,7 @@ export class DownloadTrackUseCase {
     // If it's an artist/album/track download, use the track (album) cover.
     const folderCoverUrl = isPlaylistType ? playlistCoverUrl : trackCoverUrl;
     if (folderCoverUrl) {
-      await this.youtubeService.saveCoverArt(trackDirectory, folderCoverUrl);
+      await this.metadataService.saveCoverArt(trackDirectory, folderCoverUrl);
     }
 
     // If it's not a Playlist (Artist, Album, or Track), save the artist image in the artist folder
@@ -166,7 +168,7 @@ export class DownloadTrackUseCase {
         if (!fs.existsSync(artistFolderPath)) {
           fs.mkdirSync(artistFolderPath, { recursive: true });
         }
-        await this.youtubeService.saveCoverArt(
+        await this.metadataService.saveCoverArt(
           artistFolderPath,
           playlist.artistImageUrl,
           "cover.jpg",

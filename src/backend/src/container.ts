@@ -25,11 +25,13 @@ import { PrismaSettingsRepository } from "./infrastructure/database/prisma-setti
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { SpotifyApiService } from "./infrastructure/external/spotify-api.service";
 import { SpotifyService } from "./infrastructure/external/spotify.service";
-import { YoutubeService } from "./infrastructure/external/youtube.service";
+import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
+import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
 import { SseEventBus } from "./infrastructure/messaging/sse-event-bus";
 import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
+import { MetadataService } from "./infrastructure/services/metadata.service";
 
 // Repositories
 const playlistRepository = new PrismaPlaylistRepository();
@@ -41,7 +43,9 @@ const settingsRepository = new PrismaSettingsRepository();
 const settingsService = new SettingsService(settingsRepository);
 const utilsService = new UtilsService();
 const m3uService = new FileSystemM3uService(settingsService);
-const youtubeService = new YoutubeService(settingsService);
+const youtubeSearchService = new YoutubeSearchService();
+const youtubeDownloadService = new YoutubeDownloadService(settingsService, youtubeSearchService);
+const metadataService = new MetadataService();
 const trackFileHelper = new FileSystemTrackPathService(settingsService, utilsService);
 const queueService = new BullMqTrackQueueService();
 const eventBus = new SseEventBus();
@@ -57,7 +61,7 @@ const getTracksUseCase = new GetTracksUseCase(trackRepository);
 const updateTrackUseCase = new UpdateTrackUseCase(trackRepository);
 const searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
   trackRepository,
-  youtubeService,
+  youtubeSearchService,
   settingsService,
   queueService,
   eventBus,
@@ -65,7 +69,8 @@ const searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
 const retryTrackDownloadUseCase = new RetryTrackDownloadUseCase(trackRepository, queueService);
 const downloadTrackUseCase = new DownloadTrackUseCase(
   trackRepository,
-  youtubeService,
+  youtubeDownloadService,
+  metadataService,
   m3uService,
   utilsService,
   trackFileHelper,

@@ -2,13 +2,13 @@ import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { EventBus } from "../../../domain/events/event-bus";
 import { TrackRepository } from "../../../domain/repositories/track.repository";
 import type { TrackQueueService } from "../../../domain/services/track-queue.service";
-import { YoutubeService } from "../../../infrastructure/external/youtube.service";
+import { YoutubeSearchService } from "../../../infrastructure/external/youtube-search.service";
 import { SettingsService } from "../../services/settings.service";
 
 export class SearchTrackOnYoutubeUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
-    private readonly youtubeService: YoutubeService,
+    private readonly youtubeSearchService: YoutubeSearchService,
     private readonly settingsService: SettingsService,
     private readonly queueService: TrackQueueService,
     private readonly eventBus: EventBus,
@@ -29,7 +29,7 @@ export class SearchTrackOnYoutubeUseCase {
     this.eventBus.emit("playlists-updated");
 
     try {
-      const youtubeUrl = await this.youtubeService.findOnYoutubeOne(
+      const youtubeUrl = await this.youtubeSearchService.findOnYoutubeOne(
         existingTrack.artist,
         existingTrack.name,
       );
