@@ -108,6 +108,7 @@ const createPlaylistUseCase = new CreatePlaylistUseCase(
   spotifyService,
   trackService,
   settingsService,
+  eventBus,
 );
 
 const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
@@ -132,8 +133,6 @@ const playlistService = new PlaylistService({
   deletePlaylistUseCase,
   updatePlaylistUseCase,
   retryPlaylistDownloadsUseCase,
-  repository: playlistRepository,
-  eventBus,
 });
 
 // Export container

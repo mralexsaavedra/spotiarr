@@ -1,8 +1,10 @@
 import { PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
 import { Playlist } from "../../../domain/entities/playlist.entity";
+import { EventBus } from "../../../domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../../domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
 import { SpotifyService } from "../../../infrastructure/external/spotify.service";
+import { AppError } from "../../../presentation/middleware/error-handler";
 import { SettingsService } from "../../services/settings.service";
 import { TrackService } from "../../services/track.service";
 
@@ -36,9 +38,17 @@ export class CreatePlaylistUseCase {
     private readonly spotifyService: SpotifyService,
     private readonly trackService: TrackService,
     private readonly settingsService: SettingsService,
+    private readonly eventBus: EventBus,
   ) {}
 
   async execute(playlistData: IPlaylist): Promise<IPlaylist> {
+    const existing = await this.playlistRepository.findAll(false, {
+      spotifyUrl: playlistData.spotifyUrl,
+    });
+    if (existing.length > 0) {
+      throw new AppError(409, "playlist_already_exists");
+    }
+
     let detail: PlaylistDetail | undefined;
 
     const playlist = new Playlist(playlistData);
@@ -92,6 +102,7 @@ export class CreatePlaylistUseCase {
       console.warn(`No tracks found for playlist ${savedPlaylist.name}`);
     }
 
+    this.eventBus.emit("playlists-updated");
     return savedPlaylist;
   }
 

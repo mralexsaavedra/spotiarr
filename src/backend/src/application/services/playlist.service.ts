@@ -1,7 +1,4 @@
 import { DownloadStatusResponse, PlaylistPreview, type IPlaylist } from "@spotiarr/shared";
-import { EventBus } from "../../domain/events/event-bus";
-import { PlaylistRepository } from "../../domain/repositories/playlist.repository";
-import { AppError } from "../../presentation/middleware/error-handler";
 import { CreatePlaylistUseCase } from "../use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "../use-cases/playlists/delete-playlist.use-case";
 import { GetPlaylistPreviewUseCase } from "../use-cases/playlists/get-playlist-preview.use-case";
@@ -20,14 +17,9 @@ export interface PlaylistServiceDependencies {
   deletePlaylistUseCase: DeletePlaylistUseCase;
   updatePlaylistUseCase: UpdatePlaylistUseCase;
   retryPlaylistDownloadsUseCase: RetryPlaylistDownloadsUseCase;
-
-  // Keep needed deps for logic directly in service
-  repository: PlaylistRepository;
-  eventBus: EventBus;
 }
 
 export class PlaylistService {
-  private readonly repository: PlaylistRepository;
   private readonly createPlaylistUseCase: CreatePlaylistUseCase;
   private readonly getSystemStatusUseCase: GetSystemStatusUseCase;
   private readonly getPlaylistPreviewUseCase: GetPlaylistPreviewUseCase;
@@ -36,11 +28,8 @@ export class PlaylistService {
   private readonly deletePlaylistUseCase: DeletePlaylistUseCase;
   private readonly updatePlaylistUseCase: UpdatePlaylistUseCase;
   private readonly retryPlaylistDownloadsUseCase: RetryPlaylistDownloadsUseCase;
-  private readonly eventBus: EventBus;
 
   constructor(deps: PlaylistServiceDependencies) {
-    this.repository = deps.repository;
-    this.eventBus = deps.eventBus;
     this.createPlaylistUseCase = deps.createPlaylistUseCase;
     this.getSystemStatusUseCase = deps.getSystemStatusUseCase;
     this.getPlaylistPreviewUseCase = deps.getPlaylistPreviewUseCase;
@@ -68,14 +57,7 @@ export class PlaylistService {
   }
 
   async create(playlist: IPlaylist): Promise<IPlaylist> {
-    const existing = await this.repository.findAll(false, { spotifyUrl: playlist.spotifyUrl });
-    if (existing.length > 0) {
-      throw new AppError(409, "playlist_already_exists");
-    }
-
-    const created = await this.createPlaylistUseCase.execute(playlist);
-    this.eventBus.emit("playlists-updated");
-    return created;
+    return this.createPlaylistUseCase.execute(playlist);
   }
 
   async save(playlist: IPlaylist): Promise<IPlaylist> {
