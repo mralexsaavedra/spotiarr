@@ -49,7 +49,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
               key={item.to}
               to={item.to}
               className={cn(
-                "group flex items-center gap-3 font-semibold transition-all rounded-lg px-2 py-2.5 shrink-0",
+                "group flex items-center gap-3 font-semibold transition-all rounded-lg px-2 py-2.5 shrink-0 overflow-hidden whitespace-nowrap",
                 active
                   ? "text-text-primary bg-background-hover"
                   : "text-text-secondary hover:text-text-primary",

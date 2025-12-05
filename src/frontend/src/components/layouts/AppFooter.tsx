@@ -37,7 +37,7 @@ export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps)
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 text-text-secondary",
+        "flex flex-col items-center justify-center gap-4 text-text-secondary whitespace-nowrap overflow-hidden",
         className,
       )}
     >
