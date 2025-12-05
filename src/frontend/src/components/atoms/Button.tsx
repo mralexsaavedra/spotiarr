@@ -1,6 +1,7 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, ReactNode, useMemo } from "react";
+import { cn } from "../../utils/cn";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
@@ -45,12 +46,7 @@ export const Button: FC<ButtonProps> = ({
   type = "button",
   title,
 }) => {
-  const isDisabled = useMemo(() => disabled || loading, [disabled, loading]);
-
-  const finalClassName = useMemo(() => {
-    const disabledStyles = isDisabled ? "opacity-50 cursor-not-allowed" : "";
-    return `${BASE_STYLES} ${VARIANT_STYLES[variant]} ${SIZE_STYLES[size]} ${disabledStyles} ${className}`;
-  }, [variant, size, isDisabled, className]);
+  const isDisabled = disabled || loading;
 
   const iconElement = useMemo(() => {
     if (loading) {
@@ -67,7 +63,13 @@ export const Button: FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={isDisabled}
-      className={finalClassName}
+      className={cn(
+        BASE_STYLES,
+        VARIANT_STYLES[variant],
+        SIZE_STYLES[size],
+        isDisabled && "cursor-not-allowed opacity-50",
+        className,
+      )}
       title={title}
     >
       {iconElement}

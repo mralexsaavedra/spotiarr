@@ -25,6 +25,7 @@
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.6",
     "react-virtuoso": "^4.16.1",
+    "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
