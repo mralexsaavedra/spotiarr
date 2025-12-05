@@ -6,13 +6,8 @@ RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 # Install build dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
 RUN set -eux; \
-    if [ -f /lib/apk/exec/busybox-*.trigger ]; then \
-        mv /lib/apk/exec/busybox-*.trigger /tmp/ || true; \
-    fi; \
-    apk add --no-cache python3 make g++; \
-    if [ -f /tmp/busybox-*.trigger ]; then \
-        mv /tmp/busybox-*.trigger /lib/apk/exec/ || true; \
-    fi
+    rm -rf /lib/apk/exec; \
+    apk add --no-cache python3 make g++
 
 WORKDIR /spotiarr
 
@@ -41,13 +36,8 @@ RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 # Install runtime dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
 RUN set -eux; \
-    if [ -f /lib/apk/exec/busybox-*.trigger ]; then \
-        mv /lib/apk/exec/busybox-*.trigger /tmp/ || true; \
-    fi; \
-    apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec; \
-    if [ -f /tmp/busybox-*.trigger ]; then \
-        mv /tmp/busybox-*.trigger /lib/apk/exec/ || true; \
-    fi
+    rm -rf /lib/apk/exec; \
+    apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec
 
 WORKDIR /spotiarr
 
