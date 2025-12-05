@@ -1,7 +1,6 @@
 import { DownloadStatusResponse, PlaylistPreview, type IPlaylist } from "@spotiarr/shared";
 import { EventBus } from "../../domain/events/event-bus";
 import { PlaylistRepository } from "../../domain/repositories/playlist.repository";
-import { SpotifyService } from "../../infrastructure/external/spotify.service";
 import { AppError } from "../../presentation/middleware/error-handler";
 import { CreatePlaylistUseCase } from "../use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "../use-cases/playlists/delete-playlist.use-case";
@@ -11,20 +10,24 @@ import { GetSystemStatusUseCase } from "../use-cases/playlists/get-system-status
 import { RetryPlaylistDownloadsUseCase } from "../use-cases/playlists/retry-playlist-downloads.use-case";
 import { SyncSubscribedPlaylistsUseCase } from "../use-cases/playlists/sync-subscribed-playlists.use-case";
 import { UpdatePlaylistUseCase } from "../use-cases/playlists/update-playlist.use-case";
-import { SettingsService } from "./settings.service";
-import { TrackService } from "./track.service";
 
 export interface PlaylistServiceDependencies {
+  createPlaylistUseCase: CreatePlaylistUseCase;
+  getSystemStatusUseCase: GetSystemStatusUseCase;
+  getPlaylistPreviewUseCase: GetPlaylistPreviewUseCase;
+  syncSubscribedPlaylistsUseCase: SyncSubscribedPlaylistsUseCase;
+  getPlaylistsUseCase: GetPlaylistsUseCase;
+  deletePlaylistUseCase: DeletePlaylistUseCase;
+  updatePlaylistUseCase: UpdatePlaylistUseCase;
+  retryPlaylistDownloadsUseCase: RetryPlaylistDownloadsUseCase;
+
+  // Keep needed deps for logic directly in service
   repository: PlaylistRepository;
-  trackService: TrackService;
-  spotifyService: SpotifyService;
-  settingsService: SettingsService;
   eventBus: EventBus;
 }
 
 export class PlaylistService {
   private readonly repository: PlaylistRepository;
-  private readonly trackService: TrackService;
   private readonly createPlaylistUseCase: CreatePlaylistUseCase;
   private readonly getSystemStatusUseCase: GetSystemStatusUseCase;
   private readonly getPlaylistPreviewUseCase: GetPlaylistPreviewUseCase;
@@ -37,31 +40,15 @@ export class PlaylistService {
 
   constructor(deps: PlaylistServiceDependencies) {
     this.repository = deps.repository;
-    this.trackService = deps.trackService;
     this.eventBus = deps.eventBus;
-
-    this.createPlaylistUseCase = new CreatePlaylistUseCase(
-      this.repository,
-      deps.spotifyService,
-      this.trackService,
-      deps.settingsService,
-    );
-
-    this.getSystemStatusUseCase = new GetSystemStatusUseCase(this.repository);
-    this.getPlaylistPreviewUseCase = new GetPlaylistPreviewUseCase(deps.spotifyService);
-    this.syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
-      this.repository,
-      deps.spotifyService,
-      this.trackService,
-      this.eventBus,
-    );
-    this.getPlaylistsUseCase = new GetPlaylistsUseCase(this.repository);
-    this.deletePlaylistUseCase = new DeletePlaylistUseCase(this.repository, this.eventBus);
-    this.updatePlaylistUseCase = new UpdatePlaylistUseCase(this.repository, this.eventBus);
-    this.retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
-      this.repository,
-      this.trackService,
-    );
+    this.createPlaylistUseCase = deps.createPlaylistUseCase;
+    this.getSystemStatusUseCase = deps.getSystemStatusUseCase;
+    this.getPlaylistPreviewUseCase = deps.getPlaylistPreviewUseCase;
+    this.syncSubscribedPlaylistsUseCase = deps.syncSubscribedPlaylistsUseCase;
+    this.getPlaylistsUseCase = deps.getPlaylistsUseCase;
+    this.deletePlaylistUseCase = deps.deletePlaylistUseCase;
+    this.updatePlaylistUseCase = deps.updatePlaylistUseCase;
+    this.retryPlaylistDownloadsUseCase = deps.retryPlaylistDownloadsUseCase;
   }
 
   async findAll(includesTracks = true, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {

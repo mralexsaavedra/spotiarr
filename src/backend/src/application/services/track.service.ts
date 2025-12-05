@@ -1,12 +1,4 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
-import { EventBus } from "../../domain/events/event-bus";
-import { HistoryRepository } from "../../domain/repositories/history.repository";
-import { PlaylistRepository } from "../../domain/repositories/playlist.repository";
-import { TrackRepository } from "../../domain/repositories/track.repository";
-import { TrackQueueService } from "../../domain/services/track-queue.service";
-import { SpotifyService } from "../../infrastructure/external/spotify.service";
-import { YoutubeService } from "../../infrastructure/external/youtube.service";
-import { FileSystemM3uService } from "../../infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "../../infrastructure/services/file-system-track-path.service";
 import { CreateTrackUseCase } from "../use-cases/tracks/create-track.use-case";
 import { DeleteTrackUseCase } from "../use-cases/tracks/delete-track.use-case";
@@ -15,27 +7,22 @@ import { GetTracksUseCase } from "../use-cases/tracks/get-tracks.use-case";
 import { RetryTrackDownloadUseCase } from "../use-cases/tracks/retry-track-download.use-case";
 import { SearchTrackOnYoutubeUseCase } from "../use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "../use-cases/tracks/update-track.use-case";
-import { SettingsService } from "./settings.service";
-import { UtilsService } from "./utils.service";
 
 export interface TrackServiceDependencies {
-  repository: TrackRepository;
-  queueService: TrackQueueService;
+  // Use Cases
+  searchTrackOnYoutubeUseCase: SearchTrackOnYoutubeUseCase;
+  downloadTrackUseCase: DownloadTrackUseCase;
+  createTrackUseCase: CreateTrackUseCase;
+  deleteTrackUseCase: DeleteTrackUseCase;
+  getTracksUseCase: GetTracksUseCase;
+  retryTrackDownloadUseCase: RetryTrackDownloadUseCase;
+  updateTrackUseCase: UpdateTrackUseCase;
+
+  // Helpers
   trackFileHelper: FileSystemTrackPathService;
-  youtubeService: YoutubeService;
-  m3uService: FileSystemM3uService;
-  utilsService: UtilsService;
-  settingsService: SettingsService;
-  playlistRepository: PlaylistRepository;
-  spotifyService: SpotifyService;
-  historyRepository: HistoryRepository;
-  eventBus: EventBus;
 }
 
 export class TrackService {
-  private readonly repository: TrackRepository;
-  private readonly queueService: TrackQueueService;
-  private readonly trackFileHelper: FileSystemTrackPathService;
   private readonly searchTrackOnYoutubeUseCase: SearchTrackOnYoutubeUseCase;
   private readonly downloadTrackUseCase: DownloadTrackUseCase;
   private readonly createTrackUseCase: CreateTrackUseCase;
@@ -43,40 +30,17 @@ export class TrackService {
   private readonly getTracksUseCase: GetTracksUseCase;
   private readonly retryTrackDownloadUseCase: RetryTrackDownloadUseCase;
   private readonly updateTrackUseCase: UpdateTrackUseCase;
+  private readonly trackFileHelper: FileSystemTrackPathService;
 
   constructor(deps: TrackServiceDependencies) {
-    this.repository = deps.repository;
-    this.queueService = deps.queueService;
+    this.searchTrackOnYoutubeUseCase = deps.searchTrackOnYoutubeUseCase;
+    this.downloadTrackUseCase = deps.downloadTrackUseCase;
+    this.createTrackUseCase = deps.createTrackUseCase;
+    this.deleteTrackUseCase = deps.deleteTrackUseCase;
+    this.getTracksUseCase = deps.getTracksUseCase;
+    this.retryTrackDownloadUseCase = deps.retryTrackDownloadUseCase;
+    this.updateTrackUseCase = deps.updateTrackUseCase;
     this.trackFileHelper = deps.trackFileHelper;
-
-    this.searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
-      this.repository,
-      deps.youtubeService,
-      deps.settingsService,
-      this.queueService,
-      deps.eventBus,
-    );
-
-    this.downloadTrackUseCase = new DownloadTrackUseCase(
-      this.repository,
-      deps.youtubeService,
-      deps.m3uService,
-      deps.utilsService,
-      this.trackFileHelper,
-      deps.playlistRepository,
-      deps.spotifyService,
-      deps.historyRepository,
-      deps.eventBus,
-    );
-
-    this.createTrackUseCase = new CreateTrackUseCase(this.repository, this.queueService);
-    this.deleteTrackUseCase = new DeleteTrackUseCase(this.repository);
-    this.getTracksUseCase = new GetTracksUseCase(this.repository);
-    this.retryTrackDownloadUseCase = new RetryTrackDownloadUseCase(
-      this.repository,
-      this.queueService,
-    );
-    this.updateTrackUseCase = new UpdateTrackUseCase(this.repository);
   }
 
   getAll(where?: Partial<ITrack>): Promise<ITrack[]> {
