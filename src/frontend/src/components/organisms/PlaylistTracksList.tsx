@@ -111,13 +111,6 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
       </div>
     );
   },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.track.id === nextProps.track.id &&
-      prevProps.status === nextProps.status &&
-      prevProps.index === nextProps.index
-    );
-  },
 );
 
 interface PlaylistTracksListProps {

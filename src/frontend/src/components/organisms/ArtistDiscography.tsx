@@ -66,14 +66,6 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
       />
     );
   },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.album.albumId === nextProps.album.albumId &&
-      prevProps.album.spotifyUrl === nextProps.album.spotifyUrl &&
-      prevProps.isDownloaded === nextProps.isDownloaded &&
-      prevProps.isDownloading === nextProps.isDownloading
-    );
-  },
 );
 
 export const ArtistDiscography: FC<ArtistDiscographyProps> = ({

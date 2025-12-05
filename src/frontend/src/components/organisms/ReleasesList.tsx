@@ -46,14 +46,6 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
       />
     );
   },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.release.albumId === nextProps.release.albumId &&
-      prevProps.release.spotifyUrl === nextProps.release.spotifyUrl &&
-      prevProps.isDownloaded === nextProps.isDownloaded &&
-      prevProps.isDownloading === nextProps.isDownloading
-    );
-  },
 );
 
 interface ReleasesListProps {

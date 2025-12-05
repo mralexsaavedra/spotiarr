@@ -116,15 +116,6 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
       </div>
     );
   },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.item.playlistSpotifyUrl === nextProps.item.playlistSpotifyUrl &&
-      prevProps.item.lastCompletedAt === nextProps.item.lastCompletedAt &&
-      prevProps.activePlaylist?.id === nextProps.activePlaylist?.id &&
-      prevProps.isDownloading === nextProps.isDownloading &&
-      prevProps.recreatingUrl === nextProps.recreatingUrl
-    );
-  },
 );
 
 interface HistoryListProps {

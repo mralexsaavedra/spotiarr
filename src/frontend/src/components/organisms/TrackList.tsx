@@ -17,72 +17,63 @@ interface TrackListItemProps {
   status?: TrackStatusEnum;
 }
 
-const TrackListItem: FC<TrackListItemProps> = memo(
-  ({ track, index, onDownload, status }) => {
-    const isDownloaded = status === TrackStatusEnum.Completed;
+const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, status }) => {
+  const isDownloaded = status === TrackStatusEnum.Completed;
 
-    const handleRetry = useCallback(() => {
-      onDownload(track);
-    }, [track, onDownload]);
+  const handleRetry = useCallback(() => {
+    onDownload(track);
+  }, [track, onDownload]);
 
-    const handleDownloadClick = useCallback(() => {
-      onDownload(track);
-    }, [track, onDownload]);
+  const handleDownloadClick = useCallback(() => {
+    onDownload(track);
+  }, [track, onDownload]);
 
-    return (
-      <div className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
-        {/* Index / Status Icon */}
-        <div className="flex justify-center">
-          <TrackStatusIndicator
-            status={status}
-            index={index}
-            onRetry={handleRetry}
-            onDownload={track.trackUrl && !isDownloaded ? handleDownloadClick : undefined}
+  return (
+    <div className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
+      {/* Index / Status Icon */}
+      <div className="flex justify-center">
+        <TrackStatusIndicator
+          status={status}
+          index={index}
+          onRetry={handleRetry}
+          onDownload={track.trackUrl && !isDownloaded ? handleDownloadClick : undefined}
+        />
+      </div>
+
+      {/* Title & Image */}
+      <div className="flex items-center min-w-0 gap-4">
+        <div className="flex-shrink-0 w-10 h-10">
+          <Image
+            src={track.albumUrl || undefined}
+            alt={track.name}
+            loading="lazy"
+            className="rounded shadow-sm"
           />
         </div>
-
-        {/* Title & Image */}
-        <div className="flex items-center min-w-0 gap-4">
-          <div className="flex-shrink-0 w-10 h-10">
-            <Image
-              src={track.albumUrl || undefined}
-              alt={track.name}
-              loading="lazy"
-              className="rounded shadow-sm"
-            />
-          </div>
-          <div className="flex flex-col min-w-0">
-            {track.trackUrl ? (
-              <Link
-                to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
-                className="text-base font-medium text-white truncate hover:underline"
-              >
-                {track.name}
-              </Link>
-            ) : (
-              <span className="text-base font-medium text-white truncate">{track.name}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Duration */}
-        <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
-          {isDownloaded && (
-            <FontAwesomeIcon icon="circle-check" className="text-base text-green-500" />
+        <div className="flex flex-col min-w-0">
+          {track.trackUrl ? (
+            <Link
+              to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
+              className="text-base font-medium text-white truncate hover:underline"
+            >
+              {track.name}
+            </Link>
+          ) : (
+            <span className="text-base font-medium text-white truncate">{track.name}</span>
           )}
-          <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
         </div>
       </div>
-    );
-  },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.track.id === nextProps.track.id &&
-      prevProps.status === nextProps.status &&
-      prevProps.index === nextProps.index
-    );
-  },
-);
+
+      {/* Duration */}
+      <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
+        {isDownloaded && (
+          <FontAwesomeIcon icon="circle-check" className="text-base text-green-500" />
+        )}
+        <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
+      </div>
+    </div>
+  );
+});
 
 interface TrackListProps {
   tracks: Track[];
