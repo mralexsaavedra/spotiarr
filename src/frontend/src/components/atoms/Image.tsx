@@ -3,13 +3,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, ImgHTMLAttributes, useState } from "react";
 import { cn } from "../../utils/cn";
 
-interface AppImageProps extends ImgHTMLAttributes<HTMLImageElement> {
+interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   fallbackIcon?: IconProp;
   fallbackClassName?: string;
   wrapperClassName?: string;
 }
 
-export const AppImage: FC<AppImageProps> = ({
+export const Image: FC<ImageProps> = ({
   src,
   alt,
   className,

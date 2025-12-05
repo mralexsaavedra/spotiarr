@@ -1,5 +1,5 @@
 import { FC, memo } from "react";
-import { AppImage } from "../atoms/AppImage";
+import { Image } from "../atoms/Image";
 
 interface ArtistCardProps {
   id: string;
@@ -21,7 +21,7 @@ export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick 
       onClick={handleCardClick}
     >
       <div className="relative w-full overflow-hidden rounded-full shadow-lg aspect-square bg-zinc-800">
-        <AppImage
+        <Image
           src={image || undefined}
           alt={name}
           loading="lazy"

@@ -6,7 +6,7 @@ import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types";
 import { formatDuration } from "../../utils/date";
-import { AppImage } from "../atoms/AppImage";
+import { Image } from "../atoms/Image";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 import { VirtualList } from "../molecules/VirtualList";
 
@@ -44,7 +44,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(
         {/* Title & Image */}
         <div className="flex items-center min-w-0 gap-4">
           <div className="flex-shrink-0 w-10 h-10">
-            <AppImage
+            <Image
               src={track.albumUrl || undefined}
               alt={track.name}
               loading="lazy"

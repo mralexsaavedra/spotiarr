@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { memo } from "react";
 import { Playlist, PlaylistStats } from "../../types";
 import { cn } from "../../utils/cn";
-import { AppImage } from "../atoms/AppImage";
+import { Image } from "../atoms/Image";
 import { PlaylistStatusBadge } from "../molecules/PlaylistStatusBadge";
 
 interface PlaylistCardProps {
@@ -30,7 +30,7 @@ export const PlaylistCard = memo(({ playlist, stats, onClick, className }: Playl
             <FontAwesomeIcon icon={["fas", "bell"]} className="text-sm text-green-500" />
           </div>
         )}
-        <AppImage
+        <Image
           src={playlist.coverUrl || undefined}
           alt={playlist.name || "Playlist cover"}
           loading="lazy"

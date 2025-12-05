@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { formatRelativeDate } from "../../utils/date";
-import { AppImage } from "../atoms/AppImage";
+import { Image } from "../atoms/Image";
 
 interface AlbumCardProps {
   albumId: string;
@@ -63,7 +63,7 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
         onClick={onCardClick}
       >
         <div className="relative mb-4 overflow-hidden rounded-md shadow-lg aspect-square bg-background-hover">
-          <AppImage
+          <Image
             src={coverUrl || undefined}
             alt={albumName}
             loading="lazy"

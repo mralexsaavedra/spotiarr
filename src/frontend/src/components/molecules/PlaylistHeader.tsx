@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { AppImage } from "../atoms/AppImage";
+import { Image } from "../atoms/Image";
 
 interface PlaylistHeaderProps {
   title: string;
@@ -25,7 +25,7 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
       <div className="flex flex-col items-start gap-6 md:flex-row md:items-end">
         {/* Cover Image */}
         <div className="flex-shrink-0 w-48 h-48 shadow-2xl md:w-60 md:h-60">
-          <AppImage
+          <Image
             src={coverUrl || undefined}
             alt={title}
             loading="eager"
