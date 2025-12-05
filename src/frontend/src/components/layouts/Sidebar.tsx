@@ -27,13 +27,13 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
         to={Path.HOME}
         className={cn(
           "flex items-center gap-3 mb-8 transition-all shrink-0",
-          isSidebarCollapsed ? "justify-center px-0" : "px-2",
+          isSidebarCollapsed ? "pl-3" : "px-2",
         )}
         title="SpotiArr Home"
       >
         <img src="/logo.svg" alt="SpotiArr Logo" className="w-8 h-8 shrink-0" />
         {!isSidebarCollapsed && (
-          <span className="text-xl font-bold tracking-tight text-white whitespace-nowrap">
+          <span className="text-xl font-bold tracking-tight text-white duration-300 whitespace-nowrap animate-in fade-in slide-in-from-left-2">
             SpotiArr
           </span>
         )}
@@ -49,11 +49,11 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
               key={item.to}
               to={item.to}
               className={cn(
-                "group flex items-center gap-3 font-semibold transition-all rounded-lg px-2 py-2.5 shrink-0 overflow-hidden whitespace-nowrap",
+                "group flex items-center gap-3 font-semibold transition-all rounded-lg py-2.5 shrink-0 overflow-hidden whitespace-nowrap",
                 active
                   ? "text-text-primary bg-background-hover"
                   : "text-text-secondary hover:text-text-primary",
-                isSidebarCollapsed ? "justify-center" : "",
+                isSidebarCollapsed ? "pl-5" : "px-2",
               )}
               title={isSidebarCollapsed ? item.label : undefined}
             >
@@ -69,7 +69,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
               {!isSidebarCollapsed && (
                 <span
                   className={cn(
-                    "transition-colors whitespace-nowrap",
+                    "transition-all whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300",
                     active
                       ? "text-text-primary"
                       : "text-text-secondary group-hover:text-text-primary",
@@ -85,20 +85,23 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
 
       {/* Footer - Fixed at bottom */}
       <div className="flex flex-col gap-2 pt-2">
+        {/* Collapse Toggle Item */}
         <button
           onClick={toggleSidebar}
           className={cn(
-            "group flex items-center gap-3 font-semibold transition-all rounded-lg px-2 py-2.5 text-text-secondary hover:text-white hover:bg-white/5 w-full",
-            isSidebarCollapsed ? "justify-center" : "",
+            "group flex items-center gap-3 font-semibold transition-all rounded-lg py-2.5 shrink-0 mt-2 text-text-secondary hover:text-white hover:bg-white/5 w-full whitespace-nowrap overflow-hidden",
+            isSidebarCollapsed ? "pl-5" : "px-2",
           )}
           title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
           <FontAwesomeIcon
             icon={isSidebarCollapsed ? "chevron-right" : "chevron-left"}
-            className="w-5 text-lg text-center transition-colors"
+            className="w-5 text-lg text-center transition-colors shrink-0"
           />
           {!isSidebarCollapsed && (
-            <span className="transition-colors whitespace-nowrap">Collapse Sidebar</span>
+            <span className="transition-all duration-300 whitespace-nowrap animate-in fade-in slide-in-from-left-2">
+              Collapse Sidebar
+            </span>
           )}
         </button>
 
