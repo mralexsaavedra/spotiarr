@@ -1,6 +1,6 @@
 import { ApiRoutes, DownloadStatusResponse, PlaylistPreview } from "@spotiarr/shared";
 import { Playlist } from "../types/playlist";
-import { httpClient } from "./httpClient";
+import { ApiError, httpClient } from "./httpClient";
 
 export const playlistService = {
   getPlaylists: async (): Promise<Playlist[]> => {
@@ -13,17 +13,16 @@ export const playlistService = {
   },
 
   getPlaylistPreview: async (spotifyUrl: string): Promise<PlaylistPreview> => {
-    return httpClient.get<PlaylistPreview>(
-      `${ApiRoutes.PLAYLIST}/preview?url=${encodeURIComponent(spotifyUrl)}`,
-    );
+    const params = new URLSearchParams({ url: spotifyUrl });
+    return httpClient.get<PlaylistPreview>(`${ApiRoutes.PLAYLIST}/preview?${params.toString()}`);
   },
 
   createPlaylist: async (spotifyUrl: string): Promise<Playlist> => {
     try {
       return await httpClient.post<Playlist>(ApiRoutes.PLAYLIST, { spotifyUrl });
-    } catch (error: any) {
-      if (error.code === "invalid_playlist_payload") {
-        throw new Error("invalid_playlist_payload");
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "invalid_playlist_payload") {
+        throw new ApiError("invalid_playlist_payload", "invalid_playlist_payload");
       }
       throw error;
     }
@@ -32,9 +31,9 @@ export const playlistService = {
   updatePlaylist: async (id: string, data: Partial<Playlist>): Promise<void> => {
     try {
       await httpClient.put<void>(`${ApiRoutes.PLAYLIST}/${id}`, data);
-    } catch (error: any) {
-      if (error.code === "invalid_playlist_payload") {
-        throw new Error("invalid_playlist_payload");
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "invalid_playlist_payload") {
+        throw new ApiError("invalid_playlist_payload", "invalid_playlist_payload");
       }
       throw error;
     }

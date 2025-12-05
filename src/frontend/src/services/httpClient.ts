@@ -1,5 +1,16 @@
 import { ApiErrorCode, ApiErrorShape, ApiRoutes } from "@spotiarr/shared";
 
+export class ApiError extends Error {
+  constructor(
+    public message: string,
+    public code?: string,
+    public status?: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 export class HttpClient {
   private async handleResponse<T>(response: Response): Promise<T> {
     if (response.status === 204) {
@@ -19,21 +30,11 @@ export class HttpClient {
         message = shape.message;
       }
 
-      if (errorCode === "missing_user_access_token") {
-        throw new Error("missing_user_access_token");
-      }
-
-      if (errorCode === "spotify_rate_limited") {
-        throw new Error("spotify_rate_limited");
-      }
-
-      if (errorCode) {
-        const error = new Error(message ?? errorCode ?? `API Error: ${response.statusText}`);
-        (error as any).code = errorCode;
-        throw error;
-      }
-
-      throw new Error(message ?? `API Error: ${response.statusText}`);
+      throw new ApiError(
+        message ?? errorCode ?? `API Error: ${response.statusText}`,
+        errorCode,
+        response.status,
+      );
     }
 
     return data as T;
