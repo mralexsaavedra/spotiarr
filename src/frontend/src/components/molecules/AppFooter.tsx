@@ -12,9 +12,14 @@ export const AppFooter: FC<AppFooterProps> = ({ className = "" }) => {
       className={`flex flex-col items-center justify-center gap-4 text-text-secondary ${className}`}
     >
       <div className="flex items-center gap-2">
-        <span className="text-sm">
+        <a
+          href={`https://github.com/mralexsaavedra/spotiarr/releases/tag/v${APP_VERSION}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm hover:text-white transition-colors"
+        >
           <span className="md:hidden">SpotiArr </span>v{APP_VERSION}
-        </span>
+        </a>
         <span className="text-white/20">|</span>
         <a
           href="https://buymeacoffee.com/mralexsaavedra"
