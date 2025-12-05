@@ -4,7 +4,7 @@ import { FC, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
-import { Track } from "../../types/track";
+import { Track } from "../../types";
 import { formatDuration } from "../../utils/date";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 import { VirtualList } from "../molecules/VirtualList";

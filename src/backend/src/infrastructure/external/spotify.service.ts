@@ -1,5 +1,5 @@
+import { NormalizedTrack } from "@spotiarr/shared";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../domain/helpers/spotify-url.helper";
-import { NormalizedTrack } from "../../types/spotify";
 import { SpotifyApiService } from "./spotify-api.service";
 
 export type PlaylistTrack = NormalizedTrack;

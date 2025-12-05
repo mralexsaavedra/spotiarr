@@ -1,5 +1,5 @@
 import { ApiRoutes, DownloadStatusResponse, PlaylistPreview } from "@spotiarr/shared";
-import { Playlist } from "../types/playlist";
+import { Playlist } from "../types";
 import { ApiError, httpClient } from "./httpClient";
 
 export const playlistService = {

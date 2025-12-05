@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo } from "react";
-import type { Playlist } from "../../types/playlist";
-import { PlaylistStats } from "../../types/playlist";
+import type { Playlist } from "../../types";
+import { PlaylistStats } from "../../types";
 
 interface PlaylistCardProps {
   playlist: Playlist;

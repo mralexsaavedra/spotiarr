@@ -1,5 +1,5 @@
 import { FC, memo, useCallback } from "react";
-import { PlaylistWithStats } from "../../types/playlist";
+import { PlaylistWithStats } from "../../types";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 import { PlaylistCard } from "./PlaylistCard";
 

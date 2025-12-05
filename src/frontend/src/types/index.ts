@@ -1,9 +1,13 @@
-import { IPlaylist } from "@spotiarr/shared";
-import type { Track } from "./track";
+import { IPlaylist, ITrack, TrackStatusEnum } from "@spotiarr/shared";
+
+export interface Track extends ITrack {
+  id: string;
+  playlistId?: string;
+  status: TrackStatusEnum; // Override optional status with required
+}
 
 export interface Playlist extends IPlaylist {
   id: string;
-  collapsed?: boolean; // UI state
   tracks?: Track[];
 }
 

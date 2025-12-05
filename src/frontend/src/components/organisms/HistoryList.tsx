@@ -4,7 +4,7 @@ import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
-import { type Playlist } from "../../types/playlist";
+import { type Playlist } from "../../types";
 import { formatRelativeDate } from "../../utils/date";
 import { Button } from "../atoms/Button";
 import { VirtualList } from "../molecules/VirtualList";

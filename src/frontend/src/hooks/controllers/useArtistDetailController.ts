@@ -3,7 +3,7 @@ import { useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
-import { Track } from "../../types/track";
+import { Track } from "../../types";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../queries/useArtistDetailQuery";
 import { useArtistDiscography } from "../useArtistDiscography";

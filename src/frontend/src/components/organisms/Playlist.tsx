@@ -1,7 +1,7 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, useCallback, useState } from "react";
-import { PlaylistWithStats } from "../../types/playlist";
-import { Track } from "../../types/track";
+import { PlaylistWithStats } from "../../types";
+import { Track } from "../../types";
 import { ConfirmModal } from "../molecules/ConfirmModal";
 import { EmptyState } from "../molecules/EmptyState";
 import { PlaylistActions } from "../molecules/PlaylistActions";
@@ -84,7 +84,7 @@ export const Playlist: FC<PlaylistProps> = ({
         />
 
         {/* Action Bar */}
-        <div className="px-6 md:px-8 py-6 bg-gradient-to-b from-black/20 to-background">
+        <div className="px-6 py-6 md:px-8 bg-gradient-to-b from-black/20 to-background">
           <PlaylistActions
             isSubscribed={!!playlist?.subscribed}
             hasFailed={hasFailed}
@@ -101,7 +101,7 @@ export const Playlist: FC<PlaylistProps> = ({
         </div>
 
         {/* Content */}
-        <div className="px-6 md:px-8 pb-8">
+        <div className="px-6 pb-8 md:px-8">
           {tracks.length === 0 ? (
             <EmptyState
               icon="music"

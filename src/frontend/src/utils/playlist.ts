@@ -1,6 +1,5 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { type Playlist, PlaylistStats } from "../types/playlist";
-import type { Track } from "../types/track";
+import { type Playlist, PlaylistStats, type Track } from "../types";
 
 export const calculatePlaylistStats = (playlist: Playlist): PlaylistStats => {
   const tracks = playlist.tracks || [];

@@ -2,7 +2,7 @@ import { PlaylistHistory } from "@spotiarr/shared";
 import { MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
-import { Playlist } from "../../types/playlist";
+import { Playlist } from "../../types";
 import { useRecreatePlaylistMutation } from "../mutations/useRecreatePlaylistMutation";
 import { useDownloadHistoryQuery } from "../queries/useDownloadHistoryQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";

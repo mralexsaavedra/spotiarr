@@ -1,7 +1,7 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { trackService } from "../../services/track.service";
-import { Track } from "../../types/track";
+import { Track } from "../../types";
 import { queryKeys } from "../queryKeys";
 
 export const useRetryTrackMutation = (playlistId: string) => {

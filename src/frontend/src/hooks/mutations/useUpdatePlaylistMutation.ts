@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { playlistService } from "../../services/playlist.service";
-import type { Playlist } from "../../types/playlist";
+import type { Playlist } from "../../types";
 import { queryKeys } from "../queryKeys";
 
 export const useUpdatePlaylistMutation = () => {

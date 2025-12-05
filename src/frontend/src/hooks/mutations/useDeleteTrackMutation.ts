@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { trackService } from "../../services/track.service";
-import { Track } from "../../types/track";
+import { Track } from "../../types";
 import { queryKeys } from "../queryKeys";
 
 export const useDeleteTrackMutation = (playlistId: string) => {
