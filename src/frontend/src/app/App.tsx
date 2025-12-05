@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { useLocation } from "react-router-dom";
 import { ToastContainer } from "../components/organisms/ToastContainer";
-import { APP_VERSION } from "../constants/version";
+import { APP_VERSION } from "../config/version";
 import { DownloadStatusProvider } from "../contexts/DownloadStatusContext";
 import { ToastProvider } from "../contexts/ToastContext";
 import { useServerEvents } from "../hooks/useServerEvents";

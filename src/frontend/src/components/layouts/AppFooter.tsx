@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { APP_VERSION, BUY_ME_A_COFFEE_URL, GITHUB_RELEASE_URL } from "../../constants/version";
+import { BUY_ME_A_COFFEE_URL, GITHUB_RELEASE_URL } from "../../config/links";
+import { APP_VERSION } from "../../config/version";
 import { cn } from "../../utils/cn";
 
 interface AppFooterProps {

@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Link } from "react-router-dom";
-import { NAV_ITEMS } from "../../constants/navigation";
+import { NAV_ITEMS } from "../../config/navigation";
 import { Path } from "../../routes/routes";
 import { usePreferencesStore } from "../../store/usePreferencesStore";
 import { cn } from "../../utils/cn";
