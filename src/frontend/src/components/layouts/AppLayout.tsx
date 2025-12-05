@@ -21,7 +21,7 @@ export const AppLayout: FC<AppLayoutProps> = ({ pathname, version }) => {
 
       <main
         className={cn(
-          "flex-1 flex flex-col bg-background ml-0 pb-20 md:pb-0 transition-all duration-300",
+          "flex-1 flex flex-col bg-background ml-0 pb-20 md:pb-0 transition-[margin-left] duration-300",
           isSidebarCollapsed ? "md:ml-20" : "md:ml-64",
         )}
       >
