@@ -51,7 +51,9 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
             ? "Compilation"
             : "Release";
 
-    const dateDisplay = releaseDate ? formatRelativeDate(new Date(releaseDate).getTime()) : "";
+    const dateDisplay = releaseDate
+      ? formatRelativeDate(new Date(releaseDate).getTime(), false)
+      : "";
 
     return (
       <article
