@@ -4,7 +4,7 @@ import { Loading } from "../components/atoms/Loading";
 import { AppFooter } from "../components/layouts/AppFooter";
 import { PageHeader } from "../components/molecules/PageHeader";
 import { SettingItem } from "../components/molecules/SettingItem";
-import { SpotifyAuthCard } from "../components/molecules/SpotifyAuthCard";
+import { SpotifyAuthCard } from "../components/organisms/SpotifyAuthCard";
 import { useSettingsController } from "../hooks/controllers/useSettingsController";
 
 export const Settings: FC = () => {
