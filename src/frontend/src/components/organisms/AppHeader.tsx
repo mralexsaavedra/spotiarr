@@ -3,7 +3,7 @@ import { FC } from "react";
 import { Link } from "react-router-dom";
 import { useHeaderController } from "../../hooks/controllers/useHeaderController";
 
-export const Header: FC = () => {
+export const AppHeader: FC = () => {
   const { url, handleDownload, isPending, isValidUrl, handleChangeUrl, handleKeyUp } =
     useHeaderController();
 
