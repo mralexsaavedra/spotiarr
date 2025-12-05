@@ -1,9 +1,9 @@
 import { FC } from "react";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
-import { PageHeader } from "../components/atoms/PageHeader";
 import { ConfirmModal } from "../components/molecules/ConfirmModal";
 import { EmptyState } from "../components/molecules/EmptyState";
+import { PageHeader } from "../components/molecules/PageHeader";
 import { PlaylistList } from "../components/organisms/PlaylistList";
 import { useHomeController } from "../hooks/controllers/useHomeController";
 

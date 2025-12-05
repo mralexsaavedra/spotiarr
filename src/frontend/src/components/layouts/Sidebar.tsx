@@ -3,7 +3,7 @@ import { FC } from "react";
 import { Link } from "react-router-dom";
 import { NAV_ITEMS } from "../../constants/navigation";
 import { Path } from "../../routes/routes";
-import { AppFooter } from "../molecules/AppFooter";
+import { AppFooter } from "./AppFooter";
 
 interface SidebarProps {
   pathname: string;

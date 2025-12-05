@@ -1,5 +1,5 @@
 import { FC, MouseEvent, useCallback } from "react";
-import { Button, ButtonProps } from "./Button";
+import { Button, ButtonProps } from "../atoms/Button";
 
 interface SpotifyLinkButtonProps extends Omit<ButtonProps, "onClick" | "children"> {
   url: string;

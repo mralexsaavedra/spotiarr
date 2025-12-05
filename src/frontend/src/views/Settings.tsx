@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
-import { PageHeader } from "../components/atoms/PageHeader";
-import { AppFooter } from "../components/molecules/AppFooter";
+import { AppFooter } from "../components/layouts/AppFooter";
+import { PageHeader } from "../components/molecules/PageHeader";
 import { SettingItem } from "../components/molecules/SettingItem";
 import { SpotifyAuthCard } from "../components/molecules/SpotifyAuthCard";
 import { useSettingsController } from "../hooks/controllers/useSettingsController";

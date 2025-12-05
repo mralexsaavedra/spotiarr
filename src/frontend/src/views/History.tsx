@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Loading } from "../components/atoms/Loading";
-import { PageHeader } from "../components/atoms/PageHeader";
 import { EmptyState } from "../components/molecules/EmptyState";
+import { PageHeader } from "../components/molecules/PageHeader";
 import { HistoryList } from "../components/organisms/HistoryList";
 import { useHistoryController } from "../hooks/controllers/useHistoryController";
 

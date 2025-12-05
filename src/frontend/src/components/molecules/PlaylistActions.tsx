@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Button } from "../atoms/Button";
-import { SpotifyLinkButton } from "../atoms/SpotifyLinkButton";
+import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
 
 interface PlaylistActionsProps {
   spotifyUrl: string;

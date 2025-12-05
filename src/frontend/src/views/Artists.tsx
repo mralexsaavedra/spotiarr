@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Loading } from "../components/atoms/Loading";
-import { PageHeader } from "../components/atoms/PageHeader";
+import { PageHeader } from "../components/molecules/PageHeader";
 import { SearchInput } from "../components/molecules/SearchInput";
 import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
 import { ArtistList } from "../components/organisms/ArtistList";

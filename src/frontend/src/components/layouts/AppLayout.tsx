@@ -1,9 +1,9 @@
 import { FC } from "react";
 import { Outlet } from "react-router-dom";
 import { Path } from "../../routes/routes";
-import { AppHeader } from "../organisms/AppHeader";
-import { BottomNavigation } from "../organisms/BottomNavigation";
-import { Sidebar } from "../organisms/Sidebar";
+import { AppHeader } from "./AppHeader";
+import { BottomNavigation } from "./BottomNavigation";
+import { Sidebar } from "./Sidebar";
 
 interface AppLayoutProps {
   pathname: Path;
