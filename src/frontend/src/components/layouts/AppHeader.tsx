@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import { useHeaderController } from "../../hooks/controllers/useHeaderController";
+import { Path } from "../../routes/routes";
 import { cn } from "../../utils/cn";
 
 export const AppHeader: FC = () => {
@@ -57,6 +58,14 @@ export const AppHeader: FC = () => {
             )}
           </div>
         </div>
+
+        {/* Settings: Mobile Only */}
+        <Link
+          to={Path.SETTINGS}
+          className="flex items-center justify-center w-10 h-10 transition-colors rounded-full text-text-secondary hover:text-text-primary hover:bg-background-elevated md:hidden shrink-0"
+        >
+          <FontAwesomeIcon icon="sliders" className="text-xl" />
+        </Link>
       </div>
     </header>
   );

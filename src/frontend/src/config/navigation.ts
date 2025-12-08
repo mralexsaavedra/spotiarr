@@ -15,3 +15,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Artists", icon: "user-group", to: Path.ARTISTS },
   { label: "Settings", icon: "sliders", to: Path.SETTINGS },
 ];
+
+export const MOBILE_NAV_ITEMS: NavItem[] = NAV_ITEMS.filter(
+  (item) => item.to !== Path.SETTINGS && item.to !== Path.HISTORY,
+);
