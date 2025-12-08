@@ -39,6 +39,15 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 > [!IMPORTANT]  
 > **Legal Notice:** Personal use only. Download music you have legal rights to access. The author is not responsible for misuse.
 
+## 📱 Application Views
+
+- **🏠 Home:** Dashboard with recent activity, active downloads, and quick actions.
+- **📜 History:** Comprehensive log of all downloaded tracks and playlists.
+- **🔔 Releases:** New releases from your followed artists.
+- **💾 My Playlists:** Browse and import your followed Spotify playlists directly.
+- **👥 Artists:** Manage your followed artists and view their discography.
+- **⚙️ Settings:** Configure download preferences, directories, and application behavior.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
