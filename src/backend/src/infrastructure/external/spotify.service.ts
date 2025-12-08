@@ -1,4 +1,4 @@
-import { NormalizedTrack } from "@spotiarr/shared";
+import { NormalizedTrack, SpotifyPlaylist } from "@spotiarr/shared";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../domain/helpers/spotify-url.helper";
 import { SpotifyApiService } from "./spotify-api.service";
 
@@ -73,6 +73,15 @@ export class SpotifyService {
     } catch (error) {
       console.error(`Error getting playlist tracks: ${(error as Error).message}`);
       return [];
+    }
+  }
+  async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
+    console.debug(`Get user's playlists on Spotify`);
+    try {
+      return await this.spotifyApiService.getMyPlaylists();
+    } catch (error) {
+      console.error(`Error getting user playlists: ${(error as Error).message}`);
+      throw error;
     }
   }
 }

@@ -7,4 +7,5 @@ export enum Path {
   RELEASES = "/releases",
   ARTISTS = "/artists",
   ARTIST_DETAIL = "/artist/:id",
+  MY_PLAYLISTS = "/my-playlists",
 }

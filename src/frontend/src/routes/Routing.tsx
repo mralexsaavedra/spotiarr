@@ -24,6 +24,9 @@ const Artists = lazy(() =>
 const ArtistDetail = lazy(() =>
   import("../views/ArtistDetail").then((module) => ({ default: module.ArtistDetail })),
 );
+const MyPlaylists = lazy(() =>
+  import("../views/MyPlaylists").then((module) => ({ default: module.MyPlaylists })),
+);
 const Settings = lazy(() =>
   import("../views/Settings").then((module) => ({ default: module.Settings })),
 );
@@ -55,6 +58,7 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
         <Route path={Path.RELEASES} element={<Releases />} />
         <Route path={Path.ARTISTS} element={<Artists />} />
         <Route path={Path.ARTIST_DETAIL} element={<ArtistDetail />} />
+        <Route path={Path.MY_PLAYLISTS} element={<MyPlaylists />} />
         <Route path={Path.SETTINGS} element={<Settings />} />
         <Route path="*" element={<NotFound />} />
       </Route>

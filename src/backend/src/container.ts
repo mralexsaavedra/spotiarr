@@ -4,6 +4,7 @@ import { TrackService } from "./application/services/track.service";
 import { UtilsService } from "./application/services/utils.service";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "./application/use-cases/playlists/delete-playlist.use-case";
+import { GetMyPlaylistsUseCase } from "./application/use-cases/playlists/get-my-playlists.use-case";
 import { GetPlaylistPreviewUseCase } from "./application/use-cases/playlists/get-playlist-preview.use-case";
 import { GetPlaylistsUseCase } from "./application/use-cases/playlists/get-playlists.use-case";
 import { GetSystemStatusUseCase } from "./application/use-cases/playlists/get-system-status.use-case";
@@ -122,6 +123,8 @@ const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
   trackService,
 );
 
+const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService);
+
 // Domain Services (Playlist)
 const playlistService = new PlaylistService({
   createPlaylistUseCase,
@@ -132,6 +135,7 @@ const playlistService = new PlaylistService({
   deletePlaylistUseCase,
   updatePlaylistUseCase,
   retryPlaylistDownloadsUseCase,
+  getMyPlaylistsUseCase,
 });
 
 // Export container

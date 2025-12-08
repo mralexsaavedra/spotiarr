@@ -1,4 +1,9 @@
-import { ApiRoutes, DownloadStatusResponse, PlaylistPreview } from "@spotiarr/shared";
+import {
+  ApiRoutes,
+  DownloadStatusResponse,
+  PlaylistPreview,
+  SpotifyPlaylist,
+} from "@spotiarr/shared";
 import { Playlist } from "../types";
 import { ApiError, httpClient } from "./httpClient";
 
@@ -6,6 +11,10 @@ export const playlistService = {
   getPlaylists: async (): Promise<Playlist[]> => {
     const response = await httpClient.get<{ data: Playlist[] }>(ApiRoutes.PLAYLIST);
     return response.data;
+  },
+
+  getMyPlaylists: async (): Promise<SpotifyPlaylist[]> => {
+    return httpClient.get<SpotifyPlaylist[]>(`${ApiRoutes.PLAYLIST}/me`);
   },
 
   getDownloadStatus: async (): Promise<DownloadStatusResponse> => {

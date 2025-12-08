@@ -23,6 +23,15 @@ router.get(
   }),
 );
 
+// GET /api/playlist/me - Get user's playlists from Spotify
+router.get(
+  "/me",
+  asyncHandler(async (req, res) => {
+    const playlists = await playlistService.getMyPlaylists();
+    res.json(playlists);
+  }),
+);
+
 // GET /api/playlist/status - Get download status summary
 router.get(
   "/status",

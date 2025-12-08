@@ -1,4 +1,10 @@
-import { AlbumType, ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
+import {
+  AlbumType,
+  ArtistRelease,
+  FollowedArtist,
+  NormalizedTrack,
+  SpotifyPlaylist,
+} from "@spotiarr/shared";
 import { SettingsService } from "../../application/services/settings.service";
 import { SpotifyUrlHelper } from "../../domain/helpers/spotify-url.helper";
 import { getEnv } from "../setup/environment";
@@ -1119,6 +1125,63 @@ export class SpotifyApiService {
       return [];
     } catch (error) {
       this.log(`Failed to get all playlist tracks: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+  async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
+    try {
+      this.log("Getting user's playlists from Spotify");
+      const allPlaylists: SpotifyPlaylist[] = [];
+
+      let nextUrl: string | null = "https://api.spotify.com/v1/me/playlists?limit=50";
+
+      while (nextUrl) {
+        const response: Response = await this.fetchWithUserToken(nextUrl);
+
+        if (!response.ok) {
+          // If 401, error will be thrown by fetchWithUserToken or we handle it here if it wasn't retried?
+          // fetchWithUserToken handles 401 retry. If it fails again, it returns the 401 response.
+
+          if (response.status === 401) {
+            const tokenError = new Error("Spotify user token expired or invalid") as Error & {
+              code?: string;
+            };
+            tokenError.code = "MISSING_SPOTIFY_USER_TOKEN";
+            throw tokenError;
+          }
+
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch user playlists: ${response.status} ${errorText}`);
+        }
+
+        const data = (await response.json()) as {
+          items: {
+            id: string;
+            name: string;
+            images: SpotifyImage[];
+            owner: { display_name: string };
+            tracks: { total: number };
+            external_urls: { spotify: string };
+          }[];
+          next: string | null;
+        };
+
+        const mapped = data.items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          image: item.images?.[0]?.url ?? null,
+          owner: item.owner?.display_name ?? "Unknown",
+          tracks: item.tracks?.total ?? 0,
+          spotifyUrl: item.external_urls?.spotify,
+        }));
+
+        allPlaylists.push(...mapped);
+        nextUrl = data.next;
+      }
+
+      return allPlaylists;
+    } catch (error) {
+      this.log(`Failed to get user playlists: ${(error as Error).message}`);
       throw error;
     }
   }

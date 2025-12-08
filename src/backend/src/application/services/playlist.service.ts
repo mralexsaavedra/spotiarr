@@ -1,6 +1,12 @@
-import { DownloadStatusResponse, PlaylistPreview, type IPlaylist } from "@spotiarr/shared";
+import {
+  DownloadStatusResponse,
+  PlaylistPreview,
+  SpotifyPlaylist,
+  type IPlaylist,
+} from "@spotiarr/shared";
 import { CreatePlaylistUseCase } from "../use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "../use-cases/playlists/delete-playlist.use-case";
+import { GetMyPlaylistsUseCase } from "../use-cases/playlists/get-my-playlists.use-case";
 import { GetPlaylistPreviewUseCase } from "../use-cases/playlists/get-playlist-preview.use-case";
 import { GetPlaylistsUseCase } from "../use-cases/playlists/get-playlists.use-case";
 import { GetSystemStatusUseCase } from "../use-cases/playlists/get-system-status.use-case";
@@ -17,6 +23,7 @@ export interface PlaylistServiceDependencies {
   deletePlaylistUseCase: DeletePlaylistUseCase;
   updatePlaylistUseCase: UpdatePlaylistUseCase;
   retryPlaylistDownloadsUseCase: RetryPlaylistDownloadsUseCase;
+  getMyPlaylistsUseCase: GetMyPlaylistsUseCase;
 }
 
 export class PlaylistService {
@@ -28,6 +35,7 @@ export class PlaylistService {
   private readonly deletePlaylistUseCase: DeletePlaylistUseCase;
   private readonly updatePlaylistUseCase: UpdatePlaylistUseCase;
   private readonly retryPlaylistDownloadsUseCase: RetryPlaylistDownloadsUseCase;
+  private readonly getMyPlaylistsUseCase: GetMyPlaylistsUseCase;
 
   constructor(deps: PlaylistServiceDependencies) {
     this.createPlaylistUseCase = deps.createPlaylistUseCase;
@@ -38,6 +46,7 @@ export class PlaylistService {
     this.deletePlaylistUseCase = deps.deletePlaylistUseCase;
     this.updatePlaylistUseCase = deps.updatePlaylistUseCase;
     this.retryPlaylistDownloadsUseCase = deps.retryPlaylistDownloadsUseCase;
+    this.getMyPlaylistsUseCase = deps.getMyPlaylistsUseCase;
   }
 
   async findAll(includesTracks = true, where?: Partial<IPlaylist>): Promise<IPlaylist[]> {
@@ -82,5 +91,9 @@ export class PlaylistService {
 
   async getDownloadStatus(): Promise<DownloadStatusResponse> {
     return this.getSystemStatusUseCase.execute();
+  }
+
+  async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
+    return this.getMyPlaylistsUseCase.execute();
   }
 }
