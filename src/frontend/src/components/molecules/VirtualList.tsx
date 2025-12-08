@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 import { Virtuoso } from "react-virtuoso";
 
 interface VirtualListProps<T> {
@@ -14,19 +14,18 @@ export const VirtualList = <T,>({
   itemKey,
   emptyState,
 }: VirtualListProps<T>) => {
+  const itemContent = useCallback(
+    (index: number, item: T) => (
+      <div key={itemKey ? itemKey(item) : index} className="mb-1">
+        {renderItem(item, index)}
+      </div>
+    ),
+    [itemKey, renderItem],
+  );
+
   if (items.length === 0 && emptyState) {
     return <>{emptyState}</>;
   }
 
-  return (
-    <Virtuoso
-      useWindowScroll
-      data={items}
-      itemContent={(index, item) => (
-        <div key={itemKey ? itemKey(item) : index} className="mb-1">
-          {renderItem(item, index)}
-        </div>
-      )}
-    />
-  );
+  return <Virtuoso useWindowScroll data={items} itemContent={itemContent} overscan={500} />;
 };

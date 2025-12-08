@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useCallback, useMemo } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { useGridColumns } from "../../hooks/useGridColumns";
 
@@ -34,6 +34,22 @@ export const VirtualGrid = <T,>({
     [footer],
   );
 
+  const itemContent = useCallback(
+    (_: number, rowItems: T[]) => (
+      <div
+        className="grid gap-4 mb-4"
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      >
+        {rowItems.map((item) => (
+          <div key={itemKey(item)} className="contents">
+            {renderItem(item)}
+          </div>
+        ))}
+      </div>
+    ),
+    [columns, itemKey, renderItem],
+  );
+
   if (items.length === 0 && emptyState) {
     return <>{emptyState}</>;
   }
@@ -43,18 +59,8 @@ export const VirtualGrid = <T,>({
       useWindowScroll
       data={rows}
       components={virtuosoComponents}
-      itemContent={(_, rowItems) => (
-        <div
-          className="grid gap-4 mb-4"
-          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-        >
-          {rowItems.map((item) => (
-            <div key={itemKey(item)} className="contents">
-              {renderItem(item)}
-            </div>
-          ))}
-        </div>
-      )}
+      itemContent={itemContent}
+      overscan={500}
     />
   );
 };
