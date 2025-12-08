@@ -39,6 +39,19 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 > [!IMPORTANT]  
 > **Legal Notice:** Personal use only. Download music you have legal rights to access. The author is not responsible for misuse.
 
+## 📸 Interface
+
+<div align="center">
+  <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="100%">
+  <br>
+  <em>Modern Dashboard with Real-time Status</em>
+  <br><br>
+  <img src="assets/screenshots/mobile.png" alt="Mobile View" width="48%">
+  <img src="assets/screenshots/settings.png" alt="Settings" width="48%">
+  <br>
+  <em>Fully Responsive Mobile Design & Comprehensive Settings</em>
+</div>
+
 ## 📱 Application Views
 
 - **🏠 Home:** Dashboard with recent activity, active downloads, and quick actions.
@@ -55,11 +68,10 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 1. **Get Spotify API credentials** (free):
    - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create an app → note your `Client ID` and `Client Secret`
-   - **Set redirect URI based on your setup:**
-     - **Local development:** `http://127.0.0.1:5173/api/auth/spotify/callback`
-     - **Production (Docker):** `https://YOUR_SERVER_IP:3000/api/auth/spotify/callback`
-       - Replace `YOUR_SERVER_IP` with your actual server IP
-       - ⚠️ **Must use HTTPS** for non-localhost IPs (certificates auto-generated in Docker)
+   - **Set redirect URI:** Add _both_ of these to your Spotify Developer Dashboard:
+   - `http://localhost:5173/api/auth/spotify/callback` (Local Development)
+   - `https://YOUR_SERVER_IP:3000/api/auth/spotify/callback` (Production - replace `YOUR_SERVER_IP` with your actual IP)
+     - ⚠️ **Must use HTTPS** for non-localhost IPs (certificates auto-generated in Docker)
 
 2. **Run with Docker Compose** (recommended):
 
@@ -88,7 +100,7 @@ docker compose up -d
 
 ### Build from Source
 
-**Requirements:** Node.js 24+, pnpm 10+, Redis, FFmpeg, yt-dlp, Python 3.11/3.12
+**Requirements:** Node.js 20+, pnpm 9+, Redis, FFmpeg, yt-dlp, Python 3.11/3.12
 
 ```bash
 # 1. Setup
