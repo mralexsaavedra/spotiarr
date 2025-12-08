@@ -132,10 +132,15 @@ spotiarr/
 ├── src/
 │   ├── backend/
 │   │   ├── src/
-│   │   │   ├── routes/
-│   │   │   ├── services/
-│   │   │   ├── queues/
-│   │   │   └── entities/
+│   │   │   ├── application/   # Use cases & business logic
+│   │   │   ├── domain/        # Entities & core types
+│   │   │   ├── infrastructure/# External services (DB, Redis, Spotify)
+│   │   │   ├── presentation/  # HTTP controllers & routes
+│   │   │   ├── constants/
+│   │   │   ├── types/
+│   │   │   ├── app.ts         # Express app setup
+│   │   │   ├── container.ts   # Dependency injection
+│   │   │   └── index.ts       # Entry point
 │   │   └── package.json
 │   └── frontend/
 │       ├── src/
@@ -145,13 +150,13 @@ spotiarr/
 │       │   │   ├── organisms/
 │       │   │   └── layouts/
 │       │   ├── hooks/
-│       │   │   ├── queries/
-│       │   │   └── mutations/
 │       │   ├── routes/
-│       │   ├── store/
+│       │   ├── services/      # API clients
+│       │   ├── store/         # Zustand stores
 │       │   ├── styles/
 │       │   ├── types/
-│       │   └── views/
+│       │   ├── utils/
+│       │   └── views/         # Page components
 │       └── package.json
 └── package.json
 ```
@@ -194,15 +199,36 @@ spotiarr/
 - Use TanStack Query for server state and Zustand for UI state
 - Co-locate types and hooks with components when it improves readability
 
-### Express Services
+### Backend Architecture (Clean Architecture / DDD)
 
-- Use manual instantiation in constructors (no dependency injection container)
-- Keep routes thin, logic in services
-- Use DTOs for request/response validation
-- Handle errors with proper HTTP status codes
-- Use `console` for logging (wrapped in service helpers)
-- Use **Server-Sent Events (SSE)** via the `/api/events` endpoint for pushing
-  server-side updates to the frontend instead of WebSockets.
+The backend follows a layered architecture. Strict dependency rules apply:
+
+1. **Domain (`src/domain`)**:
+   - The core. specific business rules and entities.
+   - **Must NOT depend** on any other layer.
+   - Contains: Entities, Value Objects, Repository Interfaces.
+
+2. **Application (`src/application`)**:
+   - Application business rules (Use Cases).
+   - Coordinate data flow between Presentation and Domain.
+   - **Depends only on** Domain.
+
+3. **Infrastructure (`src/infrastructure`)**:
+   - Frameworks and tools (Database, Spotify API, File System).
+   - Implements interfaces defined in Domain/Application.
+   - **Depends on** Domain and Application.
+
+4. **Presentation (`src/presentation`)**:
+   - Interface adapters (HTTP Controllers, Routes, SSE).
+   - Receives inputs and converts them to Use Case requirements.
+   - **Depends on** Application.
+
+**Key rules:**
+
+- **Dependency Rule:** Source code dependencies can only point **inwards**.
+- **Container:** Use `container.ts` for Dependency Injection. Do not manually instantiate services in controllers.
+- **DTOs:** Use DTOs for data transfer between layers, especially for external API requests/responses.
+- **SSE:** Use Server-Sent Events for real-time updates (download progress).
 
 ## Pull Request Checklist
 
