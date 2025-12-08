@@ -41,16 +41,39 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 
 ## 📸 Interface
 
+<details>
+  <summary><strong>Click to view Interface Screenshots</strong></summary>
+  <br>
+
 <div align="center">
   <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="100%">
   <br>
   <em>Modern Dashboard with Real-time Status</em>
   <br><br>
+
+  <img src="assets/screenshots/playlist.png" alt="Playlist Detail" width="100%">
+  <br>
+  <em>Rich Playlist Management & Track Selection</em>
+  <br><br>
+
+  <img src="assets/screenshots/artists.png" alt="Artists Library" width="48%">
+  <img src="assets/screenshots/releases.png" alt="New Releases" width="48%">
+  <br>
+  <em>Artist Library & New Releases Tracking</em>
+  <br><br>
+
+  <img src="assets/screenshots/history.png" alt="Download History" width="100%">
+  <br>
+  <em>Comprehensive Download History</em>
+  <br><br>
+
   <img src="assets/screenshots/mobile.png" alt="Mobile View" width="48%">
   <img src="assets/screenshots/settings.png" alt="Settings" width="48%">
   <br>
   <em>Fully Responsive Mobile Design & Comprehensive Settings</em>
 </div>
+
+</details>
 
 ## 📱 Application Views
 
