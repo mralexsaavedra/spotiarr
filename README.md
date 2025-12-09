@@ -158,7 +158,6 @@ pnpm dev
 | `SPOTIFY_CLIENT_ID`     | ✅       | -           | Spotify app Client ID                                                |
 | `SPOTIFY_CLIENT_SECRET` | ✅       | -           | Spotify app Client Secret                                            |
 | `PUBLIC_HOST`           | ❌       | `localhost` | Public hostname or IP (e.g., `X.X.X.X` or `spotiarr.yourdomain.com`) |
-| `YT_COOKIES`            | ❌       | -           | YouTube cookies for yt-dlp ([how to get](#youtube-cookies))          |
 
 **Note:** Protocol (HTTP/HTTPS) and port are automatic based on environment:
 
@@ -171,24 +170,13 @@ pnpm dev
 
 Most options are configured via the **Settings** page (stored in database):
 
+- **Spotify Market/Region** → ISO country code for content availability
 - **Downloads path** → where files are saved
 - **Audio format** → mp3, m4a, etc.
+- **YouTube cookies browser** → for age-restricted content (optional)
 - **M3U generation** → auto-create playlist files
 - **Download rate limit** → avoid YouTube throttling
 - **Playlist sync interval** → how often to check for new tracks (default: 60 min)
-
-### YouTube Cookies
-
-<details>
-<summary>How to extract cookies from browser</summary>
-
-1. Visit https://www.youtube.com and log in
-2. Open DevTools (F12) → Application/Storage tab
-3. Cookies → https://www.youtube.com
-4. Copy all cookies as: `NAME1=value1; NAME2=value2; ...`
-5. Paste into `YT_COOKIES` env var
-
-</details>
 
 ## 📁 File Organization
 

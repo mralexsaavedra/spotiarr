@@ -107,7 +107,6 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 
 - `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` - Required
 - `PUBLIC_HOST` - Public hostname/IP (default: `localhost`)
-- `YT_COOKIES` - Optional YouTube cookies
 
 **Internal/Auto-configured variables** (for developers):
 
