@@ -1,3 +1,4 @@
+@import "./styles/fonts.css";
 @import "tailwindcss";
 
 @theme {
@@ -28,6 +29,7 @@
     /* Use utility classes directly if possible, or keep apply but check if tokens resolve */
     background-color: var(--color-background);
     color: var(--color-text-primary);
+    font-family: var(--font-sans);
   }
 }
 
