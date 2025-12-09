@@ -1,3 +1,4 @@
+import { faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { EmptyState } from "../components/molecules/EmptyState";
@@ -24,7 +25,7 @@ export const History: FC = () => {
           <Loading />
         ) : history.length === 0 ? (
           <EmptyState
-            icon="clock-rotate-left"
+            icon={faClockRotateLeft}
             title="No download history yet"
             description="Completed downloads will appear here."
           />

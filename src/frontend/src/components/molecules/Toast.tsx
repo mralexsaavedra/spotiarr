@@ -1,4 +1,10 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
+import {
+  faCircleCheck,
+  faCircleExclamation,
+  faTriangleExclamation,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useEffect, useState } from "react";
 import { Toast as ToastType } from "../../contexts/ToastContext";
@@ -24,10 +30,10 @@ export const Toast: FC<ToastProps> = ({ toast, onRemove }) => {
   };
 
   const icons: Record<string, IconProp> = {
-    success: "circle-check",
-    error: "circle-exclamation",
-    info: "circle-exclamation",
-    warning: "triangle-exclamation",
+    success: faCircleCheck,
+    error: faCircleExclamation,
+    info: faCircleExclamation,
+    warning: faTriangleExclamation,
   };
 
   const colors = {
@@ -52,7 +58,7 @@ export const Toast: FC<ToastProps> = ({ toast, onRemove }) => {
         onClick={handleRemove}
         className="ml-auto text-current opacity-70 hover:opacity-100 transition-opacity"
       >
-        <FontAwesomeIcon icon="xmark" />
+        <FontAwesomeIcon icon={faXmark} />
       </button>
     </div>
   );

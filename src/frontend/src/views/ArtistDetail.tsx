@@ -1,3 +1,4 @@
+import { faCheck, faDownload, faMusic } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Button } from "../components/atoms/Button";
@@ -79,9 +80,9 @@ export const ArtistDetail: FC = () => {
             title={isArtistDownloaded ? "Artist Downloaded" : "Download All"}
           >
             {isArtistDownloaded ? (
-              <FontAwesomeIcon icon="check" className="text-xl" />
+              <FontAwesomeIcon icon={faCheck} className="text-xl" />
             ) : (
-              <FontAwesomeIcon icon="download" className="text-xl" />
+              <FontAwesomeIcon icon={faDownload} className="text-xl" />
             )}
           </Button>
 
@@ -94,7 +95,7 @@ export const ArtistDetail: FC = () => {
 
           {!tracks || tracks.length === 0 ? (
             <EmptyState
-              icon="music"
+              icon={faMusic}
               title="No tracks found"
               description="This artist has no popular tracks available."
               className="py-8"

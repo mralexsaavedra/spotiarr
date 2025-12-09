@@ -1,3 +1,4 @@
+import { faCheck, faRotate, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
@@ -91,14 +92,14 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
                   disabled
                   className="!opacity-100 !cursor-default hover:!bg-transparent text-text-secondary"
                 >
-                  <FontAwesomeIcon icon="spinner" spin className="text-primary" />
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
                   <span className="hidden md:inline">Downloading...</span>
                 </Button>
               ) : (
                 <Button
                   variant="ghost"
                   size="sm"
-                  icon={isDisabled ? "check" : "rotate"}
+                  icon={isDisabled ? faCheck : faRotate}
                   title={
                     isDisabled ? "Playlist already exists" : "Recreate playlist and subscribe again"
                   }

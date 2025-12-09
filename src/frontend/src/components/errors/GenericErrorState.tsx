@@ -1,3 +1,4 @@
+import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
@@ -30,7 +31,7 @@ export const GenericErrorState: FC<GenericErrorStateProps> = ({
         {/* Icon */}
         <div className="flex justify-center">
           <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center">
-            <FontAwesomeIcon icon="triangle-exclamation" className="text-4xl text-red-400" />
+            <FontAwesomeIcon icon={faTriangleExclamation} className="text-4xl text-red-400" />
           </div>
         </div>
 

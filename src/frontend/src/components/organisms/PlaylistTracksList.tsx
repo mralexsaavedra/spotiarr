@@ -1,3 +1,5 @@
+import { faClock } from "@fortawesome/free-regular-svg-icons";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
@@ -100,7 +102,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
           <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right flex items-center justify-end gap-2">
             {(status ?? track.status) === "completed" && (
               <FontAwesomeIcon
-                icon="circle-check"
+                icon={faCircleCheck}
                 className="text-green-500 text-base"
                 title="Downloaded"
               />
@@ -158,7 +160,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
         <div>Title</div>
         <div className="hidden md:block">Album</div>
         <div className="text-right">
-          <FontAwesomeIcon icon={["far", "clock"]} />
+          <FontAwesomeIcon icon={faClock} />
         </div>
       </div>
 

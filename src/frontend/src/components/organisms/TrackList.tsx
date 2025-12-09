@@ -1,3 +1,4 @@
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, useCallback, useMemo } from "react";
@@ -67,7 +68,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
       {/* Duration */}
       <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
         {isDownloaded && (
-          <FontAwesomeIcon icon="circle-check" className="text-base text-green-500" />
+          <FontAwesomeIcon icon={faCircleCheck} className="text-base text-green-500" />
         )}
         <span>{track.durationMs ? formatDuration(track.durationMs) : "--:--"}</span>
       </div>

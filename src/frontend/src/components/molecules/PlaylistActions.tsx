@@ -1,3 +1,5 @@
+import { faBell as faBellRegular } from "@fortawesome/free-regular-svg-icons";
+import { faBell, faCheck, faDownload, faRepeat, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { cn } from "../../utils/cn";
@@ -48,9 +50,9 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         title={isDownloaded ? "Downloaded" : isDownloading ? "Downloading..." : "Download Playlist"}
       >
         {isDownloaded ? (
-          <FontAwesomeIcon icon="check" className="text-xl text-black" />
+          <FontAwesomeIcon icon={faCheck} className="text-xl text-black" />
         ) : !isDownloading ? (
-          <FontAwesomeIcon icon="download" className="text-xl text-black" />
+          <FontAwesomeIcon icon={faDownload} className="text-xl text-black" />
         ) : null}
       </Button>
 
@@ -67,10 +69,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         title={isSubscribed ? "Unsubscribe" : "Subscribe"}
       >
         <div className="flex items-center justify-center gap-2">
-          <FontAwesomeIcon
-            icon={isSubscribed ? ["fas", "bell"] : ["far", "bell"]}
-            className="text-sm"
-          />
+          <FontAwesomeIcon icon={isSubscribed ? faBell : faBellRegular} className="text-sm" />
           <span className="hidden text-xs font-bold tracking-wide uppercase md:inline">
             {isSubscribed ? "Subscribed" : "Subscribe"}
           </span>
@@ -85,7 +84,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         <Button
           variant="ghost"
           size="lg"
-          icon="repeat"
+          icon={faRepeat}
           loading={isRetrying}
           className="text-text-secondary hover:text-text-primary hover:bg-white/10"
           onClick={onRetryFailed}
@@ -98,7 +97,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
       <Button
         variant="ghost"
         size="lg"
-        icon="trash"
+        icon={faTrash}
         className={cn(
           "text-text-secondary",
           !isSaved ? "opacity-30 cursor-not-allowed" : "hover:text-red-400 hover:bg-red-500/10",

@@ -1,3 +1,9 @@
+import {
+  faClockRotateLeft,
+  faDownload,
+  faLink,
+  faSliders,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Link } from "react-router-dom";
@@ -39,7 +45,7 @@ export const AppHeader: FC = () => {
               placeholder="Paste Spotify URL..."
             />
             <FontAwesomeIcon
-              icon="link"
+              icon={faLink}
               className={cn(
                 "absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none",
                 url && !isValidUrl ? "text-red-400" : "text-text-secondary",
@@ -53,7 +59,7 @@ export const AppHeader: FC = () => {
                 disabled={isDownloadDisabled}
               >
                 <span className="hidden md:inline">Download</span>
-                <FontAwesomeIcon icon="download" className="md:hidden" />
+                <FontAwesomeIcon icon={faDownload} className="md:hidden" />
               </button>
             )}
           </div>
@@ -64,7 +70,7 @@ export const AppHeader: FC = () => {
           to={Path.HISTORY}
           className="flex items-center justify-center w-10 h-10 transition-colors rounded-full text-text-secondary hover:text-text-primary hover:bg-background-elevated md:hidden shrink-0"
         >
-          <FontAwesomeIcon icon="clock-rotate-left" className="text-xl" />
+          <FontAwesomeIcon icon={faClockRotateLeft} className="text-xl" />
         </Link>
 
         {/* Settings: Mobile Only */}
@@ -72,7 +78,7 @@ export const AppHeader: FC = () => {
           to={Path.SETTINGS}
           className="flex items-center justify-center w-10 h-10 transition-colors rounded-full text-text-secondary hover:text-text-primary hover:bg-background-elevated md:hidden shrink-0"
         >
-          <FontAwesomeIcon icon="sliders" className="text-xl" />
+          <FontAwesomeIcon icon={faSliders} className="text-xl" />
         </Link>
       </div>
     </header>

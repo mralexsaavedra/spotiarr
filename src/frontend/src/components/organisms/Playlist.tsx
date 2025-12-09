@@ -1,3 +1,4 @@
+import { faMusic } from "@fortawesome/free-solid-svg-icons";
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, useCallback, useState } from "react";
 import { PlaylistWithStats } from "../../types";
@@ -109,7 +110,7 @@ export const Playlist: FC<PlaylistProps> = ({
         <div className="px-6 pb-8 md:px-8">
           {tracks.length === 0 ? (
             <EmptyState
-              icon="music"
+              icon={faMusic}
               title="No tracks in this playlist yet"
               description="Tracks you download or sync will appear here."
               className="py-12"

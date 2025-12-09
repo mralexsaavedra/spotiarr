@@ -1,3 +1,4 @@
+import { faCompactDisc } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
 import { Loading } from "../components/atoms/Loading";
 import { EmptyState } from "../components/molecules/EmptyState";
@@ -18,14 +19,14 @@ export const Releases: FC = () => {
 
   if (error) {
     return (
-      <section className="flex-1 bg-background px-4 md:px-8 py-6">
+      <section className="flex-1 px-4 py-6 bg-background md:px-8">
         <SpotifyErrorState error={error} message="Failed to load releases." />
       </section>
     );
   }
 
   return (
-    <section className="flex-1 bg-background px-4 md:px-8 py-6">
+    <section className="flex-1 px-4 py-6 bg-background md:px-8">
       <div className="max-w-full">
         <PageHeader title="Releases" className="mb-6" />
 
@@ -33,7 +34,7 @@ export const Releases: FC = () => {
           <Loading />
         ) : !releases || releases.length === 0 ? (
           <EmptyState
-            icon="compact-disc"
+            icon={faCompactDisc}
             title="No new releases"
             description="No recent releases found from your followed artists."
           />

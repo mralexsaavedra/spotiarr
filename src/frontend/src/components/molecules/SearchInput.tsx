@@ -1,3 +1,4 @@
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, FC, KeyboardEvent, useCallback } from "react";
 import { cn } from "../../utils/cn";
@@ -36,7 +37,7 @@ export const SearchInput: FC<SearchInputProps> = ({
   return (
     <div className={cn("relative", className)}>
       <FontAwesomeIcon
-        icon="magnifying-glass"
+        icon={faMagnifyingGlass}
         className="absolute text-xs -translate-y-1/2 pointer-events-none left-3 top-1/2 text-text-secondary"
       />
       <input

@@ -1,3 +1,4 @@
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, FC } from "react";
 
@@ -41,7 +42,7 @@ export const SettingSelect: FC<SettingSelectProps> = ({
           ))}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
-          <FontAwesomeIcon icon="chevron-down" className="text-text-secondary text-sm" />
+          <FontAwesomeIcon icon={faChevronDown} className="text-text-secondary text-sm" />
         </div>
       </div>
       <p className="text-xs text-text-secondary mt-1">{description}</p>

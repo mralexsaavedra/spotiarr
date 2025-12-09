@@ -1,3 +1,4 @@
+import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ApiErrorCode } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
@@ -53,7 +54,7 @@ export const SpotifyErrorState: FC<SpotifyErrorStateProps> = ({
 
   return (
     <div className={cn("text-text-secondary flex items-center gap-2", className)}>
-      <FontAwesomeIcon icon="triangle-exclamation" className="text-red-400" />
+      <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-400" />
       <span>{message}</span>
     </div>
   );

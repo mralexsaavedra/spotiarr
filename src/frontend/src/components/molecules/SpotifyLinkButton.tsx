@@ -1,3 +1,4 @@
+import { faSpotify } from "@fortawesome/free-brands-svg-icons";
 import { FC, MouseEvent, useCallback } from "react";
 import { cn } from "../../utils/cn";
 import { Button, ButtonProps } from "../atoms/Button";
@@ -32,7 +33,7 @@ export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
           "border border-zinc-600 hover:border-white !w-9 md:!w-auto !h-9 md:!h-10 !px-0 md:!px-4 justify-center",
           className,
         )}
-        icon={["fab", "spotify"]}
+        icon={faSpotify}
         {...props}
       >
         <span className="hidden md:inline">Open in Spotify</span>

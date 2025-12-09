@@ -1,3 +1,4 @@
+import { faCheck, faCompactDisc, faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { formatRelativeDate } from "../../utils/date";
@@ -67,7 +68,7 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
             src={coverUrl || undefined}
             alt={albumName}
             loading="lazy"
-            fallbackIcon="compact-disc"
+            fallbackIcon={faCompactDisc}
             className="group-hover:scale-105"
           />
 
@@ -96,10 +97,10 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
                 }
               >
                 {isDownloading ? (
-                  <FontAwesomeIcon icon="spinner" spin className="text-primary" />
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
                 ) : (
                   <FontAwesomeIcon
-                    icon={isDownloaded ? "check" : "download"}
+                    icon={isDownloaded ? faCheck : faDownload}
                     className="text-black"
                   />
                 )}

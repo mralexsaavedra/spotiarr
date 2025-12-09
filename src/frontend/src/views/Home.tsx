@@ -1,3 +1,4 @@
+import { faBroom, faMusic } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
@@ -26,7 +27,7 @@ export const Home: FC = () => {
           className="mb-6"
           action={
             playlists && playlists.length > 0 ? (
-              <Button variant="secondary" size="md" icon="broom" onClick={handleClearAllClick}>
+              <Button variant="secondary" size="md" icon={faBroom} onClick={handleClearAllClick}>
                 <span className="hidden sm:inline">Clear completed</span>
               </Button>
             ) : undefined
@@ -37,7 +38,7 @@ export const Home: FC = () => {
           <Loading />
         ) : !playlists || playlists.length === 0 ? (
           <EmptyState
-            icon="music"
+            icon={faMusic}
             title="Create your first playlist"
             description="Search for artists or albums to start building your collection."
           />

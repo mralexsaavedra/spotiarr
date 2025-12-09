@@ -1,3 +1,11 @@
+import { faClock } from "@fortawesome/free-regular-svg-icons";
+import {
+  faDownload,
+  faMagnifyingGlass,
+  faRotateRight,
+  faSpinner,
+  faTriangleExclamation,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, MouseEvent, ReactNode } from "react";
@@ -20,26 +28,26 @@ const STATUS_RENDERERS: Partial<
         title="Retry download"
         type="button"
       >
-        <FontAwesomeIcon icon="rotate-right" />
+        <FontAwesomeIcon icon={faRotateRight} />
       </button>
     ) : (
       <span title="Error" className="cursor-help">
-        <FontAwesomeIcon icon="triangle-exclamation" className="text-red-500" />
+        <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500" />
       </span>
     ),
   [TrackStatusEnum.Downloading]: () => (
     <span title="Downloading..." className="cursor-wait">
-      <FontAwesomeIcon icon="spinner" spin className="text-primary" />
+      <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
     </span>
   ),
   [TrackStatusEnum.Queued]: () => (
     <span title="Queued" className="cursor-help">
-      <FontAwesomeIcon icon={["far", "clock"]} className="text-text-secondary" />
+      <FontAwesomeIcon icon={faClock} className="text-text-secondary" />
     </span>
   ),
   [TrackStatusEnum.Searching]: () => (
     <span title="Searching..." className="cursor-wait">
-      <FontAwesomeIcon icon="magnifying-glass" className="text-text-secondary" />
+      <FontAwesomeIcon icon={faMagnifyingGlass} className="text-text-secondary" />
     </span>
   ),
 };
@@ -71,7 +79,7 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
           title="Download Track"
           type="button"
         >
-          <FontAwesomeIcon icon="download" />
+          <FontAwesomeIcon icon={faDownload} />
         </button>
       )}
     </>

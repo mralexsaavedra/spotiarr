@@ -1,3 +1,4 @@
+import { faMugHot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { BUY_ME_A_COFFEE_URL, GITHUB_RELEASE_URL } from "../../config/links";
 import { APP_VERSION } from "../../config/version";
@@ -19,7 +20,7 @@ export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps)
           className="text-yellow-400 transition-colors hover:text-yellow-300"
           title="Buy me a coffee"
         >
-          <FontAwesomeIcon icon="mug-hot" className="text-xl" />
+          <FontAwesomeIcon icon={faMugHot} className="text-xl" />
         </a>
         <a
           href={GITHUB_RELEASE_URL}
@@ -57,7 +58,7 @@ export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps)
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-yellow-400 transition-colors hover:text-yellow-300"
         >
-          <FontAwesomeIcon icon="mug-hot" />
+          <FontAwesomeIcon icon={faMugHot} />
           <span className="text-sm font-medium">Buy me a coffee</span>
         </a>
       </div>

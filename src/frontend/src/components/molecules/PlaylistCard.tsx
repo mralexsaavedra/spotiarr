@@ -1,3 +1,4 @@
+import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { memo } from "react";
 import { Playlist, PlaylistStats } from "../../types";
@@ -27,7 +28,7 @@ export const PlaylistCard = memo(({ playlist, stats, onClick, className }: Playl
             className="absolute z-10 flex items-center justify-center w-8 h-8 rounded-full shadow-md right-2 top-2 bg-black/60 backdrop-blur-sm"
             title="Subscribed"
           >
-            <FontAwesomeIcon icon={["fas", "bell"]} className="text-sm text-green-500" />
+            <FontAwesomeIcon icon={faBell} className="text-sm text-green-500" />
           </div>
         )}
         <Image

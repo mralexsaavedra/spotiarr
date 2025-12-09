@@ -1,3 +1,4 @@
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Link } from "react-router-dom";
@@ -95,7 +96,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
           title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
           <FontAwesomeIcon
-            icon={isSidebarCollapsed ? "chevron-right" : "chevron-left"}
+            icon={isSidebarCollapsed ? faChevronRight : faChevronLeft}
             className="w-5 text-lg text-center transition-colors shrink-0"
           />
           {!isSidebarCollapsed && (

@@ -1,3 +1,8 @@
+import {
+  faCircleArrowDown,
+  faCircleExclamation,
+  faSpinner,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { PlaylistStats } from "../../types";
@@ -13,7 +18,7 @@ export const PlaylistStatusBadge: FC<PlaylistStats> = ({
   if (isDownloading) {
     return (
       <>
-        <FontAwesomeIcon icon="spinner" spin className="text-xs text-blue-400" />
+        <FontAwesomeIcon icon={faSpinner} spin className="text-xs text-blue-400" />
         <span>
           <span className="hidden sm:inline">Downloading... </span>
           {completedCount}/{totalCount}
@@ -25,7 +30,7 @@ export const PlaylistStatusBadge: FC<PlaylistStats> = ({
   if (hasErrors) {
     return (
       <>
-        <FontAwesomeIcon icon="circle-exclamation" className="text-xs text-red-400" />
+        <FontAwesomeIcon icon={faCircleExclamation} className="text-xs text-red-400" />
         <span>{errorCount} failed</span>
       </>
     );
@@ -34,7 +39,7 @@ export const PlaylistStatusBadge: FC<PlaylistStats> = ({
   if (isCompleted) {
     return (
       <>
-        <FontAwesomeIcon icon="circle-arrow-down" className="text-xs text-primary" />
+        <FontAwesomeIcon icon={faCircleArrowDown} className="text-xs text-primary" />
         <span>{totalCount} tracks</span>
       </>
     );
