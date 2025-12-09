@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import { join } from "path";
 import { promisify } from "util";
+import { SettingsService } from "../../application/services/settings.service";
 
 const execFilePromise = promisify(execFile);
 
@@ -14,7 +15,7 @@ const HEADERS = {
 export class YoutubeSearchService {
   private readonly ytDlpPath: string;
 
-  constructor() {
+  constructor(private readonly settingsService: SettingsService) {
     // Auto-detect yt-dlp path from system PATH
     try {
       const systemPath = execSync("which yt-dlp", {
@@ -53,8 +54,10 @@ export class YoutubeSearchService {
       HEADERS["User-Agent"],
     ];
 
-    if (process.env["YT_COOKIES"]) {
-      args.push("--cookies-from-browser", process.env["YT_COOKIES"]);
+    // Get cookies browser from settings
+    const ytCookies = await this.settingsService.getString("YT_COOKIES");
+    if (ytCookies) {
+      args.push("--cookies-from-browser", ytCookies);
     }
 
     try {

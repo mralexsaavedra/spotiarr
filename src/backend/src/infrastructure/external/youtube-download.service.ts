@@ -41,6 +41,9 @@ export class YoutubeDownloadService {
     };
     const quality = (qualityMap[audioQuality] ?? 0) as 0 | 5 | 9;
 
+    // Get cookies browser from settings
+    const ytCookies = await this.settingsService.getString("YT_COOKIES");
+
     await ytdlp.downloadAsync(track.youtubeUrl, {
       format: {
         filter: "audioonly",
@@ -48,7 +51,7 @@ export class YoutubeDownloadService {
         quality,
       },
       output,
-      cookiesFromBrowser: process.env["YT_COOKIES"],
+      cookiesFromBrowser: ytCookies || undefined,
       headers: HEADERS,
     });
     console.debug(`Downloaded ${track.artist} - ${track.name} to ${output}`);

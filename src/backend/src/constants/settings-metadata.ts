@@ -94,7 +94,6 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     description:
       "How long to cache releases data before refreshing from Spotify. Lower values increase API usage.",
   },
-
   FORMAT: {
     key: "FORMAT",
     defaultValue: "mp3",
@@ -103,6 +102,16 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     section: "Downloads",
     label: "Audio format",
     description: "The audio format for downloaded tracks.",
+  },
+  YT_COOKIES: {
+    key: "YT_COOKIES",
+    defaultValue: "",
+    type: "string",
+    component: "input",
+    section: "Downloads",
+    label: "YouTube cookies browser (optional)",
+    description:
+      "Browser to extract cookies from for age-restricted content (e.g., 'chrome', 'firefox', 'edge'). Leave empty if not needed.",
   },
   YT_AUDIO_QUALITY: {
     key: "YT_AUDIO_QUALITY",
