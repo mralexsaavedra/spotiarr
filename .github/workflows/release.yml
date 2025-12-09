@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          configurationJson: |
+            {
+              "template": "# 🚀 Release Details\n\n#{{CHANGELOG}}",
+              "categories": [
+                {
+                    "title": "## ✨ New Features",
+                    "labels": ["feat", "feature"]
+                },
+                {
+                    "title": "## 🐛 Bug Fixes",
+                    "labels": ["fix", "bug"]
+                },
+                {
+                    "title": "## ⚡ Performance",
+                    "labels": ["perf"]
+                },
+                {
+                    "title": "## ♻️ Refactoring",
+                    "labels": ["refactor", "style", "chore"]
+                }
+              ]
+            }
+          commitMode: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.build_changelog.outputs.changelog }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
