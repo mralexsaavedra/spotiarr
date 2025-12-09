@@ -1,16 +1,16 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { SpotifyApiService } from "../../infrastructure/external/spotify-api.service";
+import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();
-const spotifyApiService = SpotifyApiService.getInstance();
+const { spotifyUserLibraryService } = container;
 
 // GET /api/feed/releases - Get recent releases from followed artists
 router.get(
   "/releases",
   asyncHandler(async (_req, res) => {
     try {
-      const releases = await spotifyApiService.getFollowedArtistsRecentReleases();
+      const releases = await spotifyUserLibraryService.getFollowedArtistsRecentReleases();
       res.json(releases);
     } catch (error) {
       const err = error as Error & { code?: string };
@@ -34,7 +34,7 @@ router.get(
   "/artists",
   asyncHandler(async (_req, res) => {
     try {
-      const artists = await spotifyApiService.getFollowedArtists();
+      const artists = await spotifyUserLibraryService.getFollowedArtists();
       res.json(artists);
     } catch (error) {
       const err = error as Error & { code?: string };
