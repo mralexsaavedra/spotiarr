@@ -1,6 +1,33 @@
 import { SettingMetadata } from "@spotiarr/shared";
 
 export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
+  SPOTIFY_MARKET: {
+    key: "SPOTIFY_MARKET",
+    defaultValue: "ES",
+    type: "string",
+    component: "select",
+    section: "Spotify",
+    options: [
+      "ES",
+      "US",
+      "GB",
+      "FR",
+      "DE",
+      "IT",
+      "PT",
+      "MX",
+      "BR",
+      "AR",
+      "NL",
+      "SE",
+      "NO",
+      "DK",
+      "FI",
+    ],
+    label: "Spotify Market/Region",
+    description:
+      "2-letter ISO country code that affects content availability and regional restrictions. Change this to match your location for better results.",
+  },
   AUTO_SUBSCRIBE_NEW_PLAYLISTS: {
     key: "AUTO_SUBSCRIBE_NEW_PLAYLISTS",
     defaultValue: "false",

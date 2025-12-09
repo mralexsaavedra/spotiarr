@@ -55,7 +55,10 @@ const eventBus = new SseEventBus();
 
 // Spotify
 const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
-const spotifyCatalogService = SpotifyCatalogService.getInstance(spotifyAuthService);
+const spotifyCatalogService = SpotifyCatalogService.getInstance(
+  spotifyAuthService,
+  settingsService,
+);
 const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,

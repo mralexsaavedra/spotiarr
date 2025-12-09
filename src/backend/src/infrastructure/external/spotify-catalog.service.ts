@@ -1,4 +1,5 @@
 import { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
+import { SettingsService } from "../../application/services/settings.service";
 import { SpotifyUrlHelper } from "../../domain/helpers/spotify-url.helper";
 import { AppError } from "../../presentation/middleware/error-handler";
 import { getEnv } from "../setup/environment";
@@ -18,22 +19,36 @@ import {
 export class SpotifyCatalogService extends SpotifyHttpClient {
   private static instance: SpotifyCatalogService | null = null;
 
-  private constructor(authService: SpotifyAuthService) {
+  private constructor(
+    authService: SpotifyAuthService,
+    private readonly settingsService: SettingsService,
+  ) {
     super(authService);
   }
 
-  static getInstance(authService?: SpotifyAuthService): SpotifyCatalogService {
+  static getInstance(
+    authService?: SpotifyAuthService,
+    settingsService?: SettingsService,
+  ): SpotifyCatalogService {
     if (!SpotifyCatalogService.instance) {
-      if (!authService) {
+      if (!authService || !settingsService) {
         throw new AppError(
           500,
           "internal_server_error",
-          "SpotifyAuthService must be provided when initializing SpotifyCatalogService",
+          "SpotifyAuthService and SettingsService must be provided when initializing SpotifyCatalogService",
         );
       }
-      SpotifyCatalogService.instance = new SpotifyCatalogService(authService);
+      SpotifyCatalogService.instance = new SpotifyCatalogService(authService, settingsService);
     }
     return SpotifyCatalogService.instance;
+  }
+
+  private async getMarket(): Promise<string> {
+    try {
+      return await this.settingsService.getString("SPOTIFY_MARKET");
+    } catch {
+      return "ES"; // Fallback to ES if setting not found
+    }
   }
 
   private log(message: string, level: "debug" | "error" | "warn" = "debug") {
@@ -50,7 +65,8 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
       this.log(`Getting playlist metadata for ${spotifyUrl}`);
 
       const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
-      const url = `https://api.spotify.com/v1/playlists/${playlistId}?market=US`;
+      const market = await this.getMarket();
+      const url = `https://api.spotify.com/v1/playlists/${playlistId}?market=${market}`;
 
       // Try with app token first
       let response = await this.fetchWithAppToken(url);
@@ -388,7 +404,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
    */
   async getArtistTopTracks(
     artistId: string,
-    market: string = "US",
+    market?: string,
   ): Promise<
     {
       name: string;
@@ -406,8 +422,9 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
     }[]
   > {
     try {
+      const defaultMarket = await this.getMarket();
       const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=${market}`,
+        `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=${market || defaultMarket}`,
       );
 
       if (!response.ok) {
@@ -476,7 +493,8 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
 
       while (remainingLimit > 0) {
         const fetchLimit = Math.min(remainingLimit, MAX_LIMIT_PER_REQUEST);
-        const url = `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,compilation&limit=${fetchLimit}&offset=${currentOffset}&market=US`;
+        const market = await this.getMarket();
+        const url = `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,compilation&limit=${fetchLimit}&offset=${currentOffset}&market=${market}`;
 
         const response = await this.fetchWithAppToken(url);
 
@@ -569,7 +587,8 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
         while (hasMoreTracks) {
           this.log(`Fetching tracks from Spotify API with offset ${offset}`);
 
-          const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&market=US&fields=items(track(name,artists(name,external_urls),preview_url,external_urls,album(name,release_date,images,external_urls),track_number,duration_ms,is_playable)),next`;
+          const market = await this.getMarket();
+          const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&market=${market}&fields=items(track(name,artists(name,external_urls),preview_url,external_urls,album(name,release_date,images,external_urls),track_number,duration_ms,is_playable)),next`;
 
           let response: Response;
 

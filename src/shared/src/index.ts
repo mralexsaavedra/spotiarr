@@ -28,7 +28,7 @@ export enum TrackStatusEnum {
   Error = "error",
 }
 
-export type SettingSection = "Playlists" | "Releases" | "Downloads" | "Maintenance";
+export type SettingSection = "Spotify" | "Playlists" | "Releases" | "Downloads" | "Maintenance";
 
 export interface SettingMetadata {
   key: string;
