@@ -35,7 +35,7 @@ importers:
   src/backend:
     dependencies:
       "@prisma/client":
-        specifier: ^6.0.0
+        specifier: 6.19.0
         version: 6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3)
       "@spotiarr/shared":
         specifier: workspace:*
@@ -90,7 +90,7 @@ importers:
         specifier: ^3.0.11
         version: 3.0.11
       prisma:
-        specifier: ^6.0.0
+        specifier: 6.19.0
         version: 6.19.0(typescript@5.9.3)
       tsx:
         specifier: ^4.7.0
