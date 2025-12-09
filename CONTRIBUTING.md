@@ -186,34 +186,48 @@ The frontend is built with React and follows **Atomic Design** principles to ens
 
 ### Backend (Clean Architecture / DDD)
 
-The backend follows a layered architecture. Strict dependency rules apply:
+The backend follows a **layered architecture** with strict dependency rules:
 
 1. **Domain (`src/domain`)**:
-   - The core. Specific business rules and entities.
+   - The core. Contains business rules and entities.
    - **Must NOT depend** on any other layer.
-   - Contains: Entities, Value Objects, Repository Interfaces.
+   - Contains: Entities, Value Objects, Repository Interfaces, Domain Services.
+   - Domain Services orchestrate business operations without knowing implementation details.
 
 2. **Application (`src/application`)**:
-   - Application business rules (Use Cases).
-   - Coordinate data flow between Presentation and Domain.
+   - Application business rules (Use Cases and Application Services).
+   - Coordinates data flow between Presentation and Domain.
    - **Depends only on** Domain.
+   - Contains: Use Cases (single responsibility actions), Application Services (orchestrators).
 
 3. **Infrastructure (`src/infrastructure`)**:
-   - Frameworks and tools (Database, Spotify API, File System).
+   - Frameworks and tools (Database, External APIs, File System, Queues).
    - Implements interfaces defined in Domain/Application.
    - **Depends on** Domain and Application.
+   - Contains:
+     - `database/` - Repository implementations (Prisma)
+     - `external/` - External service clients (Spotify API, YouTube)
+       - HTTP clients with authentication & rate limiting
+       - Service segregation by responsibility (catalog vs user data)
+       - Token management
+     - `messaging/` - Queue implementations (BullMQ)
+     - `services/` - Technical services (file system, metadata)
 
 4. **Presentation (`src/presentation`)**:
-   - Interface adapters (HTTP Controllers, Routes, SSE).
+   - Interface adapters (HTTP Controllers, Routes, Middleware, SSE).
    - Receives inputs and converts them to Use Case requirements.
    - **Depends on** Application.
+   - Contains: Routes, Middleware (auth, error handling), SSE endpoints.
 
-**Key rules:**
+**Key architectural principles:**
 
-- **Dependency Rule:** Source code dependencies can only point **inwards**.
-- **Container:** Use `container.ts` for Dependency Injection. Do not manually instantiate services in controllers.
-- **DTOs:** Use DTOs for data transfer between layers, especially for external API requests/responses.
-- **SSE:** Use Server-Sent Events for real-time updates (download progress).
+- **Dependency Rule:** Source code dependencies can only point **inwards** (Presentation → Application → Domain ← Infrastructure).
+- **Dependency Injection:** Use the DI container. Services are instantiated once and injected where needed.
+- **Error Handling:** Use structured error classes with typed error codes (defined in shared package).
+- **Service Segregation:** Services are split by responsibility for better maintainability.
+- **Rate Limiting:** Automatic retry with exponential backoff for external API rate limits.
+- **Settings:** User-configurable options stored in database, not environment variables.
+- **SSE:** Server-Sent Events for real-time updates (download progress, queue status).
 
 ## Development Workflow
 
