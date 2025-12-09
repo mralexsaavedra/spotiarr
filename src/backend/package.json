@@ -17,10 +17,10 @@
   "dependencies": {
     "@prisma/client": "^6.0.0",
     "@spotiarr/shared": "workspace:*",
-    "bullmq": "^5.64.1",
+    "bullmq": "^5.65.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "helmet": "^8.1.0",
     "node-cron": "^4.2.1",
     "node-id3": "^0.2.9",
