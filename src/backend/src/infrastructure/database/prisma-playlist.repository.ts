@@ -35,6 +35,8 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
         createdAt: data.createdAt ? BigInt(data.createdAt) : BigInt(Date.now()),
         coverUrl: data.coverUrl,
         artistImageUrl: data.artistImageUrl,
+        owner: data.owner,
+        ownerUrl: data.ownerUrl,
       },
     });
     return this.mapToPlaylist(created);
@@ -52,6 +54,8 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
         subscribed: data.subscribed,
         coverUrl: data.coverUrl,
         artistImageUrl: data.artistImageUrl,
+        owner: data.owner,
+        ownerUrl: data.ownerUrl,
       },
     });
   }
@@ -71,6 +75,8 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
       createdAt: playlist.createdAt ? Number(playlist.createdAt) : undefined,
       coverUrl: playlist.coverUrl ?? undefined,
       artistImageUrl: playlist.artistImageUrl ?? undefined,
+      owner: playlist.owner ?? undefined,
+      ownerUrl: playlist.ownerUrl ?? undefined,
       tracks: playlist.tracks?.map((track) => ({
         id: track.id,
         name: track.name,

@@ -1,3 +1,4 @@
+import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { EventBus } from "../../../domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../../domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
@@ -21,7 +22,18 @@ export class SyncSubscribedPlaylistsUseCase {
     for (const playlist of subscribedPlaylists) {
       let tracks: PlaylistTrack[] = [];
       try {
-        tracks = await this.spotifyService.getPlaylistTracks(playlist.spotifyUrl);
+        const details = await this.spotifyService.getPlaylistDetail(playlist.spotifyUrl);
+        tracks = details.tracks;
+
+        playlist.updateDetails(
+          details.name,
+          details.type as PlaylistTypeEnum,
+          details.image,
+          playlist.artistImageUrl,
+          details.owner,
+          details.ownerUrl,
+        );
+        await this.playlistRepository.save(playlist);
       } catch (error) {
         playlist.markAsError(error instanceof Error ? error.message : String(error));
         await this.playlistRepository.update(playlist.id, playlist);

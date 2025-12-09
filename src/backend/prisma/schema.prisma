@@ -17,6 +17,8 @@ model Playlist {
   createdAt        BigInt   @default(0)
   coverUrl         String?
   artistImageUrl   String?
+  owner            String?
+  ownerUrl         String?
   tracks           Track[]
   downloadHistory  DownloadHistory[]
 }

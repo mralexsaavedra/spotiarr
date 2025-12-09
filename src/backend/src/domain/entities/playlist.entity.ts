@@ -38,12 +38,27 @@ export class Playlist {
   get createdAt() {
     return this.props.createdAt;
   }
+  get owner() {
+    return this.props.owner;
+  }
+  get ownerUrl() {
+    return this.props.ownerUrl;
+  }
 
-  updateDetails(name: string, type: PlaylistTypeEnum, coverUrl?: string, artistImageUrl?: string) {
+  updateDetails(
+    name: string,
+    type: PlaylistTypeEnum,
+    coverUrl?: string,
+    artistImageUrl?: string,
+    owner?: string,
+    ownerUrl?: string,
+  ) {
     this.props.name = name;
     this.props.type = type;
     this.props.coverUrl = coverUrl;
     this.props.artistImageUrl = artistImageUrl;
+    this.props.owner = owner;
+    this.props.ownerUrl = ownerUrl;
     this.props.error = undefined;
   }
 

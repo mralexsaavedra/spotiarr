@@ -30,6 +30,8 @@ interface PlaylistDetail {
   name: string;
   image: string;
   type: string;
+  owner?: string;
+  ownerUrl?: string;
 }
 
 export class CreatePlaylistUseCase {
@@ -80,6 +82,8 @@ export class CreatePlaylistUseCase {
         detail.type as PlaylistTypeEnum,
         detail.image,
         artistImageUrl ?? undefined,
+        detail.owner,
+        detail.ownerUrl,
       );
 
       if (autoSubscribe) {
