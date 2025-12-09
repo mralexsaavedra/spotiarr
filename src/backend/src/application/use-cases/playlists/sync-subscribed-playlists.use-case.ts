@@ -49,10 +49,12 @@ export class SyncSubscribedPlaylistsUseCase {
         existingTracks.map((t) => `${t.artist}|${t.name}|${t.spotifyUrl || "undefined"}`),
       );
 
-      let hasNewTracks = false;
+      const tracksToCreate: { track: PlaylistTrack; index: number }[] = [];
 
       for (let i = 0; i < (tracks ?? []).length; i++) {
         const track = tracks[i];
+
+        if (track.unavailable) continue;
 
         const artistToUse =
           (isAlbum || isTrack) && track.primaryArtist ? track.primaryArtist : track.artist;
@@ -72,13 +74,35 @@ export class SyncSubscribedPlaylistsUseCase {
         const key = `${track2Save.artist}|${track2Save.name}|${track2Save.spotifyUrl || "undefined"}`;
 
         if (!existingTrackKeys.has(key)) {
-          await this.trackService.create({ ...track2Save, playlistId: playlist.id });
-          existingTrackKeys.add(key);
-          hasNewTracks = true;
+          tracksToCreate.push({ track: track, index: i });
+          existingTrackKeys.add(key); // Prevent duplicates within the playlist
         }
       }
 
-      if (hasNewTracks) {
+      if (tracksToCreate.length > 0) {
+        const BATCH_SIZE = 10;
+        for (let i = 0; i < tracksToCreate.length; i += BATCH_SIZE) {
+          const batch = tracksToCreate.slice(i, i + BATCH_SIZE);
+          await Promise.all(
+            batch.map(async ({ track, index }) => {
+              const artistToUse =
+                (isAlbum || isTrack) && track.primaryArtist ? track.primaryArtist : track.artist;
+
+              await this.trackService.create({
+                artist: artistToUse,
+                name: track.name,
+                album: track.album ?? (isTrack ? "Singles" : playlist.name),
+                albumYear: track.albumYear,
+                trackNumber: isAlbum ? (track.trackNumber ?? index + 1) : index + 1,
+                spotifyUrl: track.previewUrl ?? undefined,
+                artists: track.artists,
+                trackUrl: track.trackUrl,
+                durationMs: track.durationMs,
+                playlistId: playlist.id,
+              });
+            }),
+          );
+        }
         this.eventBus.emit("playlists-updated");
       }
     }
