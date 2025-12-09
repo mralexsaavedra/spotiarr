@@ -1,5 +1,5 @@
 import type { PlaylistPreview } from "@spotiarr/shared";
-import { SpotifyService } from "../../../infrastructure/external/spotify.service";
+import { SpotifyService } from "../../../domain/services/spotify.service";
 
 export class GetPlaylistPreviewUseCase {
   constructor(private readonly spotifyService: SpotifyService) {}

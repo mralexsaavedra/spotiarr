@@ -20,6 +20,7 @@ import { GetTracksUseCase } from "./application/use-cases/tracks/get-tracks.use-
 import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-track-download.use-case";
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.use-case";
+import { SpotifyService } from "./domain/services/spotify.service";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
@@ -27,7 +28,6 @@ import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.re
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
 import { SpotifyCatalogService } from "./infrastructure/external/spotify-catalog.service";
 import { SpotifyUserLibraryService } from "./infrastructure/external/spotify-user-library.service";
-import { SpotifyService } from "./infrastructure/external/spotify.service";
 import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";

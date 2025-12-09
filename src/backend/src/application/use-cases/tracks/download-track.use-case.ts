@@ -5,7 +5,7 @@ import { EventBus } from "../../../domain/events/event-bus";
 import { HistoryRepository } from "../../../domain/repositories/history.repository";
 import { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
 import { TrackRepository } from "../../../domain/repositories/track.repository";
-import { SpotifyService } from "../../../infrastructure/external/spotify.service";
+import { SpotifyService } from "../../../domain/services/spotify.service";
 import { YoutubeDownloadService } from "../../../infrastructure/external/youtube-download.service";
 import { FileSystemM3uService } from "../../../infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "../../../infrastructure/services/file-system-track-path.service";

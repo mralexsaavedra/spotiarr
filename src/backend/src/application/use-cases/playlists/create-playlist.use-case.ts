@@ -3,7 +3,7 @@ import { Playlist } from "../../../domain/entities/playlist.entity";
 import { EventBus } from "../../../domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../../domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
-import { SpotifyService } from "../../../infrastructure/external/spotify.service";
+import { SpotifyService } from "../../../domain/services/spotify.service";
 import { AppError } from "../../../presentation/middleware/error-handler";
 import { SettingsService } from "../../services/settings.service";
 import { TrackService } from "../../services/track.service";
