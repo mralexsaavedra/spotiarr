@@ -234,4 +234,5 @@ export interface SpotifyPlaylist {
   owner: string;
   tracks: number;
   spotifyUrl: string;
+  ownerUrl?: string;
 }

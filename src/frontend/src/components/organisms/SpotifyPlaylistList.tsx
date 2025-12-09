@@ -16,6 +16,7 @@ export const SpotifyPlaylistList: FC<SpotifyPlaylistListProps> = memo(({ playlis
         name={playlist.name}
         image={playlist.image}
         owner={playlist.owner}
+        ownerUrl={playlist.ownerUrl}
         tracks={playlist.tracks}
         onClick={onClick}
       />

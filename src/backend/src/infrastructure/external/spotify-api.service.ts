@@ -1159,7 +1159,7 @@ export class SpotifyApiService {
             id: string;
             name: string;
             images: SpotifyImage[];
-            owner: { display_name: string };
+            owner: { display_name: string; external_urls: { spotify: string } };
             tracks: { total: number };
             external_urls: { spotify: string };
           }[];
@@ -1173,6 +1173,7 @@ export class SpotifyApiService {
           owner: item.owner?.display_name ?? "Unknown",
           tracks: item.tracks?.total ?? 0,
           spotifyUrl: item.external_urls?.spotify,
+          ownerUrl: item.owner?.external_urls?.spotify,
         }));
 
         allPlaylists.push(...mapped);
