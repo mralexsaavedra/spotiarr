@@ -7,7 +7,6 @@ import { SpotifyHttpClient } from "./spotify-http.client";
 import {
   SpotifyAlbum,
   SpotifyAlbumTracksResponse,
-  SpotifyArtist,
   SpotifyArtistAlbumsResponse,
   SpotifyArtistTopTracksResponse,
   SpotifyExternalUrls,
@@ -213,6 +212,51 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
     }
   }
 
+  private mapToNormalizedTrack(
+    track: SpotifyTrack,
+    context?: {
+      album?: SpotifyAlbum;
+      albumCoverUrl?: string;
+      primaryArtistImage?: string | null;
+      isUnavailable?: boolean;
+    },
+  ) {
+    // Album info resolution
+    const album = context?.album ?? track.album;
+    const albumName = album?.name;
+    const albumUrl = album?.external_urls?.spotify;
+    const albumCoverUrl = context?.albumCoverUrl ?? album?.images?.[0]?.url;
+
+    // Release date parsing
+    const releaseDate = album?.release_date;
+    const albumYear = releaseDate ? parseInt(releaseDate.substring(0, 4)) : undefined;
+
+    // Artist resolution
+    const artistName = track.artists.map((a) => a.name).join(", ");
+    const primaryArtist = track.artists[0]?.name;
+    const artists = track.artists.map((a) => ({
+      name: a.name,
+      url: a.external_urls?.spotify,
+    }));
+
+    return {
+      name: track.name,
+      artist: artistName,
+      primaryArtist,
+      primaryArtistImage: context?.primaryArtistImage ?? null,
+      artists,
+      trackUrl: track.external_urls?.spotify,
+      album: albumName,
+      albumUrl,
+      albumCoverUrl,
+      albumYear,
+      trackNumber: track.track_number,
+      previewUrl: track.preview_url,
+      durationMs: track.duration_ms,
+      unavailable: context?.isUnavailable ?? undefined,
+    };
+  }
+
   /**
    * Get track details from Spotify API for a single track
    */
@@ -254,30 +298,17 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
       const artistId = track.artists[0]?.id;
       const artistImage = artistId ? await this.getArtistImage(artistId) : null;
 
-      // Album cover image
-      const albumCoverUrl = track.album?.images?.[0]?.url;
-
-      // Extract year from release_date (format: "YYYY-MM-DD" or "YYYY")
-      const releaseDate = track.album?.release_date;
-      const albumYear = releaseDate ? parseInt(releaseDate.substring(0, 4)) : undefined;
+      // Use the unified mapper
+      const normalized = this.mapToNormalizedTrack(track, {
+        primaryArtistImage: artistImage,
+      });
 
       return {
-        name: track.name,
-        artist: track.artists.map((a) => a.name).join(", "),
-        primaryArtist: track.artists[0]?.name, // First artist as primary
-        primaryArtistImage: artistImage, // Artist image
-        artists: track.artists.map((a) => ({
-          name: a.name,
-          url: a.external_urls?.spotify,
-        })),
-        trackUrl: track.external_urls?.spotify,
-        album: track.album?.name,
-        albumUrl: track.album?.external_urls?.spotify,
-        albumCoverUrl,
-        albumYear: albumYear, // Year of the album
-        trackNumber: track.track_number,
-        previewUrl: track.preview_url,
-        durationMs: track.duration_ms,
+        ...normalized,
+        // Ensure strictly required fields for this return type (though normalized covers them)
+        artist: normalized.artist,
+        name: normalized.name,
+        artists: normalized.artists,
       };
     } catch (error) {
       this.log(`Failed to get track details: ${(error as Error).message}`);
@@ -330,36 +361,22 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
       );
 
       const albumData = (await albumResponse.json()) as SpotifyAlbum;
-      const albumName = albumData.name;
-      const albumCoverUrl = albumData.images?.[0]?.url;
-      const albumUrl = albumData.external_urls?.spotify;
 
       // Get artist image (all tracks in album have same primary artist)
       const firstArtistId = data.items[0]?.artists[0]?.id;
       const artistImage = firstArtistId ? await this.getArtistImage(firstArtistId) : null;
 
-      // Extract year from release_date
-      const releaseDate = albumData.release_date;
-      const albumYear = releaseDate ? parseInt(releaseDate.substring(0, 4)) : undefined;
+      return data.items.map((track: SpotifyTrack) => {
+        const normalized = this.mapToNormalizedTrack(track, {
+          album: albumData,
+          primaryArtistImage: artistImage,
+        });
 
-      return data.items.map((track: SpotifyTrack) => ({
-        name: track.name,
-        artist: track.artists.map((a: SpotifyArtist) => a.name).join(", "),
-        primaryArtist: track.artists[0]?.name, // First artist as primary
-        primaryArtistImage: artistImage, // Artist image
-        artists: track.artists.map((a: SpotifyArtist) => ({
-          name: a.name,
-          url: a.external_urls?.spotify,
-        })),
-        trackUrl: track.external_urls?.spotify,
-        album: albumName,
-        albumUrl,
-        albumCoverUrl,
-        albumYear: albumYear, // Year of the album
-        trackNumber: track.track_number,
-        previewUrl: track.preview_url,
-        durationMs: track.duration_ms,
-      }));
+        return {
+          ...normalized,
+          album: normalized.album!, // We know album exists here
+        };
+      });
     } catch (error) {
       this.log(`Failed to get album tracks: ${(error as Error).message}`);
       throw error;
@@ -424,31 +441,17 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
       };
 
       const mappedTracks = await Promise.all(
-        tracks.map(async (track, index: number) => {
+        tracks.map(async (track, index) => {
           const primaryArtistId = track.artists?.[0]?.id as string | undefined;
           const primaryArtistImage = await getPrimaryArtistImage(primaryArtistId);
 
-          const releaseDate = track.album?.release_date;
-          const albumYear = releaseDate ? parseInt(releaseDate.substring(0, 4)) : undefined;
-
-          const albumCoverUrl = track.album?.images?.[0]?.url;
+          const normalized = this.mapToNormalizedTrack(track, {
+            primaryArtistImage,
+          });
 
           return {
-            name: track.name,
-            artist: track.artists.map((a) => a.name).join(", "),
-            primaryArtist: track.artists[0]?.name,
-            primaryArtistImage,
-            artists: track.artists.map((a) => ({
-              name: a.name,
-              url: a.external_urls?.spotify,
-            })),
-            trackUrl: track.external_urls?.spotify,
-            album: track.album?.name,
-            albumCoverUrl,
-            albumYear,
-            trackNumber: track.track_number ?? index + 1,
-            previewUrl: track.preview_url,
-            durationMs: track.duration_ms,
+            ...normalized,
+            trackNumber: normalized.trackNumber ?? index + 1,
           };
         }),
       );
@@ -540,16 +543,13 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
         const normalized: NormalizedTrack[] = albumTracks.map((track) => ({
           name: track.name,
           artist: track.artist,
-          artists: track.artists.map((a) => ({
-            name: a.name,
-            url: a.url,
-          })),
+          artists: track.artists,
           trackUrl: track.trackUrl,
           album: track.album,
           albumUrl: track.albumUrl,
           albumYear: track.albumYear,
           trackNumber: track.trackNumber,
-          previewUrl: track.previewUrl ?? null,
+          previewUrl: track.previewUrl,
           albumCoverUrl: track.albumCoverUrl,
         }));
 
@@ -639,27 +639,9 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
             .map((item: SpotifyPlaylistTrackItem) => {
               if (!item.track) return null;
 
-              const albumYear = item.track.album?.release_date
-                ? parseInt(item.track.album.release_date.substring(0, 4))
-                : undefined;
-
-              return {
-                name: item.track.name,
-                artist: item.track.artists.map((a) => a.name).join(", "),
-                artists: item.track.artists.map((a) => ({
-                  name: a.name,
-                  url: a.external_urls?.spotify,
-                })),
-                trackUrl: item.track.external_urls?.spotify,
-                album: item.track.album?.name,
-                albumUrl: item.track.album?.external_urls?.spotify,
-                albumCoverUrl: item.track.album?.images?.[0]?.url,
-                albumYear: albumYear,
-                trackNumber: item.track.track_number,
-                previewUrl: item.track.preview_url,
-                durationMs: item.track.duration_ms,
-                unavailable: item.track.is_playable === false,
-              };
+              return this.mapToNormalizedTrack(item.track, {
+                isUnavailable: item.track.is_playable === false,
+              });
             })
             .filter((track: NormalizedTrack | null) => track !== null) as typeof allTracks;
 
