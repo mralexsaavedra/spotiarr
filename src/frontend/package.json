@@ -19,6 +19,7 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@spotiarr/shared": "workspace:*",
+    "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query": "^5.90.12",
     "clsx": "^2.1.1",
     "react": "^19.2.1",
@@ -36,11 +37,9 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.22",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "postcss": "^8.5.6",
     "tailwindcss": "^3.4.18",
     "vite": "^7.2.7"
   }
