@@ -1,11 +1,15 @@
 import { NormalizedTrack, SpotifyPlaylist } from "@spotiarr/shared";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../domain/helpers/spotify-url.helper";
-import { SpotifyApiService } from "./spotify-api.service";
+import { SpotifyCatalogService } from "./spotify-catalog.service";
+import { SpotifyUserLibraryService } from "./spotify-user-library.service";
 
 export type PlaylistTrack = NormalizedTrack;
 
 export class SpotifyService {
-  constructor(private readonly spotifyApiService: SpotifyApiService) {}
+  constructor(
+    private readonly spotifyCatalogService: SpotifyCatalogService,
+    private readonly spotifyUserLibraryService: SpotifyUserLibraryService,
+  ) {}
 
   async getPlaylistDetail(spotifyUrl: string): Promise<{
     name: string;
@@ -23,7 +27,7 @@ export class SpotifyService {
     try {
       if (urlType === SpotifyUrlType.Track) {
         const trackId = SpotifyUrlHelper.extractId(spotifyUrl);
-        const track = await this.spotifyApiService.getTrackDetails(trackId);
+        const track = await this.spotifyCatalogService.getTrackDetails(trackId);
 
         return {
           name: track.name,
@@ -33,7 +37,7 @@ export class SpotifyService {
         };
       } else if (urlType === SpotifyUrlType.Album) {
         const albumId = SpotifyUrlHelper.extractId(spotifyUrl);
-        const tracks = await this.spotifyApiService.getAlbumTracks(albumId);
+        const tracks = await this.spotifyCatalogService.getAlbumTracks(albumId);
 
         return {
           name: tracks[0]?.album || "Unknown Album",
@@ -42,9 +46,9 @@ export class SpotifyService {
           type,
         };
       } else if (urlType === SpotifyUrlType.Playlist) {
-        const metadata = await this.spotifyApiService.getPlaylistMetadata(spotifyUrl);
+        const metadata = await this.spotifyCatalogService.getPlaylistMetadata(spotifyUrl);
 
-        const tracks = await this.spotifyApiService.getAllPlaylistTracks(spotifyUrl);
+        const tracks = await this.spotifyCatalogService.getAllPlaylistTracks(spotifyUrl);
 
         return {
           name: metadata.name,
@@ -56,8 +60,8 @@ export class SpotifyService {
         };
       } else if (urlType === SpotifyUrlType.Artist) {
         const artistId = SpotifyUrlHelper.extractId(spotifyUrl);
-        const artistDetails = await this.spotifyApiService.getArtistDetails(artistId);
-        const tracks = await this.spotifyApiService.getArtistTopTracks(artistId);
+        const artistDetails = await this.spotifyCatalogService.getArtistDetails(artistId);
+        const tracks = await this.spotifyCatalogService.getArtistTopTracks(artistId);
         return {
           name: artistDetails.name,
           tracks: tracks || [],
@@ -76,7 +80,7 @@ export class SpotifyService {
   async getPlaylistTracks(spotifyUrl: string): Promise<PlaylistTrack[]> {
     console.debug(`Get playlist ${spotifyUrl} on Spotify`);
     try {
-      return await this.spotifyApiService.getAllPlaylistTracks(spotifyUrl);
+      return await this.spotifyCatalogService.getAllPlaylistTracks(spotifyUrl);
     } catch (error) {
       console.error(`Error getting playlist tracks: ${(error as Error).message}`);
       return [];
@@ -85,7 +89,7 @@ export class SpotifyService {
   async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
     console.debug(`Get user's playlists on Spotify`);
     try {
-      return await this.spotifyApiService.getMyPlaylists();
+      return await this.spotifyUserLibraryService.getMyPlaylists();
     } catch (error) {
       console.error(`Error getting user playlists: ${(error as Error).message}`);
       throw error;

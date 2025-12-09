@@ -1,157 +1,44 @@
-import {
-  AlbumType,
-  ArtistRelease,
-  FollowedArtist,
-  NormalizedTrack,
-  SpotifyPlaylist,
-} from "@spotiarr/shared";
-import { SettingsService } from "../../application/services/settings.service";
+import { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
 import { SpotifyUrlHelper } from "../../domain/helpers/spotify-url.helper";
 import { AppError } from "../../presentation/middleware/error-handler";
 import { getEnv } from "../setup/environment";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient } from "./spotify-http.client";
+import {
+  SpotifyAlbum,
+  SpotifyAlbumTracksResponse,
+  SpotifyArtist,
+  SpotifyArtistAlbumsResponse,
+  SpotifyArtistTopTracksResponse,
+  SpotifyExternalUrls,
+  SpotifyImage,
+  SpotifyPlaylistTrackItem,
+  SpotifyTrack,
+} from "./spotify.types";
 
-interface SpotifyExternalUrls {
-  spotify?: string;
-}
+export class SpotifyCatalogService extends SpotifyHttpClient {
+  private static instance: SpotifyCatalogService | null = null;
 
-interface SpotifyImage {
-  url: string;
-}
-
-interface SpotifyArtist {
-  id?: string;
-  name: string;
-  external_urls?: SpotifyExternalUrls;
-}
-
-interface SpotifyAlbum {
-  name: string;
-  images?: SpotifyImage[];
-  release_date?: string;
-  id?: string;
-  album_group?: string;
-  album_type?: string;
-  external_urls?: SpotifyExternalUrls;
-  artists?: SpotifyArtist[];
-  total_tracks?: number;
-}
-
-interface SpotifyTrack {
-  name: string;
-  artists: SpotifyArtist[];
-  album?: SpotifyAlbum;
-  preview_url?: string | null;
-  external_urls?: SpotifyExternalUrls;
-  track_number?: number;
-  duration_ms?: number;
-  is_playable?: boolean;
-}
-
-interface SpotifyAlbumTracksResponse {
-  items: SpotifyTrack[];
-}
-
-interface SpotifyPlaylistTrackItem {
-  track: SpotifyTrack | null;
-}
-
-interface SpotifyArtistTopTracksResponse {
-  tracks?: SpotifyTrack[];
-}
-
-interface SpotifyCursor {
-  after?: string;
-}
-
-interface SpotifyFollowedArtistsPage {
-  items: SpotifyArtistFull[];
-  next?: string | null;
-  cursors?: SpotifyCursor;
-}
-
-interface SpotifyFollowedArtistsResponse {
-  artists: SpotifyFollowedArtistsPage;
-}
-
-interface SpotifyArtistFull extends SpotifyArtist {
-  id: string;
-  images?: SpotifyImage[];
-}
-
-interface SpotifyArtistAlbumsResponse {
-  items: SpotifyAlbum[];
-}
-
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-}
-
-const FOLLOWED_ARTISTS_MAX_KEY = "FOLLOWED_ARTISTS_MAX";
-
-export class SpotifyApiService extends SpotifyHttpClient {
-  private static instance: SpotifyApiService | null = null;
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
-  private constructor(
-    private readonly settingsService: SettingsService,
-    authService: SpotifyAuthService,
-  ) {
+  private constructor(authService: SpotifyAuthService) {
     super(authService);
   }
 
-  static getInstance(
-    settingsService?: SettingsService,
-    authService?: SpotifyAuthService,
-  ): SpotifyApiService {
-    if (!SpotifyApiService.instance) {
-      if (!settingsService || !authService) {
+  static getInstance(authService?: SpotifyAuthService): SpotifyCatalogService {
+    if (!SpotifyCatalogService.instance) {
+      if (!authService) {
         throw new AppError(
           500,
           "internal_server_error",
-          "SettingsService and SpotifyAuthService must be provided when initializing SpotifyApiService",
+          "SpotifyAuthService must be provided when initializing SpotifyCatalogService",
         );
       }
-      SpotifyApiService.instance = new SpotifyApiService(settingsService, authService);
+      SpotifyCatalogService.instance = new SpotifyCatalogService(authService);
     }
-    return SpotifyApiService.instance;
-  }
-
-  private getCacheKey(method: string, ...args: unknown[]): string {
-    return `${method}:${JSON.stringify(args)}`;
-  }
-
-  private async getFromCache<T>(key: string): Promise<T | null> {
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-
-    const cacheMinutes = await this.settingsService.getNumber("RELEASES_CACHE_MINUTES");
-    const cacheTTL = cacheMinutes * 60 * 1000;
-
-    const now = Date.now();
-    if (now - entry.timestamp > cacheTTL) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data as T;
-  }
-
-  private setCache<T>(key: string, data: T): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-    });
-  }
-
-  clearCache(): void {
-    this.cache.clear();
-    this.log("Cache cleared");
+    return SpotifyCatalogService.instance;
   }
 
   private log(message: string, level: "debug" | "error" | "warn" = "debug") {
-    const prefix = `[SpotifyApiService]`;
+    const prefix = `[SpotifyCatalogService]`;
     if (level === "error") console.error(prefix, message);
     else if (level === "warn") console.warn(prefix, message);
     else if (getEnv().NODE_ENV === "development") console.log(prefix, message);
@@ -634,226 +521,6 @@ export class SpotifyApiService extends SpotifyHttpClient {
     }
   }
 
-  async getFollowedArtistsRecentReleases(): Promise<ArtistRelease[]> {
-    const cacheKey = this.getCacheKey("getFollowedArtistsRecentReleases");
-    const cached = await this.getFromCache<ArtistRelease[]>(cacheKey);
-    if (cached) {
-      this.log("Returning cached followed artists releases");
-      return cached;
-    }
-
-    try {
-      const artists: SpotifyArtistFull[] = [];
-      let after: string | undefined;
-      const maxArtists = await this.settingsService.getNumber(FOLLOWED_ARTISTS_MAX_KEY);
-      const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
-
-      do {
-        const url = new URL("https://api.spotify.com/v1/me/following");
-        url.searchParams.set("type", "artist");
-        url.searchParams.set("limit", pageLimit.toString());
-        if (after) {
-          url.searchParams.set("after", after);
-        }
-        const response = await this.fetchWithUserToken(url.toString());
-
-        if (!response.ok) {
-          const errorText = await response.text();
-
-          if (response.status === 401) {
-            throw new AppError(
-              401,
-              "missing_user_access_token",
-              "Spotify user token expired or invalid",
-            );
-          }
-
-          if (response.status === 429) {
-            throw new AppError(
-              429,
-              "spotify_rate_limited",
-              `Spotify rate limit exceeded while fetching followed artists: ${errorText}`,
-            );
-          }
-
-          throw new AppError(
-            response.status,
-            "failed_to_fetch_followed_artists",
-            `Failed to fetch followed artists: ${response.status} ${errorText}`,
-          );
-        }
-
-        const data = (await response.json()) as SpotifyFollowedArtistsResponse;
-        const pageArtists = data.artists?.items ?? [];
-        artists.push(...pageArtists);
-        after = data.artists?.cursors?.after;
-
-        if (artists.length >= maxArtists) {
-          break;
-        }
-      } while (after);
-
-      const releasesPerArtist = await Promise.all(
-        artists.slice(0, maxArtists).map(async (artist) => {
-          const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single&limit=10`;
-          const albumsResponse = await this.fetchWithUserToken(albumsUrl);
-
-          if (!albumsResponse.ok) {
-            const errorText = await albumsResponse.text();
-
-            if (albumsResponse.status === 401) {
-              throw new AppError(
-                401,
-                "missing_user_access_token",
-                "Spotify user token expired or invalid",
-              );
-            }
-
-            this.log(
-              `Failed to fetch albums for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
-              "warn",
-            );
-            return [] as const;
-          }
-
-          const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
-          const albums = albumsData.items ?? [];
-
-          return albums.map((album) => ({
-            artistId: artist.id,
-            artistName: artist.name,
-            artistImageUrl: artist.images?.[0]?.url ?? null,
-            albumId: album.id as string,
-            albumName: album.name,
-            albumType: (album.album_group ?? album.album_type) as AlbumType,
-            releaseDate: album.release_date,
-            coverUrl: album.images?.[0]?.url ?? null,
-            spotifyUrl: album.external_urls?.spotify,
-          }));
-        }),
-      );
-
-      const flat = releasesPerArtist.flat();
-
-      const releasesLookbackDays = await this.settingsService.getNumber("RELEASES_LOOKBACK_DAYS");
-      const safeLookbackDays = releasesLookbackDays > 0 ? releasesLookbackDays : 30;
-
-      const now = new Date();
-      const cutoff = new Date(now.getTime() - safeLookbackDays * 24 * 60 * 60 * 1000);
-
-      const recent = flat.filter((item) => {
-        if (!item.releaseDate) return false;
-
-        // Spotify release_date can be YYYY, YYYY-MM, or YYYY-MM-DD
-        const parts = item.releaseDate.split("-");
-        const year = Number(parts[0]);
-        let month = parts.length >= 2 ? Number(parts[1]) - 1 : 0; // 0-based month
-        let day = parts.length >= 3 ? Number(parts[2]) : 1;
-
-        if (Number.isNaN(year) || year <= 0) return false;
-        if (Number.isNaN(month) || month < 0 || month > 11) month = 0;
-        if (Number.isNaN(day) || day <= 0 || day > 31) day = 1;
-
-        const releaseDate = new Date(year, month, day);
-        return releaseDate >= cutoff;
-      });
-
-      recent.sort((a, b) => {
-        const da = a.releaseDate ?? "";
-        const db = b.releaseDate ?? "";
-        return db.localeCompare(da);
-      });
-
-      // Cache the result
-      this.setCache(cacheKey, recent);
-
-      return recent;
-    } catch (error) {
-      this.log(`Failed to get followed artists releases: ${(error as Error).message}`);
-      throw error;
-    }
-  }
-
-  async getFollowedArtists(): Promise<FollowedArtist[]> {
-    const cacheKey = this.getCacheKey("getFollowedArtists");
-    const cached = await this.getFromCache<FollowedArtist[]>(cacheKey);
-    if (cached) {
-      this.log("Returning cached followed artists list");
-      return cached;
-    }
-
-    try {
-      const artists: SpotifyArtistFull[] = [];
-      let after: string | undefined;
-      const maxArtists = await this.settingsService.getNumber("FOLLOWED_ARTISTS_MAX");
-      const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
-
-      do {
-        const url = new URL("https://api.spotify.com/v1/me/following");
-        url.searchParams.set("type", "artist");
-        url.searchParams.set("limit", pageLimit.toString());
-        if (after) {
-          url.searchParams.set("after", after);
-        }
-
-        const response = await this.fetchWithUserToken(url.toString());
-
-        if (!response.ok) {
-          const errorText = await response.text();
-
-          if (response.status === 401) {
-            const tokenError = new Error("Spotify user token expired or invalid") as Error & {
-              code?: string;
-            };
-            tokenError.code = "MISSING_SPOTIFY_USER_TOKEN";
-            throw tokenError;
-          }
-
-          if (response.status === 429) {
-            const rateError = new Error(
-              `Spotify rate limit exceeded while fetching followed artists: ${errorText}`,
-            ) as Error & { code?: string; status?: number };
-            rateError.code = "SPOTIFY_RATE_LIMITED";
-            rateError.status = 429;
-            throw rateError;
-          }
-
-          throw new AppError(
-            response.status,
-            "failed_to_fetch_followed_artists",
-            `Failed to fetch followed artists: ${response.status} ${errorText}`,
-          );
-        }
-
-        const data = (await response.json()) as SpotifyFollowedArtistsResponse;
-        const pageArtists = data.artists?.items ?? [];
-        artists.push(...pageArtists);
-        after = data.artists?.cursors?.after;
-
-        if (artists.length >= maxArtists) {
-          break;
-        }
-      } while (after);
-
-      const sliced = artists.slice(0, maxArtists);
-
-      const sorted = sliced.sort((a, b) => a.name.localeCompare(b.name));
-
-      const mapped = sorted.map((artist) => ({
-        id: artist.id,
-        name: artist.name,
-        image: artist.images?.[0]?.url ?? null,
-        spotifyUrl: artist.external_urls?.spotify ?? null,
-      }));
-
-      this.setCache(cacheKey, mapped);
-      return mapped;
-    } catch (error) {
-      this.log(`Failed to get followed artists list: ${(error as Error).message}`);
-      throw error;
-    }
-  }
-
   async getAllPlaylistTracks(spotifyUrl: string): Promise<NormalizedTrack[]> {
     try {
       this.log(`Getting all tracks for ${spotifyUrl}`);
@@ -1017,68 +684,6 @@ export class SpotifyApiService extends SpotifyHttpClient {
       return [];
     } catch (error) {
       this.log(`Failed to get all playlist tracks: ${(error as Error).message}`);
-      throw error;
-    }
-  }
-  async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
-    try {
-      this.log("Getting user's playlists from Spotify");
-      const allPlaylists: SpotifyPlaylist[] = [];
-
-      let nextUrl: string | null = "https://api.spotify.com/v1/me/playlists?limit=50";
-
-      while (nextUrl) {
-        const response: Response = await this.fetchWithUserToken(nextUrl);
-
-        if (!response.ok) {
-          // If 401, error will be thrown by fetchWithUserToken or we handle it here if it wasn't retried?
-          // fetchWithUserToken handles 401 retry. If it fails again, it returns the 401 response.
-
-          if (response.status === 401) {
-            throw new AppError(
-              401,
-              "missing_user_access_token",
-              "Spotify user token expired or invalid",
-            );
-          }
-
-          const errorText = await response.text();
-          throw new AppError(
-            response.status,
-            "internal_server_error",
-            `Failed to fetch user playlists: ${response.status} ${errorText}`,
-          );
-        }
-
-        const data = (await response.json()) as {
-          items: {
-            id: string;
-            name: string;
-            images: SpotifyImage[];
-            owner: { display_name: string; external_urls: { spotify: string } };
-            tracks: { total: number };
-            external_urls: { spotify: string };
-          }[];
-          next: string | null;
-        };
-
-        const mapped = data.items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          image: item.images?.[0]?.url ?? null,
-          owner: item.owner?.display_name ?? "Unknown",
-          tracks: item.tracks?.total ?? 0,
-          spotifyUrl: item.external_urls?.spotify,
-          ownerUrl: item.owner?.external_urls?.spotify,
-        }));
-
-        allPlaylists.push(...mapped);
-        nextUrl = data.next;
-      }
-
-      return allPlaylists;
-    } catch (error) {
-      this.log(`Failed to get user playlists: ${(error as Error).message}`);
       throw error;
     }
   }

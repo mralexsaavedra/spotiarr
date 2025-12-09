@@ -3,7 +3,7 @@ import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();
-const { spotifyApiService } = container;
+const { spotifyCatalogService } = container;
 
 // GET /api/artist/:id - Artist detail (metadata + top tracks)
 router.get(
@@ -19,9 +19,9 @@ router.get(
 
     try {
       const [details, topTracks, albums] = await Promise.all([
-        spotifyApiService.getArtistDetails(id),
-        spotifyApiService.getArtistTopTracks(id),
-        spotifyApiService.getArtistAlbums(id, limit),
+        spotifyCatalogService.getArtistDetails(id),
+        spotifyCatalogService.getArtistTopTracks(id),
+        spotifyCatalogService.getArtistAlbums(id, limit),
       ]);
 
       return res.json({
@@ -65,7 +65,7 @@ router.get(
     }
 
     try {
-      const albums = await spotifyApiService.getArtistAlbums(id, limit, offset);
+      const albums = await spotifyCatalogService.getArtistAlbums(id, limit, offset);
       return res.json(albums);
     } catch (error) {
       console.error("Error getting artist albums", (error as Error).message);

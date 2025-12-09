@@ -24,8 +24,9 @@ import { PrismaHistoryRepository } from "./infrastructure/database/prisma-histor
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
-import { SpotifyApiService } from "./infrastructure/external/spotify-api.service";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
+import { SpotifyCatalogService } from "./infrastructure/external/spotify-catalog.service";
+import { SpotifyUserLibraryService } from "./infrastructure/external/spotify-user-library.service";
 import { SpotifyService } from "./infrastructure/external/spotify.service";
 import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
@@ -54,8 +55,12 @@ const eventBus = new SseEventBus();
 
 // Spotify
 const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
-const spotifyApiService = SpotifyApiService.getInstance(settingsService, spotifyAuthService);
-const spotifyService = new SpotifyService(spotifyApiService);
+const spotifyCatalogService = SpotifyCatalogService.getInstance(spotifyAuthService);
+const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
+  settingsService,
+  spotifyAuthService,
+);
+const spotifyService = new SpotifyService(spotifyCatalogService, spotifyUserLibraryService);
 
 // Use Cases - Tracks
 const createTrackUseCase = new CreateTrackUseCase(trackRepository, queueService);
@@ -96,7 +101,10 @@ const trackService = new TrackService({
 
 // Use Cases - Settings
 const getSettingsUseCase = new GetSettingsUseCase(settingsRepository);
-const updateSettingUseCase = new UpdateSettingUseCase(settingsRepository, spotifyApiService);
+const updateSettingUseCase = new UpdateSettingUseCase(
+  settingsRepository,
+  spotifyUserLibraryService,
+);
 
 // Use Cases - Playlists
 const getSystemStatusUseCase = new GetSystemStatusUseCase(playlistRepository);
@@ -145,8 +153,10 @@ export const container = {
   playlistService,
   trackService,
   spotifyService,
-  spotifyApiService,
+  spotifyCatalogService,
+  spotifyUserLibraryService,
   spotifyAuthService,
+
   settingsService,
   getSettingsUseCase,
   updateSettingUseCase,
