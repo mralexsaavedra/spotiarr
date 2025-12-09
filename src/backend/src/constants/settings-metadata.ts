@@ -103,16 +103,6 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     label: "Audio format",
     description: "The audio format for downloaded tracks.",
   },
-  YT_COOKIES: {
-    key: "YT_COOKIES",
-    defaultValue: "",
-    type: "string",
-    component: "input",
-    section: "Downloads",
-    label: "YouTube cookies browser (optional)",
-    description:
-      "Browser to extract cookies from for age-restricted content (e.g., 'chrome', 'firefox', 'edge'). Leave empty if not needed.",
-  },
   YT_AUDIO_QUALITY: {
     key: "YT_AUDIO_QUALITY",
     defaultValue: "best",
@@ -123,6 +113,16 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     label: "YouTube audio quality",
     description:
       "Audio quality preference for YouTube downloads. 'best' for highest quality, 'good' for balanced, 'acceptable' for faster downloads.",
+  },
+  YT_COOKIES: {
+    key: "YT_COOKIES",
+    defaultValue: "",
+    type: "string",
+    component: "input",
+    section: "Downloads",
+    label: "YouTube cookies browser (optional)",
+    description:
+      "Browser to extract cookies from for age-restricted content (e.g., 'chrome', 'firefox', 'edge'). Leave empty if not needed.",
   },
   YT_SEARCH_CONCURRENCY: {
     key: "YT_SEARCH_CONCURRENCY",
