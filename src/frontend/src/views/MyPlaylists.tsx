@@ -11,6 +11,7 @@ import { ApiError } from "../services/httpClient";
 export const MyPlaylists: FC = () => {
   const { filteredPlaylists, isLoading, error, search, handleSearchChange, handlePlaylistClick } =
     useMyPlaylistsController();
+
   if (error) {
     const apiError = error instanceof ApiError ? error : null;
     const errorCode = (apiError?.code || "unknown_error") as ApiErrorCode;

@@ -78,7 +78,12 @@ export const Playlist: FC<PlaylistProps> = ({
             />
           }
           metadata={
-            <PlaylistMetadata type={playlist.type || PlaylistTypeEnum.Playlist} tracks={tracks} />
+            <PlaylistMetadata
+              type={playlist.type || PlaylistTypeEnum.Playlist}
+              tracks={tracks}
+              owner={playlist.owner}
+              ownerUrl={playlist.ownerUrl}
+            />
           }
           totalCount={totalCount}
         />

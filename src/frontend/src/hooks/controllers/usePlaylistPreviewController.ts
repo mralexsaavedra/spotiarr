@@ -38,6 +38,8 @@ export const usePlaylistPreviewController = () => {
       spotifyUrl: spotifyUrl,
       subscribed: savedPlaylist?.subscribed ?? false,
       createdAt: Date.now(),
+      owner: previewData.owner,
+      ownerUrl: previewData.ownerUrl,
       stats: {
         completedCount: 0,
         downloadingCount: 0,

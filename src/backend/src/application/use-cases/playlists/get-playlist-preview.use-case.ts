@@ -23,6 +23,8 @@ export class GetPlaylistPreviewUseCase {
         albumUrl: track.albumUrl,
       })),
       totalTracks: details.tracks.length,
+      owner: details.owner,
+      ownerUrl: details.ownerUrl,
     };
   }
 }

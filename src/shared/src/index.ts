@@ -80,7 +80,10 @@ export interface IPlaylist {
   coverUrl?: string;
   artistImageUrl?: string;
   description?: string;
+
   tracks?: ITrack[];
+  owner?: string;
+  ownerUrl?: string;
 }
 
 export type AlbumType = "album" | "single" | "compilation";
@@ -153,6 +156,8 @@ export interface PlaylistPreview {
   description: string | null;
   coverUrl: string | null;
   totalTracks: number;
+  owner?: string;
+  ownerUrl?: string;
   tracks: Array<{
     name: string;
     artists: { name: string; url?: string }[];

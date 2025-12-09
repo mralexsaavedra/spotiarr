@@ -148,7 +148,9 @@ export class SpotifyApiService {
     else if (getEnv().NODE_ENV === "development") console.log(prefix, message);
   }
 
-  async getPlaylistMetadata(spotifyUrl: string): Promise<{ name: string; image: string }> {
+  async getPlaylistMetadata(
+    spotifyUrl: string,
+  ): Promise<{ name: string; image: string; owner: string; ownerUrl?: string }> {
     try {
       this.log(`Getting playlist metadata for ${spotifyUrl}`);
 
@@ -187,11 +189,17 @@ export class SpotifyApiService {
         throw new Error(`Failed to get playlist metadata: ${response.status} ${errorText}`);
       }
 
-      const data = (await response.json()) as { name: string; images?: SpotifyImage[] };
+      const data = (await response.json()) as {
+        name: string;
+        images?: SpotifyImage[];
+        owner?: { display_name: string; external_urls?: { spotify: string } };
+      };
 
       return {
         name: data.name,
         image: data.images?.[0]?.url ?? "",
+        owner: data.owner?.display_name ?? "Unknown",
+        ownerUrl: data.owner?.external_urls?.spotify,
       };
     } catch (error) {
       this.log(`Failed to get playlist metadata: ${(error as Error).message}`, "error");

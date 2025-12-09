@@ -7,9 +7,14 @@ export type PlaylistTrack = NormalizedTrack;
 export class SpotifyService {
   constructor(private readonly spotifyApiService: SpotifyApiService) {}
 
-  async getPlaylistDetail(
-    spotifyUrl: string,
-  ): Promise<{ name: string; tracks: PlaylistTrack[]; image: string; type: string }> {
+  async getPlaylistDetail(spotifyUrl: string): Promise<{
+    name: string;
+    tracks: PlaylistTrack[];
+    image: string;
+    type: string;
+    owner?: string;
+    ownerUrl?: string;
+  }> {
     console.debug(`Get playlist ${spotifyUrl} on Spotify`);
 
     const urlType = SpotifyUrlHelper.getUrlType(spotifyUrl);
@@ -46,6 +51,8 @@ export class SpotifyService {
           tracks: tracks || [],
           image: metadata.image,
           type,
+          owner: metadata.owner,
+          ownerUrl: metadata.ownerUrl,
         };
       } else if (urlType === SpotifyUrlType.Artist) {
         const artistId = SpotifyUrlHelper.extractId(spotifyUrl);
