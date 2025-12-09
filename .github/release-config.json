@@ -1,0 +1,21 @@
+{
+  "template": "# 🚀 SpotiArr #{{TO_TAG}}\n\nChanges in this version:\n\n#{{CHANGELOG}}\n\n### 📦 Installation/Update\n\n```bash\ndocker pull mralexandersaavedra/spotiarr:latest\ndocker-compose up -d\n```\n\n---\n*Made with ❤️ for the self-hosting community*",
+  "categories": [
+    {
+      "title": "### ✨ New Features",
+      "labels": ["feat", "feature"]
+    },
+    {
+      "title": "### 🐛 Bug Fixes",
+      "labels": ["fix", "bug"]
+    },
+    {
+      "title": "### ⚡ Performance",
+      "labels": ["perf"]
+    },
+    {
+      "title": "### ♻️ Refactoring",
+      "labels": ["refactor", "style", "chore"]
+    }
+  ]
+}
