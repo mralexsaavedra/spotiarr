@@ -33,7 +33,10 @@ export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
           />
         </div>
         <div className="flex flex-col min-w-0">
-          <h3 className="text-base font-bold text-white truncate" title={name}>
+          <h3
+            className="text-base font-bold text-white truncate group-hover:underline"
+            title={name}
+          >
             {name}
           </h3>
           <p className="text-sm truncate text-zinc-400">
