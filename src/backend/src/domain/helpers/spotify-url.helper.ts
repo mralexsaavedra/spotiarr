@@ -1,3 +1,5 @@
+import { AppError } from "../../presentation/middleware/error-handler";
+
 export enum SpotifyUrlType {
   Playlist = "playlist",
   Album = "album",
@@ -16,7 +18,7 @@ export class SpotifyUrlHelper {
    */
   static getUrlType(url: string): SpotifyUrlType {
     if (!url) {
-      throw new Error("Invalid Spotify URL: URL is empty");
+      throw new AppError(400, "invalid_spotify_url", "Invalid Spotify URL: URL is empty");
     }
 
     if (url.includes("/playlist/")) {
@@ -35,7 +37,7 @@ export class SpotifyUrlHelper {
       return SpotifyUrlType.Artist;
     }
 
-    throw new Error(`Unknown Spotify URL type: ${url}`);
+    throw new AppError(400, "invalid_spotify_url", `Unknown Spotify URL type: ${url}`);
   }
 
   /**
@@ -67,7 +69,11 @@ export class SpotifyUrlHelper {
   static extractId(url: string): string {
     const match = url.match(/\/(track|album|playlist|artist)\/([a-zA-Z0-9]+)/);
     if (!match) {
-      throw new Error(`Could not extract ID from Spotify URL: ${url}`);
+      throw new AppError(
+        400,
+        "invalid_spotify_url",
+        `Could not extract ID from Spotify URL: ${url}`,
+      );
     }
     return match[2];
   }

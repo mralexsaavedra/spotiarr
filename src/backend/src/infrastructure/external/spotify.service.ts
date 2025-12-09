@@ -70,7 +70,8 @@ export class SpotifyService {
         };
       }
 
-      throw new Error("Unknown Spotify URL type");
+      const _exhaustiveCheck: never = urlType;
+      throw new Error(`Unhandled URL type: ${_exhaustiveCheck}`);
     } catch (error) {
       console.error(`Error getting playlist details: ${(error as Error).message}`);
       throw error;

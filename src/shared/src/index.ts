@@ -107,6 +107,7 @@ export type ApiErrorCode =
   | "failed_to_fetch_releases"
   | "invalid_playlist_payload"
   | "invalid_setting_payload"
+  | "invalid_spotify_url"
   | "missing_spotify_client_id"
   | "missing_code"
   | "missing_spotify_credentials"
