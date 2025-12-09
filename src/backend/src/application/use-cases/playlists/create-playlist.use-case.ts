@@ -1,4 +1,4 @@
-import { PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
+import { NormalizedTrack, PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
 import { Playlist } from "../../../domain/entities/playlist.entity";
 import { EventBus } from "../../../domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../../../domain/helpers/spotify-url.helper";
@@ -8,25 +8,8 @@ import { AppError } from "../../../presentation/middleware/error-handler";
 import { SettingsService } from "../../services/settings.service";
 import { TrackService } from "../../services/track.service";
 
-interface PlaylistTrackDetail {
-  artist: string;
-  name: string;
-  album?: string;
-  albumYear?: number;
-  trackNumber?: number;
-  previewUrl?: string | null;
-  albumCoverUrl?: string;
-  primaryArtist?: string;
-  primaryArtistImage?: string | null;
-  artists?: { name: string; url: string | undefined }[];
-  trackUrl?: string;
-  albumUrl?: string;
-  durationMs?: number;
-  unavailable?: boolean;
-}
-
 interface PlaylistDetail {
-  tracks: PlaylistTrackDetail[];
+  tracks: NormalizedTrack[];
   name: string;
   image: string;
   type: string;
@@ -110,7 +93,7 @@ export class CreatePlaylistUseCase {
     return savedPlaylist;
   }
 
-  private async processTracks(playlist: IPlaylist, tracks: PlaylistTrackDetail[]): Promise<void> {
+  private async processTracks(playlist: IPlaylist, tracks: NormalizedTrack[]): Promise<void> {
     console.debug(`Starting to process ${tracks.length} tracks for playlist ${playlist.name}`);
 
     let processedCount = 0;
@@ -118,64 +101,90 @@ export class CreatePlaylistUseCase {
     let errorCount = 0;
 
     const urlType = SpotifyUrlHelper.getUrlType(playlist.spotifyUrl);
-    const isTrack = urlType === SpotifyUrlType.Track;
-    const isAlbum = urlType === SpotifyUrlType.Album;
-    const isArtist = urlType === SpotifyUrlType.Artist;
+    const context = {
+      isTrack: urlType === SpotifyUrlType.Track,
+      isAlbum: urlType === SpotifyUrlType.Album,
+      isArtist: urlType === SpotifyUrlType.Artist,
+      playlistId: playlist.id,
+      playlistName: playlist.name ?? "Unknown Playlist",
+    };
 
-    for (const track of tracks) {
-      try {
-        if (!track.artist || !track.name) {
-          console.warn(
-            `Skipping track ${processedCount + skippedCount + 1}: Missing artist or name information`,
-          );
-          skippedCount++;
-          continue;
-        }
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < tracks.length; i += BATCH_SIZE) {
+      const batch = tracks.slice(i, i + BATCH_SIZE);
+      const results = await Promise.all(
+        batch.map((track, index) => this.processTrack(track, i + index, context)),
+      );
 
-        if (track.unavailable === true) {
-          console.warn(
-            `Skipping unavailable track ${processedCount + skippedCount + 1}: ${track.artist} - ${track.name}`,
-          );
-          skippedCount++;
-          continue;
-        }
+      for (const result of results) {
+        if (result === "ok") processedCount++;
+        else if (result === "skipped") skippedCount++;
+        else errorCount++;
+      }
 
-        const artistToUse =
-          (isAlbum || isTrack || isArtist) && track.primaryArtist
-            ? track.primaryArtist
-            : track.artist;
-
-        const useSinglesFallback = isTrack || isArtist;
-
-        await this.trackService.create({
-          artist: artistToUse,
-          name: track.name,
-          album: track.album ?? (useSinglesFallback ? "Singles" : playlist.name),
-          albumYear: track.albumYear,
-          trackNumber: isAlbum ? (track.trackNumber ?? processedCount + 1) : processedCount + 1,
-          spotifyUrl: track.previewUrl ?? undefined,
-          artists: track.artists,
-          trackUrl: track.trackUrl,
-          albumUrl: track.albumUrl,
-          durationMs: track.durationMs,
-          playlistId: playlist.id,
-        });
-
-        processedCount++;
-
-        if (processedCount % 100 === 0) {
-          console.debug(`Processed ${processedCount} tracks so far for playlist ${playlist.name}`);
-        }
-      } catch (error) {
-        console.error(
-          `Error creating track "${track?.artist || "Unknown"} - ${track?.name || "Unknown"}": ${error instanceof Error ? error.message : String(error)}`,
-        );
-        errorCount++;
+      if (processedCount % 50 === 0 && processedCount > 0) {
+        console.debug(`Processed ${processedCount} tracks so far for playlist ${playlist.name}`);
       }
     }
 
     console.debug(
       `Finished processing playlist ${playlist.name}: ${processedCount} tracks processed, ${skippedCount} skipped, ${errorCount} errors`,
     );
+  }
+
+  private async processTrack(
+    track: NormalizedTrack,
+    index: number,
+    context: {
+      isTrack: boolean;
+      isAlbum: boolean;
+      isArtist: boolean;
+      playlistId: string;
+      playlistName: string;
+    },
+  ): Promise<"ok" | "skipped" | "error"> {
+    try {
+      if (!track.artist || !track.name) {
+        console.warn(`Skipping track ${index + 1}: Missing artist or name information`);
+        return "skipped";
+      }
+
+      if (track.unavailable === true) {
+        console.warn(`Skipping unavailable track ${index + 1}: ${track.artist} - ${track.name}`);
+        return "skipped";
+      }
+
+      const artistToUse =
+        (context.isAlbum || context.isTrack || context.isArtist) && track.primaryArtist
+          ? track.primaryArtist
+          : track.artist;
+
+      const useSinglesFallback = context.isTrack || context.isArtist;
+
+      // For albums, use explicit track number. For playlists, use the index (1-based)
+      // This maintains the order even if processed in parallel batches
+      const trackNumber = context.isAlbum ? (track.trackNumber ?? index + 1) : index + 1;
+
+      await this.trackService.create({
+        artist: artistToUse,
+        name: track.name,
+        album: track.album ?? (useSinglesFallback ? "Singles" : context.playlistName),
+        albumYear: track.albumYear,
+        trackNumber: trackNumber,
+        spotifyUrl: track.previewUrl ?? undefined,
+        artists: track.artists,
+        trackUrl: track.trackUrl,
+        albumUrl: track.albumUrl,
+        durationMs: track.durationMs,
+        playlistId: context.playlistId,
+      });
+
+      return "ok";
+    } catch (error) {
+      console.error(
+        `Error creating track "${track?.artist || "Unknown"} - ${track?.name || "Unknown"}": ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return "error";
+    }
   }
 }

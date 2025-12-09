@@ -25,6 +25,7 @@ import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playl
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { SpotifyApiService } from "./infrastructure/external/spotify-api.service";
+import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
 import { SpotifyService } from "./infrastructure/external/spotify.service";
 import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
@@ -52,7 +53,8 @@ const queueService = new BullMqTrackQueueService();
 const eventBus = new SseEventBus();
 
 // Spotify
-const spotifyApiService = SpotifyApiService.getInstance(settingsService);
+const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
+const spotifyApiService = SpotifyApiService.getInstance(settingsService, spotifyAuthService);
 const spotifyService = new SpotifyService(spotifyApiService);
 
 // Use Cases - Tracks
@@ -144,6 +146,7 @@ export const container = {
   trackService,
   spotifyService,
   spotifyApiService,
+  spotifyAuthService,
   settingsService,
   getSettingsUseCase,
   updateSettingUseCase,

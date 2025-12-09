@@ -230,6 +230,7 @@ export type NormalizedTrack = ITrack & {
   albumCoverUrl?: string;
   previewUrl?: string | null;
   artists: { name: string; url: string | undefined }[];
+  unavailable?: boolean;
 };
 
 export interface SpotifyPlaylist {
