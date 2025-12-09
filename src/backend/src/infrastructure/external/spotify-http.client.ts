@@ -3,6 +3,40 @@ import { SpotifyAuthService } from "./spotify-auth.service";
 export class SpotifyHttpClient {
   constructor(private readonly authService: SpotifyAuthService) {}
 
+  private async sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async fetchWithRateLimitRetry(
+    input: string | URL,
+    init?: RequestInit,
+    retries = 0,
+  ): Promise<Response> {
+    const MAX_RETRIES = 3;
+    const response = await fetch(input.toString(), init);
+
+    if (response.status === 429 && retries < MAX_RETRIES) {
+      const retryAfterHeader = response.headers.get("Retry-After");
+      // Default to 2^retries seconds if header is missing, or use header value
+      const retryAfterSeconds = retryAfterHeader
+        ? parseInt(retryAfterHeader, 10)
+        : Math.pow(2, retries);
+
+      // Add 1s buffer to be safe
+      const waitMs = (retryAfterSeconds + 1) * 1000;
+
+      console.warn(
+        `[SpotifyHttpClient] Rate limited (429). Waiting ${waitMs}ms before retry ${retries + 1}/${MAX_RETRIES}`,
+      );
+
+      await this.sleep(waitMs);
+      // Recursively retry
+      return this.fetchWithRateLimitRetry(input, init, retries + 1);
+    }
+
+    return response;
+  }
+
   /**
    * Perform a fetch using the Spotify application access token.
    */
@@ -13,7 +47,7 @@ export class SpotifyHttpClient {
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 
-    return fetch(input.toString(), {
+    return this.fetchWithRateLimitRetry(input, {
       ...init,
       headers,
     });
@@ -30,7 +64,7 @@ export class SpotifyHttpClient {
         Authorization: `Bearer ${token}`,
       } as Record<string, string>;
 
-      return fetch(input.toString(), {
+      return this.fetchWithRateLimitRetry(input, {
         ...init,
         headers,
       });
