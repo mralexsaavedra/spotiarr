@@ -157,55 +157,8 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     }
 
     try {
-      const artists: SpotifyArtistFull[] = [];
-      let after: string | undefined;
       const maxArtists = await this.settingsService.getNumber(FOLLOWED_ARTISTS_MAX_KEY);
-      const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
-
-      do {
-        const url = new URL("https://api.spotify.com/v1/me/following");
-        url.searchParams.set("type", "artist");
-        url.searchParams.set("limit", pageLimit.toString());
-        if (after) {
-          url.searchParams.set("after", after);
-        }
-        const response = await this.fetchWithUserToken(url.toString());
-
-        if (!response.ok) {
-          const errorText = await response.text();
-
-          if (response.status === 401) {
-            throw new AppError(
-              401,
-              "missing_user_access_token",
-              "Spotify user token expired or invalid",
-            );
-          }
-
-          if (response.status === 429) {
-            throw new AppError(
-              429,
-              "spotify_rate_limited",
-              `Spotify rate limit exceeded while fetching followed artists: ${errorText}`,
-            );
-          }
-
-          throw new AppError(
-            response.status,
-            "failed_to_fetch_followed_artists",
-            `Failed to fetch followed artists: ${response.status} ${errorText}`,
-          );
-        }
-
-        const data = (await response.json()) as SpotifyFollowedArtistsResponse;
-        const pageArtists = data.artists?.items ?? [];
-        artists.push(...pageArtists);
-        after = data.artists?.cursors?.after;
-
-        if (artists.length >= maxArtists) {
-          break;
-        }
-      } while (after);
+      const artists = await this.fetchAllFollowedArtists(maxArtists);
 
       const releasesPerArtist = await Promise.all(
         artists.slice(0, maxArtists).map(async (artist) => {
@@ -297,57 +250,8 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     }
 
     try {
-      const artists: SpotifyArtistFull[] = [];
-      let after: string | undefined;
       const maxArtists = await this.settingsService.getNumber("FOLLOWED_ARTISTS_MAX");
-      const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
-
-      do {
-        const url = new URL("https://api.spotify.com/v1/me/following");
-        url.searchParams.set("type", "artist");
-        url.searchParams.set("limit", pageLimit.toString());
-        if (after) {
-          url.searchParams.set("after", after);
-        }
-
-        const response = await this.fetchWithUserToken(url.toString());
-
-        if (!response.ok) {
-          const errorText = await response.text();
-
-          if (response.status === 401) {
-            const tokenError = new Error("Spotify user token expired or invalid") as Error & {
-              code?: string;
-            };
-            tokenError.code = "MISSING_SPOTIFY_USER_TOKEN";
-            throw tokenError;
-          }
-
-          if (response.status === 429) {
-            const rateError = new Error(
-              `Spotify rate limit exceeded while fetching followed artists: ${errorText}`,
-            ) as Error & { code?: string; status?: number };
-            rateError.code = "SPOTIFY_RATE_LIMITED";
-            rateError.status = 429;
-            throw rateError;
-          }
-
-          throw new AppError(
-            response.status,
-            "failed_to_fetch_followed_artists",
-            `Failed to fetch followed artists: ${response.status} ${errorText}`,
-          );
-        }
-
-        const data = (await response.json()) as SpotifyFollowedArtistsResponse;
-        const pageArtists = data.artists?.items ?? [];
-        artists.push(...pageArtists);
-        after = data.artists?.cursors?.after;
-
-        if (artists.length >= maxArtists) {
-          break;
-        }
-      } while (after);
+      const artists = await this.fetchAllFollowedArtists(maxArtists);
 
       const sliced = artists.slice(0, maxArtists);
 
@@ -366,5 +270,59 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
       this.log(`Failed to get followed artists list: ${(error as Error).message}`);
       throw error;
     }
+  }
+
+  private async fetchAllFollowedArtists(maxArtists: number): Promise<SpotifyArtistFull[]> {
+    const artists: SpotifyArtistFull[] = [];
+    let after: string | undefined;
+    const pageLimit = Math.min(Math.max(maxArtists, 1), 50);
+
+    do {
+      const url = new URL("https://api.spotify.com/v1/me/following");
+      url.searchParams.set("type", "artist");
+      url.searchParams.set("limit", pageLimit.toString());
+      if (after) {
+        url.searchParams.set("after", after);
+      }
+
+      const response = await this.fetchWithUserToken(url.toString());
+
+      if (!response.ok) {
+        const errorText = await response.text();
+
+        if (response.status === 401) {
+          throw new AppError(
+            401,
+            "missing_user_access_token",
+            "Spotify user token expired or invalid",
+          );
+        }
+
+        if (response.status === 429) {
+          throw new AppError(
+            429,
+            "spotify_rate_limited",
+            `Spotify rate limit exceeded while fetching followed artists: ${errorText}`,
+          );
+        }
+
+        throw new AppError(
+          response.status,
+          "failed_to_fetch_followed_artists",
+          `Failed to fetch followed artists: ${response.status} ${errorText}`,
+        );
+      }
+
+      const data = (await response.json()) as SpotifyFollowedArtistsResponse;
+      const pageArtists = data.artists?.items ?? [];
+      artists.push(...pageArtists);
+      after = data.artists?.cursors?.after;
+
+      if (artists.length >= maxArtists) {
+        break;
+      }
+    } while (after);
+
+    return artists;
   }
 }
