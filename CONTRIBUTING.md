@@ -161,6 +161,61 @@ spotiarr/
 └── package.json
 ```
 
+## Architecture
+
+### Frontend (Atomic Design)
+
+The frontend is built with React and follows **Atomic Design** principles to ensure component reusability and maintainability.
+
+1. **Atomic Design (`src/components`)**:
+   - **Atoms**: The smallest building blocks (e.g., `Button`, `Input`, `Icon`). These are highly reusable and contain no business logic.
+   - **Molecules**: Combinations of atoms (e.g., `SearchBar` = Input + Button). They handle local UI state.
+   - **Organisms**: Complex sections of the interface (e.g., `Header`, `TrackList`). They may interact with global state or services.
+   - **Layouts**: Structuring wrappers (e.g., `MainLayout`, `AuthLayout`).
+
+2. **State Management**:
+   - **Server State (TanStack Query)**: Used for all data fetching, caching, and synchronization with the backend. See `src/hooks` and `src/services`.
+   - **UI State (Zustand)**: Used for global client-only state (e.g., theme, sidebar toggle, audio player state). See `src/store`.
+
+3. **Routing & Views**:
+   - **Views (`src/views`)**: Top-level page components. They should primarily orchestrate Layouts and Organisms.
+   - **Routes (`src/routes`)**: Defines the application's navigation structure using React Router.
+
+4. **Styling**:
+   - **Tailwind CSS**: The primary styling engine.
+   - **CLSX / Tailwind Merge**: Used for conditional class names and conflict resolution.
+
+### Backend (Clean Architecture / DDD)
+
+The backend follows a layered architecture. Strict dependency rules apply:
+
+1. **Domain (`src/domain`)**:
+   - The core. Specific business rules and entities.
+   - **Must NOT depend** on any other layer.
+   - Contains: Entities, Value Objects, Repository Interfaces.
+
+2. **Application (`src/application`)**:
+   - Application business rules (Use Cases).
+   - Coordinate data flow between Presentation and Domain.
+   - **Depends only on** Domain.
+
+3. **Infrastructure (`src/infrastructure`)**:
+   - Frameworks and tools (Database, Spotify API, File System).
+   - Implements interfaces defined in Domain/Application.
+   - **Depends on** Domain and Application.
+
+4. **Presentation (`src/presentation`)**:
+   - Interface adapters (HTTP Controllers, Routes, SSE).
+   - Receives inputs and converts them to Use Case requirements.
+   - **Depends on** Application.
+
+**Key rules:**
+
+- **Dependency Rule:** Source code dependencies can only point **inwards**.
+- **Container:** Use `container.ts` for Dependency Injection. Do not manually instantiate services in controllers.
+- **DTOs:** Use DTOs for data transfer between layers, especially for external API requests/responses.
+- **SSE:** Use Server-Sent Events for real-time updates (download progress).
+
 ## Development Workflow
 
 1. **Create a branch**
@@ -196,39 +251,8 @@ spotiarr/
 - One component per file (prefer `tsx`)
 - Use functional components and hooks (no class components)
 - Use `useEffect`/`useMemo`/`useCallback` thoughtfully and keep components small
-- Use TanStack Query for server state and Zustand for UI state
+
 - Co-locate types and hooks with components when it improves readability
-
-### Backend Architecture (Clean Architecture / DDD)
-
-The backend follows a layered architecture. Strict dependency rules apply:
-
-1. **Domain (`src/domain`)**:
-   - The core. specific business rules and entities.
-   - **Must NOT depend** on any other layer.
-   - Contains: Entities, Value Objects, Repository Interfaces.
-
-2. **Application (`src/application`)**:
-   - Application business rules (Use Cases).
-   - Coordinate data flow between Presentation and Domain.
-   - **Depends only on** Domain.
-
-3. **Infrastructure (`src/infrastructure`)**:
-   - Frameworks and tools (Database, Spotify API, File System).
-   - Implements interfaces defined in Domain/Application.
-   - **Depends on** Domain and Application.
-
-4. **Presentation (`src/presentation`)**:
-   - Interface adapters (HTTP Controllers, Routes, SSE).
-   - Receives inputs and converts them to Use Case requirements.
-   - **Depends on** Application.
-
-**Key rules:**
-
-- **Dependency Rule:** Source code dependencies can only point **inwards**.
-- **Container:** Use `container.ts` for Dependency Injection. Do not manually instantiate services in controllers.
-- **DTOs:** Use DTOs for data transfer between layers, especially for external API requests/responses.
-- **SSE:** Use Server-Sent Events for real-time updates (download progress).
 
 ## Pull Request Checklist
 
