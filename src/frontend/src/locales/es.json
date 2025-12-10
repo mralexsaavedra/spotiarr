@@ -13,7 +13,8 @@
     "title": "Título",
     "album": "Álbum",
     "duration": "Duración",
-    "status": "Estado"
+    "status": "Estado",
+    "openInSpotify": "Abrir en Spotify"
   },
   "navigation": {
     "home": "Inicio",

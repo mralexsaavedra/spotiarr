@@ -1,5 +1,6 @@
 import { faSpotify } from "@fortawesome/free-brands-svg-icons";
 import { FC, MouseEvent, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../utils/cn";
 import { Button, ButtonProps } from "../atoms/Button";
 
@@ -14,6 +15,7 @@ export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
   size = "md",
   ...props
 }) => {
+  const { t } = useTranslation();
   const handleClick = useCallback((e: MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
   }, []);
@@ -36,7 +38,7 @@ export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
         icon={faSpotify}
         {...props}
       >
-        <span className="hidden md:inline">Open in Spotify</span>
+        <span className="hidden md:inline">{t("common.openInSpotify")}</span>
       </Button>
     </a>
   );
