@@ -1,7 +1,7 @@
 import { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
-import { SettingsService } from "../../application/services/settings.service";
-import { SpotifyUrlHelper } from "../../domain/helpers/spotify-url.helper";
-import { AppError } from "../../presentation/middleware/error-handler";
+import { SettingsService } from "@/application/services/settings.service";
+import { SpotifyUrlHelper } from "@/domain/helpers/spotify-url.helper";
+import { AppError } from "@/presentation/middleware/error-handler";
 import { getEnv } from "../setup/environment";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient } from "./spotify-http.client";

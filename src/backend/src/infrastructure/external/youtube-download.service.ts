@@ -1,6 +1,6 @@
 import { SUPPORTED_AUDIO_FORMATS, SupportedAudioFormat, type ITrack } from "@spotiarr/shared";
 import { YtDlp } from "ytdlp-nodejs";
-import { SettingsService } from "../../application/services/settings.service";
+import { SettingsService } from "@/application/services/settings.service";
 import { YoutubeSearchService } from "./youtube-search.service";
 
 const HEADERS = {

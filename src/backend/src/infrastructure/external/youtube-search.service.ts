@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import { join } from "path";
 import { promisify } from "util";
-import { SettingsService } from "../../application/services/settings.service";
+import { SettingsService } from "@/application/services/settings.service";
 
 const execFilePromise = promisify(execFile);
 

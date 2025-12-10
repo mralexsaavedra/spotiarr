@@ -1,4 +1,4 @@
-import { SettingsService } from "../../application/services/settings.service";
+import { SettingsService } from "@/application/services/settings.service";
 import { getEnv } from "../setup/environment";
 
 interface SpotifyTokenResponse {

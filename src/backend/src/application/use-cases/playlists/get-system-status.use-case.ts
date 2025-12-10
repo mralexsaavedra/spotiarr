@@ -1,5 +1,5 @@
 import { PlaylistStatusEnum, TrackStatusEnum, type DownloadStatusResponse } from "@spotiarr/shared";
-import type { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
+import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 
 export class GetSystemStatusUseCase {
   constructor(private readonly playlistRepository: PlaylistRepository) {}

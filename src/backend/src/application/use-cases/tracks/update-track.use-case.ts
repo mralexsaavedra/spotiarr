@@ -1,5 +1,5 @@
 import type { ITrack } from "@spotiarr/shared";
-import type { TrackRepository } from "../../../domain/repositories/track.repository";
+import type { TrackRepository } from "@/domain/repositories/track.repository";
 
 export class UpdateTrackUseCase {
   constructor(private readonly trackRepository: TrackRepository) {}

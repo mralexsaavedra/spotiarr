@@ -1,6 +1,6 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { PrismaSettingsRepository } from "../../infrastructure/database/prisma-settings.repository";
-import { getEnv } from "../../infrastructure/setup/environment";
+import { PrismaSettingsRepository } from "@/infrastructure/database/prisma-settings.repository";
+import { getEnv } from "@/infrastructure/setup/environment";
 import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();

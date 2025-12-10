@@ -1,5 +1,5 @@
 import type { IPlaylist } from "@spotiarr/shared";
-import type { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
+import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 
 export class GetPlaylistsUseCase {
   constructor(private readonly playlistRepository: PlaylistRepository) {}

@@ -1,5 +1,5 @@
-import { SETTINGS_METADATA } from "../../constants/settings-metadata";
-import type { SettingsRepository } from "../../domain/repositories/settings.repository";
+import { SETTINGS_METADATA } from "@/constants/settings-metadata";
+import type { SettingsRepository } from "@/domain/repositories/settings.repository";
 
 export class SettingsService {
   constructor(private readonly repo: SettingsRepository) {}

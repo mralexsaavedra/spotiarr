@@ -1,6 +1,6 @@
 import type { ITrack } from "@spotiarr/shared";
-import type { TrackRepository } from "../../../domain/repositories/track.repository";
-import type { TrackQueueService } from "../../../domain/services/track-queue.service";
+import type { TrackRepository } from "@/domain/repositories/track.repository";
+import type { TrackQueueService } from "@/domain/services/track-queue.service";
 
 export class CreateTrackUseCase {
   constructor(

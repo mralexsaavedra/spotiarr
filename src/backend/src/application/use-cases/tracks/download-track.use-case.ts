@@ -1,15 +1,15 @@
 import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
-import { EventBus } from "../../../domain/events/event-bus";
-import { HistoryRepository } from "../../../domain/repositories/history.repository";
-import { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
-import { TrackRepository } from "../../../domain/repositories/track.repository";
-import { SpotifyService } from "../../../domain/services/spotify.service";
-import { YoutubeDownloadService } from "../../../infrastructure/external/youtube-download.service";
-import { FileSystemM3uService } from "../../../infrastructure/services/file-system-m3u.service";
-import { FileSystemTrackPathService } from "../../../infrastructure/services/file-system-track-path.service";
-import { MetadataService } from "../../../infrastructure/services/metadata.service";
+import { EventBus } from "@/domain/events/event-bus";
+import { HistoryRepository } from "@/domain/repositories/history.repository";
+import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
+import { TrackRepository } from "@/domain/repositories/track.repository";
+import { SpotifyService } from "@/domain/services/spotify.service";
+import { YoutubeDownloadService } from "@/infrastructure/external/youtube-download.service";
+import { FileSystemM3uService } from "@/infrastructure/services/file-system-m3u.service";
+import { FileSystemTrackPathService } from "@/infrastructure/services/file-system-track-path.service";
+import { MetadataService } from "@/infrastructure/services/metadata.service";
 import { UtilsService } from "../../services/utils.service";
 
 export class DownloadTrackUseCase {

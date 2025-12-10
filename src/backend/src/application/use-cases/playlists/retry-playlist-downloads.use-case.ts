@@ -1,6 +1,6 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
-import type { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
-import { AppError } from "../../../presentation/middleware/error-handler";
+import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
+import { AppError } from "@/presentation/middleware/error-handler";
 import { TrackService } from "../../services/track.service";
 
 export class RetryPlaylistDownloadsUseCase {

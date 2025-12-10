@@ -1,5 +1,5 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { prisma } from "../../infrastructure/setup/prisma";
+import { prisma } from "@/infrastructure/setup/prisma";
 
 const router: ExpressRouter = Router();
 

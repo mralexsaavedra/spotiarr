@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import { getEnv } from "../../infrastructure/setup/environment";
+import { getEnv } from "@/infrastructure/setup/environment";
 
 export class UtilsService {
   constructor() {}

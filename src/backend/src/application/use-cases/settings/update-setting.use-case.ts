@@ -1,5 +1,5 @@
-import type { SettingsRepository } from "../../../domain/repositories/settings.repository";
-import type { SpotifyUserLibraryService } from "../../../infrastructure/external/spotify-user-library.service";
+import type { SettingsRepository } from "@/domain/repositories/settings.repository";
+import type { SpotifyUserLibraryService } from "@/infrastructure/external/spotify-user-library.service";
 
 export class UpdateSettingUseCase {
   constructor(

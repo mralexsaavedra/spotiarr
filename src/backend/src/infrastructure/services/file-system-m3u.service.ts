@@ -1,7 +1,7 @@
 import { TrackStatusEnum, type IPlaylist, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
-import { SettingsService } from "../../application/services/settings.service";
+import { SettingsService } from "@/application/services/settings.service";
 
 export class FileSystemM3uService {
   constructor(private readonly settingsService: SettingsService) {}

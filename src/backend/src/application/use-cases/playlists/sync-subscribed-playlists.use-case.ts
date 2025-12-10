@@ -1,8 +1,8 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
-import { EventBus } from "../../../domain/events/event-bus";
-import { SpotifyUrlHelper, SpotifyUrlType } from "../../../domain/helpers/spotify-url.helper";
-import type { PlaylistRepository } from "../../../domain/repositories/playlist.repository";
-import { SpotifyService, type PlaylistTrack } from "../../../domain/services/spotify.service";
+import { EventBus } from "@/domain/events/event-bus";
+import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
+import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
+import { SpotifyService, type PlaylistTrack } from "@/domain/services/spotify.service";
 import { TrackService } from "../../services/track.service";
 
 export class SyncSubscribedPlaylistsUseCase {

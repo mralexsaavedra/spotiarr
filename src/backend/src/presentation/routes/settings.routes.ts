@@ -1,6 +1,6 @@
 import { SupportedAudioFormat } from "@spotiarr/shared";
 import { Router, type Router as ExpressRouter } from "express";
-import { SETTINGS_METADATA } from "../../constants/settings-metadata";
+import { SETTINGS_METADATA } from "@/constants/settings-metadata";
 import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 

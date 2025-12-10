@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "pnpm prisma:generate && tsc",
+    "build": "pnpm prisma:generate && tsc && tsc-alias",
     "start": "node dist/index.js",
     "lint": "spotiarr-lint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\"",
@@ -36,6 +36,7 @@
     "@types/node": "^24.10.1",
     "@types/node-cron": "^3.0.11",
     "prisma": "6.19.0",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.7.0"
   }
 }

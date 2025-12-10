@@ -1,7 +1,7 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
+import { emitSseEvent } from "@/presentation/routes/events.routes";
 import { container } from "../../container";
-import { emitSseEvent } from "../../presentation/routes/events.routes";
 import { getEnv } from "../setup/environment";
 
 const { trackService, settingsService } = container;

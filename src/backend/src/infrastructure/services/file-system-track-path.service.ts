@@ -1,6 +1,6 @@
 import type { ITrack } from "@spotiarr/shared";
-import { SettingsService } from "../../application/services/settings.service";
-import { UtilsService } from "../../application/services/utils.service";
+import { SettingsService } from "@/application/services/settings.service";
+import { UtilsService } from "@/application/services/utils.service";
 
 export class FileSystemTrackPathService {
   constructor(

@@ -1,7 +1,7 @@
 import type { Playlist as DbPlaylist, Track as DbTrack, Prisma } from "@prisma/client";
 import type { IPlaylist, TrackArtist } from "@spotiarr/shared";
-import { Playlist } from "../../domain/entities/playlist.entity";
-import type { PlaylistRepository } from "../../domain/repositories/playlist.repository";
+import { Playlist } from "@/domain/entities/playlist.entity";
+import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { prisma } from "../setup/prisma";
 
 export class PrismaPlaylistRepository implements PlaylistRepository {
