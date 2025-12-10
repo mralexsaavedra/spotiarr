@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as NodeID3 from "node-id3";
 import { join } from "path";
 import { AppError } from "@/domain/errors/app-error";
+import { getErrorMessage } from "../utils/error.utils";
 
 interface CoverTags extends NodeID3.Tags {
   APIC?: {
@@ -93,7 +94,7 @@ export class MetadataService {
 
       console.debug(`✓ Cover art saved in ${directory}`);
     } catch (error) {
-      console.error(`Failed to save cover art in ${directory}: ${(error as Error).message}`);
+      console.error(`Failed to save cover art in ${directory}: ${getErrorMessage(error)}`);
     }
   }
 }

@@ -2,6 +2,7 @@ import { NormalizedTrack, SpotifyPlaylist } from "@spotiarr/shared";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyCatalogService } from "@/infrastructure/external/spotify-catalog.service";
 import { SpotifyUserLibraryService } from "@/infrastructure/external/spotify-user-library.service";
+import { getErrorMessage } from "@/infrastructure/utils/error.utils";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../helpers/spotify-url.helper";
 
 export type PlaylistTrack = NormalizedTrack;
@@ -74,7 +75,7 @@ export class SpotifyService {
       const _exhaustiveCheck: never = urlType;
       throw new AppError(400, "invalid_spotify_url", `Unhandled URL type: ${_exhaustiveCheck}`);
     } catch (error) {
-      console.error(`Error getting playlist details: ${(error as Error).message}`);
+      console.error(`Error getting playlist details: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -84,7 +85,7 @@ export class SpotifyService {
     try {
       return await this.spotifyCatalogService.getAllPlaylistTracks(spotifyUrl);
     } catch (error) {
-      console.error(`Error getting playlist tracks: ${(error as Error).message}`);
+      console.error(`Error getting playlist tracks: ${getErrorMessage(error)}`);
       return [];
     }
   }
@@ -93,7 +94,7 @@ export class SpotifyService {
     try {
       return await this.spotifyUserLibraryService.getMyPlaylists();
     } catch (error) {
-      console.error(`Error getting user playlists: ${(error as Error).message}`);
+      console.error(`Error getting user playlists: ${getErrorMessage(error)}`);
       throw error;
     }
   }

@@ -1,8 +1,9 @@
 import type { Playlist as DbPlaylist, Track as DbTrack, Prisma } from "@prisma/client";
-import type { IPlaylist, TrackArtist } from "@spotiarr/shared";
+import type { IPlaylist } from "@spotiarr/shared";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { prisma } from "../setup/prisma";
+import { jsonToTrackArtists, toTrackStatus } from "./types";
 
 export class PrismaPlaylistRepository implements PlaylistRepository {
   async findAll(includesTracks = false, where?: Partial<IPlaylist>): Promise<Playlist[]> {
@@ -87,13 +88,9 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
         spotifyUrl: track.spotifyUrl ?? undefined,
         trackUrl: track.trackUrl ?? undefined,
         albumUrl: track.albumUrl ?? undefined,
-        artists: track.artists ? (track.artists as unknown as TrackArtist[]) : undefined,
+        artists: jsonToTrackArtists(track.artists),
         youtubeUrl: track.youtubeUrl ?? undefined,
-        status: track.status as unknown as IPlaylist["tracks"] extends (infer T)[] | undefined
-          ? T extends { status?: infer S }
-            ? S
-            : undefined
-          : undefined,
+        status: toTrackStatus(track.status),
         error: track.error ?? undefined,
         createdAt: track.createdAt ? Number(track.createdAt) : undefined,
         completedAt: track.completedAt ? Number(track.completedAt) : undefined,

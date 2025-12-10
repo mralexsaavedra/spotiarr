@@ -2,6 +2,7 @@ import { TrackStatusEnum, type IPlaylist, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
 import { SettingsService } from "@/application/services/settings.service";
+import { getErrorMessage } from "../utils/error.utils";
 
 export class FileSystemM3uService {
   constructor(private readonly settingsService: SettingsService) {}
@@ -45,7 +46,7 @@ export class FileSystemM3uService {
 
       console.debug(`M3U playlist generated: ${m3uFilePath} (${completedTracks.length} tracks)`);
     } catch (error) {
-      console.error(`Failed to generate M3U file: ${(error as Error).message}`);
+      console.error(`Failed to generate M3U file: ${getErrorMessage(error)}`);
     }
   }
 

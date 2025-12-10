@@ -1,8 +1,9 @@
 import type { Prisma, Track as DbTrack } from "@prisma/client";
-import type { ITrack, TrackArtist, TrackStatusEnum } from "@spotiarr/shared";
+import type { ITrack, TrackStatusEnum } from "@spotiarr/shared";
 import { Track } from "@/domain/entities/track.entity";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
 import { prisma } from "../setup/prisma";
+import { jsonToTrackArtists, toTrackStatus, trackArtistsToJson } from "./types";
 
 export class PrismaTrackRepository implements TrackRepository {
   async findAll(where?: Partial<ITrack>): Promise<Track[]> {
@@ -49,7 +50,7 @@ export class PrismaTrackRepository implements TrackRepository {
         durationMs: data.durationMs,
         spotifyUrl: data.spotifyUrl,
         trackUrl: data.trackUrl,
-        artists: (data.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput,
+        artists: trackArtistsToJson(data.artists),
         youtubeUrl: data.youtubeUrl,
         status: data.status || "New",
         error: data.error,
@@ -76,10 +77,7 @@ export class PrismaTrackRepository implements TrackRepository {
         durationMs: data.durationMs,
         spotifyUrl: data.spotifyUrl,
         trackUrl: data.trackUrl,
-        artists:
-          data.artists !== undefined
-            ? ((data.artists ?? null) as unknown as Prisma.NullableJsonNullValueInput)
-            : undefined,
+        artists: data.artists !== undefined ? trackArtistsToJson(data.artists) : undefined,
         youtubeUrl: data.youtubeUrl,
         status: data.status,
         error: data.error,
@@ -119,9 +117,9 @@ export class PrismaTrackRepository implements TrackRepository {
       durationMs: track.durationMs ?? undefined,
       spotifyUrl: track.spotifyUrl ?? undefined,
       trackUrl: track.trackUrl ?? undefined,
-      artists: track.artists ? (track.artists as unknown as TrackArtist[]) : undefined,
+      artists: jsonToTrackArtists(track.artists),
       youtubeUrl: track.youtubeUrl ?? undefined,
-      status: track.status as TrackStatusEnum,
+      status: toTrackStatus(track.status),
       error: track.error ?? undefined,
       createdAt: track.createdAt ? Number(track.createdAt) : undefined,
       completedAt: track.completedAt ? Number(track.completedAt) : undefined,
