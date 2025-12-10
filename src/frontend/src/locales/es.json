@@ -23,6 +23,28 @@
       "daysAgo": "Hace {{count}} días",
       "daysAgo_one": "Hace {{count}} día",
       "daysAgo_other": "Hace {{count}} días"
+    },
+    "cards": {
+      "albumTypes": {
+        "single": "Sencillo",
+        "album": "Álbum",
+        "compilation": "Recopilación",
+        "release": "Lanzamiento"
+      },
+      "tooltips": {
+        "alreadyDownloaded": "Ya descargado",
+        "downloading": "Descargando...",
+        "download": "Descargar",
+        "subscribed": "Suscrito"
+      },
+      "status": {
+        "downloading": "Descargando...",
+        "failed": "fallidas",
+        "tracks": "canciones",
+        "tracks_one": "canción",
+        "tracks_other": "canciones"
+      },
+      "unnamedPlaylist": "Lista sin nombre"
     }
   },
   "navigation": {

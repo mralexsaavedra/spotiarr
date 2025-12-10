@@ -23,6 +23,28 @@
       "daysAgo": "{{count}} days ago",
       "daysAgo_one": "{{count}} day ago",
       "daysAgo_other": "{{count}} days ago"
+    },
+    "cards": {
+      "albumTypes": {
+        "single": "Single",
+        "album": "Album",
+        "compilation": "Compilation",
+        "release": "Release"
+      },
+      "tooltips": {
+        "alreadyDownloaded": "Already downloaded",
+        "downloading": "Downloading...",
+        "download": "Download",
+        "subscribed": "Subscribed"
+      },
+      "status": {
+        "downloading": "Downloading...",
+        "failed": "failed",
+        "tracks": "tracks",
+        "tracks_one": "track",
+        "tracks_other": "tracks"
+      },
+      "unnamedPlaylist": "Unnamed Playlist"
     }
   },
   "navigation": {

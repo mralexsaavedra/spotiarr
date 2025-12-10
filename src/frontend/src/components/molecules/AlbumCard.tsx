@@ -1,6 +1,7 @@
 import { faCheck, faCompactDisc, faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo, MouseEvent, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { formatRelativeDate } from "../../utils/date";
 import { Image } from "../atoms/Image";
 
@@ -36,6 +37,7 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
     onDownloadClick,
     onArtistClick,
   }) => {
+    const { t } = useTranslation();
     const handleArtistClick = useCallback(
       (e: MouseEvent) => {
         e.stopPropagation();
@@ -46,12 +48,12 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
 
     const typeLabel =
       albumType === "single"
-        ? "Single"
+        ? t("common.cards.albumTypes.single")
         : albumType === "album"
-          ? "Album"
+          ? t("common.cards.albumTypes.album")
           : albumType === "compilation"
-            ? "Compilation"
-            : "Release";
+            ? t("common.cards.albumTypes.compilation")
+            : t("common.cards.albumTypes.release");
 
     const dateDisplay = releaseDate
       ? formatRelativeDate(new Date(releaseDate).getTime(), false)
@@ -90,10 +92,10 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
                 }`}
                 title={
                   isDownloaded
-                    ? "Already downloaded"
+                    ? t("common.cards.tooltips.alreadyDownloaded")
                     : isDownloading
-                      ? "Downloading..."
-                      : "Download"
+                      ? t("common.cards.tooltips.downloading")
+                      : t("common.cards.tooltips.download")
                 }
               >
                 {isDownloading ? (

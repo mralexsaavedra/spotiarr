@@ -1,6 +1,7 @@
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import { Playlist, PlaylistStats } from "../../types";
 import { cn } from "../../utils/cn";
 import { Image } from "../atoms/Image";
@@ -14,6 +15,8 @@ interface PlaylistCardProps {
 }
 
 export const PlaylistCard = memo(({ playlist, stats, onClick, className }: PlaylistCardProps) => {
+  const { t } = useTranslation();
+
   return (
     <div
       onClick={() => onClick(playlist.id)}
@@ -26,14 +29,14 @@ export const PlaylistCard = memo(({ playlist, stats, onClick, className }: Playl
         {playlist.subscribed && (
           <div
             className="absolute z-10 flex items-center justify-center w-8 h-8 rounded-full shadow-md right-2 top-2 bg-black/60 backdrop-blur-sm"
-            title="Subscribed"
+            title={t("common.cards.tooltips.subscribed")}
           >
             <FontAwesomeIcon icon={faBell} className="text-sm text-green-500" />
           </div>
         )}
         <Image
           src={playlist.coverUrl || undefined}
-          alt={playlist.name || "Playlist cover"}
+          alt={playlist.name || t("common.cards.unnamedPlaylist")}
           loading="lazy"
           className="group-hover:scale-105"
         />
@@ -42,9 +45,9 @@ export const PlaylistCard = memo(({ playlist, stats, onClick, className }: Playl
       <div className="flex flex-col gap-1">
         <h3
           className="text-base font-bold text-white truncate"
-          title={playlist.name || "Unnamed Playlist"}
+          title={playlist.name || t("common.cards.unnamedPlaylist")}
         >
-          {playlist.name || "Unnamed Playlist"}
+          {playlist.name || t("common.cards.unnamedPlaylist")}
         </h3>
 
         <div className="flex min-h-[20px] items-center gap-2 truncate text-sm text-text-subtle">
