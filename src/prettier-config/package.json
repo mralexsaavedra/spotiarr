@@ -5,6 +5,9 @@
   "main": "index.cjs",
   "description": "Shared Prettier configuration for SpotiArr",
   "license": "MIT",
+  "dependencies": {
+    "prettier-plugin-tailwindcss": "^0.7.2"
+  },
   "peerDependencies": {
     "prettier": ">=3"
   }
