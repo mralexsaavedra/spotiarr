@@ -1,4 +1,5 @@
 import { FC, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Image } from "../atoms/Image";
 
 interface PlaylistHeaderProps {
@@ -18,6 +19,7 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
   metadata,
   totalCount,
 }) => {
+  const { t } = useTranslation();
   const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
 
   return (
@@ -58,7 +60,9 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
           <div className="flex flex-wrap items-center justify-start gap-1 mt-2 text-sm font-medium text-text-primary">
             {metadata}
             <span className="text-text-secondary">•</span>
-            <span className="text-text-secondary">{totalCount} songs</span>
+            <span className="text-text-secondary">
+              {totalCount} {t("playlist.songs")}
+            </span>
           </div>
         </div>
       </div>

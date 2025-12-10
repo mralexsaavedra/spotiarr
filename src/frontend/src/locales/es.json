@@ -61,7 +61,23 @@
       "title": "¿Eliminar {{name}}?",
       "description": "Esto eliminará la lista de tu biblioteca. Los archivos descargados NO se borrarán."
     },
-    "unknownAlbum": "Álbum desconocido"
+    "unknownAlbum": "Álbum desconocido",
+    "notFound": "Lista no encontrada",
+    "goBack": "Volver a la biblioteca",
+    "songs": "canciones",
+    "downloaded": "Descargado",
+    "actions": {
+      "download": "Descargar lista",
+      "downloading": "Descargando...",
+      "subscribe": "Suscribirse",
+      "unsubscribe": "Desuscribirse",
+      "subscribed": "Suscrito",
+      "retryFailed": "Reintentar fallidos",
+      "retryFailedTooltip": "Reintentar descargas fallidas",
+      "delete": "Eliminar",
+      "deleteTooltip": "Eliminar lista",
+      "downloadToEnable": "Descargar para habilitar acciones"
+    }
   },
   "artist": {
     "notFound": "Artista no encontrado.",

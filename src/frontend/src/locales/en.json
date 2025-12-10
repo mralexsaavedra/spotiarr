@@ -61,7 +61,23 @@
       "title": "Delete {{name}}?",
       "description": "This will remove the playlist from your library. Downloaded files will NOT be deleted."
     },
-    "unknownAlbum": "Unknown Album"
+    "unknownAlbum": "Unknown Album",
+    "notFound": "Playlist not found",
+    "goBack": "Go back to library",
+    "songs": "songs",
+    "downloaded": "Downloaded",
+    "actions": {
+      "download": "Download Playlist",
+      "downloading": "Downloading...",
+      "subscribe": "Subscribe",
+      "unsubscribe": "Unsubscribe",
+      "subscribed": "Subscribed",
+      "retryFailed": "Retry Failed",
+      "retryFailedTooltip": "Retry Failed Downloads",
+      "delete": "Delete",
+      "deleteTooltip": "Delete Playlist",
+      "downloadToEnable": "Download to enable actions"
+    }
   },
   "artist": {
     "notFound": "Artist not found.",

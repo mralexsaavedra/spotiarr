@@ -2,6 +2,7 @@ import { faBell as faBellRegular } from "@fortawesome/free-regular-svg-icons";
 import { faBell, faCheck, faDownload, faRepeat, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../utils/cn";
 import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
@@ -33,6 +34,8 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   onDownload,
   spotifyUrl,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-3 md:gap-4">
       <Button
@@ -47,7 +50,13 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         onClick={onDownload}
         loading={isDownloading}
         disabled={isDownloaded || isDownloading}
-        title={isDownloaded ? "Downloaded" : isDownloading ? "Downloading..." : "Download Playlist"}
+        title={
+          isDownloaded
+            ? t("playlist.downloaded")
+            : isDownloading
+              ? t("playlist.actions.downloading")
+              : t("playlist.actions.download")
+        }
       >
         {isDownloaded ? (
           <FontAwesomeIcon icon={faCheck} className="text-xl text-black" />
@@ -66,12 +75,12 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
             : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10",
         )}
         onClick={onToggleSubscription}
-        title={isSubscribed ? "Unsubscribe" : "Subscribe"}
+        title={isSubscribed ? t("playlist.actions.unsubscribe") : t("playlist.actions.subscribe")}
       >
         <div className="flex items-center justify-center gap-2">
           <FontAwesomeIcon icon={isSubscribed ? faBell : faBellRegular} className="text-sm" />
           <span className="hidden text-xs font-bold tracking-wide uppercase md:inline">
-            {isSubscribed ? "Subscribed" : "Subscribe"}
+            {isSubscribed ? t("playlist.actions.subscribed") : t("playlist.actions.subscribe")}
           </span>
         </div>
       </Button>
@@ -88,9 +97,9 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
           loading={isRetrying}
           className="text-text-secondary hover:text-text-primary hover:bg-white/10"
           onClick={onRetryFailed}
-          title="Retry Failed Downloads"
+          title={t("playlist.actions.retryFailedTooltip")}
         >
-          <span className="hidden sm:inline">Retry Failed</span>
+          <span className="hidden sm:inline">{t("playlist.actions.retryFailed")}</span>
         </Button>
       )}
 
@@ -104,9 +113,11 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         )}
         onClick={onDelete}
         disabled={!isSaved}
-        title={!isSaved ? "Download to enable actions" : "Delete Playlist"}
+        title={
+          !isSaved ? t("playlist.actions.downloadToEnable") : t("playlist.actions.deleteTooltip")
+        }
       >
-        <span className="hidden sm:inline">Delete</span>
+        <span className="hidden sm:inline">{t("playlist.actions.delete")}</span>
       </Button>
     </div>
   );

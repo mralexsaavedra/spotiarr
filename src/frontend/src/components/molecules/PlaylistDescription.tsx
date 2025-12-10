@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 
 interface PlaylistDescriptionProps {
   description?: string | null;
@@ -13,12 +14,14 @@ export const PlaylistDescription: FC<PlaylistDescriptionProps> = ({
   totalCount,
   isDownloading,
 }) => {
+  const { t } = useTranslation();
+
   if (completedCount > 0 || (isDownloading && totalCount > 0)) {
     return (
       <div className="mt-4 w-full">
         <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
           <span>
-            {completedCount} / {totalCount} downloaded
+            {completedCount} / {totalCount} {t("playlist.downloaded").toLowerCase()}
           </span>
           <span>{totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%</span>
         </div>
