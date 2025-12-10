@@ -1,4 +1,5 @@
 import { FC, memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Image } from "../atoms/Image";
 
 interface SpotifyPlaylistCardProps {
@@ -13,6 +14,7 @@ interface SpotifyPlaylistCardProps {
 
 export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
   ({ id, name, image, owner, ownerUrl, tracks, onClick }) => {
+    const { t } = useTranslation();
     const handleCardClick = useCallback(() => {
       onClick(id);
     }, [id, onClick]);
@@ -20,10 +22,10 @@ export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
     return (
       <article
         key={id}
-        className="group hover:bg-background-hover flex cursor-pointer flex-col gap-3 rounded-md p-3 transition-colors"
+        className="bg-background-elevated hover:bg-background-hover group flex cursor-pointer flex-col gap-3 rounded-md p-3 transition-colors"
         onClick={handleCardClick}
       >
-        <div className="relative aspect-square w-full overflow-hidden rounded-md bg-zinc-800 shadow-lg">
+        <div className="bg-background-hover relative aspect-square w-full overflow-hidden rounded-md shadow-lg">
           <Image
             src={image || undefined}
             alt={name}
@@ -32,7 +34,7 @@ export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
             className="group-hover:scale-105"
           />
         </div>
-        <div className="flex min-w-0 flex-col">
+        <div className="flex min-w-0 flex-col gap-1">
           <h3
             className="truncate text-base font-bold text-white group-hover:underline"
             title={name}
@@ -40,7 +42,7 @@ export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
             {name}
           </h3>
           <p className="truncate text-sm text-zinc-400">
-            By{" "}
+            {t("common.by")}{" "}
             {ownerUrl ? (
               <a
                 href={ownerUrl}
@@ -54,7 +56,7 @@ export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
             ) : (
               owner
             )}{" "}
-            • {tracks} tracks
+            • {tracks} {t("common.cards.status.tracks", { count: tracks })}
           </p>
         </div>
       </article>
