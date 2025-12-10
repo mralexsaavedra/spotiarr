@@ -1,4 +1,4 @@
-import { SettingMetadata } from "@spotiarr/shared";
+import { APP_LOCALES, SettingMetadata } from "@spotiarr/shared";
 
 export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
   UI_LANGUAGE: {
@@ -7,7 +7,7 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     type: "string",
     component: "select",
     section: "General",
-    options: ["en", "es"],
+    options: [...APP_LOCALES],
     label: "Interface Language",
     description: "Select your preferred language for the interface.",
   },

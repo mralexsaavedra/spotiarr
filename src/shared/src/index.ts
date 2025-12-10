@@ -12,6 +12,14 @@ export const SUPPORTED_AUDIO_FORMATS = [
 
 export type SupportedAudioFormat = (typeof SUPPORTED_AUDIO_FORMATS)[number];
 
+export const APP_LOCALES = ["en", "es"] as const;
+export type AppLocale = (typeof APP_LOCALES)[number];
+
+export const APP_LOCALE_LABELS: Record<AppLocale, string> = {
+  en: "English",
+  es: "Español (España)",
+};
+
 export enum PlaylistTypeEnum {
   Playlist = "playlist",
   Album = "album",

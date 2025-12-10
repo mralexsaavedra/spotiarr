@@ -1,4 +1,4 @@
-import { SettingMetadata } from "@spotiarr/shared";
+import { APP_LOCALE_LABELS, AppLocale, SettingMetadata } from "@spotiarr/shared";
 import { ChangeEvent, FC, memo, MouseEvent, ReactNode } from "react";
 import { SettingInput } from "./SettingInput";
 import { SettingSelect } from "./SettingSelect";
@@ -14,6 +14,11 @@ interface SettingItemProps {
   value: SettingValue;
   onChange: (key: string) => ChangeHandler;
 }
+
+const LABEL_FORMATTERS: Record<string, (value: string) => string> = {
+  FORMAT: (option) => option.toUpperCase(),
+  UI_LANGUAGE: (option) => APP_LOCALE_LABELS[option as AppLocale] || option,
+};
 
 const RENDERERS: Record<
   string,
@@ -39,26 +44,17 @@ const RENDERERS: Record<
       onChange={onChange}
     />
   ),
-  select: ({ setting, value, onChange }) => {
-    const formatLabel =
-      setting.key === "FORMAT"
-        ? (option: string) => option.toUpperCase()
-        : setting.key === "UI_LANGUAGE"
-          ? (option: string) => (option === "es" ? "Español (España)" : "English")
-          : undefined;
-
-    return (
-      <SettingSelect
-        id={setting.key}
-        label={setting.label}
-        value={value as string}
-        onChange={onChange}
-        options={setting.options || []}
-        description={setting.description}
-        formatLabel={formatLabel}
-      />
-    );
-  },
+  select: ({ setting, value, onChange }) => (
+    <SettingSelect
+      id={setting.key}
+      label={setting.label}
+      value={value as string}
+      onChange={onChange}
+      options={setting.options || []}
+      description={setting.description}
+      formatLabel={LABEL_FORMATTERS[setting.key]}
+    />
+  ),
 };
 
 export const SettingItem: FC<SettingItemProps> = memo(({ setting, value, onChange }) => {
