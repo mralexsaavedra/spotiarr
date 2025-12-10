@@ -41,7 +41,14 @@
   "history": {
     "title": "Historial de Descargas",
     "emptyTitle": "Sin historial",
-    "emptyDescription": "Las descargas completadas aparecerán aquí."
+    "emptyDescription": "Las descargas completadas aparecerán aquí.",
+    "completed": "Completado",
+    "actions": "Acciones",
+    "downloading": "Descargando...",
+    "exists": "Existe",
+    "recreate": "Recrear",
+    "playlistExists": "La lista ya existe",
+    "recreateTooltip": "Recrear lista y suscribirse de nuevo"
   },
   "releases": {
     "title": "Lanzamientos",

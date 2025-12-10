@@ -2,6 +2,7 @@ import { faCheck, faRotate, faSpinner } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
@@ -21,6 +22,7 @@ interface HistoryListItemProps {
 
 const HistoryListItem: FC<HistoryListItemProps> = memo(
   ({ item, activePlaylist, isDownloading, recreatingUrl, onRecreate, onItemClick }) => {
+    const { t } = useTranslation();
     const { playlistName, playlistSpotifyUrl, lastCompletedAt } = item;
 
     const handleRecreate = useCallback(() => {
@@ -93,22 +95,22 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
                   className="!opacity-100 !cursor-default hover:!bg-transparent text-text-secondary"
                 >
                   <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
-                  <span className="hidden md:inline">Downloading...</span>
+                  <span className="hidden md:inline">{t("history.downloading")}</span>
                 </Button>
               ) : (
                 <Button
                   variant="ghost"
                   size="sm"
                   icon={isDisabled ? faCheck : faRotate}
-                  title={
-                    isDisabled ? "Playlist already exists" : "Recreate playlist and subscribe again"
-                  }
+                  title={isDisabled ? t("history.playlistExists") : t("history.recreateTooltip")}
                   onClick={handleRecreate}
                   disabled={isRecreating || isDisabled}
                   loading={isRecreating && !isDisabled}
                   className={isDisabled ? "text-green-500 hover:text-green-400" : ""}
                 >
-                  <span className="hidden md:inline">{isDisabled ? "Exists" : "Recreate"}</span>
+                  <span className="hidden md:inline">
+                    {isDisabled ? t("history.exists") : t("history.recreate")}
+                  </span>
                 </Button>
               )}
             </>
@@ -134,6 +136,7 @@ export const HistoryList: FC<HistoryListProps> = ({
   onRecreate,
   onItemClick,
 }) => {
+  const { t } = useTranslation();
   const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const activePlaylistsMap = useMemo(() => {
@@ -178,9 +181,9 @@ export const HistoryList: FC<HistoryListProps> = ({
   return (
     <div className="flex flex-col">
       <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
-        <div>Title</div>
-        <div className="hidden md:block text-right">Completed</div>
-        <div className="text-right">Actions</div>
+        <div>{t("common.title")}</div>
+        <div className="hidden md:block text-right">{t("history.completed")}</div>
+        <div className="text-right">{t("history.actions")}</div>
       </div>
       <VirtualList
         items={history}

@@ -41,7 +41,14 @@
   "history": {
     "title": "Download History",
     "emptyTitle": "No download history yet",
-    "emptyDescription": "Completed downloads will appear here."
+    "emptyDescription": "Completed downloads will appear here.",
+    "completed": "Completed",
+    "actions": "Actions",
+    "downloading": "Downloading...",
+    "exists": "Exists",
+    "recreate": "Recreate",
+    "playlistExists": "Playlist already exists",
+    "recreateTooltip": "Recreate playlist and subscribe again"
   },
   "releases": {
     "title": "Releases",
