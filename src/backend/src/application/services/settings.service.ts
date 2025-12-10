@@ -46,4 +46,8 @@ export class SettingsService {
   async setString(key: string, value: string): Promise<void> {
     await this.repo.set(key, value);
   }
+
+  async delete(key: string): Promise<void> {
+    await this.repo.delete(key);
+  }
 }

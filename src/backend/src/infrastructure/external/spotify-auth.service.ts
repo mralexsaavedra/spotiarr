@@ -163,4 +163,58 @@ export class SpotifyAuthService {
       return false;
     }
   }
+
+  async exchangeCodeForToken(code: string): Promise<void> {
+    const env = getEnv();
+    const clientId = env.SPOTIFY_CLIENT_ID;
+    const clientSecret = env.SPOTIFY_CLIENT_SECRET;
+    const redirectUri = env.SPOTIFY_REDIRECT_URI;
+
+    const tokenBody = new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
+    const response = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: tokenBody.toString(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      this.log(`Spotify token exchange failed: ${errorText}`, "error");
+      throw new Error(`Failed to exchange authorization code for access token: ${errorText}`);
+    }
+
+    const data = (await response.json()) as {
+      access_token: string;
+      refresh_token?: string;
+      expires_in: number;
+      scope?: string;
+      token_type: string;
+    };
+
+    await this.settingsService.setString("spotify_user_access_token", data.access_token);
+
+    if (data.refresh_token) {
+      await this.settingsService.setString("spotify_user_refresh_token", data.refresh_token);
+    }
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await this.settingsService.delete("spotify_user_access_token");
+      await this.settingsService.delete("spotify_user_refresh_token");
+      this.log("Successfully logged out from Spotify");
+    } catch (error) {
+      this.log(`Failed to logout from Spotify: ${(error as Error).message}`, "error");
+      throw error;
+    }
+  }
 }
