@@ -1,7 +1,7 @@
 import { FC, memo, MouseEvent } from "react";
 import { Link } from "react-router-dom";
-import { Path } from "../../routes/routes";
-import { getSpotifyIdFromUrl } from "../../utils/spotify";
+import { Path } from "@/routes/routes";
+import { getSpotifyIdFromUrl } from "@/utils/spotify";
 
 interface Artist {
   name: string;

@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { Link } from "react-router-dom";
-import { MOBILE_NAV_ITEMS } from "../../config/navigation";
-import { cn } from "../../utils/cn";
+import { MOBILE_NAV_ITEMS } from "@/config/navigation";
+import { cn } from "@/utils/cn";
 
 interface BottomNavigationProps {
   pathname: string;

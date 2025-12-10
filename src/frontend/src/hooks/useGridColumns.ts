@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { APP_CONFIG } from "../config/app";
+import { APP_CONFIG } from "@/config/app";
 
 const { BREAKPOINTS, COLUMNS } = APP_CONFIG.GRID;
 

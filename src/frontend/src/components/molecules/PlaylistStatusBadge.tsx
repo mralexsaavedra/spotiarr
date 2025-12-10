@@ -6,7 +6,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { PlaylistStats } from "../../types";
+import { PlaylistStats } from "@/types";
 
 export const PlaylistStatusBadge: FC<PlaylistStats> = ({
   isDownloading,

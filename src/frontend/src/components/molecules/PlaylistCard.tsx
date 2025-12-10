@@ -2,8 +2,8 @@ import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { Playlist, PlaylistStats } from "../../types";
-import { cn } from "../../utils/cn";
+import { Playlist, PlaylistStats } from "@/types";
+import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
 import { PlaylistStatusBadge } from "../molecules/PlaylistStatusBadge";
 

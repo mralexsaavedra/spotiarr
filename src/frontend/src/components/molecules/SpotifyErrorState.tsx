@@ -2,7 +2,7 @@ import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ApiErrorCode } from "@spotiarr/shared";
 import { FC, useCallback } from "react";
-import { cn } from "../../utils/cn";
+import { cn } from "@/utils/cn";
 import { ConnectSpotifyPrompt } from "./ConnectSpotifyPrompt";
 import { RateLimitedMessage } from "./RateLimitedMessage";
 

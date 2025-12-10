@@ -1,8 +1,8 @@
 import { FC, Suspense, lazy } from "react";
 import { Outlet, Route, Routes } from "react-router-dom";
-import { Loading } from "../components/atoms/Loading";
-import { RouteErrorBoundary } from "../components/errors/RouteErrorBoundary";
-import { AppLayout } from "../components/layouts/AppLayout";
+import { Loading } from "@/components/atoms/Loading";
+import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
+import { AppLayout } from "@/components/layouts/AppLayout";
 import { Path } from "./routes";
 
 const Home = lazy(() => import("../views/Home").then((module) => ({ default: module.Home })));

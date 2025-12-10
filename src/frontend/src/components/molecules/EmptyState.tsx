@@ -1,7 +1,7 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
-import { cn } from "../../utils/cn";
+import { cn } from "@/utils/cn";
 
 interface EmptyStateProps {
   icon: IconProp;

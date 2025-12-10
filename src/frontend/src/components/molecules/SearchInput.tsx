@@ -1,7 +1,7 @@
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, FC, KeyboardEvent, useCallback } from "react";
-import { cn } from "../../utils/cn";
+import { cn } from "@/utils/cn";
 
 interface SearchInputProps {
   value: string;

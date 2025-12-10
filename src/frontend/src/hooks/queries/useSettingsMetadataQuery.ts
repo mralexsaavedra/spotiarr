@@ -1,6 +1,6 @@
 import { SettingMetadata } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { settingsService } from "../../services/settings.service";
+import { settingsService } from "@/services/settings.service";
 import { queryKeys } from "../queryKeys";
 
 export const useSettingsMetadataQuery = () => {

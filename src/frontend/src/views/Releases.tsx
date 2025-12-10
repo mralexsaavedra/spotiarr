@@ -1,12 +1,12 @@
 import { faCompactDisc } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Loading } from "../components/atoms/Loading";
-import { EmptyState } from "../components/molecules/EmptyState";
-import { PageHeader } from "../components/molecules/PageHeader";
-import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
-import { ReleasesList } from "../components/organisms/ReleasesList";
-import { useReleasesController } from "../hooks/controllers/useReleasesController";
+import { Loading } from "@/components/atoms/Loading";
+import { EmptyState } from "@/components/molecules/EmptyState";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { SpotifyErrorState } from "@/components/molecules/SpotifyErrorState";
+import { ReleasesList } from "@/components/organisms/ReleasesList";
+import { useReleasesController } from "@/hooks/controllers/useReleasesController";
 
 export const Releases: FC = () => {
   const { t } = useTranslation();

@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useToast } from "../../contexts/ToastContext";
+import { useToast } from "@/contexts/ToastContext";
 import { useUpdateSettingsMutation } from "../mutations/useUpdateSettingsMutation";
 import { useSettingsMetadataQuery } from "../queries/useSettingsMetadataQuery";
 import { useSettingsQuery } from "../queries/useSettingsQuery";

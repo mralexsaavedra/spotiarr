@@ -1,10 +1,10 @@
 import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
-import { Playlist, PlaylistWithStats } from "../../types";
-import { Track } from "../../types";
-import { formatPlaylistTitle } from "../../utils/playlist";
+import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { Playlist, PlaylistWithStats } from "@/types";
+import { Track } from "@/types";
+import { formatPlaylistTitle } from "@/utils/playlist";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useDeletePlaylistMutation } from "../mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../mutations/useRetryFailedTracksMutation";

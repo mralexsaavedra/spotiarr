@@ -1,5 +1,5 @@
 import "i18next";
-import en from "../locales/en.json";
+import en from "@/locales/en.json";
 
 declare module "i18next" {
   // Extend CustomTypeOptions

@@ -1,7 +1,7 @@
 import type { ApiErrorCode, ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { artistService } from "../../services/artist.service";
-import { mapSpotifyError } from "../../utils/spotify";
+import { artistService } from "@/services/artist.service";
+import { mapSpotifyError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 
 interface UseArtistDetailState {

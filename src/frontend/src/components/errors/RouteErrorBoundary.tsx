@@ -1,7 +1,7 @@
 import { FC, ReactNode, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Path } from "../../routes/routes";
+import { Path } from "@/routes/routes";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { GenericErrorState } from "./GenericErrorState";
 

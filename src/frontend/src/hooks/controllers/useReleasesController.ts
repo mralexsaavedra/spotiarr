@@ -1,6 +1,6 @@
 import { MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Path } from "../../routes/routes";
+import { Path } from "@/routes/routes";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useReleasesQuery } from "../queries/useReleasesQuery";

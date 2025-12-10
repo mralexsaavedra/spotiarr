@@ -2,8 +2,8 @@ import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Path } from "../../routes/routes";
-import { Track } from "../../types";
+import { Path } from "@/routes/routes";
+import { Track } from "@/types";
 import { ArtistLinks } from "./ArtistLinks";
 
 interface PlaylistMetadataProps {

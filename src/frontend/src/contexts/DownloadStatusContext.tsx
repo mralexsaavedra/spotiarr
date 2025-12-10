@@ -1,6 +1,6 @@
 import { PlaylistStatusEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { createContext, FC, ReactNode, useCallback, useContext, useMemo } from "react";
-import { useDownloadStatusQuery } from "../hooks/queries/useDownloadStatusQuery";
+import { useDownloadStatusQuery } from "@/hooks/queries/useDownloadStatusQuery";
 
 interface DownloadStatusContextValue {
   playlistStatusMap: Map<string, PlaylistStatusEnum>;

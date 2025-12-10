@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { trackService } from "../../services/track.service";
-import { Track } from "../../types";
+import { trackService } from "@/services/track.service";
+import { Track } from "@/types";
 import { queryKeys } from "../queryKeys";
 
 export const useTracksQuery = (playlistId: string | undefined) => {

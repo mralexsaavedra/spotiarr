@@ -1,5 +1,5 @@
 import { ChangeEvent, KeyboardEvent, useCallback, useState } from "react";
-import { normalizeSpotifyUrl } from "../../utils/spotify";
+import { normalizeSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 
 export const useHeaderController = () => {

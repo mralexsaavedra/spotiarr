@@ -1,9 +1,9 @@
 import { faMugHot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslation } from "react-i18next";
-import { BUY_ME_A_COFFEE_URL, GITHUB_RELEASE_URL } from "../../config/links";
-import { APP_VERSION } from "../../config/version";
-import { cn } from "../../utils/cn";
+import { BUY_ME_A_COFFEE_URL, GITHUB_RELEASE_URL } from "@/config/links";
+import { APP_VERSION } from "@/config/version";
+import { cn } from "@/utils/cn";
 
 interface AppFooterProps {
   className?: string;

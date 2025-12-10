@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Path } from "../../routes/routes";
+import { Path } from "@/routes/routes";
 import { useDeleteCompletedPlaylistsMutation } from "../mutations/useDeleteCompletedPlaylistsMutation";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 

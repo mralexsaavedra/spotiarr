@@ -7,7 +7,7 @@ import {
   faSliders,
   faUserGroup,
 } from "@fortawesome/free-solid-svg-icons";
-import { Path } from "../routes/routes";
+import { Path } from "@/routes/routes";
 
 export interface NavItem {
   label: string;

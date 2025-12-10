@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Path } from "../../routes/routes";
+import { Path } from "@/routes/routes";
 import { useFollowedArtistsQuery } from "../queries/useFollowedArtistsQuery";
 import { useDebounce } from "../useDebounce";
 

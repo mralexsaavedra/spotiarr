@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { cn } from "../../utils/cn";
+import { cn } from "@/utils/cn";
 
 interface PageHeaderProps {
   title: string;

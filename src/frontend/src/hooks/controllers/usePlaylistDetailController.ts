@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Path } from "../../routes/routes";
+import { Path } from "@/routes/routes";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useTracksQuery } from "../queries/useTracksQuery";
 import { usePlaylistController } from "./usePlaylistController";

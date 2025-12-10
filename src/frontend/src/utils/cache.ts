@@ -1,4 +1,4 @@
-import { APP_CONFIG } from "../config/app";
+import { APP_CONFIG } from "@/config/app";
 
 export const getCacheMinutesFromSettings = (
   settings: Array<{ key: string; value: string }>,

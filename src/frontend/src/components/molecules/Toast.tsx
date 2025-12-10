@@ -7,7 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useEffect, useState } from "react";
-import { Toast as ToastType } from "../../contexts/ToastContext";
+import { Toast as ToastType } from "@/contexts/ToastContext";
 
 interface ToastProps {
   toast: ToastType;

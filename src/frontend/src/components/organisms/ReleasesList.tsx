@@ -1,6 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
-import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
+import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 

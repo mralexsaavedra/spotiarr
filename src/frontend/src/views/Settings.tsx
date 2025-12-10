@@ -1,12 +1,12 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/atoms/Button";
-import { Loading } from "../components/atoms/Loading";
-import { AppFooter } from "../components/layouts/AppFooter";
-import { PageHeader } from "../components/molecules/PageHeader";
-import { SettingItem } from "../components/molecules/SettingItem";
-import { SpotifyAuthCard } from "../components/organisms/SpotifyAuthCard";
-import { useSettingsController } from "../hooks/controllers/useSettingsController";
+import { Button } from "@/components/atoms/Button";
+import { Loading } from "@/components/atoms/Loading";
+import { AppFooter } from "@/components/layouts/AppFooter";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { SettingItem } from "@/components/molecules/SettingItem";
+import { SpotifyAuthCard } from "@/components/organisms/SpotifyAuthCard";
+import { useSettingsController } from "@/hooks/controllers/useSettingsController";
 
 export const Settings: FC = () => {
   const { t } = useTranslation();

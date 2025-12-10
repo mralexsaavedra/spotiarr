@@ -1,13 +1,13 @@
 import { faBroom, faMusic } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/atoms/Button";
-import { Loading } from "../components/atoms/Loading";
-import { EmptyState } from "../components/molecules/EmptyState";
-import { PageHeader } from "../components/molecules/PageHeader";
-import { ConfirmModal } from "../components/organisms/ConfirmModal";
-import { PlaylistList } from "../components/organisms/PlaylistList";
-import { useHomeController } from "../hooks/controllers/useHomeController";
+import { Button } from "@/components/atoms/Button";
+import { Loading } from "@/components/atoms/Loading";
+import { EmptyState } from "@/components/molecules/EmptyState";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { ConfirmModal } from "@/components/organisms/ConfirmModal";
+import { PlaylistList } from "@/components/organisms/PlaylistList";
+import { useHomeController } from "@/hooks/controllers/useHomeController";
 
 export const Home: FC = () => {
   const { t } = useTranslation();

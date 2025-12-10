@@ -1,5 +1,5 @@
 import { ApiRoutes } from "@spotiarr/shared";
-import { Track } from "../types";
+import { Track } from "@/types";
 import { httpClient } from "./httpClient";
 
 export const trackService = {

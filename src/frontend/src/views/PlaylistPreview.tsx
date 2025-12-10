@@ -1,9 +1,9 @@
 import { FC } from "react";
-import { PlaylistNotFound } from "../components/molecules/PlaylistNotFound";
-import { PreviewError } from "../components/molecules/PreviewError";
-import { Playlist } from "../components/organisms/Playlist";
-import { PlaylistSkeleton } from "../components/skeletons/PlaylistSkeleton";
-import { usePlaylistPreviewController } from "../hooks/controllers/usePlaylistPreviewController";
+import { PlaylistNotFound } from "@/components/molecules/PlaylistNotFound";
+import { PreviewError } from "@/components/molecules/PreviewError";
+import { Playlist } from "@/components/organisms/Playlist";
+import { PlaylistSkeleton } from "@/components/skeletons/PlaylistSkeleton";
+import { usePlaylistPreviewController } from "@/hooks/controllers/usePlaylistPreviewController";
 
 export const PlaylistPreview: FC = () => {
   const {

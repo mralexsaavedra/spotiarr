@@ -3,7 +3,7 @@ import { faBell, faCheck, faDownload, faRepeat, faTrash } from "@fortawesome/fre
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { cn } from "../../utils/cn";
+import { cn } from "@/utils/cn";
 import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
 

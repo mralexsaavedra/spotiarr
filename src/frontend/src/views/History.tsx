@@ -1,11 +1,11 @@
 import { faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Loading } from "../components/atoms/Loading";
-import { EmptyState } from "../components/molecules/EmptyState";
-import { PageHeader } from "../components/molecules/PageHeader";
-import { HistoryList } from "../components/organisms/HistoryList";
-import { useHistoryController } from "../hooks/controllers/useHistoryController";
+import { Loading } from "@/components/atoms/Loading";
+import { EmptyState } from "@/components/molecules/EmptyState";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { HistoryList } from "@/components/organisms/HistoryList";
+import { useHistoryController } from "@/hooks/controllers/useHistoryController";
 
 export const History: FC = () => {
   const { t } = useTranslation();

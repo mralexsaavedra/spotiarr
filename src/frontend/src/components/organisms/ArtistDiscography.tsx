@@ -1,7 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
+import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
 import { Button } from "../atoms/Button";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";

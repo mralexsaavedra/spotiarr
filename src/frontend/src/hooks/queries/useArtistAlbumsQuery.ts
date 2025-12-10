@@ -1,6 +1,6 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { artistService } from "../../services/artist.service";
+import { artistService } from "@/services/artist.service";
 import { queryKeys } from "../queryKeys";
 
 interface UseArtistAlbumsQueryOptions {

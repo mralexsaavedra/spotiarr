@@ -4,7 +4,7 @@ import {
   PlaylistPreview,
   SpotifyPlaylist,
 } from "@spotiarr/shared";
-import { Playlist } from "../types";
+import { Playlist } from "@/types";
 import { ApiError, httpClient } from "./httpClient";
 
 export const playlistService = {

@@ -1,7 +1,7 @@
 import { ApiRoutes } from "@spotiarr/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { queryKeys } from "../hooks/queryKeys";
+import { queryKeys } from "@/hooks/queryKeys";
 
 export const useServerEvents = () => {
   const queryClient = useQueryClient();

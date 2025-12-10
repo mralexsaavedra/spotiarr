@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { settingsService } from "../../services/settings.service";
+import { settingsService } from "@/services/settings.service";
 import { queryKeys } from "../queryKeys";
 
 export const useUpdateSettingsMutation = () => {

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { playlistService } from "../../services/playlist.service";
+import { playlistService } from "@/services/playlist.service";
 import { queryKeys } from "../queryKeys";
 
 export const useRetryFailedTracksMutation = () => {

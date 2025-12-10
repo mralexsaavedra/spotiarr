@@ -8,9 +8,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useHeaderController } from "../../hooks/controllers/useHeaderController";
-import { Path } from "../../routes/routes";
-import { cn } from "../../utils/cn";
+import { useHeaderController } from "@/hooks/controllers/useHeaderController";
+import { Path } from "@/routes/routes";
+import { cn } from "@/utils/cn";
 
 export const AppHeader: FC = () => {
   const { t } = useTranslation();

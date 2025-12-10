@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { Outlet } from "react-router-dom";
-import { Path } from "../../routes/routes";
-import { usePreferencesStore } from "../../store/usePreferencesStore";
-import { cn } from "../../utils/cn";
+import { Path } from "@/routes/routes";
+import { usePreferencesStore } from "@/store/usePreferencesStore";
+import { cn } from "@/utils/cn";
 import { AppHeader } from "./AppHeader";
 import { BottomNavigation } from "./BottomNavigation";
 import { Sidebar } from "./Sidebar";

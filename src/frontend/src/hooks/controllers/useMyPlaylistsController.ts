@@ -1,9 +1,9 @@
 import { SpotifyPlaylist } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { APP_CONFIG } from "../../config/app";
-import { Path } from "../../routes/routes";
-import { playlistService } from "../../services/playlist.service";
+import { APP_CONFIG } from "@/config/app";
+import { Path } from "@/routes/routes";
+import { playlistService } from "@/services/playlist.service";
 import { useDebounce } from "../useDebounce";
 
 export const useMyPlaylistsController = () => {

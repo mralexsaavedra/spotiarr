@@ -2,7 +2,7 @@ import { faCheck, faCompactDisc, faDownload, faSpinner } from "@fortawesome/free
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, memo, MouseEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { formatRelativeDate } from "../../utils/date";
+import { formatRelativeDate } from "@/utils/date";
 import { Image } from "../atoms/Image";
 
 interface AlbumCardProps {

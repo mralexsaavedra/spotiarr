@@ -1,9 +1,9 @@
 import { ApiErrorCode, type ArtistRelease } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { artistService } from "../../services/artist.service";
-import { getCacheMinutesFromSettings } from "../../utils/cache";
-import { mapSpotifyError } from "../../utils/spotify";
+import { artistService } from "@/services/artist.service";
+import { getCacheMinutesFromSettings } from "@/utils/cache";
+import { mapSpotifyError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 import { useSettingsQuery } from "./useSettingsQuery";
 

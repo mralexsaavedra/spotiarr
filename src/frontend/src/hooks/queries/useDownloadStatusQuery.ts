@@ -1,6 +1,6 @@
 import { DownloadStatusResponse } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { playlistService } from "../../services/playlist.service";
+import { playlistService } from "@/services/playlist.service";
 import { queryKeys } from "../queryKeys";
 
 export const useDownloadStatusQuery = () => {

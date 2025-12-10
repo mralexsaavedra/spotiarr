@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { playlistService } from "../../services/playlist.service";
-import { Playlist, PlaylistWithStats } from "../../types";
-import { calculatePlaylistStats } from "../../utils/playlist";
+import { playlistService } from "@/services/playlist.service";
+import { Playlist, PlaylistWithStats } from "@/types";
+import { calculatePlaylistStats } from "@/utils/playlist";
 import { queryKeys } from "../queryKeys";
 
 export const usePlaylistsQuery = () => {

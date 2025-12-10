@@ -2,15 +2,15 @@ import { faCheck, faDownload, faMusic } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/atoms/Button";
-import { Loading } from "../components/atoms/Loading";
-import { ArtistHeader } from "../components/molecules/ArtistHeader";
-import { EmptyState } from "../components/molecules/EmptyState";
-import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
-import { SpotifyLinkButton } from "../components/molecules/SpotifyLinkButton";
-import { ArtistDiscography } from "../components/organisms/ArtistDiscography";
-import { TrackList } from "../components/organisms/TrackList";
-import { useArtistDetailController } from "../hooks/controllers/useArtistDetailController";
+import { Button } from "@/components/atoms/Button";
+import { Loading } from "@/components/atoms/Loading";
+import { ArtistHeader } from "@/components/molecules/ArtistHeader";
+import { EmptyState } from "@/components/molecules/EmptyState";
+import { SpotifyErrorState } from "@/components/molecules/SpotifyErrorState";
+import { SpotifyLinkButton } from "@/components/molecules/SpotifyLinkButton";
+import { ArtistDiscography } from "@/components/organisms/ArtistDiscography";
+import { TrackList } from "@/components/organisms/TrackList";
+import { useArtistDetailController } from "@/hooks/controllers/useArtistDetailController";
 
 export const ArtistDetail: FC = () => {
   const { t } = useTranslation();

@@ -1,6 +1,6 @@
 import { ReactNode, useCallback, useMemo } from "react";
 import { Virtuoso } from "react-virtuoso";
-import { useGridColumns } from "../../hooks/useGridColumns";
+import { useGridColumns } from "@/hooks/useGridColumns";
 
 interface VirtualGridProps<T> {
   items: T[];

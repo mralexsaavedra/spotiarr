@@ -1,11 +1,11 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Loading } from "../components/atoms/Loading";
-import { PageHeader } from "../components/molecules/PageHeader";
-import { SearchInput } from "../components/molecules/SearchInput";
-import { SpotifyErrorState } from "../components/molecules/SpotifyErrorState";
-import { ArtistList } from "../components/organisms/ArtistList";
-import { useArtistsController } from "../hooks/controllers/useArtistsController";
+import { Loading } from "@/components/atoms/Loading";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { SearchInput } from "@/components/molecules/SearchInput";
+import { SpotifyErrorState } from "@/components/molecules/SpotifyErrorState";
+import { ArtistList } from "@/components/organisms/ArtistList";
+import { useArtistsController } from "@/hooks/controllers/useArtistsController";
 
 export const Artists: FC = () => {
   const { t } = useTranslation();

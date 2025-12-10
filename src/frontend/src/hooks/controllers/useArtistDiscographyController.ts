@@ -1,7 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DiscographyFilter } from "../../components/molecules/ArtistDiscographyFilters";
-import { APP_CONFIG } from "../../config/app";
+import { DiscographyFilter } from "@/components/molecules/ArtistDiscographyFilters";
+import { APP_CONFIG } from "@/config/app";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
 
 interface UseArtistDiscographyProps {

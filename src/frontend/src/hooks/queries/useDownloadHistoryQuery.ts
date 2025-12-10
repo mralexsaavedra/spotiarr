@@ -1,6 +1,6 @@
 import { PlaylistHistory } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { historyService } from "../../services/history.service";
+import { historyService } from "@/services/history.service";
 import { queryKeys } from "../queryKeys";
 
 export const useDownloadHistoryQuery = () => {

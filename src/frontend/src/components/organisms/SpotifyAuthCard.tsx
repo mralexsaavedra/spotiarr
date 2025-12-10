@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { useSpotifyAuthController } from "../../hooks/controllers/useSpotifyAuthController";
+import { useSpotifyAuthController } from "@/hooks/controllers/useSpotifyAuthController";
 import { Button } from "../atoms/Button";
 import { SpotifyAuthCardSkeleton } from "../skeletons/SpotifyAuthCardSkeleton";
 
