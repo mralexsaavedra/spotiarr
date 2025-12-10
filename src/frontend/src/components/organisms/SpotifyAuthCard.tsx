@@ -1,9 +1,14 @@
 import { FC } from "react";
 import { useSpotifyAuthController } from "../../hooks/controllers/useSpotifyAuthController";
 import { Button } from "../atoms/Button";
+import { SpotifyAuthCardSkeleton } from "../skeletons/SpotifyAuthCardSkeleton";
 
 export const SpotifyAuthCard: FC = () => {
   const { isAuthenticated, isLoading, login, logout } = useSpotifyAuthController();
+
+  if (isLoading) {
+    return <SpotifyAuthCardSkeleton />;
+  }
 
   return (
     <div className="p-6 space-y-4 border rounded-lg bg-background-elevated border-white/10">
