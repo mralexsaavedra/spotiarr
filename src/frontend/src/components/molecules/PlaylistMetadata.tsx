@@ -1,5 +1,6 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, MouseEvent, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { Track } from "../../types";
@@ -29,28 +30,33 @@ const AlbumMetadata: FC<MetadataRendererProps> = ({ artists, onClick }) => (
   />
 );
 
-const TrackMetadata: FC<MetadataRendererProps> = ({ artists, firstTrack, onClick }) => (
-  <>
-    <ArtistLinks
-      artists={artists}
-      className="font-bold text-white"
-      linkClassName="hover:underline"
-      onLinkClick={onClick}
-    />
-    <span className="mx-1 text-text-primary">•</span>
-    {firstTrack?.albumUrl ? (
-      <Link
-        to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}
-        className="font-medium text-white transition-colors hover:underline"
-        onClick={onClick}
-      >
-        {firstTrack?.album || "Unknown Album"}
-      </Link>
-    ) : (
-      <span className="font-medium text-white">{firstTrack?.album || "Unknown Album"}</span>
-    )}
-  </>
-);
+const TrackMetadata: FC<MetadataRendererProps> = ({ artists, firstTrack, onClick }) => {
+  const { t } = useTranslation();
+  return (
+    <>
+      <ArtistLinks
+        artists={artists}
+        className="font-bold text-white"
+        linkClassName="hover:underline"
+        onLinkClick={onClick}
+      />
+      <span className="mx-1 text-text-primary">•</span>
+      {firstTrack?.albumUrl ? (
+        <Link
+          to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}
+          className="font-medium text-white transition-colors hover:underline"
+          onClick={onClick}
+        >
+          {firstTrack?.album || t("playlist.unknownAlbum")}
+        </Link>
+      ) : (
+        <span className="font-medium text-white">
+          {firstTrack?.album || t("playlist.unknownAlbum")}
+        </span>
+      )}
+    </>
+  );
+};
 
 const DefaultMetadata: FC<MetadataRendererProps> = () => (
   <span className="font-bold">SpotiArr</span>
