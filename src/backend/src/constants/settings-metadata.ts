@@ -1,6 +1,16 @@
 import { SettingMetadata } from "@spotiarr/shared";
 
 export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
+  UI_LANGUAGE: {
+    key: "UI_LANGUAGE",
+    defaultValue: "en",
+    type: "string",
+    component: "select",
+    section: "General",
+    options: ["en", "es"],
+    label: "Interface Language",
+    description: "Select your preferred language for the interface.",
+  },
   SPOTIFY_MARKET: {
     key: "SPOTIFY_MARKET",
     defaultValue: "ES",

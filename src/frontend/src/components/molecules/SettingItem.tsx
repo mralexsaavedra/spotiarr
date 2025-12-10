@@ -41,7 +41,11 @@ const RENDERERS: Record<
   ),
   select: ({ setting, value, onChange }) => {
     const formatLabel =
-      setting.key === "FORMAT" ? (option: string) => option.toUpperCase() : undefined;
+      setting.key === "FORMAT"
+        ? (option: string) => option.toUpperCase()
+        : setting.key === "UI_LANGUAGE"
+          ? (option: string) => (option === "es" ? "Español (España)" : "English")
+          : undefined;
 
     return (
       <SettingSelect
