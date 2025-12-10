@@ -1,5 +1,6 @@
 import { faBroom, faMusic } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { EmptyState } from "../components/molecules/EmptyState";
@@ -9,6 +10,7 @@ import { PlaylistList } from "../components/organisms/PlaylistList";
 import { useHomeController } from "../hooks/controllers/useHomeController";
 
 export const Home: FC = () => {
+  const { t } = useTranslation();
   const {
     playlists,
     isLoading,
@@ -23,12 +25,12 @@ export const Home: FC = () => {
     <section className="w-full px-4 py-6 bg-background md:px-8">
       <div className="max-w-full">
         <PageHeader
-          title="Your Library"
+          title={t("home.title")}
           className="mb-6"
           action={
             playlists && playlists.length > 0 ? (
               <Button variant="secondary" size="md" icon={faBroom} onClick={handleClearAllClick}>
-                <span className="hidden sm:inline">Clear completed</span>
+                <span className="hidden sm:inline">{t("home.clearCompleted")}</span>
               </Button>
             ) : undefined
           }
@@ -39,8 +41,8 @@ export const Home: FC = () => {
         ) : !playlists || playlists.length === 0 ? (
           <EmptyState
             icon={faMusic}
-            title="Create your first playlist"
-            description="Search for artists or albums to start building your collection."
+            title={t("home.emptyTitle")}
+            description={t("home.emptyDescription")}
           />
         ) : (
           <PlaylistList playlists={playlists} onPlaylistClick={handlePlaylistClick} />
@@ -49,10 +51,10 @@ export const Home: FC = () => {
 
       <ConfirmModal
         isOpen={isClearModalOpen}
-        title="Clear completed playlists?"
-        description="This will remove all completed playlists from your library. Downloaded files will NOT be deleted."
-        confirmLabel="Clear All"
-        cancelLabel="Cancel"
+        title={t("home.clearModal.title")}
+        description={t("home.clearModal.description")}
+        confirmLabel={t("common.clearAll")}
+        cancelLabel={t("common.cancel")}
         onConfirm={handleConfirmClearAll}
         onCancel={handleCancelClearAll}
         isDestructive={true}

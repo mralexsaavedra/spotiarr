@@ -1,5 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Button } from "../atoms/Button";
 import { AlbumCard } from "../molecules/AlbumCard";
@@ -80,6 +81,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   onDiscographyItemClick,
   onArtistClick,
 }) => {
+  const { t } = useTranslation();
   const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const displayedItems = useMemo(
@@ -120,14 +122,14 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   return (
     <div className="mt-10 pb-24 md:pb-0">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Discography</h2>
+        <h2 className="text-2xl font-bold">{t("artist.discography.title")}</h2>
       </div>
 
       <ArtistDiscographyFilters currentFilter={filter} onFilterChange={onFilterChange} />
 
       {filteredAlbums.length === 0 ? (
         <div className="py-12 text-center text-text-secondary bg-white/5 rounded-lg">
-          <p>No releases found for this category.</p>
+          <p>{t("artist.discography.emptyFiltered")}</p>
         </div>
       ) : (
         <>
@@ -144,7 +146,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
                     variant="secondary"
                     size="md"
                   >
-                    Show more
+                    {t("artist.discography.showMore")}
                   </Button>
                 </div>
               ) : undefined

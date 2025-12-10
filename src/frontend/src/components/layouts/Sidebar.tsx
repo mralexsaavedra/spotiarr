@@ -1,6 +1,7 @@
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { NAV_ITEMS } from "../../config/navigation";
 import { Path } from "../../routes/routes";
@@ -13,7 +14,17 @@ interface SidebarProps {
   version: string;
 }
 
+const NAV_TRANSLATION_KEYS: Record<string, string> = {
+  Home: "home",
+  History: "history",
+  Releases: "releases",
+  "My Playlists": "myPlaylists",
+  Artists: "artists",
+  Settings: "settings",
+};
+
 export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
+  const { t } = useTranslation();
   const { isSidebarCollapsed, toggleSidebar } = usePreferencesStore();
 
   return (
@@ -30,7 +41,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
           "flex items-center gap-3 mb-8 transition-all shrink-0",
           isSidebarCollapsed ? "pl-3" : "px-2",
         )}
-        title="SpotiArr Home"
+        title={t("navigation.spotiarrHome")}
       >
         <img src="/logo.svg" alt="SpotiArr Logo" className="w-8 h-8 shrink-0" />
         {!isSidebarCollapsed && (
@@ -44,6 +55,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
       <nav className="flex flex-col flex-1 w-full min-h-0 gap-2 overflow-y-auto scrollbar-hide">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.to;
+          const label = t(`navigation.${NAV_TRANSLATION_KEYS[item.label]}`);
 
           return (
             <Link
@@ -56,7 +68,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
                   : "text-text-secondary hover:text-text-primary",
                 isSidebarCollapsed ? "pl-5" : "px-2",
               )}
-              title={isSidebarCollapsed ? item.label : undefined}
+              title={isSidebarCollapsed ? label : undefined}
             >
               <FontAwesomeIcon
                 icon={item.icon}
@@ -76,7 +88,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
                       : "text-text-secondary group-hover:text-text-primary",
                   )}
                 >
-                  {item.label}
+                  {label}
                 </span>
               )}
             </Link>
@@ -93,7 +105,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
             "group flex items-center gap-3 font-semibold transition-all rounded-lg py-2.5 shrink-0 mt-2 text-text-secondary hover:text-white hover:bg-white/5 w-full whitespace-nowrap overflow-hidden",
             isSidebarCollapsed ? "pl-5" : "px-2",
           )}
-          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          title={isSidebarCollapsed ? t("navigation.expand") : t("navigation.collapse")}
         >
           <FontAwesomeIcon
             icon={isSidebarCollapsed ? faChevronRight : faChevronLeft}
@@ -101,7 +113,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
           />
           {!isSidebarCollapsed && (
             <span className="transition-all duration-300 whitespace-nowrap animate-in fade-in slide-in-from-left-2">
-              Collapse Sidebar
+              {t("navigation.collapse")}
             </span>
           )}
         </button>

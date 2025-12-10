@@ -1,11 +1,103 @@
 {
+  "common": {
+    "loading": "Cargando...",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "clearAll": "Limpiar todo",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "unknownError": "Error desconocido",
+    "downloadAll": "Descargar todo",
+    "downloaded": "Descargado",
+    "popular": "Populares",
+    "title": "Título",
+    "album": "Álbum",
+    "duration": "Duración",
+    "status": "Estado"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "history": "Historial",
+    "releases": "Lanzamientos",
+    "myPlaylists": "Mis Listas",
+    "artists": "Artistas",
+    "settings": "Ajustes",
+    "collapse": "Ocultar menú",
+    "expand": "Mostrar menú",
+    "spotiarrHome": "Inicio SpotiArr",
+    "buyMeCoffee": "Invítame a un café"
+  },
+  "home": {
+    "title": "Tu Biblioteca",
+    "clearCompleted": "Limpiar completadas",
+    "emptyTitle": "Crea tu primera lista",
+    "emptyDescription": "Busca artistas o álbumes para empezar a construir tu colección.",
+    "clearModal": {
+      "title": "¿Limpiar listas completadas?",
+      "description": "Esto eliminará todas las listas completadas de tu biblioteca. Los archivos descargados NO se borrarán."
+    }
+  },
+  "history": {
+    "title": "Historial de Descargas",
+    "emptyTitle": "Sin historial",
+    "emptyDescription": "Las descargas completadas aparecerán aquí."
+  },
+  "releases": {
+    "title": "Lanzamientos",
+    "emptyTitle": "Sin novedades",
+    "emptyDescription": "No hay lanzamientos recientes de tus artistas seguidos.",
+    "error": "Error al cargar lanzamientos."
+  },
+  "myPlaylists": {
+    "title": "Mis Listas de Spotify",
+    "filterPlaceholder": "Filtrar listas...",
+    "empty": "No se encontraron listas.",
+    "error": "Error al cargar tus listas de Spotify."
+  },
+  "playlist": {
+    "emptyTracksTitle": "Lista vacía",
+    "emptyTracksDescription": "Las canciones que descargues o sincronices aparecerán aquí.",
+    "deleteModal": {
+      "title": "¿Eliminar {{name}}?",
+      "description": "Esto eliminará la lista de tu biblioteca. Los archivos descargados NO se borrarán."
+    },
+    "unknownAlbum": "Álbum desconocido"
+  },
+  "artist": {
+    "notFound": "Artista no encontrado.",
+    "error": "Error al cargar detalles del artista.",
+    "downloaded": "Artista Descargado",
+    "emptyTracksTitle": "Sin canciones",
+    "emptyTracksDescription": "Este artista no tiene canciones populares disponibles.",
+    "noDiscography": "Sin discografía disponible.",
+    "discography": {
+      "title": "Discografía",
+      "emptyFiltered": "No se encontraron lanzamientos para esta categoría.",
+      "showMore": "Mostrar más"
+    }
+  },
+  "auth": {
+    "title": "Autenticación Spotify",
+    "connectedDescription": "Estás conectado a Spotify. Tienes acceso a tus listas y las creadas por Spotify.",
+    "disconnectedDescription": "Conecta tu cuenta de Spotify para acceder a tus listas personales y las creadas por Spotify (como 'Hecho para ti').",
+    "connectedStatus": "Conectado",
+    "disconnectedStatus": "No Conectado",
+    "disconnectButton": "Desconectar Spotify",
+    "connectButton": "Conectar con Spotify",
+    "whyConnect": "¿Por qué conectar?",
+    "benefits": {
+      "editorial": "Accede a listas editoriales (ej: 'Top 50', 'Descubrimiento Semanal')",
+      "personal": "Importa tus listas personales y colaborativas",
+      "sync": "Sincroniza tus artistas seguidos para nuevos lanzamientos"
+    }
+  },
   "settings": {
     "title": "Ajustes",
     "resetToDefaults": "Restaurar valores predeterminados",
     "saveSettings": "Guardar ajustes",
     "saving": "Guardando...",
-    "language": "Idioma",
-    "description": "Selecciona tu idioma preferido",
+    "language": "Idioma de la Interfaz",
+    "description": "Selecciona tu idioma preferido para la interfaz.",
     "savedSuccess": "Ajustes guardados correctamente",
     "saveError": "Error al guardar los ajustes"
   }

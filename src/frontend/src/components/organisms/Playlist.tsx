@@ -1,6 +1,7 @@
 import { faMusic } from "@fortawesome/free-solid-svg-icons";
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { PlaylistWithStats } from "../../types";
 import { Track } from "../../types";
 import { EmptyState } from "../molecules/EmptyState";
@@ -46,6 +47,7 @@ export const Playlist: FC<PlaylistProps> = ({
   onToggleSubscription,
   onDownload,
 }) => {
+  const { t } = useTranslation();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleConfirmDelete = useCallback(() => {
@@ -111,8 +113,8 @@ export const Playlist: FC<PlaylistProps> = ({
           {tracks.length === 0 ? (
             <EmptyState
               icon={faMusic}
-              title="No tracks in this playlist yet"
-              description="Tracks you download or sync will appear here."
+              title={t("playlist.emptyTracksTitle")}
+              description={t("playlist.emptyTracksDescription")}
               className="py-12"
             />
           ) : (
@@ -127,10 +129,10 @@ export const Playlist: FC<PlaylistProps> = ({
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}
-        title={`Delete ${playlist?.name}?`}
-        description="This will remove the playlist from your library. Downloaded files will NOT be deleted."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t("playlist.deleteModal.title", { name: playlist?.name })}
+        description={t("playlist.deleteModal.description")}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancel}
         isDestructive={true}

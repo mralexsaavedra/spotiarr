@@ -1,5 +1,6 @@
 import { faCompactDisc } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { Loading } from "../components/atoms/Loading";
 import { EmptyState } from "../components/molecules/EmptyState";
 import { PageHeader } from "../components/molecules/PageHeader";
@@ -8,6 +9,7 @@ import { ReleasesList } from "../components/organisms/ReleasesList";
 import { useReleasesController } from "../hooks/controllers/useReleasesController";
 
 export const Releases: FC = () => {
+  const { t } = useTranslation();
   const {
     releases,
     isLoading,
@@ -20,7 +22,7 @@ export const Releases: FC = () => {
   if (error) {
     return (
       <section className="flex-1 px-4 py-6 bg-background md:px-8">
-        <SpotifyErrorState error={error} message="Failed to load releases." />
+        <SpotifyErrorState error={error} message={t("releases.error")} />
       </section>
     );
   }
@@ -28,15 +30,15 @@ export const Releases: FC = () => {
   return (
     <section className="flex-1 px-4 py-6 bg-background md:px-8">
       <div className="max-w-full">
-        <PageHeader title="Releases" className="mb-6" />
+        <PageHeader title={t("releases.title")} className="mb-6" />
 
         {isLoading ? (
           <Loading />
         ) : !releases || releases.length === 0 ? (
           <EmptyState
             icon={faCompactDisc}
-            title="No new releases"
-            description="No recent releases found from your followed artists."
+            title={t("releases.emptyTitle")}
+            description={t("releases.emptyDescription")}
           />
         ) : (
           <ReleasesList

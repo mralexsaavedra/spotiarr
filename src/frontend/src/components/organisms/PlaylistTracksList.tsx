@@ -3,6 +3,7 @@ import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useDownloadStatusContext } from "../../contexts/DownloadStatusContext";
 import { Path } from "../../routes/routes";
@@ -21,6 +22,7 @@ interface PlaylistTrackItemProps {
 
 const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
   ({ track, index, status, onRetryTrack, onDownloadTrack }) => {
+    const { t } = useTranslation();
     const artists = track.artists || [{ name: track.artist }];
 
     const handleRetry = useCallback(
@@ -90,10 +92,10 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
               className="hover:text-text-primary hover:underline transition-colors"
               onClick={stopPropagation}
             >
-              {track.album || "Unknown Album"}
+              {track.album || t("playlist.unknownAlbum")}
             </Link>
           ) : (
-            <span>{track.album || "Unknown Album"}</span>
+            <span>{track.album || t("playlist.unknownAlbum")}</span>
           )}
         </div>
 
@@ -104,7 +106,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
               <FontAwesomeIcon
                 icon={faCircleCheck}
                 className="text-green-500 text-base"
-                title="Downloaded"
+                title={t("common.downloaded")}
               />
             )}
             {track.durationMs ? new Date(track.durationMs).toISOString().substr(14, 5) : "--:--"}
@@ -126,6 +128,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   onRetryTrack,
   onDownloadTrack,
 }) => {
+  const { t } = useTranslation();
   const { getBulkTrackStatus } = useDownloadStatusContext();
 
   const trackStatusesMap = useMemo(() => {
@@ -157,10 +160,10 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
       {/* Header */}
       <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2 sticky top-0 bg-background z-10">
         <div className="text-center w-4">#</div>
-        <div>Title</div>
-        <div className="hidden md:block">Album</div>
+        <div>{t("common.title")}</div>
+        <div className="hidden md:block">{t("common.album")}</div>
         <div className="text-right">
-          <FontAwesomeIcon icon={faClock} />
+          <FontAwesomeIcon icon={faClock} title={t("common.duration")} />
         </div>
       </div>
 

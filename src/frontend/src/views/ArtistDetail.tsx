@@ -1,6 +1,7 @@
 import { faCheck, faDownload, faMusic } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../components/atoms/Button";
 import { Loading } from "../components/atoms/Loading";
 import { ArtistHeader } from "../components/molecules/ArtistHeader";
@@ -12,6 +13,7 @@ import { TrackList } from "../components/organisms/TrackList";
 import { useArtistDetailController } from "../hooks/controllers/useArtistDetailController";
 
 export const ArtistDetail: FC = () => {
+  const { t } = useTranslation();
   const {
     id,
     artist,
@@ -42,7 +44,7 @@ export const ArtistDetail: FC = () => {
   if (error) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background text-white p-6">
-        <SpotifyErrorState error={error} message="Failed to load artist details." />
+        <SpotifyErrorState error={error} message={t("artist.error")} />
       </div>
     );
   }
@@ -50,7 +52,7 @@ export const ArtistDetail: FC = () => {
   if (!hasArtist) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background text-white">
-        <p className="text-text-secondary">Artist not found.</p>
+        <p className="text-text-secondary">{t("artist.notFound")}</p>
       </div>
     );
   }
@@ -77,7 +79,7 @@ export const ArtistDetail: FC = () => {
             }`}
             onClick={handleArtistDownload}
             disabled={!artist?.spotifyUrl || isArtistDownloaded}
-            title={isArtistDownloaded ? "Artist Downloaded" : "Download All"}
+            title={isArtistDownloaded ? t("artist.downloaded") : t("common.downloadAll")}
           >
             {isArtistDownloaded ? (
               <FontAwesomeIcon icon={faCheck} className="text-xl" />
@@ -91,13 +93,13 @@ export const ArtistDetail: FC = () => {
 
         {/* Popular Tracks Section */}
         <div className="mt-4">
-          <h2 className="text-2xl font-bold mb-4">Popular</h2>
+          <h2 className="text-2xl font-bold mb-4">{t("common.popular")}</h2>
 
           {!tracks || tracks.length === 0 ? (
             <EmptyState
               icon={faMusic}
-              title="No tracks found"
-              description="This artist has no popular tracks available."
+              title={t("artist.emptyTracksTitle")}
+              description={t("artist.emptyTracksDescription")}
               className="py-8"
             />
           ) : (
@@ -123,7 +125,7 @@ export const ArtistDetail: FC = () => {
           />
         ) : (
           <div className="mt-10 text-center text-text-secondary">
-            <p>No discography available.</p>
+            <p>{t("artist.noDiscography")}</p>
           </div>
         )}
       </div>

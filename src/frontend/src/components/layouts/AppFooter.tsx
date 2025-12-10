@@ -1,5 +1,6 @@
 import { faMugHot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslation } from "react-i18next";
 import { BUY_ME_A_COFFEE_URL, GITHUB_RELEASE_URL } from "../../config/links";
 import { APP_VERSION } from "../../config/version";
 import { cn } from "../../utils/cn";
@@ -10,6 +11,8 @@ interface AppFooterProps {
 }
 
 export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps) => {
+  const { t } = useTranslation();
+
   if (collapsed) {
     return (
       <div className={cn("flex flex-col items-center gap-4 text-text-secondary pb-4", className)}>
@@ -18,7 +21,7 @@ export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps)
           target="_blank"
           rel="noopener noreferrer"
           className="text-yellow-400 transition-colors hover:text-yellow-300"
-          title="Buy me a coffee"
+          title={t("navigation.buyMeCoffee")}
         >
           <FontAwesomeIcon icon={faMugHot} className="text-xl" />
         </a>
@@ -59,7 +62,7 @@ export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps)
           className="flex items-center gap-2 text-yellow-400 transition-colors hover:text-yellow-300"
         >
           <FontAwesomeIcon icon={faMugHot} />
-          <span className="text-sm font-medium">Buy me a coffee</span>
+          <span className="text-sm font-medium">{t("navigation.buyMeCoffee")}</span>
         </a>
       </div>
     </div>
