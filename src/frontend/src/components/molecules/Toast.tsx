@@ -18,7 +18,6 @@ export const Toast: FC<ToastProps> = ({ toast, onRemove }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger enter animation
     requestAnimationFrame(() => setIsVisible(true));
   }, []);
 
@@ -26,7 +25,7 @@ export const Toast: FC<ToastProps> = ({ toast, onRemove }) => {
     setIsVisible(false);
     setTimeout(() => {
       onRemove(toast.id);
-    }, 300); // Wait for exit animation
+    }, 300);
   };
 
   const icons: Record<string, IconProp> = {
