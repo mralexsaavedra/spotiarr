@@ -8,7 +8,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
-import { FC, MouseEvent, ReactNode } from "react";
+import { FC, MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 interface TrackStatusIndicatorProps {
   status?: TrackStatusEnum;
@@ -17,45 +18,52 @@ interface TrackStatusIndicatorProps {
   onDownload?: (e: MouseEvent) => void;
 }
 
-const STATUS_RENDERERS: Partial<
-  Record<TrackStatusEnum, (props: TrackStatusIndicatorProps) => ReactNode>
-> = {
-  [TrackStatusEnum.Error]: ({ onRetry }) =>
-    onRetry ? (
-      <button
-        className="text-red-500 transition-colors hover:text-red-400"
-        onClick={onRetry}
-        title="Retry download"
-        type="button"
-      >
-        <FontAwesomeIcon icon={faRotateRight} />
-      </button>
-    ) : (
-      <span title="Error" className="cursor-help">
-        <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500" />
-      </span>
-    ),
-  [TrackStatusEnum.Downloading]: () => (
-    <span title="Downloading..." className="cursor-wait">
-      <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
-    </span>
-  ),
-  [TrackStatusEnum.Queued]: () => (
-    <span title="Queued" className="cursor-help">
-      <FontAwesomeIcon icon={faClock} className="text-text-secondary" />
-    </span>
-  ),
-  [TrackStatusEnum.Searching]: () => (
-    <span title="Searching..." className="cursor-wait">
-      <FontAwesomeIcon icon={faMagnifyingGlass} className="text-text-secondary" />
-    </span>
-  ),
-};
-
 export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
+  const { t } = useTranslation();
   const { status, index, onDownload } = props;
 
-  const Renderer = status ? STATUS_RENDERERS[status] : undefined;
+  const getStatusRenderer = () => {
+    switch (status) {
+      case TrackStatusEnum.Error:
+        return ({ onRetry }: TrackStatusIndicatorProps) =>
+          onRetry ? (
+            <button
+              className="text-red-500 transition-colors hover:text-red-400"
+              onClick={onRetry}
+              title={t("common.trackStatus.retry")}
+              type="button"
+            >
+              <FontAwesomeIcon icon={faRotateRight} />
+            </button>
+          ) : (
+            <span title={t("common.trackStatus.error")} className="cursor-help">
+              <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500" />
+            </span>
+          );
+      case TrackStatusEnum.Downloading:
+        return () => (
+          <span title={t("common.trackStatus.downloading")} className="cursor-wait">
+            <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
+          </span>
+        );
+      case TrackStatusEnum.Queued:
+        return () => (
+          <span title={t("common.trackStatus.queued")} className="cursor-help">
+            <FontAwesomeIcon icon={faClock} className="text-text-secondary" />
+          </span>
+        );
+      case TrackStatusEnum.Searching:
+        return () => (
+          <span title={t("common.trackStatus.searching")} className="cursor-wait">
+            <FontAwesomeIcon icon={faMagnifyingGlass} className="text-text-secondary" />
+          </span>
+        );
+      default:
+        return undefined;
+    }
+  };
+
+  const Renderer = getStatusRenderer();
 
   if (Renderer) {
     return <Renderer {...props} />;
@@ -76,7 +84,7 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
         <button
           className="text-text-secondary block transition-colors hover:text-white md:hidden md:group-hover:block"
           onClick={onDownload}
-          title="Download Track"
+          title={t("common.trackStatus.download")}
           type="button"
         >
           <FontAwesomeIcon icon={faDownload} />

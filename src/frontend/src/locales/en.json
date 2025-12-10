@@ -16,6 +16,20 @@
     "duration": "Duration",
     "status": "Status",
     "openInSpotify": "Open in Spotify",
+    "errors": {
+      "pageNotFound": "Page Not Found",
+      "pageNotFoundDesc": "The page you are looking for does not exist or has been moved.",
+      "pageError": "Page Error",
+      "pageErrorDesc": "This page encountered an error. Don't worry, the rest of the app is still working."
+    },
+    "trackStatus": {
+      "retry": "Retry download",
+      "error": "Error",
+      "downloading": "Downloading...",
+      "queued": "Queued",
+      "searching": "Searching...",
+      "download": "Download Track"
+    },
     "dates": {
       "today": "Today",
       "todayAt": "Today at {{time}}",

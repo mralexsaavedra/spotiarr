@@ -1,4 +1,5 @@
 import { FC, ReactNode, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../../routes/routes";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -10,6 +11,7 @@ interface RouteErrorFallbackProps {
 }
 
 const RouteErrorFallback: FC<RouteErrorFallbackProps> = ({ error, resetError }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleGoHome = useCallback(() => {
@@ -19,8 +21,8 @@ const RouteErrorFallback: FC<RouteErrorFallbackProps> = ({ error, resetError }) 
 
   return (
     <GenericErrorState
-      title="Page Error"
-      description="This page encountered an error. Don't worry, the rest of the app is still working."
+      title={t("common.errors.pageError")}
+      description={t("common.errors.pageErrorDesc")}
       error={error}
       onRetry={resetError}
       onGoHome={handleGoHome}
