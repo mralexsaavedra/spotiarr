@@ -27,7 +27,9 @@
     },
     "cards": {
       "albumTypes": {
+        "all": "All",
         "single": "Single",
+        "singlesAndEps": "Singles & EPs",
         "album": "Album",
         "compilation": "Compilation",
         "release": "Release"
@@ -126,11 +128,19 @@
     "emptyTracksTitle": "No tracks found",
     "emptyTracksDescription": "This artist has no popular tracks available.",
     "noDiscography": "No discography available.",
+    "followers": "Followers",
+    "type": "Artist",
     "discography": {
       "title": "Discography",
       "emptyFiltered": "No releases found for this category.",
       "showMore": "Show more"
     }
+  },
+  "artists": {
+    "title": "Followed Artists",
+    "filterPlaceholder": "Filter artists...",
+    "empty": "No followed artists found.",
+    "error": "Failed to load artists."
   },
   "auth": {
     "title": "Spotify Authentication",

@@ -1,18 +1,19 @@
 import { AlbumType } from "@spotiarr/shared";
 import { FC, memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../atoms/Button";
 
 export type DiscographyFilter = AlbumType | "all";
 
 interface FilterOption {
   key: DiscographyFilter;
-  label: string;
+  labelKey: string;
 }
 
 const FILTERS: FilterOption[] = [
-  { key: "all", label: "All" },
-  { key: "album", label: "Albums" },
-  { key: "single", label: "Singles & EPs" },
+  { key: "all", labelKey: "all" },
+  { key: "album", labelKey: "album" },
+  { key: "single", labelKey: "singlesAndEps" },
 ];
 
 interface FilterItemProps {
@@ -50,13 +51,15 @@ interface ArtistDiscographyFiltersProps {
 
 export const ArtistDiscographyFilters: FC<ArtistDiscographyFiltersProps> = memo(
   ({ currentFilter, onFilterChange }) => {
+    const { t } = useTranslation();
+
     return (
       <div className="scrollbar-hide mb-6 flex gap-2 overflow-x-auto pb-2">
         {FILTERS.map((filter) => (
           <FilterItem
             key={filter.key}
             filterKey={filter.key}
-            label={filter.label}
+            label={t(`common.cards.albumTypes.${filter.labelKey}`)}
             isActive={currentFilter === filter.key}
             onSelect={onFilterChange}
           />

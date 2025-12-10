@@ -27,9 +27,11 @@
     },
     "cards": {
       "albumTypes": {
+        "all": "Todos",
         "single": "Sencillo",
+        "singlesAndEps": "Sencillos y EPs",
         "album": "Álbum",
-        "compilation": "Recopilación",
+        "compilation": "Recopilatorio",
         "release": "Lanzamiento"
       },
       "tooltips": {
@@ -123,14 +125,22 @@
     "notFound": "Artista no encontrado.",
     "error": "Error al cargar detalles del artista.",
     "downloaded": "Artista Descargado",
-    "emptyTracksTitle": "Sin canciones",
+    "emptyTracksTitle": "No se encontraron canciones",
     "emptyTracksDescription": "Este artista no tiene canciones populares disponibles.",
     "noDiscography": "Sin discografía disponible.",
+    "followers": "Seguidores",
+    "type": "Artista",
     "discography": {
       "title": "Discografía",
       "emptyFiltered": "No se encontraron lanzamientos para esta categoría.",
       "showMore": "Mostrar más"
     }
+  },
+  "artists": {
+    "title": "Artistas Seguidos",
+    "filterPlaceholder": "Filtrar artistas...",
+    "empty": "No hay artistas seguidos.",
+    "error": "Error al cargar artistas."
   },
   "auth": {
     "title": "Autenticación Spotify",

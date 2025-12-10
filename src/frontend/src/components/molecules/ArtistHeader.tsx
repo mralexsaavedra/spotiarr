@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ArtistHeaderProps {
   name: string;
@@ -8,6 +9,8 @@ interface ArtistHeaderProps {
 }
 
 export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText, spotifyUrl }) => {
+  const { t } = useTranslation();
+
   return (
     <header className="relative h-[40vh] max-h-[500px] min-h-[340px] w-full">
       {/* Background Image */}
@@ -42,7 +45,9 @@ export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText
         </h1>
 
         {followersText && (
-          <p className="text-base font-medium drop-shadow-md">{followersText} followers</p>
+          <p className="text-base font-medium drop-shadow-md">
+            {followersText} {t("artist.followers")}
+          </p>
         )}
       </div>
     </header>

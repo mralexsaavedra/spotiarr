@@ -1,4 +1,5 @@
 import { FC, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { Image } from "../atoms/Image";
 
 interface ArtistCardProps {
@@ -10,6 +11,7 @@ interface ArtistCardProps {
 }
 
 export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick }) => {
+  const { t } = useTranslation();
   const handleCardClick = () => {
     onClick(id);
   };
@@ -31,7 +33,7 @@ export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick 
       </div>
       <div className="flex min-w-0 flex-col">
         <h3 className="truncate text-base font-bold text-white">{name}</h3>
-        <p className="text-sm text-zinc-400">Artist</p>
+        <p className="text-sm text-zinc-400">{t("artist.type")}</p>
       </div>
     </article>
   );
