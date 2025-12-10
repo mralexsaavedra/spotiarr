@@ -1,5 +1,6 @@
 export const queryKeys = {
   playlists: ["playlists"] as const,
+  myPlaylists: ["my-playlists"] as const,
   tracks: (playlistId: string) => ["tracks", playlistId] as const,
   playlistPreview: (spotifyUrl: string) => ["playlist-preview", spotifyUrl] as const,
   downloadHistory: ["download-history"] as const,
