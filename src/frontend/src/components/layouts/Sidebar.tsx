@@ -14,14 +14,14 @@ interface SidebarProps {
   version: string;
 }
 
-const NAV_TRANSLATION_KEYS: Record<string, string> = {
-  Home: "home",
-  History: "history",
-  Releases: "releases",
-  "My Playlists": "myPlaylists",
-  Artists: "artists",
-  Settings: "settings",
-};
+const NAV_TRANSLATION_KEYS = {
+  Home: "navigation.home",
+  History: "navigation.history",
+  Releases: "navigation.releases",
+  "My Playlists": "navigation.myPlaylists",
+  Artists: "navigation.artists",
+  Settings: "navigation.settings",
+} as const;
 
 export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
   const { t } = useTranslation();
@@ -30,7 +30,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
   return (
     <aside
       className={cn(
-        "border-border fixed top-0 left-0 z-[70] hidden h-screen flex-col border-r bg-black py-6 transition-all duration-300 md:flex",
+        "border-border fixed top-0 left-0 z-70 hidden h-screen flex-col border-r bg-black py-6 transition-all duration-300 md:flex",
         isSidebarCollapsed ? "w-20 px-2" : "w-64 px-4",
       )}
     >
@@ -55,7 +55,9 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
       <nav className="scrollbar-hide flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.to;
-          const label = t(`navigation.${NAV_TRANSLATION_KEYS[item.label]}`);
+          const translationKey =
+            NAV_TRANSLATION_KEYS[item.label as keyof typeof NAV_TRANSLATION_KEYS];
+          const label = t(translationKey);
 
           return (
             <Link

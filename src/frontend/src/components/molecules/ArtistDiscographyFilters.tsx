@@ -5,16 +5,11 @@ import { Button } from "../atoms/Button";
 
 export type DiscographyFilter = AlbumType | "all";
 
-interface FilterOption {
-  key: DiscographyFilter;
-  labelKey: string;
-}
-
-const FILTERS: FilterOption[] = [
-  { key: "all", labelKey: "all" },
-  { key: "album", labelKey: "album" },
-  { key: "single", labelKey: "singlesAndEps" },
-];
+const FILTERS = [
+  { key: "all", translationKey: "common.cards.albumTypes.all" },
+  { key: "album", translationKey: "common.cards.albumTypes.album" },
+  { key: "single", translationKey: "common.cards.albumTypes.singlesAndEps" },
+] as const;
 
 interface FilterItemProps {
   filterKey: DiscographyFilter;
@@ -59,7 +54,7 @@ export const ArtistDiscographyFilters: FC<ArtistDiscographyFiltersProps> = memo(
           <FilterItem
             key={filter.key}
             filterKey={filter.key}
-            label={t(`common.cards.albumTypes.${filter.labelKey}`)}
+            label={t(filter.translationKey)}
             isActive={currentFilter === filter.key}
             onSelect={onFilterChange}
           />
