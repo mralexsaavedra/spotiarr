@@ -145,8 +145,6 @@ pnpm dev
 # Backend:  http://localhost:3000 (API)
 ```
 
-**Troubleshooting:** See [CONTRIBUTING.md](CONTRIBUTING.md#having-trouble) for common issues (Redis, FFmpeg, yt-dlp).
-
 ## ⚙️ Configuration
 
 ### Environment Variables
