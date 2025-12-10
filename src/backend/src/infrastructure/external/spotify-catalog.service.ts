@@ -3,6 +3,7 @@ import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper } from "@/domain/helpers/spotify-url.helper";
 import { getEnv } from "../setup/environment";
+import { getErrorMessage } from "../utils/error.utils";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient } from "./spotify-http.client";
 import {
@@ -128,7 +129,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
         ownerUrl: data.owner?.external_urls?.spotify,
       };
     } catch (error) {
-      this.log(`Failed to get playlist metadata: ${(error as Error).message}`, "error");
+      this.log(`Failed to get playlist metadata: ${getErrorMessage(error)}`, "error");
       throw error;
     }
   }
@@ -165,7 +166,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
 
       return artist;
     } catch (error) {
-      this.log(`Failed to fetch artist data: ${(error as Error).message}`);
+      this.log(`Failed to fetch artist data: ${getErrorMessage(error)}`);
       return null;
     }
   }
@@ -181,7 +182,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
       // Return the largest image available
       return artist.images?.[0]?.url || null;
     } catch (error) {
-      this.log(`Failed to get artist image: ${(error as Error).message}`);
+      this.log(`Failed to get artist image: ${getErrorMessage(error)}`);
       return null;
     }
   }
@@ -219,7 +220,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
         genres: artist.genres ?? [],
       };
     } catch (error) {
-      this.log(`Failed to get artist details: ${(error as Error).message}`);
+      this.log(`Failed to get artist details: ${getErrorMessage(error)}`);
       return {
         name: "Unknown Artist",
         image: null,
@@ -330,7 +331,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
         artists: normalized.artists,
       };
     } catch (error) {
-      this.log(`Failed to get track details: ${(error as Error).message}`);
+      this.log(`Failed to get track details: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -397,7 +398,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
         };
       });
     } catch (error) {
-      this.log(`Failed to get album tracks: ${(error as Error).message}`);
+      this.log(`Failed to get album tracks: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -478,7 +479,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
 
       return mappedTracks;
     } catch (error) {
-      this.log(`Failed to get artist top tracks: ${(error as Error).message}`);
+      this.log(`Failed to get artist top tracks: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -540,7 +541,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
 
       return allAlbums;
     } catch (error) {
-      this.log(`Failed to get artist albums: ${(error as Error).message}`);
+      this.log(`Failed to get artist albums: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -687,7 +688,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
       // If we reach here, return empty array
       return [];
     } catch (error) {
-      this.log(`Failed to get all playlist tracks: ${(error as Error).message}`);
+      this.log(`Failed to get all playlist tracks: ${getErrorMessage(error)}`);
       throw error;
     }
   }

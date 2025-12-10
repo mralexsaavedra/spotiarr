@@ -2,6 +2,7 @@ import { AlbumType, ArtistRelease, FollowedArtist, SpotifyPlaylist } from "@spot
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
+import { getErrorMessage } from "../utils/error.utils";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient } from "./spotify-http.client";
 import {
@@ -143,7 +144,7 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
 
       return allPlaylists;
     } catch (error) {
-      this.log(`Failed to get user playlists: ${(error as Error).message}`);
+      this.log(`Failed to get user playlists: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -236,7 +237,7 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
 
       return recent;
     } catch (error) {
-      this.log(`Failed to get followed artists releases: ${(error as Error).message}`);
+      this.log(`Failed to get followed artists releases: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -267,7 +268,7 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
       this.setCache(cacheKey, mapped);
       return mapped;
     } catch (error) {
-      this.log(`Failed to get followed artists list: ${(error as Error).message}`);
+      this.log(`Failed to get followed artists list: ${getErrorMessage(error)}`);
       throw error;
     }
   }

@@ -1,5 +1,6 @@
 import type { Request, Response, Router as ExpressRouter } from "express";
 import { Router } from "express";
+import { getErrorMessage } from "@/infrastructure/utils/error.utils";
 
 const router: ExpressRouter = Router();
 
@@ -43,7 +44,7 @@ export function emitSseEvent(event: string, data: unknown = {}): void {
     try {
       client.res.write(payload);
     } catch (error) {
-      console.error("Failed to write SSE event:", (error as Error).message);
+      console.error("Failed to write SSE event:", getErrorMessage(error));
     }
   }
 }

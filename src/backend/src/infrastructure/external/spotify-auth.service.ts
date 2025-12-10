@@ -1,6 +1,7 @@
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
+import { getErrorMessage } from "../utils/error.utils";
 
 interface SpotifyTokenResponse {
   access_token: string;
@@ -75,7 +76,7 @@ export class SpotifyAuthService {
       this.log("Successfully obtained Spotify access token");
       return this.accessToken as string;
     } catch (error) {
-      this.log(`Error getting Spotify access token: ${(error as Error).message}`);
+      this.log(`Error getting Spotify access token: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -166,7 +167,7 @@ export class SpotifyAuthService {
       this.log("Successfully refreshed Spotify user access token");
       return true;
     } catch (error) {
-      this.log(`Error refreshing Spotify user token: ${(error as Error).message}`, "warn");
+      this.log(`Error refreshing Spotify user token: ${getErrorMessage(error)}`, "warn");
       return false;
     }
   }
@@ -224,7 +225,7 @@ export class SpotifyAuthService {
       await this.settingsService.delete("spotify_user_refresh_token");
       this.log("Successfully logged out from Spotify");
     } catch (error) {
-      this.log(`Failed to logout from Spotify: ${(error as Error).message}`, "error");
+      this.log(`Failed to logout from Spotify: ${getErrorMessage(error)}`, "error");
       throw error;
     }
   }
