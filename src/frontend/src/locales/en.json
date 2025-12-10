@@ -50,6 +50,10 @@
       "unnamedPlaylist": "Unnamed Playlist"
     }
   },
+  "header": {
+    "pasteUrl": "Paste Spotify URL...",
+    "download": "Download"
+  },
   "navigation": {
     "home": "Home",
     "history": "History",

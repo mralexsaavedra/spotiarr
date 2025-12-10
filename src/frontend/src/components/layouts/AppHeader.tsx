@@ -6,12 +6,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useHeaderController } from "../../hooks/controllers/useHeaderController";
 import { Path } from "../../routes/routes";
 import { cn } from "../../utils/cn";
 
 export const AppHeader: FC = () => {
+  const { t } = useTranslation();
   const { url, handleDownload, isPending, isValidUrl, handleChangeUrl, handleKeyUp } =
     useHeaderController();
 
@@ -42,7 +44,7 @@ export const AppHeader: FC = () => {
               value={url}
               onChange={handleChangeUrl}
               onKeyUp={handleKeyUp}
-              placeholder="Paste Spotify URL..."
+              placeholder={t("header.pasteUrl")}
             />
             <FontAwesomeIcon
               icon={faLink}
@@ -58,7 +60,7 @@ export const AppHeader: FC = () => {
                 onClick={handleDownload}
                 disabled={isDownloadDisabled}
               >
-                <span className="hidden md:inline">Download</span>
+                <span className="hidden md:inline">{t("header.download")}</span>
                 <FontAwesomeIcon icon={faDownload} className="md:hidden" />
               </button>
             )}
