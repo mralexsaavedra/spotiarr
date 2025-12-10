@@ -21,7 +21,10 @@
     "noUncheckedSideEffectImports": true,
 
     /* Paths */
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"]
 }

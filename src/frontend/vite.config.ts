@@ -14,6 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@spotiarr/shared": resolve(__dirname, "../shared/src/index.ts"),
+      "@": resolve(__dirname, "./src"),
     },
   },
   server: {
