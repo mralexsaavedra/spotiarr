@@ -14,7 +14,16 @@
     "album": "Álbum",
     "duration": "Duración",
     "status": "Estado",
-    "openInSpotify": "Abrir en Spotify"
+    "openInSpotify": "Abrir en Spotify",
+    "dates": {
+      "today": "Hoy",
+      "todayAt": "Hoy a las {{time}}",
+      "yesterday": "Ayer",
+      "yesterdayAt": "Ayer a las {{time}}",
+      "daysAgo": "Hace {{count}} días",
+      "daysAgo_one": "Hace {{count}} día",
+      "daysAgo_other": "Hace {{count}} días"
+    }
   },
   "navigation": {
     "home": "Inicio",
