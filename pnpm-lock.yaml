@@ -192,6 +192,9 @@ importers:
       eslint-plugin-react-hooks:
         specifier: ^7.0.1
         version: 7.0.1(eslint@9.39.1(jiti@2.6.1))
+      prettier-plugin-tailwindcss:
+        specifier: ^0.7.2
+        version: 0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4))(prettier@3.7.4)
       tailwindcss:
         specifier: ^4.1.17
         version: 4.1.17
@@ -205,7 +208,7 @@ importers:
         specifier: ">=3"
         version: 3.6.2
       prettier-plugin-tailwindcss:
-        specifier: ^0.7.2
+        specifier: ">=0.6.0"
         version: 0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.6.2))(prettier@3.6.2)
 
   src/shared:
@@ -8207,6 +8210,12 @@ snapshots:
       prettier: 3.6.2
     optionalDependencies:
       "@trivago/prettier-plugin-sort-imports": 6.0.0(prettier@3.6.2)
+
+  prettier-plugin-tailwindcss@0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4))(prettier@3.7.4):
+    dependencies:
+      prettier: 3.7.4
+    optionalDependencies:
+      "@trivago/prettier-plugin-sort-imports": 6.0.0(prettier@3.7.4)
 
   prettier@3.6.2: {}
 
