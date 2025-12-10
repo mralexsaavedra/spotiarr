@@ -99,6 +99,80 @@
     "language": "Idioma de la Interfaz",
     "description": "Selecciona tu idioma preferido para la interfaz.",
     "savedSuccess": "Ajustes guardados correctamente",
-    "saveError": "Error al guardar los ajustes"
+    "saveError": "Error al guardar los ajustes",
+    "sections": {
+      "General": "General",
+      "Spotify": "Spotify",
+      "Playlists": "Listas",
+      "Releases": "Lanzamientos",
+      "Downloads": "Descargas",
+      "Maintenance": "Mantenimiento"
+    },
+    "items": {
+      "UI_LANGUAGE": {
+        "label": "Idioma de la interfaz",
+        "description": "Selecciona tu idioma preferido para la interfaz."
+      },
+      "SPOTIFY_MARKET": {
+        "label": "Mercado/Región de Spotify",
+        "description": "Código de país ISO de 2 letras que afecta la disponibilidad de contenido y restricciones regionales. Cámbialo para que coincida con tu ubicación para mejores resultados."
+      },
+      "AUTO_SUBSCRIBE_NEW_PLAYLISTS": {
+        "label": "Suscribir automáticamente nuevas listas",
+        "description": "Cuando está activado, las nuevas listas se suscriben automáticamente. Si está desactivado, tendrás que suscribirte manualmente."
+      },
+      "PLAYLIST_CHECK_INTERVAL_MINUTES": {
+        "label": "Intervalo de comprobación de listas (minutos)",
+        "description": "¿Con qué frecuencia SpotiArr debe volver a comprobar las listas suscritas en Spotify para buscar nuevas canciones? Valores más bajos aumentan el uso de la API."
+      },
+      "M3U_GENERATION_ENABLED": {
+        "label": "Generar automáticamente listas M3U",
+        "description": "Cuando está activado, se creará/actualizará un archivo M3U para cada lista completada."
+      },
+      "RELEASES_LOOKBACK_DAYS": {
+        "label": "Periodo de búsqueda de nuevos lanzamientos (días)",
+        "description": "Hasta cuántos días atrás buscar nuevos lanzamientos."
+      },
+      "FOLLOWED_ARTISTS_MAX": {
+        "label": "Máximo de artistas seguidos",
+        "description": "Número máximo de artistas seguidos a considerar en las vistas de lanzamientos y artistas. Valores más altos pueden ralentizar la carga de lanzamientos y aumentar el uso de la API."
+      },
+      "RELEASES_CACHE_MINUTES": {
+        "label": "Duración de caché (minutos)",
+        "description": "Cuánto tiempo guardar en caché los datos de lanzamientos antes de refrescar desde Spotify. Valores más bajos aumentan el uso de la API."
+      },
+      "FORMAT": {
+        "label": "Formato de audio",
+        "description": "El formato de audio para las canciones descargadas."
+      },
+      "YT_AUDIO_QUALITY": {
+        "label": "Calidad de audio de YouTube",
+        "description": "Preferencia de calidad de audio para descargas de YouTube. 'best' para máxima calidad, 'good' para equilibrado, 'acceptable' para descargas más rápidas."
+      },
+      "YT_COOKIES": {
+        "label": "Navegador de cookies de YouTube (opcional)",
+        "description": "Navegador del que extraer cookies para contenido con restricción de edad (ej: 'chrome', 'firefox', 'edge'). Dejar vacío si no es necesario."
+      },
+      "YT_SEARCH_CONCURRENCY": {
+        "label": "Concurrencia de búsqueda en YouTube",
+        "description": "Número de búsquedas simultáneas en YouTube. Valores más altos son más rápidos pero pueden provocar límites de velocidad."
+      },
+      "YT_DOWNLOADS_PER_MINUTE": {
+        "label": "Descargas de YouTube por minuto",
+        "description": "Número máximo de descargas que pueden comenzar por minuto para evitar limitaciones de YouTube."
+      },
+      "DOWNLOAD_MAX_RETRIES": {
+        "label": "Intentos máximos de descarga",
+        "description": "Cuántas veces reintentar una descarga fallida antes de rendirse."
+      },
+      "STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES": {
+        "label": "Intervalo de limpieza de pistas atascadas (minutos)",
+        "description": "¿Con qué frecuencia comprobar y limpiar pistas atascadas?"
+      },
+      "STUCK_TRACKS_TIMEOUT_MINUTES": {
+        "label": "Tiempo de espera de pistas atascadas (minutos)",
+        "description": "Cuánto tiempo antes de que una pista se considere atascada y elegible para limpieza."
+      }
+    }
   }
 }

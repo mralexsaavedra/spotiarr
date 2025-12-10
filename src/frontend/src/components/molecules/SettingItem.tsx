@@ -1,5 +1,6 @@
 import { APP_LOCALE_LABELS, AppLocale, SettingMetadata } from "@spotiarr/shared";
 import { ChangeEvent, FC, memo, MouseEvent, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { SettingInput } from "./SettingInput";
 import { SettingSelect } from "./SettingSelect";
 import { SettingToggle } from "./SettingToggle";
@@ -58,13 +59,22 @@ const RENDERERS: Record<
 };
 
 export const SettingItem: FC<SettingItemProps> = memo(({ setting, value, onChange }) => {
+  const { t } = useTranslation();
   const currentValue = value !== undefined ? value : setting.defaultValue;
   const renderFn = RENDERERS[setting.component];
 
   if (!renderFn) return null;
 
+  const translatedSetting = {
+    ...setting,
+    label: t(`settings.items.${setting.key}.label`, { defaultValue: setting.label }),
+    description: t(`settings.items.${setting.key}.description`, {
+      defaultValue: setting.description,
+    }),
+  };
+
   return renderFn({
-    setting,
+    setting: translatedSetting,
     value: currentValue,
     onChange: onChange(setting.key),
   });

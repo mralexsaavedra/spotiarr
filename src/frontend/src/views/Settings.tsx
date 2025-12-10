@@ -32,7 +32,7 @@ export const Settings: FC = () => {
                 {Object.entries(settings).map(([section, sectionSettings]) => (
                   <div key={section} className="space-y-4">
                     <h2 className="text-lg font-bold text-text-primary border-b border-white/10 pb-2">
-                      {section}
+                      {t(`settings.sections.${section}`, { defaultValue: section })}
                     </h2>
                     <div className="space-y-6">
                       {sectionSettings.map((setting) => (

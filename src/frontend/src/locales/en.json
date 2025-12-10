@@ -99,6 +99,80 @@
     "language": "Interface Language",
     "description": "Select your preferred language for the interface.",
     "savedSuccess": "Settings saved successfully",
-    "saveError": "Failed to save settings"
+    "saveError": "Failed to save settings",
+    "sections": {
+      "General": "General",
+      "Spotify": "Spotify",
+      "Playlists": "Playlists",
+      "Releases": "Releases",
+      "Downloads": "Downloads",
+      "Maintenance": "Maintenance"
+    },
+    "items": {
+      "UI_LANGUAGE": {
+        "label": "Interface Language",
+        "description": "Select your preferred language for the interface."
+      },
+      "SPOTIFY_MARKET": {
+        "label": "Spotify Market/Region",
+        "description": "2-letter ISO country code that affects content availability and regional restrictions. Change this to match your location for better results."
+      },
+      "AUTO_SUBSCRIBE_NEW_PLAYLISTS": {
+        "label": "Automatically subscribe to new playlists",
+        "description": "When enabled, new playlists are automatically subscribed. If disabled, you'll need to manually subscribe to them."
+      },
+      "PLAYLIST_CHECK_INTERVAL_MINUTES": {
+        "label": "Playlist check interval (minutes)",
+        "description": "How often SpotiArr should re-check subscribed playlists on Spotify for new tracks. Lower values increase API usage."
+      },
+      "M3U_GENERATION_ENABLED": {
+        "label": "Automatically generate M3U playlists",
+        "description": "When enabled, an M3U file will be created/updated for each completed playlist."
+      },
+      "RELEASES_LOOKBACK_DAYS": {
+        "label": "New releases lookback period (days)",
+        "description": "How far back to look for new releases."
+      },
+      "FOLLOWED_ARTISTS_MAX": {
+        "label": "Maximum followed artists",
+        "description": "Maximum number of followed artists to consider across releases and artists views. Higher values may slow down the releases feed and increase API usage."
+      },
+      "RELEASES_CACHE_MINUTES": {
+        "label": "Cache duration (minutes)",
+        "description": "How long to cache releases data before refreshing from Spotify. Lower values increase API usage."
+      },
+      "FORMAT": {
+        "label": "Audio format",
+        "description": "The audio format for downloaded tracks."
+      },
+      "YT_AUDIO_QUALITY": {
+        "label": "YouTube audio quality",
+        "description": "Audio quality preference for YouTube downloads. 'best' for highest quality, 'good' for balanced, 'acceptable' for faster downloads."
+      },
+      "YT_COOKIES": {
+        "label": "YouTube cookies browser (optional)",
+        "description": "Browser to extract cookies from for age-restricted content (e.g., 'chrome', 'firefox', 'edge'). Leave empty if not needed."
+      },
+      "YT_SEARCH_CONCURRENCY": {
+        "label": "YouTube search concurrency",
+        "description": "Number of simultaneous YouTube searches. Higher values are faster but may trigger rate limits."
+      },
+      "YT_DOWNLOADS_PER_MINUTE": {
+        "label": "YouTube downloads per minute",
+        "description": "Maximum number of downloads that can start per minute to avoid YouTube throttling."
+      },
+      "DOWNLOAD_MAX_RETRIES": {
+        "label": "Maximum download retries",
+        "description": "How many times to retry a failed download before giving up."
+      },
+      "STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES": {
+        "label": "Stuck tracks cleanup interval (minutes)",
+        "description": "How often to check for and clean up stuck tracks."
+      },
+      "STUCK_TRACKS_TIMEOUT_MINUTES": {
+        "label": "Stuck tracks timeout (minutes)",
+        "description": "How long before a track is considered stuck and eligible for cleanup."
+      }
+    }
   }
 }
