@@ -1,4 +1,5 @@
 import { z, ZodError, ZodIssue } from "zod";
+import { AppError } from "@/domain/errors/app-error";
 
 const envSchema = z
   .object({
@@ -70,7 +71,11 @@ export function validateEnvironment(): void {
 
 export function getEnv(): Env {
   if (!validatedEnv) {
-    throw new Error("Environment variables not validated. Call validateEnvironment() first.");
+    throw new AppError(
+      500,
+      "internal_server_error",
+      "Environment variables not validated. Call validateEnvironment() first.",
+    );
   }
   return validatedEnv;
 }

@@ -1,6 +1,7 @@
 import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
+import { AppError } from "@/domain/errors/app-error";
 import { EventBus } from "@/domain/events/event-bus";
 import { HistoryRepository } from "@/domain/repositories/history.repository";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
@@ -90,7 +91,7 @@ export class DownloadTrackUseCase {
     if (!track.name || !track.artist) {
       const errorMsg = `Track field is null or undefined: name=${track.name}, artist=${track.artist}`;
       console.error(errorMsg);
-      throw new Error(errorMsg);
+      throw new AppError(400, "internal_server_error", errorMsg);
     }
   }
 

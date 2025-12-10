@@ -1,5 +1,5 @@
+import { AppError } from "@/domain/errors/app-error";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
-import { AppError } from "@/presentation/middleware/error-handler";
 
 export class DeleteTrackUseCase {
   constructor(private readonly trackRepository: TrackRepository) {}

@@ -32,11 +32,14 @@ export const normalizeSpotifyUrl = (value: string): string | null => {
 export const mapSpotifyError = (error: unknown, fallback: ApiErrorCode): ApiErrorCode | null => {
   if (!(error instanceof Error)) return null;
 
-  if (error.message === "missing_user_access_token") {
+  const code = (error as { code?: string }).code;
+  const message = error.message;
+
+  if (code === "missing_user_access_token" || message === "missing_user_access_token") {
     return "missing_user_access_token";
   }
 
-  if (error.message === "spotify_rate_limited") {
+  if (code === "spotify_rate_limited" || message === "spotify_rate_limited") {
     return "spotify_rate_limited";
   }
 

@@ -17,38 +17,23 @@ router.get(
 
     const limit = parseInt(req.query.limit as string) || 12;
 
-    try {
-      const [details, topTracks, albums] = await Promise.all([
-        spotifyCatalogService.getArtistDetails(id),
-        spotifyCatalogService.getArtistTopTracks(id),
-        spotifyCatalogService.getArtistAlbums(id, limit),
-      ]);
+    const [details, topTracks, albums] = await Promise.all([
+      spotifyCatalogService.getArtistDetails(id),
+      spotifyCatalogService.getArtistTopTracks(id),
+      spotifyCatalogService.getArtistAlbums(id, limit),
+    ]);
 
-      return res.json({
-        id,
-        name: details.name,
-        image: details.image,
-        spotifyUrl: details.spotifyUrl,
-        followers: details.followers,
-        popularity: details.popularity,
-        genres: details.genres,
-        topTracks,
-        albums,
-      });
-    } catch (error) {
-      const err = error as Error & { code?: string; status?: number };
-
-      if (err.code === "MISSING_SPOTIFY_USER_TOKEN") {
-        return res.status(400).json({ error: "missing_user_access_token" });
-      }
-
-      if (err.code === "SPOTIFY_RATE_LIMITED") {
-        return res.status(503).json({ error: "spotify_rate_limited" });
-      }
-
-      console.error("Error getting artist detail", err.message);
-      return res.status(500).json({ error: "failed_to_fetch_artist_detail" });
-    }
+    return res.json({
+      id,
+      name: details.name,
+      image: details.image,
+      spotifyUrl: details.spotifyUrl,
+      followers: details.followers,
+      popularity: details.popularity,
+      genres: details.genres,
+      topTracks,
+      albums,
+    });
   }),
 );
 
@@ -64,13 +49,8 @@ router.get(
       return res.status(400).json({ error: "missing_artist_id" });
     }
 
-    try {
-      const albums = await spotifyCatalogService.getArtistAlbums(id, limit, offset);
-      return res.json(albums);
-    } catch (error) {
-      console.error("Error getting artist albums", (error as Error).message);
-      return res.status(500).json({ error: "failed_to_fetch_artist_albums" });
-    }
+    const albums = await spotifyCatalogService.getArtistAlbums(id, limit, offset);
+    return res.json(albums);
   }),
 );
 

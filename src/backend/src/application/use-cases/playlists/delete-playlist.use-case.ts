@@ -1,7 +1,7 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
+import { AppError } from "@/domain/errors/app-error";
 import { EventBus } from "@/domain/events/event-bus";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
-import { AppError } from "@/presentation/middleware/error-handler";
 
 export class DeletePlaylistUseCase {
   constructor(

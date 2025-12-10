@@ -1,4 +1,5 @@
 import { Queue } from "bullmq";
+import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 
 let trackDownloadQueue: Queue;
@@ -30,14 +31,14 @@ export function initializeQueues(): void {
 
 export function getTrackDownloadQueue(): Queue {
   if (!trackDownloadQueue) {
-    throw new Error("Track download queue not initialized");
+    throw new AppError(500, "internal_server_error", "Track download queue not initialized");
   }
   return trackDownloadQueue;
 }
 
 export function getTrackSearchQueue(): Queue {
   if (!trackSearchQueue) {
-    throw new Error("Track search queue not initialized");
+    throw new AppError(500, "internal_server_error", "Track search queue not initialized");
   }
   return trackSearchQueue;
 }

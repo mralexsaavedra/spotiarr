@@ -1,4 +1,5 @@
 import { NormalizedTrack, SpotifyPlaylist } from "@spotiarr/shared";
+import { AppError } from "@/domain/errors/app-error";
 import { SpotifyCatalogService } from "@/infrastructure/external/spotify-catalog.service";
 import { SpotifyUserLibraryService } from "@/infrastructure/external/spotify-user-library.service";
 import { SpotifyUrlHelper, SpotifyUrlType } from "../helpers/spotify-url.helper";
@@ -71,7 +72,7 @@ export class SpotifyService {
       }
 
       const _exhaustiveCheck: never = urlType;
-      throw new Error(`Unhandled URL type: ${_exhaustiveCheck}`);
+      throw new AppError(400, "invalid_spotify_url", `Unhandled URL type: ${_exhaustiveCheck}`);
     } catch (error) {
       console.error(`Error getting playlist details: ${(error as Error).message}`);
       throw error;

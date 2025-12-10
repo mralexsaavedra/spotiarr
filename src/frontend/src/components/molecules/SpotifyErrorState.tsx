@@ -43,9 +43,6 @@ export const SpotifyErrorState: FC<SpotifyErrorStateProps> = ({
 
   if (!error) return null;
 
-  // Fix: map outdated backend error code to frontend constant if needed, or assume literal match
-  // The backend uses 'MISSING_SPOTIFY_USER_TOKEN' but types/shared might have 'missing_spotify_user_token'
-  // Assuming keys in ERROR_RENDERERS match ApiErrorCode values.
   const Renderer = ERROR_RENDERERS[error];
 
   if (Renderer) {

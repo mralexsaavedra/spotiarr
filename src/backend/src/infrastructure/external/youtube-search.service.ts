@@ -4,6 +4,7 @@ import * as os from "os";
 import { join } from "path";
 import { promisify } from "util";
 import { SettingsService } from "@/application/services/settings.service";
+import { AppError } from "@/domain/errors/app-error";
 
 const execFilePromise = promisify(execFile);
 
@@ -65,7 +66,7 @@ export class YoutubeSearchService {
       const url = stdout.trim();
 
       if (!url) {
-        throw new Error("No results found");
+        throw new AppError(404, "track_not_found", "No results found");
       }
 
       console.debug(`Found ${artist} - ${name} on ${url}`);

@@ -1,4 +1,5 @@
 import { SETTINGS_METADATA } from "@/constants/settings-metadata";
+import { AppError } from "@/domain/errors/app-error";
 import type { SettingsRepository } from "@/domain/repositories/settings.repository";
 
 export class SettingsService {
@@ -13,7 +14,11 @@ export class SettingsService {
     const defaultValue = SETTINGS_METADATA[key]?.defaultValue;
     if (defaultValue !== undefined) return defaultValue;
 
-    throw new Error(`Setting ${key} not found and no valid default value available`);
+    throw new AppError(
+      500,
+      "internal_server_error",
+      `Setting ${key} not found and no valid default value available`,
+    );
   }
 
   async getNumber(key: string, fallback?: number): Promise<number> {
@@ -31,7 +36,11 @@ export class SettingsService {
       if (!Number.isNaN(num)) return num;
     }
 
-    throw new Error(`Setting ${key} not found and no valid default value available`);
+    throw new AppError(
+      500,
+      "internal_server_error",
+      `Setting ${key} not found and no valid default value available`,
+    );
   }
 
   async getBoolean(key: string, fallback?: boolean): Promise<boolean> {

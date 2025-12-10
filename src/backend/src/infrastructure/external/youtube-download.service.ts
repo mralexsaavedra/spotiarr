@@ -1,6 +1,7 @@
 import { SUPPORTED_AUDIO_FORMATS, SupportedAudioFormat, type ITrack } from "@spotiarr/shared";
 import { YtDlp } from "ytdlp-nodejs";
 import { SettingsService } from "@/application/services/settings.service";
+import { AppError } from "@/domain/errors/app-error";
 import { YoutubeSearchService } from "./youtube-search.service";
 
 const HEADERS = {
@@ -18,7 +19,7 @@ export class YoutubeDownloadService {
     console.debug(`Downloading ${track.artist} - ${track.name} (${track.youtubeUrl}) from YT`);
     if (!track.youtubeUrl) {
       console.error("youtubeUrl is null or undefined");
-      throw Error("youtubeUrl is null or undefined");
+      throw new AppError(400, "internal_server_error", "youtubeUrl is null or undefined");
     }
 
     const ytdlp = new YtDlp({

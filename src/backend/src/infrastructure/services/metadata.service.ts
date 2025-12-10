@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as NodeID3 from "node-id3";
 import { join } from "path";
+import { AppError } from "@/domain/errors/app-error";
 
 interface CoverTags extends NodeID3.Tags {
   APIC?: {
@@ -78,7 +79,11 @@ export class MetadataService {
       const response = await fetch(coverUrl);
 
       if (!response.ok) {
-        throw new Error(`Failed to download cover: ${response.statusText}`);
+        throw new AppError(
+          500,
+          "internal_server_error",
+          `Failed to download cover: ${response.statusText}`,
+        );
       }
 
       const imageBuffer = Buffer.from(await response.arrayBuffer());

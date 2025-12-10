@@ -1,7 +1,7 @@
 import { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
+import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper } from "@/domain/helpers/spotify-url.helper";
-import { AppError } from "@/presentation/middleware/error-handler";
 import { getEnv } from "../setup/environment";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient } from "./spotify-http.client";
@@ -78,7 +78,10 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
           response = await this.fetchWithUserToken(url);
         } catch (userTokenError) {
           // If user token is not available, throw a more helpful error
-          if ((userTokenError as Error & { code?: string }).code === "MISSING_SPOTIFY_USER_TOKEN") {
+          if (
+            userTokenError instanceof AppError &&
+            userTokenError.errorCode === "missing_user_access_token"
+          ) {
             throw new AppError(
               401,
               "missing_user_access_token",
@@ -607,8 +610,8 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
                 useUserToken = true; // Remember to use user token for subsequent pages
               } catch (userTokenError) {
                 if (
-                  (userTokenError as Error & { code?: string }).code ===
-                  "MISSING_SPOTIFY_USER_TOKEN"
+                  userTokenError instanceof AppError &&
+                  userTokenError.errorCode === "missing_user_access_token"
                 ) {
                   throw new AppError(
                     401,

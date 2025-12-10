@@ -43,16 +43,8 @@ router.get(
       });
     }
 
-    try {
-      await spotifyAuthService.exchangeCodeForToken(code);
-      res.redirect("/");
-    } catch (error) {
-      console.error("Spotify token exchange failed", error);
-      res.status(500).json({
-        error: "spotify_token_exchange_failed",
-        message: "Failed to exchange authorization code for access token",
-      });
-    }
+    await spotifyAuthService.exchangeCodeForToken(code);
+    res.redirect("/");
   }),
 );
 
@@ -81,21 +73,11 @@ router.get(
 router.post(
   "/spotify/logout",
   asyncHandler(async (_req, res) => {
-    try {
-      await spotifyAuthService.logout();
-
-      res.json({
-        success: true,
-        message: "Successfully logged out from Spotify",
-      });
-    } catch (error) {
-      console.error("Failed to logout from Spotify", error);
-      res.status(500).json({
-        success: false,
-        error: "logout_failed",
-        message: "Failed to clear Spotify authentication",
-      });
-    }
+    await spotifyAuthService.logout();
+    res.json({
+      success: true,
+      message: "Successfully logged out from Spotify",
+    });
   }),
 );
 

@@ -1,4 +1,4 @@
-import { AppError } from "@/presentation/middleware/error-handler";
+import { AppError } from "@/domain/errors/app-error";
 
 export enum SpotifyUrlType {
   Playlist = "playlist",

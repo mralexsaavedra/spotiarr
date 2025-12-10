@@ -1,6 +1,6 @@
 import { AlbumType, ArtistRelease, FollowedArtist, SpotifyPlaylist } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
-import { AppError } from "@/presentation/middleware/error-handler";
+import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient } from "./spotify-http.client";

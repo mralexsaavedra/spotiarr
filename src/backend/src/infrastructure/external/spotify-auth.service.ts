@@ -1,4 +1,5 @@
 import { SettingsService } from "@/application/services/settings.service";
+import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 
 interface SpotifyTokenResponse {
@@ -40,7 +41,9 @@ export class SpotifyAuthService {
       const clientSecret = env.SPOTIFY_CLIENT_SECRET;
 
       if (!clientId || !clientSecret) {
-        throw new Error(
+        throw new AppError(
+          500,
+          "missing_spotify_credentials",
           "Missing Spotify credentials. Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env file",
         );
       }
@@ -58,7 +61,11 @@ export class SpotifyAuthService {
 
       if (!response.ok) {
         const errorData = await response.text();
-        throw new Error(`Failed to get access token: ${errorData}`);
+        throw new AppError(
+          500,
+          "internal_server_error",
+          `Failed to get access token: ${errorData}`,
+        );
       }
 
       const data = (await response.json()) as SpotifyTokenResponse;
@@ -88,11 +95,11 @@ export class SpotifyAuthService {
     const token = fromSettings ?? getEnv().SPOTIFY_USER_ACCESS_TOKEN;
 
     if (!token) {
-      const error = new Error(
+      throw new AppError(
+        401,
+        "missing_user_access_token",
         `Missing Spotify user access token. Set '${accessTokenKey}' in settings or SPOTIFY_USER_ACCESS_TOKEN in env`,
-      ) as Error & { code?: string };
-      error.code = "MISSING_SPOTIFY_USER_TOKEN";
-      throw error;
+      );
     }
 
     return token;
@@ -189,7 +196,11 @@ export class SpotifyAuthService {
     if (!response.ok) {
       const errorText = await response.text();
       this.log(`Spotify token exchange failed: ${errorText}`, "error");
-      throw new Error(`Failed to exchange authorization code for access token: ${errorText}`);
+      throw new AppError(
+        500,
+        "spotify_token_exchange_failed",
+        `Failed to exchange authorization code for access token: ${errorText}`,
+      );
     }
 
     const data = (await response.json()) as {

@@ -1,19 +1,13 @@
 import type { ApiErrorCode, ApiErrorShape } from "@spotiarr/shared";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import { AppError } from "@/domain/errors/app-error";
 
-export class AppError extends Error {
-  constructor(
-    public statusCode: number,
-    public errorCode: ApiErrorCode,
-    message?: string,
-    public isOperational = true,
-  ) {
-    super(message || errorCode);
-    Object.setPrototypeOf(this, AppError.prototype);
-  }
-}
-
-export const errorHandler = (error: Error | AppError, req: Request, res: Response) => {
+export const errorHandler = (
+  error: Error | AppError,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
   console.error("Error:", error);
 
   const isAppError = error instanceof AppError;
