@@ -7,6 +7,7 @@ import { App } from "./app/App";
 import { ErrorBoundary } from "./components/errors/ErrorBoundary";
 import { ErrorFallback } from "./components/errors/ErrorFallback";
 import { APP_CONFIG } from "./config/app";
+import "./i18n";
 import "./index.css";
 
 const queryClient = new QueryClient({

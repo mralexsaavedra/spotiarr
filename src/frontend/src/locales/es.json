@@ -1,0 +1,12 @@
+{
+  "settings": {
+    "title": "Ajustes",
+    "resetToDefaults": "Restaurar valores predeterminados",
+    "saveSettings": "Guardar ajustes",
+    "saving": "Guardando...",
+    "language": "Idioma",
+    "description": "Selecciona tu idioma preferido",
+    "savedSuccess": "Ajustes guardados correctamente",
+    "saveError": "Error al guardar los ajustes"
+  }
+}
