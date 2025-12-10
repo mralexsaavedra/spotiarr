@@ -14,7 +14,7 @@ export const SpotifyAuthCard: FC = () => {
 
   return (
     <div className="bg-background-elevated space-y-4 rounded-lg border border-white/10 p-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h2 className="text-text-primary flex items-center gap-2 text-lg font-bold">
             <svg
@@ -31,7 +31,7 @@ export const SpotifyAuthCard: FC = () => {
             {isAuthenticated ? t("auth.connectedDescription") : t("auth.disconnectedDescription")}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
           {isAuthenticated ? (
             <div className="flex items-center gap-2 text-green-500">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +42,9 @@ export const SpotifyAuthCard: FC = () => {
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="text-sm font-medium">{t("auth.connectedStatus")}</span>
+              <span className="text-sm font-medium whitespace-nowrap">
+                {t("auth.connectedStatus")}
+              </span>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-yellow-500">
@@ -54,15 +56,24 @@ export const SpotifyAuthCard: FC = () => {
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
-              <span className="text-sm font-medium">{t("auth.disconnectedStatus")}</span>
+              <span className="text-sm font-medium whitespace-nowrap">
+                {t("auth.disconnectedStatus")}
+              </span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-col gap-3 pt-2 sm:flex-row">
         {isAuthenticated ? (
-          <Button type="button" onClick={logout} disabled={isLoading} variant="secondary" size="md">
+          <Button
+            type="button"
+            onClick={logout}
+            disabled={isLoading}
+            variant="secondary"
+            size="md"
+            className="w-full justify-center sm:w-auto"
+          >
             {t("auth.disconnectButton")}
           </Button>
         ) : (
@@ -74,6 +85,7 @@ export const SpotifyAuthCard: FC = () => {
             size="md"
             loading={isLoading}
             icon={["fab", "spotify"]}
+            className="w-full justify-center sm:w-auto"
           >
             {t("auth.connectButton")}
           </Button>
