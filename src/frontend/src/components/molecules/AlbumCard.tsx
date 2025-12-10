@@ -62,10 +62,10 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
     return (
       <article
         key={`${albumId}-${artistId}`}
-        className="p-4 transition-all rounded-md cursor-pointer group bg-background-elevated hover:bg-background-hover"
+        className="group bg-background-elevated hover:bg-background-hover cursor-pointer rounded-md p-4 transition-all"
         onClick={onCardClick}
       >
-        <div className="relative mb-4 overflow-hidden rounded-md shadow-lg aspect-square bg-background-hover">
+        <div className="bg-background-hover relative mb-4 aspect-square overflow-hidden rounded-md shadow-lg">
           <Image
             src={coverUrl || undefined}
             alt={albumName}
@@ -76,16 +76,16 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
 
           {spotifyUrl && (
             <div
-              className={`absolute inset-0 flex items-center justify-center transition-opacity bg-black/40 ${
+              className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
                 isDownloading ? "opacity-100" : "md:opacity-0 md:group-hover:opacity-100"
               }`}
             >
               <button
                 onClick={onDownloadClick}
                 disabled={isDownloaded || isDownloading}
-                className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all ${
+                className={`flex h-12 w-12 items-center justify-center rounded-full shadow-xl transition-all ${
                   isDownloaded
-                    ? "bg-green-500 cursor-not-allowed"
+                    ? "cursor-not-allowed bg-green-500"
                     : isDownloading
                       ? "bg-background-elevated cursor-wait"
                       : "bg-primary hover:scale-110"
@@ -112,16 +112,16 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-sm font-bold truncate text-text-primary group-hover:underline">
+          <h3 className="text-text-primary truncate text-sm font-bold group-hover:underline">
             {albumName}
           </h3>
           <span
-            className="block text-xs truncate cursor-pointer text-text-secondary hover:underline hover:text-text-primary"
+            className="text-text-secondary hover:text-text-primary block cursor-pointer truncate text-xs hover:underline"
             onClick={handleArtistClick}
           >
             {artistName}
           </span>
-          <div className="flex items-center gap-1 text-xs truncate text-text-secondary">
+          <div className="text-text-secondary flex items-center gap-1 truncate text-xs">
             <span>{typeLabel}</span>
             {dateDisplay && (
               <>

@@ -10,10 +10,10 @@ interface PreviewErrorProps {
 
 export const PreviewError: FC<PreviewErrorProps> = ({ error, onGoBack }) => {
   return (
-    <section className="flex-1 bg-background px-4 md:px-8 py-6 flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="max-w-md text-center space-y-4">
-        <FontAwesomeIcon icon={faCircleExclamation} className="text-6xl text-text-secondary" />
-        <h2 className="text-2xl font-bold text-text-primary">Preview not available</h2>
+    <section className="bg-background flex min-h-[60vh] flex-1 flex-col items-center justify-center px-4 py-6 md:px-8">
+      <div className="max-w-md space-y-4 text-center">
+        <FontAwesomeIcon icon={faCircleExclamation} className="text-text-secondary text-6xl" />
+        <h2 className="text-text-primary text-2xl font-bold">Preview not available</h2>
         <p className="text-text-secondary">{error ? String(error) : "Could not load preview"}</p>
         <Button variant="primary" size="md" onClick={onGoBack}>
           Go back

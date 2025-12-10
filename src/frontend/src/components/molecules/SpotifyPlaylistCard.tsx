@@ -20,10 +20,10 @@ export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
     return (
       <article
         key={id}
-        className="flex flex-col gap-3 p-3 transition-colors rounded-md cursor-pointer group hover:bg-background-hover"
+        className="group hover:bg-background-hover flex cursor-pointer flex-col gap-3 rounded-md p-3 transition-colors"
         onClick={handleCardClick}
       >
-        <div className="relative w-full overflow-hidden rounded-md shadow-lg aspect-square bg-zinc-800">
+        <div className="relative aspect-square w-full overflow-hidden rounded-md bg-zinc-800 shadow-lg">
           <Image
             src={image || undefined}
             alt={name}
@@ -32,14 +32,14 @@ export const SpotifyPlaylistCard: FC<SpotifyPlaylistCardProps> = memo(
             className="group-hover:scale-105"
           />
         </div>
-        <div className="flex flex-col min-w-0">
+        <div className="flex min-w-0 flex-col">
           <h3
-            className="text-base font-bold text-white truncate group-hover:underline"
+            className="truncate text-base font-bold text-white group-hover:underline"
             title={name}
           >
             {name}
           </h3>
-          <p className="text-sm truncate text-zinc-400">
+          <p className="truncate text-sm text-zinc-400">
             By{" "}
             {ownerUrl ? (
               <a

@@ -27,29 +27,29 @@ export const GenericErrorState: FC<GenericErrorStateProps> = ({
 
   return (
     <div className={containerClass}>
-      <div className="max-w-2xl w-full bg-background-elevated rounded-lg p-8 space-y-6">
+      <div className="bg-background-elevated w-full max-w-2xl space-y-6 rounded-lg p-8">
         {/* Icon */}
         <div className="flex justify-center">
-          <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10">
             <FontAwesomeIcon icon={faTriangleExclamation} className="text-4xl text-red-400" />
           </div>
         </div>
 
         {/* Title */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-text-primary">{title}</h1>
+        <div className="space-y-2 text-center">
+          <h1 className="text-text-primary text-3xl font-bold">{title}</h1>
           <p className="text-text-secondary">{description}</p>
         </div>
 
         {/* Error details (only in dev) */}
         {isDev && error && (
-          <div className="bg-background rounded-md p-4 space-y-2 text-left">
-            <h2 className="text-sm font-semibold text-text-primary">Error Details (Dev Only)</h2>
-            <p className="text-xs text-red-400 font-mono break-all">{error.message}</p>
+          <div className="bg-background space-y-2 rounded-md p-4 text-left">
+            <h2 className="text-text-primary text-sm font-semibold">Error Details (Dev Only)</h2>
+            <p className="font-mono text-xs break-all text-red-400">{error.message}</p>
             {error.stack && (
-              <details className="text-xs text-text-secondary">
-                <summary className="cursor-pointer hover:text-text-primary">Stack Trace</summary>
-                <pre className="mt-2 overflow-auto max-h-40 text-[10px] leading-tight">
+              <details className="text-text-secondary text-xs">
+                <summary className="hover:text-text-primary cursor-pointer">Stack Trace</summary>
+                <pre className="mt-2 max-h-40 overflow-auto text-[10px] leading-tight">
                   {error.stack}
                 </pre>
               </details>
@@ -58,11 +58,11 @@ export const GenericErrorState: FC<GenericErrorStateProps> = ({
         )}
 
         {/* Actions */}
-        <div className="flex gap-3 justify-center">
+        <div className="flex justify-center gap-3">
           {onRetry && (
             <button
               onClick={onRetry}
-              className="px-6 py-3 bg-primary text-black font-semibold rounded-md hover:bg-primary/90 transition-colors"
+              className="bg-primary hover:bg-primary/90 rounded-md px-6 py-3 font-semibold text-black transition-colors"
             >
               Try Again
             </button>
@@ -70,7 +70,7 @@ export const GenericErrorState: FC<GenericErrorStateProps> = ({
           {onGoHome && (
             <button
               onClick={onGoHome}
-              className="px-6 py-3 bg-background-hover text-text-primary font-semibold rounded-md hover:bg-white/10 transition-colors"
+              className="bg-background-hover text-text-primary rounded-md px-6 py-3 font-semibold transition-colors hover:bg-white/10"
             >
               Go Home
             </button>

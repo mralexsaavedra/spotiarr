@@ -30,7 +30,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
   return (
     <aside
       className={cn(
-        "hidden md:flex flex-col py-6 border-r border-border h-screen fixed top-0 left-0 z-[70] bg-black transition-all duration-300",
+        "border-border fixed top-0 left-0 z-[70] hidden h-screen flex-col border-r bg-black py-6 transition-all duration-300 md:flex",
         isSidebarCollapsed ? "w-20 px-2" : "w-64 px-4",
       )}
     >
@@ -38,21 +38,21 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
       <Link
         to={Path.HOME}
         className={cn(
-          "flex items-center gap-3 mb-8 transition-all shrink-0",
+          "mb-8 flex shrink-0 items-center gap-3 transition-all",
           isSidebarCollapsed ? "pl-3" : "px-2",
         )}
         title={t("navigation.spotiarrHome")}
       >
-        <img src="/logo.svg" alt="SpotiArr Logo" className="w-8 h-8 shrink-0" />
+        <img src="/logo.svg" alt="SpotiArr Logo" className="h-8 w-8 shrink-0" />
         {!isSidebarCollapsed && (
-          <span className="text-xl font-bold tracking-tight text-white duration-300 whitespace-nowrap animate-in fade-in slide-in-from-left-2">
+          <span className="animate-in fade-in slide-in-from-left-2 text-xl font-bold tracking-tight whitespace-nowrap text-white duration-300">
             SpotiArr
           </span>
         )}
       </Link>
 
       {/* Navigation - Scrollable area */}
-      <nav className="flex flex-col flex-1 w-full min-h-0 gap-2 overflow-y-auto scrollbar-hide">
+      <nav className="scrollbar-hide flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.to;
           const label = t(`navigation.${NAV_TRANSLATION_KEYS[item.label]}`);
@@ -62,7 +62,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
               key={item.to}
               to={item.to}
               className={cn(
-                "group flex items-center gap-3 font-semibold transition-all rounded-lg py-2.5 shrink-0 overflow-hidden whitespace-nowrap",
+                "group flex shrink-0 items-center gap-3 overflow-hidden rounded-lg py-2.5 font-semibold whitespace-nowrap transition-all",
                 active
                   ? "text-text-primary bg-background-hover"
                   : "text-text-secondary hover:text-text-primary",
@@ -73,7 +73,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
               <FontAwesomeIcon
                 icon={item.icon}
                 className={cn(
-                  "text-lg transition-colors w-5 text-center",
+                  "w-5 text-center text-lg transition-colors",
                   active
                     ? "text-text-primary"
                     : "text-text-secondary group-hover:text-text-primary",
@@ -82,7 +82,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
               {!isSidebarCollapsed && (
                 <span
                   className={cn(
-                    "transition-all whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300",
+                    "animate-in fade-in slide-in-from-left-2 whitespace-nowrap transition-all duration-300",
                     active
                       ? "text-text-primary"
                       : "text-text-secondary group-hover:text-text-primary",
@@ -102,23 +102,23 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
         <button
           onClick={toggleSidebar}
           className={cn(
-            "group flex items-center gap-3 font-semibold transition-all rounded-lg py-2.5 shrink-0 mt-2 text-text-secondary hover:text-white hover:bg-white/5 w-full whitespace-nowrap overflow-hidden",
+            "group text-text-secondary mt-2 flex w-full shrink-0 items-center gap-3 overflow-hidden rounded-lg py-2.5 font-semibold whitespace-nowrap transition-all hover:bg-white/5 hover:text-white",
             isSidebarCollapsed ? "pl-5" : "px-2",
           )}
           title={isSidebarCollapsed ? t("navigation.expand") : t("navigation.collapse")}
         >
           <FontAwesomeIcon
             icon={isSidebarCollapsed ? faChevronRight : faChevronLeft}
-            className="w-5 text-lg text-center transition-colors shrink-0"
+            className="w-5 shrink-0 text-center text-lg transition-colors"
           />
           {!isSidebarCollapsed && (
-            <span className="transition-all duration-300 whitespace-nowrap animate-in fade-in slide-in-from-left-2">
+            <span className="animate-in fade-in slide-in-from-left-2 whitespace-nowrap transition-all duration-300">
               {t("navigation.collapse")}
             </span>
           )}
         </button>
 
-        <div className="pt-4 border-t border-white/10 shrink-0">
+        <div className="shrink-0 border-t border-white/10 pt-4">
           <AppFooter collapsed={isSidebarCollapsed} />
         </div>
       </div>

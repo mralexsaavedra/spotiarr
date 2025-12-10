@@ -42,10 +42,10 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         variant="primary"
         size="lg"
         className={cn(
-          "!w-12 !h-12 md:!w-14 md:!h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform",
+          "!h-12 !w-12 justify-center !rounded-full !p-0 shadow-lg transition-transform md:!h-14 md:!w-14",
           isDownloaded
-            ? "bg-green-500 hover:bg-green-600 cursor-default"
-            : "bg-green-500 hover:bg-green-600 hover:scale-105",
+            ? "cursor-default bg-green-500 hover:bg-green-600"
+            : "bg-green-500 hover:scale-105 hover:bg-green-600",
         )}
         onClick={onDownload}
         loading={isDownloading}
@@ -69,10 +69,10 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         variant="secondary"
         size="md"
         className={cn(
-          "!h-9 md:!h-10 !w-9 md:!w-36 px-0 md:px-0 !rounded-full shadow-lg border-2 justify-center",
+          "!h-9 !w-9 justify-center !rounded-full border-2 px-0 shadow-lg md:!h-10 md:!w-36 md:px-0",
           isSubscribed
-            ? "bg-green-500 border-green-500 text-black hover:bg-green-400 hover:border-green-400"
-            : "bg-transparent border-white/30 text-white hover:border-white hover:bg-white/10",
+            ? "border-green-500 bg-green-500 text-black hover:border-green-400 hover:bg-green-400"
+            : "border-white/30 bg-transparent text-white hover:border-white hover:bg-white/10",
         )}
         onClick={onToggleSubscription}
         title={isSubscribed ? t("playlist.actions.unsubscribe") : t("playlist.actions.subscribe")}
@@ -109,7 +109,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         icon={faTrash}
         className={cn(
           "text-text-secondary",
-          !isSaved ? "opacity-30 cursor-not-allowed" : "hover:text-red-400 hover:bg-red-500/10",
+          !isSaved ? "cursor-not-allowed opacity-30" : "hover:bg-red-500/10 hover:text-red-400",
         )}
         onClick={onDelete}
         disabled={!isSaved}

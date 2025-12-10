@@ -14,7 +14,7 @@ export const Settings: FC = () => {
     useSettingsController();
 
   return (
-    <section className="flex-1 bg-background px-4 md:px-8 py-6">
+    <section className="bg-background flex-1 px-4 py-6 md:px-8">
       <div className="max-w-full">
         <PageHeader title={t("settings.title")} className="mb-6" />
 
@@ -26,12 +26,12 @@ export const Settings: FC = () => {
 
             <form
               onSubmit={handleSubmit}
-              className="bg-background-elevated rounded-lg p-4 md:p-6 space-y-8 mt-6"
+              className="bg-background-elevated mt-6 space-y-8 rounded-lg p-4 md:p-6"
             >
               <fieldset disabled={isSaving} className="space-y-8">
                 {Object.entries(settings).map(([section, sectionSettings]) => (
                   <div key={section} className="space-y-4">
-                    <h2 className="text-lg font-bold text-text-primary border-b border-white/10 pb-2">
+                    <h2 className="text-text-primary border-b border-white/10 pb-2 text-lg font-bold">
                       {t(`settings.sections.${section}`, { defaultValue: section })}
                     </h2>
                     <div className="space-y-6">

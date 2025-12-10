@@ -40,7 +40,7 @@ const TrackMetadata: FC<MetadataRendererProps> = ({ artists, firstTrack, onClick
         linkClassName="hover:underline"
         onLinkClick={onClick}
       />
-      <span className="mx-1 text-text-primary">•</span>
+      <span className="text-text-primary mx-1">•</span>
       {firstTrack?.albumUrl ? (
         <Link
           to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(firstTrack.albumUrl)}`}

@@ -121,14 +121,14 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
 
   return (
     <div className="mt-10 pb-24 md:pb-0">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-2xl font-bold">{t("artist.discography.title")}</h2>
       </div>
 
       <ArtistDiscographyFilters currentFilter={filter} onFilterChange={onFilterChange} />
 
       {filteredAlbums.length === 0 ? (
-        <div className="py-12 text-center text-text-secondary bg-white/5 rounded-lg">
+        <div className="text-text-secondary rounded-lg bg-white/5 py-12 text-center">
           <p>{t("artist.discography.emptyFiltered")}</p>
         </div>
       ) : (
@@ -139,7 +139,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
             renderItem={renderDiscographyItem}
             footer={
               canShowMore ? (
-                <div className="flex justify-center mt-8 pb-8">
+                <div className="mt-8 flex justify-center pb-8">
                   <Button
                     onClick={onShowMore}
                     loading={isLoadingMore}

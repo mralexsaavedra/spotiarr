@@ -31,7 +31,7 @@ export const Image: FC<ImageProps> = ({
           fallbackClassName,
         )}
       >
-        <FontAwesomeIcon icon={fallbackIcon} className="text-4xl opacity-50 text-text-secondary" />
+        <FontAwesomeIcon icon={fallbackIcon} className="text-text-secondary text-4xl opacity-50" />
       </div>
     );
   }

@@ -12,15 +12,15 @@ export const PlaylistNotFound: FC<PlaylistNotFoundProps> = ({ onGoHome }) => {
   const { t } = useTranslation();
 
   return (
-    <section className="flex-1 bg-background px-4 md:px-8 py-8 flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <FontAwesomeIcon icon={faCircleExclamation} className="text-6xl text-text-secondary" />
-        <h2 className="text-2xl font-bold text-text-primary">{t("playlist.notFound")}</h2>
+    <section className="bg-background flex flex-1 items-center justify-center px-4 py-8 md:px-8">
+      <div className="space-y-4 text-center">
+        <FontAwesomeIcon icon={faCircleExclamation} className="text-text-secondary text-6xl" />
+        <h2 className="text-text-primary text-2xl font-bold">{t("playlist.notFound")}</h2>
         <Button
           variant="primary"
           size="md"
           onClick={onGoHome}
-          className="hover:scale-105 transition-transform"
+          className="transition-transform hover:scale-105"
         >
           {t("playlist.goBack")}
         </Button>

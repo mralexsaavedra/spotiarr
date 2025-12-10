@@ -18,25 +18,25 @@ export const AppHeader: FC = () => {
   const isDownloadDisabled = !isValidUrl || isPending;
 
   return (
-    <header className="sticky top-0 z-50 px-4 py-3 border-b bg-background/95 backdrop-blur-md border-white/10 md:px-8">
+    <header className="bg-background/95 sticky top-0 z-50 border-b border-white/10 px-4 py-3 backdrop-blur-md md:px-8">
       <div className="flex items-center gap-3 md:gap-4">
         {/* Logo: Mobile Only */}
-        <div className="flex items-center md:hidden shrink-0">
+        <div className="flex shrink-0 items-center md:hidden">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="SpotiArr Logo" className="w-8 h-8" />
-            <span className="hidden text-lg font-bold text-text-primary sm:block">SpotiArr</span>
+            <img src="/logo.svg" alt="SpotiArr Logo" className="h-8 w-8" />
+            <span className="text-text-primary hidden text-lg font-bold sm:block">SpotiArr</span>
           </Link>
         </div>
 
         {/* Search Bar: Unified */}
-        <div className="flex-1 max-w-lg md:mx-auto">
+        <div className="max-w-lg flex-1 md:mx-auto">
           <div className="relative">
             <input
               className={cn(
-                "w-full pl-9 md:pl-10 pr-12 md:pr-28 py-2 md:py-2.5 rounded-full bg-background-elevated text-text-primary text-sm placeholder-text-secondary focus:outline-none transition",
+                "bg-background-elevated text-text-primary placeholder-text-secondary w-full rounded-full py-2 pr-12 pl-9 text-sm transition focus:outline-none md:py-2.5 md:pr-28 md:pl-10",
                 url && !isValidUrl
-                  ? "ring-2 ring-red-500/50 focus:ring-red-500 bg-red-500/5"
-                  : "focus:ring-2 focus:ring-white/20 focus:bg-background-hover",
+                  ? "bg-red-500/5 ring-2 ring-red-500/50 focus:ring-red-500"
+                  : "focus:bg-background-hover focus:ring-2 focus:ring-white/20",
               )}
               type="text"
               value={url}
@@ -47,14 +47,14 @@ export const AppHeader: FC = () => {
             <FontAwesomeIcon
               icon={faLink}
               className={cn(
-                "absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none",
+                "pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm",
                 url && !isValidUrl ? "text-red-400" : "text-text-secondary",
               )}
             />
 
             {url && (
               <button
-                className="absolute flex items-center justify-center px-3 text-xs font-bold text-black transition-colors -translate-y-1/2 rounded-full right-1 top-1/2 h-7 md:h-8 md:px-4 bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary absolute top-1/2 right-1 flex h-7 -translate-y-1/2 items-center justify-center rounded-full px-3 text-xs font-bold text-black transition-colors disabled:cursor-not-allowed disabled:opacity-50 md:h-8 md:px-4"
                 onClick={handleDownload}
                 disabled={isDownloadDisabled}
               >
@@ -68,7 +68,7 @@ export const AppHeader: FC = () => {
         {/* History: Mobile Only */}
         <Link
           to={Path.HISTORY}
-          className="flex items-center justify-center w-10 h-10 transition-colors rounded-full text-text-secondary hover:text-text-primary hover:bg-background-elevated md:hidden shrink-0"
+          className="text-text-secondary hover:text-text-primary hover:bg-background-elevated flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors md:hidden"
         >
           <FontAwesomeIcon icon={faClockRotateLeft} className="text-xl" />
         </Link>
@@ -76,7 +76,7 @@ export const AppHeader: FC = () => {
         {/* Settings: Mobile Only */}
         <Link
           to={Path.SETTINGS}
-          className="flex items-center justify-center w-10 h-10 transition-colors rounded-full text-text-secondary hover:text-text-primary hover:bg-background-elevated md:hidden shrink-0"
+          className="text-text-secondary hover:text-text-primary hover:bg-background-elevated flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors md:hidden"
         >
           <FontAwesomeIcon icon={faSliders} className="text-xl" />
         </Link>

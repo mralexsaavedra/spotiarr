@@ -44,7 +44,7 @@ export const PlaylistStatusBadge: FC<PlaylistStats> = ({
   if (isCompleted) {
     return (
       <>
-        <FontAwesomeIcon icon={faCircleArrowDown} className="text-xs text-primary" />
+        <FontAwesomeIcon icon={faCircleArrowDown} className="text-primary text-xs" />
         <span>
           {totalCount} {t("common.cards.status.tracks", { count: totalCount })}
         </span>

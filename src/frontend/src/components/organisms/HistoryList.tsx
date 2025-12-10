@@ -51,10 +51,10 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
     return (
       <div
         onClick={handleRowClick}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_150px_120px] gap-4 items-center px-4 py-3 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+        className="group grid cursor-pointer grid-cols-[1fr_auto] items-center gap-4 rounded-md px-4 py-3 transition-colors hover:bg-white/10 md:grid-cols-[1fr_150px_120px]"
       >
         <div className="min-w-0">
-          <h3 className="font-medium text-base text-text-primary truncate">
+          <h3 className="text-text-primary truncate text-base font-medium">
             {activePlaylist ? (
               <Link
                 to={Path.PLAYLIST_DETAIL.replace(":id", activePlaylist.id)}
@@ -75,16 +75,16 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
               playlistName
             )}
           </h3>
-          <div className="md:hidden flex items-center gap-2 text-xs text-text-secondary mt-1">
+          <div className="text-text-secondary mt-1 flex items-center gap-2 text-xs md:hidden">
             <span>{lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}</span>
           </div>
         </div>
 
-        <div className="hidden md:block text-right text-sm text-text-secondary">
+        <div className="text-text-secondary hidden text-right text-sm md:block">
           {lastCompletedAt ? formatRelativeDate(lastCompletedAt) : "-"}
         </div>
 
-        <div className="flex justify-end items-center" onClick={handleActionClick}>
+        <div className="flex items-center justify-end" onClick={handleActionClick}>
           {playlistSpotifyUrl && (
             <>
               {isDownloading ? (
@@ -92,7 +92,7 @@ const HistoryListItem: FC<HistoryListItemProps> = memo(
                   variant="ghost"
                   size="sm"
                   disabled
-                  className="!opacity-100 !cursor-default hover:!bg-transparent text-text-secondary"
+                  className="text-text-secondary !cursor-default !opacity-100 hover:!bg-transparent"
                 >
                   <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
                   <span className="hidden md:inline">{t("history.downloading")}</span>
@@ -180,9 +180,9 @@ export const HistoryList: FC<HistoryListProps> = ({
 
   return (
     <div className="flex flex-col">
-      <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_150px_120px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2">
+      <div className="text-text-secondary mb-2 grid grid-cols-[1fr_auto] gap-4 border-b border-white/10 px-4 py-2 text-sm font-medium tracking-wider uppercase md:grid-cols-[1fr_150px_120px]">
         <div>{t("common.title")}</div>
-        <div className="hidden md:block text-right">{t("history.completed")}</div>
+        <div className="hidden text-right md:block">{t("history.completed")}</div>
         <div className="text-right">{t("history.actions")}</div>
       </div>
       <VirtualList

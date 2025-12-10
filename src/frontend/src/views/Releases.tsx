@@ -21,14 +21,14 @@ export const Releases: FC = () => {
 
   if (error) {
     return (
-      <section className="flex-1 px-4 py-6 bg-background md:px-8">
+      <section className="bg-background flex-1 px-4 py-6 md:px-8">
         <SpotifyErrorState error={error} message={t("releases.error")} />
       </section>
     );
   }
 
   return (
-    <section className="flex-1 px-4 py-6 bg-background md:px-8">
+    <section className="bg-background flex-1 px-4 py-6 md:px-8">
       <div className="max-w-full">
         <PageHeader title={t("releases.title")} className="mb-6" />
 

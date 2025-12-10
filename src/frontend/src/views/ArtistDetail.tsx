@@ -43,7 +43,7 @@ export const ArtistDetail: FC = () => {
 
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-background text-white p-6">
+      <div className="bg-background flex flex-1 items-center justify-center p-6 text-white">
         <SpotifyErrorState error={error} message={t("artist.error")} />
       </div>
     );
@@ -51,14 +51,14 @@ export const ArtistDetail: FC = () => {
 
   if (!hasArtist) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-background text-white">
+      <div className="bg-background flex flex-1 items-center justify-center text-white">
         <p className="text-text-secondary">{t("artist.notFound")}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-black text-white">
+    <div className="flex flex-1 flex-col bg-black text-white">
       <ArtistHeader
         name={artist?.name || "Artist"}
         image={artist?.image}
@@ -67,14 +67,14 @@ export const ArtistDetail: FC = () => {
       />
 
       {/* Content */}
-      <div className="flex-1 px-6 md:px-8 pb-10 bg-gradient-to-b from-background to-black">
+      <div className="from-background flex-1 bg-gradient-to-b to-black px-6 pb-10 md:px-8">
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 md:gap-4 py-6">
+        <div className="flex items-center gap-3 py-6 md:gap-4">
           {/* Download Button (Circular) */}
           <Button
             variant="primary"
             size="lg"
-            className={`!w-12 !h-12 md:!w-14 md:!h-14 !p-0 justify-center !rounded-full shadow-lg transition-transform ${
+            className={`!h-12 !w-12 justify-center !rounded-full !p-0 shadow-lg transition-transform md:!h-14 md:!w-14 ${
               isArtistDownloaded ? "bg-green-500 hover:bg-green-600" : "hover:scale-105"
             }`}
             onClick={handleArtistDownload}
@@ -93,7 +93,7 @@ export const ArtistDetail: FC = () => {
 
         {/* Popular Tracks Section */}
         <div className="mt-4">
-          <h2 className="text-2xl font-bold mb-4">{t("common.popular")}</h2>
+          <h2 className="mb-4 text-2xl font-bold">{t("common.popular")}</h2>
 
           {!tracks || tracks.length === 0 ? (
             <EmptyState
@@ -124,7 +124,7 @@ export const ArtistDetail: FC = () => {
             onArtistClick={handleArtistClick}
           />
         ) : (
-          <div className="mt-10 text-center text-text-secondary">
+          <div className="text-text-secondary mt-10 text-center">
             <p>{t("artist.noDiscography")}</p>
           </div>
         )}

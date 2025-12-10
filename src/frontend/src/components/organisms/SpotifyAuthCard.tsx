@@ -13,12 +13,12 @@ export const SpotifyAuthCard: FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-4 border rounded-lg bg-background-elevated border-white/10">
+    <div className="bg-background-elevated space-y-4 rounded-lg border border-white/10 p-6">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-text-primary">
+          <h2 className="text-text-primary flex items-center gap-2 text-lg font-bold">
             <svg
-              className="w-6 h-6"
+              className="h-6 w-6"
               viewBox="0 0 24 24"
               fill="currentColor"
               xmlns="http://www.w3.org/2000/svg"
@@ -27,14 +27,14 @@ export const SpotifyAuthCard: FC = () => {
             </svg>
             {t("auth.title")}
           </h2>
-          <p className="text-sm text-text-secondary">
+          <p className="text-text-secondary text-sm">
             {isAuthenticated ? t("auth.connectedDescription") : t("auth.disconnectedDescription")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <div className="flex items-center gap-2 text-green-500">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -46,7 +46,7 @@ export const SpotifyAuthCard: FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-2 text-yellow-500">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -81,10 +81,10 @@ export const SpotifyAuthCard: FC = () => {
       </div>
 
       {!isAuthenticated && (
-        <div className="p-4 mt-4 border rounded-lg bg-blue-500/10 border-blue-500/20">
+        <div className="mt-4 rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
           <div className="flex gap-3">
             <svg
-              className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"
+              className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -98,7 +98,7 @@ export const SpotifyAuthCard: FC = () => {
             </svg>
             <div className="space-y-1">
               <p className="text-sm font-medium text-blue-400">{t("auth.whyConnect")}</p>
-              <ul className="space-y-1 text-xs text-blue-300 list-disc list-inside">
+              <ul className="list-inside list-disc space-y-1 text-xs text-blue-300">
                 <li>{t("auth.benefits.editorial")}</li>
                 <li>{t("auth.benefits.personal")}</li>
                 <li>{t("auth.benefits.sync")}</li>

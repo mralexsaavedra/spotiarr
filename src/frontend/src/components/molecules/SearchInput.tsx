@@ -38,7 +38,7 @@ export const SearchInput: FC<SearchInputProps> = ({
     <div className={cn("relative", className)}>
       <FontAwesomeIcon
         icon={faMagnifyingGlass}
-        className="absolute text-xs -translate-y-1/2 pointer-events-none left-3 top-1/2 text-text-secondary"
+        className="text-text-secondary pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs"
       />
       <input
         type="text"
@@ -46,7 +46,7 @@ export const SearchInput: FC<SearchInputProps> = ({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="w-full pl-9 pr-3 py-2.5 rounded-full bg-background-elevated text-text-primary text-sm placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-white/20 focus:bg-background-hover border border-border transition"
+        className="bg-background-elevated text-text-primary placeholder-text-secondary focus:bg-background-hover border-border w-full rounded-full border py-2.5 pr-3 pl-9 text-sm transition focus:ring-2 focus:ring-white/20 focus:outline-none"
       />
     </div>
   );

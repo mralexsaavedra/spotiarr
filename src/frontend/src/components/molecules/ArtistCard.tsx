@@ -17,10 +17,10 @@ export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick 
   return (
     <article
       key={id}
-      className="flex flex-col gap-3 p-3 transition-colors rounded-md cursor-pointer group hover:bg-background-hover"
+      className="group hover:bg-background-hover flex cursor-pointer flex-col gap-3 rounded-md p-3 transition-colors"
       onClick={handleCardClick}
     >
-      <div className="relative w-full overflow-hidden rounded-full shadow-lg aspect-square bg-zinc-800">
+      <div className="relative aspect-square w-full overflow-hidden rounded-full bg-zinc-800 shadow-lg">
         <Image
           src={image || undefined}
           alt={name}
@@ -29,8 +29,8 @@ export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick 
           className="group-hover:scale-105"
         />
       </div>
-      <div className="flex flex-col min-w-0">
-        <h3 className="text-base font-bold text-white truncate">{name}</h3>
+      <div className="flex min-w-0 flex-col">
+        <h3 className="truncate text-base font-bold text-white">{name}</h3>
         <p className="text-sm text-zinc-400">Artist</p>
       </div>
     </article>

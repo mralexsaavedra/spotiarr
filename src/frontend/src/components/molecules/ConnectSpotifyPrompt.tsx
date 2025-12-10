@@ -9,10 +9,10 @@ interface ConnectSpotifyPromptProps {
 
 export const ConnectSpotifyPrompt: FC<ConnectSpotifyPromptProps> = ({ onConnect }) => {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="max-w-md text-center space-y-6 flex flex-col items-center">
-        <FontAwesomeIcon icon={faSpotify} className="text-6xl text-primary" />
-        <h2 className="text-2xl font-bold text-text-primary">Connect Spotify</h2>
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex max-w-md flex-col items-center space-y-6 text-center">
+        <FontAwesomeIcon icon={faSpotify} className="text-primary text-6xl" />
+        <h2 className="text-text-primary text-2xl font-bold">Connect Spotify</h2>
         <p className="text-text-secondary">
           To see new releases from the artists you follow, connect your Spotify account.
         </p>

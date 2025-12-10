@@ -10,8 +10,8 @@ interface BottomNavigationProps {
 
 export const BottomNavigation: FC<BottomNavigationProps> = ({ pathname }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-lg border-white/10 md:hidden pb-safe">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="bg-background/95 pb-safe fixed right-0 bottom-0 left-0 z-50 border-t border-white/10 backdrop-blur-lg md:hidden">
+      <div className="flex h-16 items-center justify-around px-2">
         {MOBILE_NAV_ITEMS.map((item) => {
           const active = pathname === item.to;
           return (
@@ -19,13 +19,13 @@ export const BottomNavigation: FC<BottomNavigationProps> = ({ pathname }) => {
               key={item.to}
               to={item.to}
               className={cn(
-                "flex flex-col items-center justify-center w-full h-full gap-1 transition-colors",
+                "flex h-full w-full flex-col items-center justify-center gap-1 transition-colors",
                 active ? "text-white" : "text-text-secondary hover:text-text-primary",
               )}
             >
               <FontAwesomeIcon
                 icon={item.icon}
-                className={cn("text-xl mb-0.5", active ? "text-white" : "")}
+                className={cn("mb-0.5 text-xl", active ? "text-white" : "")}
               />
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>

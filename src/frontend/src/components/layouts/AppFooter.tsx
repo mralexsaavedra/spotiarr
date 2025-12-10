@@ -15,7 +15,7 @@ export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps)
 
   if (collapsed) {
     return (
-      <div className={cn("flex flex-col items-center gap-4 text-text-secondary pb-4", className)}>
+      <div className={cn("text-text-secondary flex flex-col items-center gap-4 pb-4", className)}>
         <a
           href={BUY_ME_A_COFFEE_URL}
           target="_blank"
@@ -41,7 +41,7 @@ export const AppFooter = ({ className = "", collapsed = false }: AppFooterProps)
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 text-text-secondary whitespace-nowrap overflow-hidden",
+        "text-text-secondary flex flex-col items-center justify-center gap-4 overflow-hidden whitespace-nowrap",
         className,
       )}
     >

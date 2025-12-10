@@ -30,7 +30,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
   }, [track, onDownload]);
 
   return (
-    <div className="group grid grid-cols-[16px_1fr_auto] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
+    <div className="group grid grid-cols-[16px_1fr_auto] items-center gap-4 rounded-md px-4 py-2 transition-colors hover:bg-white/10">
       {/* Index / Status Icon */}
       <div className="flex justify-center">
         <TrackStatusIndicator
@@ -42,8 +42,8 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
       </div>
 
       {/* Title & Image */}
-      <div className="flex items-center min-w-0 gap-4">
-        <div className="flex-shrink-0 w-10 h-10">
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="h-10 w-10 flex-shrink-0">
           <Image
             src={track.albumUrl || undefined}
             alt={track.name}
@@ -51,22 +51,22 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
             className="rounded shadow-sm"
           />
         </div>
-        <div className="flex flex-col min-w-0">
+        <div className="flex min-w-0 flex-col">
           {track.trackUrl ? (
             <Link
               to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
-              className="text-base font-medium text-white truncate hover:underline"
+              className="truncate text-base font-medium text-white hover:underline"
             >
               {track.name}
             </Link>
           ) : (
-            <span className="text-base font-medium text-white truncate">{track.name}</span>
+            <span className="truncate text-base font-medium text-white">{track.name}</span>
           )}
         </div>
       </div>
 
       {/* Duration */}
-      <div className="flex items-center justify-end gap-4 text-sm text-text-secondary">
+      <div className="text-text-secondary flex items-center justify-end gap-4 text-sm">
         {isDownloaded && (
           <FontAwesomeIcon icon={faCircleCheck} className="text-base text-green-500" />
         )}

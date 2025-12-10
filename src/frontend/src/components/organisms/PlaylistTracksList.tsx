@@ -50,9 +50,9 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
     }, []);
 
     return (
-      <div className="group grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 items-center px-4 py-2 rounded-md hover:bg-white/10 transition-colors">
+      <div className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-md px-4 py-2 transition-colors hover:bg-white/10 md:grid-cols-[16px_1fr_1fr_180px]">
         {/* Index */}
-        <div className="text-text-secondary text-sm text-center w-4 flex justify-center">
+        <div className="text-text-secondary flex w-4 justify-center text-center text-sm">
           <TrackStatusIndicator
             status={status ?? track.status}
             index={index}
@@ -62,8 +62,8 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         </div>
 
         {/* Title & Artist */}
-        <div className="flex flex-col min-w-0">
-          <div className="text-text-primary font-medium truncate">
+        <div className="flex min-w-0 flex-col">
+          <div className="text-text-primary truncate font-medium">
             {track.trackUrl ? (
               <Link
                 to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
@@ -78,18 +78,18 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
           </div>
           <ArtistLinks
             artists={artists}
-            className="text-text-secondary text-sm truncate"
+            className="text-text-secondary truncate text-sm"
             linkClassName="hover:text-text-primary transition-colors"
             onLinkClick={stopPropagation}
           />
         </div>
 
         {/* Album */}
-        <div className="hidden md:block text-text-secondary text-sm truncate">
+        <div className="text-text-secondary hidden truncate text-sm md:block">
           {track.albumUrl ? (
             <Link
               to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.albumUrl)}`}
-              className="hover:text-text-primary hover:underline transition-colors"
+              className="hover:text-text-primary transition-colors hover:underline"
               onClick={stopPropagation}
             >
               {track.album || t("playlist.unknownAlbum")}
@@ -101,11 +101,11 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
 
         {/* Duration & Actions */}
         <div className="flex items-center justify-end gap-4">
-          <div className="text-text-secondary text-sm tabular-nums min-w-[40px] text-right flex items-center justify-end gap-2">
+          <div className="text-text-secondary flex min-w-[40px] items-center justify-end gap-2 text-right text-sm tabular-nums">
             {(status ?? track.status) === "completed" && (
               <FontAwesomeIcon
                 icon={faCircleCheck}
-                className="text-green-500 text-base"
+                className="text-base text-green-500"
                 title={t("common.downloaded")}
               />
             )}
@@ -158,8 +158,8 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   return (
     <div className="flex flex-col pb-4">
       {/* Header */}
-      <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[16px_1fr_1fr_180px] gap-4 px-4 py-2 border-b border-white/10 text-sm font-medium text-text-secondary uppercase tracking-wider mb-2 sticky top-0 bg-background z-10">
-        <div className="text-center w-4">#</div>
+      <div className="text-text-secondary bg-background sticky top-0 z-10 mb-2 grid grid-cols-[auto_1fr_auto] gap-4 border-b border-white/10 px-4 py-2 text-sm font-medium tracking-wider uppercase md:grid-cols-[16px_1fr_1fr_180px]">
+        <div className="w-4 text-center">#</div>
         <div>{t("common.title")}</div>
         <div className="hidden md:block">{t("common.album")}</div>
         <div className="text-right">

@@ -23,7 +23,7 @@ export const SettingInput: FC<SettingInputProps> = ({
 }) => {
   return (
     <div>
-      <label className="block text-sm font-semibold mb-2" htmlFor={id}>
+      <label className="mb-2 block text-sm font-semibold" htmlFor={id}>
         {label}
       </label>
       <input
@@ -31,11 +31,11 @@ export const SettingInput: FC<SettingInputProps> = ({
         type={type}
         min={min}
         max={max}
-        className="w-full px-4 py-2 rounded-md bg-background-input border-none text-text-primary focus:outline-none focus:ring-2 focus:ring-text-primary/20"
+        className="bg-background-input text-text-primary focus:ring-text-primary/20 w-full rounded-md border-none px-4 py-2 focus:ring-2 focus:outline-none"
         value={value}
         onChange={onChange}
       />
-      <p className="text-xs text-text-secondary mt-1">{description}</p>
+      <p className="text-text-secondary mt-1 text-xs">{description}</p>
     </div>
   );
 };

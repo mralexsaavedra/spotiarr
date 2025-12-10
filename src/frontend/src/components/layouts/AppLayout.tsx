@@ -16,12 +16,12 @@ export const AppLayout: FC<AppLayoutProps> = ({ pathname, version }) => {
   const { isSidebarCollapsed } = usePreferencesStore();
 
   return (
-    <div className="flex min-h-screen bg-background text-text-primary">
+    <div className="bg-background text-text-primary flex min-h-screen">
       <Sidebar pathname={pathname} version={version} />
 
       <main
         className={cn(
-          "flex-1 flex flex-col bg-background ml-0 pb-20 md:pb-0 transition-[margin-left] duration-300",
+          "bg-background ml-0 flex flex-1 flex-col pb-20 transition-[margin-left] duration-300 md:pb-0",
           isSidebarCollapsed ? "md:ml-20" : "md:ml-64",
         )}
       >

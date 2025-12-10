@@ -37,7 +37,7 @@ export const VirtualGrid = <T,>({
   const itemContent = useCallback(
     (_: number, rowItems: T[]) => (
       <div
-        className="grid gap-4 mb-4"
+        className="mb-4 grid gap-4"
         style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
       >
         {rowItems.map((item) => (

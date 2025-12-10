@@ -45,18 +45,14 @@ export const Toast: FC<ToastProps> = ({ toast, onRemove }) => {
 
   return (
     <div
-      className={`
-        flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg backdrop-blur-md transition-all duration-300 transform
-        ${colors[toast.type]}
-        ${isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}
-      `}
+      className={`flex transform items-center gap-3 rounded-lg border px-4 py-3 shadow-lg backdrop-blur-md transition-all duration-300 ${colors[toast.type]} ${isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"} `}
       role="alert"
     >
       <FontAwesomeIcon icon={icons[toast.type]} className="text-lg" />
       <p className="text-sm font-medium">{toast.message}</p>
       <button
         onClick={handleRemove}
-        className="ml-auto text-current opacity-70 hover:opacity-100 transition-opacity"
+        className="ml-auto text-current opacity-70 transition-opacity hover:opacity-100"
       >
         <FontAwesomeIcon icon={faXmark} />
       </button>

@@ -67,7 +67,7 @@ export const Playlist: FC<PlaylistProps> = ({
 
   return (
     <>
-      <div className="flex-1 bg-background text-text-primary">
+      <div className="bg-background text-text-primary flex-1">
         <PlaylistHeader
           title={displayTitle}
           type={playlist.type || PlaylistTypeEnum.Playlist}
@@ -92,7 +92,7 @@ export const Playlist: FC<PlaylistProps> = ({
         />
 
         {/* Action Bar */}
-        <div className="px-6 py-6 md:px-8 bg-gradient-to-b from-black/20 to-background">
+        <div className="to-background bg-gradient-to-b from-black/20 px-6 py-6 md:px-8">
           <PlaylistActions
             isSubscribed={!!playlist?.subscribed}
             hasFailed={hasFailed}

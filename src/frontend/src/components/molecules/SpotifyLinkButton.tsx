@@ -32,7 +32,7 @@ export const SpotifyLinkButton: FC<SpotifyLinkButtonProps> = ({
         variant={variant}
         size={size}
         className={cn(
-          "border border-zinc-600 hover:border-white !w-9 md:!w-auto !h-9 md:!h-10 !px-0 md:!px-4 justify-center",
+          "!h-9 !w-9 justify-center border border-zinc-600 !px-0 hover:border-white md:!h-10 md:!w-auto md:!px-4",
           className,
         )}
         icon={faSpotify}

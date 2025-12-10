@@ -22,7 +22,7 @@ export const Home: FC = () => {
   } = useHomeController();
 
   return (
-    <section className="w-full px-4 py-6 bg-background md:px-8">
+    <section className="bg-background w-full px-4 py-6 md:px-8">
       <div className="max-w-full">
         <PageHeader
           title={t("home.title")}

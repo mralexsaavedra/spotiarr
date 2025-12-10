@@ -25,13 +25,13 @@ export const SettingSelect: FC<SettingSelectProps> = ({
 
   return (
     <div>
-      <label className="block text-sm font-semibold mb-2" htmlFor={id}>
+      <label className="mb-2 block text-sm font-semibold" htmlFor={id}>
         {label}
       </label>
       <div className="relative">
         <select
           id={id}
-          className="w-full px-4 py-2 pr-10 rounded-md bg-background-input border-none text-text-primary focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer"
+          className="bg-background-input text-text-primary w-full cursor-pointer appearance-none rounded-md border-none px-4 py-2 pr-10 focus:ring-2 focus:ring-white/20 focus:outline-none"
           value={value}
           onChange={onChange}
         >
@@ -41,11 +41,11 @@ export const SettingSelect: FC<SettingSelectProps> = ({
             </option>
           ))}
         </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
+        <div className="text-text-secondary pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
           <FontAwesomeIcon icon={faChevronDown} className="text-text-secondary text-sm" />
         </div>
       </div>
-      <p className="text-xs text-text-secondary mt-1">{description}</p>
+      <p className="text-text-secondary mt-1 text-xs">{description}</p>
     </div>
   );
 };

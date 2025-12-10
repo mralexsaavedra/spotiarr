@@ -23,7 +23,7 @@ const STATUS_RENDERERS: Partial<
   [TrackStatusEnum.Error]: ({ onRetry }) =>
     onRetry ? (
       <button
-        className="text-red-500 hover:text-red-400 transition-colors"
+        className="text-red-500 transition-colors hover:text-red-400"
         onClick={onRetry}
         title="Retry download"
         type="button"
@@ -74,7 +74,7 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
       </span>
       {showDownloadAction && (
         <button
-          className="block md:hidden md:group-hover:block text-text-secondary hover:text-white transition-colors"
+          className="text-text-secondary block transition-colors hover:text-white md:hidden md:group-hover:block"
           onClick={onDownload}
           title="Download Track"
           type="button"

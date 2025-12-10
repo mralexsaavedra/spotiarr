@@ -32,10 +32,10 @@ const FilterItem: FC<FilterItemProps> = memo(({ filterKey, label, isActive, onSe
       onClick={handleClick}
       size="sm"
       variant="ghost"
-      className={`whitespace-nowrap border transition-all ${
+      className={`border whitespace-nowrap transition-all ${
         isActive
-          ? "bg-white text-black border-white hover:bg-white/90"
-          : "bg-transparent text-white border-white/20 hover:border-white"
+          ? "border-white bg-white text-black hover:bg-white/90"
+          : "border-white/20 bg-transparent text-white hover:border-white"
       }`}
     >
       {label}
@@ -51,7 +51,7 @@ interface ArtistDiscographyFiltersProps {
 export const ArtistDiscographyFilters: FC<ArtistDiscographyFiltersProps> = memo(
   ({ currentFilter, onFilterChange }) => {
     return (
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="scrollbar-hide mb-6 flex gap-2 overflow-x-auto pb-2">
         {FILTERS.map((filter) => (
           <FilterItem
             key={filter.key}

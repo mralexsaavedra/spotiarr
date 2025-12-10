@@ -19,7 +19,7 @@ export const History: FC = () => {
   } = useHistoryController();
 
   return (
-    <section className="w-full bg-background px-4 md:px-8 py-6">
+    <section className="bg-background w-full px-4 py-6 md:px-8">
       <div className="max-w-full">
         <PageHeader title={t("history.title")} className="mb-6" />
 

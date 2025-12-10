@@ -10,7 +10,7 @@ interface PageHeaderProps {
 export const PageHeader: FC<PageHeaderProps> = ({ title, className = "", action }) => {
   return (
     <div className={cn("flex items-center justify-between", className)}>
-      <h1 className="text-2xl font-bold text-text-primary">{title}</h1>
+      <h1 className="text-text-primary text-2xl font-bold">{title}</h1>
       {action && <div>{action}</div>}
     </div>
   );

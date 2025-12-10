@@ -14,9 +14,9 @@ export const EmptyState: FC<EmptyStateProps> = ({ icon, title, description, clas
   return (
     <div className={cn("flex items-center justify-center py-16", className)}>
       <div className="space-y-2 text-center">
-        <FontAwesomeIcon icon={icon} className="mb-2 text-4xl opacity-50 text-text-secondary" />
-        <h3 className="text-lg font-bold text-text-primary">{title}</h3>
-        {description && <p className="max-w-sm text-sm text-text-secondary">{description}</p>}
+        <FontAwesomeIcon icon={icon} className="text-text-secondary mb-2 text-4xl opacity-50" />
+        <h3 className="text-text-primary text-lg font-bold">{title}</h3>
+        {description && <p className="text-text-secondary max-w-sm text-sm">{description}</p>}
       </div>
     </div>
   );

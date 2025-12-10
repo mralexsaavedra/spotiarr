@@ -21,14 +21,14 @@ export const PlaylistCard = memo(({ playlist, stats, onClick, className }: Playl
     <div
       onClick={() => onClick(playlist.id)}
       className={cn(
-        "group block cursor-pointer rounded-md bg-background-elevated p-4 transition-colors duration-300 hover:bg-background-hover",
+        "group bg-background-elevated hover:bg-background-hover block cursor-pointer rounded-md p-4 transition-colors duration-300",
         className,
       )}
     >
-      <div className="relative mb-4 overflow-hidden rounded-md shadow-lg aspect-square bg-background-hover">
+      <div className="bg-background-hover relative mb-4 aspect-square overflow-hidden rounded-md shadow-lg">
         {playlist.subscribed && (
           <div
-            className="absolute z-10 flex items-center justify-center w-8 h-8 rounded-full shadow-md right-2 top-2 bg-black/60 backdrop-blur-sm"
+            className="absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 shadow-md backdrop-blur-sm"
             title={t("common.cards.tooltips.subscribed")}
           >
             <FontAwesomeIcon icon={faBell} className="text-sm text-green-500" />
@@ -44,13 +44,13 @@ export const PlaylistCard = memo(({ playlist, stats, onClick, className }: Playl
 
       <div className="flex flex-col gap-1">
         <h3
-          className="text-base font-bold text-white truncate"
+          className="truncate text-base font-bold text-white"
           title={playlist.name || t("common.cards.unnamedPlaylist")}
         >
           {playlist.name || t("common.cards.unnamedPlaylist")}
         </h3>
 
-        <div className="flex min-h-[20px] items-center gap-2 truncate text-sm text-text-subtle">
+        <div className="text-text-subtle flex min-h-[20px] items-center gap-2 truncate text-sm">
           <PlaylistStatusBadge {...stats} />
         </div>
       </div>

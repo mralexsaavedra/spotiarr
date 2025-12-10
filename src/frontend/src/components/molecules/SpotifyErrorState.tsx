@@ -19,13 +19,13 @@ interface ErrorRendererProps {
 
 const ERROR_RENDERERS: Partial<Record<ApiErrorCode, FC<ErrorRendererProps>>> = {
   missing_user_access_token: ({ className, onConnect }) => (
-    <div className={cn("flex-1 flex items-center justify-center", className)}>
+    <div className={cn("flex flex-1 items-center justify-center", className)}>
       <ConnectSpotifyPrompt onConnect={onConnect} />
     </div>
   ),
   spotify_rate_limited: ({ className }) => (
     <div
-      className={cn("flex-1 flex items-center justify-center gap-2 text-text-secondary", className)}
+      className={cn("text-text-secondary flex flex-1 items-center justify-center gap-2", className)}
     >
       <RateLimitedMessage />
     </div>

@@ -23,10 +23,10 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
   const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
 
   return (
-    <div className="px-6 py-6 bg-gradient-to-b from-zinc-800/80 to-background md:px-8">
+    <div className="to-background bg-gradient-to-b from-zinc-800/80 px-6 py-6 md:px-8">
       <div className="flex flex-col items-start gap-6 md:flex-row md:items-end">
         {/* Cover Image */}
-        <div className="flex-shrink-0 w-48 h-48 shadow-2xl md:w-60 md:h-60">
+        <div className="h-48 w-48 flex-shrink-0 shadow-2xl md:h-60 md:w-60">
           <Image
             src={coverUrl || undefined}
             alt={title}
@@ -37,18 +37,18 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
         </div>
 
         {/* Metadata */}
-        <div className="flex-1 w-full min-w-0 mb-2 space-y-4 text-left md:space-y-2">
-          <span className="text-xs font-bold tracking-wider uppercase text-text-primary">
+        <div className="mb-2 w-full min-w-0 flex-1 space-y-4 text-left md:space-y-2">
+          <span className="text-text-primary text-xs font-bold tracking-wider uppercase">
             {typeLabel}
           </span>
-          <h1 className="text-2xl font-black leading-tight tracking-tighter text-white break-words sm:text-4xl md:text-6xl lg:text-8xl drop-shadow-md">
+          <h1 className="text-2xl leading-tight font-black tracking-tighter break-words text-white drop-shadow-md sm:text-4xl md:text-6xl lg:text-8xl">
             {title}
           </h1>
 
           {description && (
-            <div className="max-w-full mt-4 md:max-w-md">
+            <div className="mt-4 max-w-full md:max-w-md">
               {typeof description === "string" ? (
-                <p className="text-sm font-medium text-text-secondary line-clamp-2">
+                <p className="text-text-secondary line-clamp-2 text-sm font-medium">
                   {description}
                 </p>
               ) : (
@@ -57,7 +57,7 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-start gap-1 mt-2 text-sm font-medium text-text-primary">
+          <div className="text-text-primary mt-2 flex flex-wrap items-center justify-start gap-1 text-sm font-medium">
             {metadata}
             <span className="text-text-secondary">•</span>
             <span className="text-text-secondary">
