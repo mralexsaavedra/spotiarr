@@ -23,7 +23,7 @@ Need more detail? Keep reading 👇
 
 - Node.js v24 LTS or higher (`nvm use` recommended)
 - pnpm v10.0.0 or higher (`corepack enable` recommended)
-- Python 3.11 or 3.12 (native addons such as `better-sqlite3`)
+- Python 3.11 or 3.12 (native addons)
 
 **Media + queue services**
 
@@ -49,16 +49,7 @@ corepack enable
 pnpm install
 ```
 
-3. **Fix `better-sqlite3` (if needed)**
-
-```bash
-# Ensure Python 3.11 or 3.12 is installed
-pnpm rebuild better-sqlite3
-# If still failing:
-pnpm rebuild better-sqlite3 --config.ignore-scripts=false
-```
-
-4. **Create `.env`**
+3. **Create `.env`**
 
 ```bash
 # Copy to project root
@@ -71,7 +62,7 @@ cp .env.example .env
 # A symlink is automatically used by the backend to read this file
 ```
 
-5. **Install services**
+4. **Install services**
 
 ```bash
 # macOS (Homebrew)
