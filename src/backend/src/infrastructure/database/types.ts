@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import type { TrackArtist, TrackStatusEnum } from "@spotiarr/shared";
 
 /**
@@ -8,45 +7,59 @@ import type { TrackArtist, TrackStatusEnum } from "@spotiarr/shared";
 /**
  * Converts TrackArtist[] to Prisma JSON input type
  */
-export function trackArtistsToJson(
-  artists: TrackArtist[] | undefined | null,
-): Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue {
-  if (artists === undefined) {
-    return Prisma.JsonNull;
+/**
+ * Converts TrackArtist[] to Prisma string input type (serialized JSON)
+ */
+export function trackArtistsToJson(artists: TrackArtist[] | undefined | null): string | null {
+  if (!artists) {
+    return null;
   }
-  if (artists === null) {
-    return Prisma.JsonNull;
+  try {
+    return JSON.stringify(artists);
+  } catch (e) {
+    console.error("Error serializing artists", e);
+    return null;
   }
-  return artists as unknown as Prisma.InputJsonValue;
 }
 
 /**
- * Converts Prisma JSON output to TrackArtist[]
+ * Converts Prisma string output (serialized JSON) to TrackArtist[]
  */
-export function jsonToTrackArtists(json: unknown): TrackArtist[] | undefined {
-  if (json === null || json === undefined) {
+export function jsonToTrackArtists(jsonString: unknown): TrackArtist[] | undefined {
+  if (typeof jsonString !== "string") {
     return undefined;
   }
 
-  // Type guard to validate the structure
-  if (!Array.isArray(json)) {
-    console.warn("Invalid artists JSON format: expected array", json);
+  try {
+    const json = JSON.parse(jsonString);
+
+    if (json === null || json === undefined) {
+      return undefined;
+    }
+
+    // Type guard to validate the structure
+    if (!Array.isArray(json)) {
+      console.warn("Invalid artists JSON format: expected array", json);
+      return undefined;
+    }
+
+    // Validate each artist object
+    const isValidArtist = (item: unknown): item is TrackArtist => {
+      return (
+        typeof item === "object" && item !== null && "name" in item && typeof item.name === "string"
+      );
+    };
+
+    if (!json.every(isValidArtist)) {
+      console.warn("Invalid artist object in array", json);
+      return undefined;
+    }
+
+    return json as TrackArtist[];
+  } catch (e) {
+    console.error("Error parsing artists JSON", e);
     return undefined;
   }
-
-  // Validate each artist object
-  const isValidArtist = (item: unknown): item is TrackArtist => {
-    return (
-      typeof item === "object" && item !== null && "name" in item && typeof item.name === "string"
-    );
-  };
-
-  if (!json.every(isValidArtist)) {
-    console.warn("Invalid artist object in array", json);
-    return undefined;
-  }
-
-  return json as TrackArtist[];
 }
 
 /**

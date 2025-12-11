@@ -15,7 +15,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
-    "@prisma/client": "^6.0.0",
+    "@prisma/client": "5.22.0",
     "@spotiarr/shared": "workspace:*",
     "bullmq": "^5.65.1",
     "cors": "^2.8.5",
@@ -35,7 +35,7 @@
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
     "@types/node-cron": "^3.0.11",
-    "prisma": "^6.0.0",
+    "prisma": "5.22.0",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.7.0"
   }

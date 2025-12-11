@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -36,7 +37,7 @@ model Track {
   albumUrl              String?
   albumCoverUrl         String?
   primaryArtistImageUrl String?
-  artists               Json?
+  artists               String?
   youtubeUrl            String?
   status                String   @default("New")
   error                 String?

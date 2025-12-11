@@ -57,19 +57,17 @@ COPY --from=builder /spotiarr/src/backend/package.json ./src/backend/
 COPY --from=builder /spotiarr/src/frontend/package.json ./src/frontend/
 COPY --from=builder /spotiarr/src/shared/package.json ./src/shared/
 
-# 2. Install production dependencies (ignores scripts to avoid build tool executions)
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+# 2. Copy all dependencies (prod + dev) and generated artifacts from builder
+# This ensures Prisma Client is present and compatible
+COPY --from=builder /spotiarr/node_modules ./node_modules
 
 # 3. Copy compiled artifacts (dist) from builder
 COPY --from=builder /spotiarr/src/backend/dist ./src/backend/dist
 COPY --from=builder /spotiarr/src/frontend/dist ./src/frontend/dist
 COPY --from=builder /spotiarr/src/shared/dist ./src/shared/dist
 
-# 4. Copy Prisma schema (required for runtime client generation and migrations)
+# 4. Copy Prisma schema (required for runtime migrations)
 COPY --from=builder /spotiarr/src/backend/prisma ./src/backend/prisma
-
-# Generate Prisma Client for production
-RUN pnpm --filter backend prisma:generate
 
 # Default environment variables
 ENV NODE_ENV=production
