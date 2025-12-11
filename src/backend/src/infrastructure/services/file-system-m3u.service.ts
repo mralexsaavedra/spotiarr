@@ -3,9 +3,13 @@ import * as fs from "fs";
 import * as path from "path";
 import { SettingsService } from "@/application/services/settings.service";
 import { getErrorMessage } from "../utils/error.utils";
+import { FileSystemTrackPathService } from "./file-system-track-path.service";
 
 export class FileSystemM3uService {
-  constructor(private readonly settingsService: SettingsService) {}
+  constructor(
+    private readonly settingsService: SettingsService,
+    private readonly trackPathService: FileSystemTrackPathService,
+  ) {}
 
   /**
    * Generates an M3U8 file for a playlist
@@ -25,8 +29,6 @@ export class FileSystemM3uService {
         return;
       }
 
-      const format = await this.settingsService.getString("FORMAT");
-
       // Filter only completed tracks
       const completedTracks = tracks.filter((track) => track.status === TrackStatusEnum.Completed);
 
@@ -35,7 +37,7 @@ export class FileSystemM3uService {
         return;
       }
 
-      const m3uContent = this.buildM3uContent(playlist, completedTracks, format);
+      const m3uContent = await this.buildM3uContent(playlist, completedTracks);
       const m3uFilePath = path.join(
         playlistFolderPath,
         this.sanitizeFileName(`${playlist.name}.m3u8`),
@@ -53,7 +55,7 @@ export class FileSystemM3uService {
   /**
    * Builds the M3U file content in Extended M3U format
    */
-  private buildM3uContent(playlist: IPlaylist, tracks: ITrack[], format: string): string {
+  private async buildM3uContent(playlist: IPlaylist, tracks: ITrack[]): Promise<string> {
     const lines: string[] = [];
 
     // Header - Extended M3U indicator
@@ -74,8 +76,11 @@ export class FileSystemM3uService {
       // Additional metadata (optional)
       lines.push(`#EXTART:${track.artist}`);
 
-      // File path - use relative path
-      const fileName = this.getTrackFileName(track, format);
+      // Get the accurate filename using the centralized service
+      // This ensures it matches exactly what is on disk (using playlistIndex logic)
+      const fullPath = await this.trackPathService.getTrackFileName(track, playlist.name);
+      const fileName = path.basename(fullPath);
+
       lines.push(fileName);
 
       // Empty line between tracks for readability
@@ -83,20 +88,6 @@ export class FileSystemM3uService {
     }
 
     return lines.join("\n");
-  }
-
-  /**
-   * Gets the track file name following Jellyfin structure
-   * Only used for playlists (M3U files are only generated for playlists)
-   */
-  private getTrackFileName(track: ITrack, format: string): string {
-    const artistName = this.sanitizeFileName(track.artist || "Unknown Artist");
-    const trackName = this.sanitizeFileName(track.name || "Unknown Track");
-    const trackNumber = String(track.trackNumber ?? 1).padStart(2, "0");
-
-    // For playlists: tracks are in the same folder as the M3U file
-    // Format: 01 - Artist - Track.mp3
-    return `${trackNumber} - ${artistName} - ${trackName}.${format}`;
   }
 
   /**

@@ -45,11 +45,12 @@ const settingsRepository = new PrismaSettingsRepository();
 // Services (Base)
 const settingsService = new SettingsService(settingsRepository);
 
-const m3uService = new FileSystemM3uService(settingsService);
+const trackFileHelper = new FileSystemTrackPathService(settingsService);
+const m3uService = new FileSystemM3uService(settingsService, trackFileHelper);
 const youtubeSearchService = new YoutubeSearchService(settingsService);
 const youtubeDownloadService = new YoutubeDownloadService(settingsService, youtubeSearchService);
 const metadataService = new MetadataService();
-const trackFileHelper = new FileSystemTrackPathService(settingsService);
+
 const queueService = new BullMqTrackQueueService();
 const eventBus = new SseEventBus();
 

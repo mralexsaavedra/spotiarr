@@ -42,6 +42,7 @@ model Track {
   error                 String?
   createdAt             BigInt  @default(0)
   completedAt           BigInt?
+  playlistIndex         Int?
 
   playlistId            String?
   playlist              Playlist? @relation(fields: [playlistId], references: [id], onDelete: Cascade)

@@ -18,6 +18,7 @@ export class PrismaTrackRepository implements TrackRepository {
     const tracks = await prisma.track.findMany({
       where: { playlistId },
       include: { playlist: true },
+      orderBy: { playlistIndex: "asc" },
     });
     return tracks.map((t) => this.mapToTrack(t));
   }
@@ -57,6 +58,7 @@ export class PrismaTrackRepository implements TrackRepository {
         createdAt: data.createdAt ? BigInt(data.createdAt) : BigInt(Date.now()),
         completedAt: data.completedAt ? BigInt(data.completedAt) : null,
         playlistId: data.playlistId,
+        playlistIndex: data.playlistIndex,
       },
     });
     return this.mapToTrack(created);
@@ -82,6 +84,7 @@ export class PrismaTrackRepository implements TrackRepository {
         status: data.status,
         error: data.error,
         completedAt: data.completedAt ? BigInt(data.completedAt) : undefined,
+        playlistIndex: data.playlistIndex ?? undefined,
       },
     });
   }
@@ -124,6 +127,7 @@ export class PrismaTrackRepository implements TrackRepository {
       createdAt: track.createdAt ? Number(track.createdAt) : undefined,
       completedAt: track.completedAt ? Number(track.completedAt) : undefined,
       playlistId: track.playlistId ?? undefined,
+      playlistIndex: track.playlistIndex ?? undefined,
     };
     return new Track(iTrack);
   }

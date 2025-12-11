@@ -51,7 +51,6 @@ export class FileSystemTrackPathService {
   }
 
   stripFileIllegalChars(text: string): string {
-     
     return text.replace(/[/\\?%*:|"<>]/g, "-");
   }
 
@@ -63,7 +62,8 @@ export class FileSystemTrackPathService {
     const albumName = track.album || "Unknown Album";
 
     if (playlistName) {
-      const paddedNumber = String(trackNumber).padStart(2, "0");
+      const numberToUse = track.playlistIndex ?? track.trackNumber ?? 1;
+      const paddedNumber = String(numberToUse).padStart(2, "0");
       const safeArtist = this.stripFileIllegalChars(artistName);
       const safeTrack = this.stripFileIllegalChars(trackName);
       const fileName = `${paddedNumber} - ${safeArtist} - ${safeTrack}.${format}`;

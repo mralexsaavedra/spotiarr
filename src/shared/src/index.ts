@@ -81,6 +81,7 @@ export interface ITrack {
   createdAt?: number;
   completedAt?: number;
   playlistId?: string;
+  playlistIndex?: number;
 }
 
 export interface IPlaylist {

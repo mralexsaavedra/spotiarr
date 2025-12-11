@@ -161,9 +161,7 @@ export class CreatePlaylistUseCase {
 
       const useSinglesFallback = context.isTrack || context.isArtist;
 
-      // For albums, use explicit track number. For playlists, use the index (1-based)
-      // This maintains the order even if processed in parallel batches
-      const trackNumber = context.isAlbum ? (track.trackNumber ?? index + 1) : index + 1;
+      const trackNumber = track.trackNumber ?? index + 1;
 
       await this.trackService.create({
         artist: artistToUse,
@@ -177,6 +175,7 @@ export class CreatePlaylistUseCase {
         albumUrl: track.albumUrl,
         durationMs: track.durationMs,
         playlistId: context.playlistId,
+        playlistIndex: index + 1,
       });
 
       return "ok";
