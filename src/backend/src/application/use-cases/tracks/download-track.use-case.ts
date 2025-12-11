@@ -1,4 +1,4 @@
-import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
+import { type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
 import { AppError } from "@/domain/errors/app-error";
@@ -6,25 +6,20 @@ import { EventBus } from "@/domain/events/event-bus";
 import { HistoryRepository } from "@/domain/repositories/history.repository";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
-import { SpotifyService } from "@/domain/services/spotify.service";
 import { YoutubeDownloadService } from "@/infrastructure/external/youtube-download.service";
-import { FileSystemM3uService } from "@/infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "@/infrastructure/services/file-system-track-path.service";
-import { MetadataService } from "@/infrastructure/services/metadata.service";
-import { UtilsService } from "../../services/utils.service";
+import { getErrorMessage } from "@/infrastructure/utils/error.utils";
+import { TrackPostProcessingService } from "../../services/track-post-processing.service";
 
 export class DownloadTrackUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
     private readonly youtubeDownloadService: YoutubeDownloadService,
-    private readonly metadataService: MetadataService,
-    private readonly m3uService: FileSystemM3uService,
-    private readonly utilsService: UtilsService,
     private readonly trackFileHelper: FileSystemTrackPathService,
     private readonly playlistRepository: PlaylistRepository,
-    private readonly spotifyService: SpotifyService,
     private readonly downloadHistoryRepository: HistoryRepository,
     private readonly eventBus: EventBus,
+    private readonly trackPostProcessingService: TrackPostProcessingService,
   ) {}
 
   async execute(trackData: ITrack): Promise<void> {
@@ -51,9 +46,9 @@ export class DownloadTrackUseCase {
     } catch (err) {
       console.error(
         `Failed to download track: ${track.artist} - ${track.name}`,
-        err instanceof Error ? err.stack : String(err),
+        getErrorMessage(err),
       );
-      error = err instanceof Error ? err.message : String(err);
+      error = getErrorMessage(err);
     }
 
     // Update final status
@@ -78,11 +73,6 @@ export class DownloadTrackUseCase {
       }
     }
 
-    // Generate M3U if successful
-    if (!error && track.playlistId) {
-      await this.generateM3uIfNeeded(track.toPrimitive());
-    }
-
     // Notify playlists have changed (track status affects playlist state)
     this.eventBus.emit("playlists-updated");
   }
@@ -97,18 +87,12 @@ export class DownloadTrackUseCase {
 
   private async downloadAndProcessTrack(track: ITrack): Promise<void> {
     let playlistName: string | undefined;
-    let playlistCoverUrl: string | undefined;
-    let isPlaylistType = false;
 
     if (track.playlistId) {
       const playlist = await this.playlistRepository.findOne(track.playlistId);
       // Check if it's strictly a playlist (not artist or album download)
-      isPlaylistType = playlist?.type === "playlist";
-      if (playlist) {
-        playlistCoverUrl = playlist.coverUrl;
-        if (isPlaylistType) {
-          playlistName = playlist.name;
-        }
+      if (playlist && playlist.type === "playlist") {
+        playlistName = playlist.name;
       }
     }
 
@@ -120,91 +104,11 @@ export class DownloadTrackUseCase {
       fs.mkdirSync(trackDirectory, { recursive: true });
     }
 
+    // 1. Download Content
     await this.youtubeDownloadService.downloadAndFormat(track, trackFilePath);
 
-    // Fetch specific track cover image (Album Cover) from Spotify
-    let trackCoverUrl = "";
-    const urlToUse = track.spotifyUrl || track.trackUrl;
-
-    if (urlToUse) {
-      try {
-        const details = await this.spotifyService.getPlaylistDetail(urlToUse);
-        trackCoverUrl = details.image;
-      } catch (e) {
-        console.warn(`Failed to fetch cover for track ${track.name}`, e);
-      }
-    }
-
-    // Embed ID3 cover (prefer specific track cover)
-    await this.metadataService.addImage(
-      trackFilePath,
-      trackCoverUrl || playlistCoverUrl || "",
-      track.name,
-      track.artist,
-      track.albumYear,
-      track.trackNumber,
-    );
-
-    // Save folder cover.jpg
-    // If it's a playlist, use the playlist cover.
-    // If it's an artist/album/track download, use the track (album) cover.
-    const folderCoverUrl = isPlaylistType ? playlistCoverUrl : trackCoverUrl;
-    if (folderCoverUrl) {
-      await this.metadataService.saveCoverArt(trackDirectory, folderCoverUrl);
-    }
-
-    // If it's not a Playlist (Artist, Album, or Track), save the artist image in the artist folder
-    if (track.playlistId) {
-      const playlist = await this.playlistRepository.findOne(track.playlistId);
-
-      console.debug(
-        `Checking artist cover for playlist ${track.playlistId}: type=${playlist?.type}, hasImage=${!!playlist?.artistImageUrl}`,
-      );
-
-      if (playlist && playlist.type !== PlaylistTypeEnum.Playlist && playlist.artistImageUrl) {
-        const artistFolderPath = this.utilsService.getArtistFolderPath(track.artist);
-        console.debug(`Saving artist cover to ${artistFolderPath}`);
-
-        // Ensure artist folder exists
-        if (!fs.existsSync(artistFolderPath)) {
-          fs.mkdirSync(artistFolderPath, { recursive: true });
-        }
-        await this.metadataService.saveCoverArt(
-          artistFolderPath,
-          playlist.artistImageUrl,
-          "cover.jpg",
-        );
-      }
-    }
-  }
-
-  private async generateM3uIfNeeded(track: ITrack): Promise<void> {
-    if (!track.playlistId) {
-      return;
-    }
-
-    try {
-      const playlistEntity = await this.playlistRepository.findOne(track.playlistId);
-      // Only generate M3U for actual playlists
-      if (!playlistEntity || !playlistEntity.name || playlistEntity.type !== "playlist") {
-        return;
-      }
-      const playlist = playlistEntity.toPrimitive();
-
-      const playlistTracksEntities = await this.trackRepository.findAllByPlaylist(track.playlistId);
-      const playlistTracks = playlistTracksEntities.map((t) => t.toPrimitive());
-      const hasMultipleTracks = playlistTracks.length > 0;
-
-      if (hasMultipleTracks) {
-        const playlistFolderPath = this.utilsService.getPlaylistFolderPath(playlist.name!);
-        await this.m3uService.generateM3uFile(playlist, playlistTracks, playlistFolderPath);
-
-        const completedCount = this.m3uService.getCompletedTracksCount(playlistTracks);
-        const totalCount = playlistTracks.length;
-        console.debug(`Playlist: ${completedCount}/${totalCount} tracks completed`);
-      }
-    } catch (err) {
-      console.error("Failed to generate M3U file", err instanceof Error ? err.stack : String(err));
-    }
+    // 2. Post-Processing (Metadata, Covers, M3U)
+    // Delegated to dedicated service to keep Use Case clean
+    await this.trackPostProcessingService.process(track, trackFilePath);
   }
 }

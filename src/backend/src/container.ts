@@ -1,5 +1,6 @@
 import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
+import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
 import { UtilsService } from "./application/services/utils.service";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
@@ -65,6 +66,16 @@ const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
 );
 const spotifyService = new SpotifyService(spotifyCatalogService, spotifyUserLibraryService);
 
+// Services (Post-Processing)
+const trackPostProcessingService = new TrackPostProcessingService(
+  spotifyService,
+  metadataService,
+  playlistRepository,
+  trackRepository,
+  utilsService,
+  m3uService,
+);
+
 // Use Cases - Tracks
 const createTrackUseCase = new CreateTrackUseCase(trackRepository, queueService);
 const deleteTrackUseCase = new DeleteTrackUseCase(trackRepository);
@@ -81,14 +92,11 @@ const retryTrackDownloadUseCase = new RetryTrackDownloadUseCase(trackRepository,
 const downloadTrackUseCase = new DownloadTrackUseCase(
   trackRepository,
   youtubeDownloadService,
-  metadataService,
-  m3uService,
-  utilsService,
   trackFileHelper,
   playlistRepository,
-  spotifyService,
   historyRepository,
   eventBus,
+  trackPostProcessingService,
 );
 
 // Domain Services (Track)
@@ -165,4 +173,5 @@ export const container = {
   updateSettingUseCase,
   queueService,
   eventBus,
+  trackPostProcessingService,
 };
