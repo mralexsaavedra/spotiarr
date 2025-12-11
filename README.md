@@ -91,10 +91,9 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 1. **Get Spotify API credentials** (free):
    - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create an app → note your `Client ID` and `Client Secret`
-   - **Set redirect URI:** Add _both_ of these to your Spotify Developer Dashboard:
-   - `http://localhost:5173/api/auth/spotify/callback` (Local Development)
-   - `https://YOUR_SERVER_IP:3000/api/auth/spotify/callback` (Production - replace `YOUR_SERVER_IP` with your actual IP)
-     - ⚠️ **Must use HTTPS** for non-localhost IPs (certificates auto-generated in Docker)
+   - **Set redirect URI:** Add this to your Spotify Developer Dashboard:
+   - `http://localhost:3000/api/auth/spotify/callback` (Local Development)
+   - `http://YOUR_SERVER_IP:3000/api/auth/spotify/callback` (Production - replace `YOUR_SERVER_IP` with your actual IP)
 
 2. **Run with Docker Compose** (recommended):
 
@@ -109,7 +108,8 @@ cp .env.example .env
 # Edit .env → add:
 #   SPOTIFY_CLIENT_ID=your_client_id
 #   SPOTIFY_CLIENT_SECRET=your_client_secret
-#   PUBLIC_HOST=your_server_ip
+#   # Configure Callback URL for external access
+#   SPOTIFY_REDIRECT_URI=http://YOUR_SERVER_IP:3000/api/auth/spotify/callback
 #   PUID=1000  # Optional (Linux/NAS)
 #   PGID=1000  # Optional (Linux/NAS)
 
@@ -153,18 +153,17 @@ pnpm dev
 
 **User-configurable variables:**
 
-| Variable                | Required | Default     | Description                                                          |
-| ----------------------- | -------- | ----------- | -------------------------------------------------------------------- |
-| `SPOTIFY_CLIENT_ID`     | ✅       | -           | Spotify app Client ID                                                |
-| `SPOTIFY_CLIENT_SECRET` | ✅       | -           | Spotify app Client Secret                                            |
-| `PUBLIC_HOST`           | ❌       | `localhost` | Public hostname or IP (e.g., `X.X.X.X` or `spotiarr.yourdomain.com`) |
-| `PUID`                  | ❌       | `1000`      | User ID for file permissions (Linux/NAS)                             |
-| `PGID`                  | ❌       | `1000`      | Group ID for file permissions (Linux/NAS)                            |
+| Variable                | Required | Default | Description                                    |
+| ----------------------- | -------- | ------- | ---------------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | ✅       | -       | Spotify app Client ID                          |
+| `SPOTIFY_CLIENT_SECRET` | ✅       | -       | Spotify app Client Secret                      |
+| `SPOTIFY_REDIRECT_URI`  | ✅       | -       | Full Callback URL (Required for remote access) |
+| `PUID`                  | ❌       | `1000`  | User ID for file permissions (Linux/NAS)       |
+| `PGID`                  | ❌       | `1000`  | Group ID for file permissions (Linux/NAS)      |
 
-**Note:** Protocol (HTTP/HTTPS) and port are automatic based on environment:
-
-- **Development:** `http://localhost:5173` (Vite dev server)
-- **Production:** `https://PUBLIC_HOST:3000` (with auto-generated SSL certificates)
+**Note regarding HTTPS:**
+Spotify requires HTTPS for OAuth callbacks unless using `localhost`. If deploying on a remote server, you should ideally use a Reverse Proxy (Nginx, Traefik, Caddy) to handle HTTPS.
+However, for internal use, SpotiArr defaults to HTTP on port 3000. Ensure your Spotify App Dashboard has the exact `http://IP:3000/...` URI whitelisted.
 
 > For advanced/internal variables, see [CONTRIBUTING.md](CONTRIBUTING.md#environment-variables)
 

@@ -73,7 +73,6 @@ RUN pnpm --filter backend prisma:generate
 
 # Default environment variables
 ENV NODE_ENV=production
-ENV PUBLIC_HOST=0.0.0.0
 ENV REDIS_HOST=redis
 ENV REDIS_PORT=6379
 ENV DOWNLOADS_PATH=/downloads

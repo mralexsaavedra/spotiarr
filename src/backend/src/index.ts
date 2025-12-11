@@ -44,8 +44,12 @@ async function bootstrap() {
   // Start server
   server.listen(PORT, "0.0.0.0", () => {
     const protocol = server instanceof https.Server ? "🔒 HTTPS" : "🔓 HTTP";
-    console.log(`\n✅ Server running (${protocol}) on port ${PORT}`);
-    console.log(`🌐 Access at: ${env.BASE_URL}`);
+    console.log(`\n✅ API Server running (${protocol}) on port ${PORT}`);
+    console.log(`📡 API Base URL: ${env.BASE_URL}`);
+
+    if (env.NODE_ENV === "development") {
+      console.log(`💻 Frontend URL: http://localhost:5173 (Expected)`);
+    }
   });
 }
 
