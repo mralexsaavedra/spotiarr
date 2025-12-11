@@ -93,11 +93,11 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
    - Create an app → note your `Client ID` and `Client Secret`
    - **Set redirect URI:** Add this to your Spotify Developer Dashboard:
    - `http://127.0.0.1:3000/api/auth/spotify/callback` (Local Development)
-   - `http://YOUR_SERVER_IP:3000/api/auth/spotify/callback` (Production - replace `YOUR_SERVER_IP` with actual IP)
+   - `https://YOUR_SERVER_IP/api/auth/spotify/callback` (Production with Traefik - replace `YOUR_SERVER_IP` with actual IP)
 
 2. **Run with Docker Compose** (recommended):
 
-   Includes Redis + health checks + persistent storage + automatic HTTPS.
+   Includes Redis, Traefik (Reverse Proxy), health checks, and persistent storage.
 
 ```bash
 # 1. Clone repo
@@ -108,8 +108,9 @@ cp .env.example .env
 # Edit .env → add:
 #   SPOTIFY_CLIENT_ID=your_client_id
 #   SPOTIFY_CLIENT_SECRET=your_client_secret
-#   # Configure Callback URL for external access
-#   SPOTIFY_REDIRECT_URI=http://YOUR_SERVER_IP:3000/api/auth/spotify/callback
+#   # Configure Callback URL (Note: No port 3000 needed with Traefik)
+#   SPOTIFY_REDIRECT_URI=https://YOUR_SERVER_IP/api/auth/spotify/callback
+#   DOWNLOADS=/path/to/downloads
 #   PUID=1000  # Optional (Linux/NAS)
 #   PGID=1000  # Optional (Linux/NAS)
 
@@ -117,8 +118,8 @@ cp .env.example .env
 docker compose up -d
 ```
 
-3. **Open** → `https://YOUR_SERVER_IP:3000` 🎉
-   - Accept the self-signed certificate warning (first time only)
+3. **Open** → `https://YOUR_SERVER_IP` 🎉
+   - Accept the self-signed certificate warning (Traefik generates this automatically)
    - Login with Spotify to authorize the app
 
 ## 📦 Installation
@@ -153,25 +154,25 @@ pnpm dev
 
 **User-configurable variables:**
 
-| Variable                | Required | Default | Description                                   |
-| ----------------------- | -------- | ------- | --------------------------------------------- |
-| `SPOTIFY_CLIENT_ID`     | ✅       | -       | Spotify app Client ID                         |
-| `SPOTIFY_CLIENT_SECRET` | ✅       | -       | Spotify app Client Secret                     |
-| `SPOTIFY_REDIRECT_URI`  | ✅       | -       | Full Callback URL (e.g. `http://IP:3000/...`) |
-| `DOWNLOADS`             | ✅       | -       | Host path for downloads mapping               |
-| `PUID`                  | ❌       | `1000`  | User ID for file permissions (Linux/NAS)      |
-| `PGID`                  | ❌       | `1000`  | Group ID for file permissions (Linux/NAS)     |
+| Variable                | Required | Default | Description                               |
+| ----------------------- | -------- | ------- | ----------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | ✅       | -       | Spotify app Client ID                     |
+| `SPOTIFY_CLIENT_SECRET` | ✅       | -       | Spotify app Client Secret                 |
+| `SPOTIFY_REDIRECT_URI`  | ✅       | -       | Full Callback URL (e.g. `https://IP/...`) |
+| `DOWNLOADS`             | ✅       | -       | Host path for downloads mapping           |
+| `PUID`                  | ❌       | `1000`  | User ID for file permissions (Linux/NAS)  |
+| `PGID`                  | ❌       | `1000`  | Group ID for file permissions (Linux/NAS) |
 
 **Advanced Configuration:**
 
-| Variable     | Default | Description                                |
-| ------------ | ------- | ------------------------------------------ |
-| `REDIS_HOST` | `redis` | Hostname of Redis server (for external DB) |
-| `REDIS_PORT` | `6379`  | Port of Redis server                       |
+| Variable       | Default                   | Description                                |
+| -------------- | ------------------------- | ------------------------------------------ |
+| `DATABASE_URL` | `file:./config/db.sqlite` | Path to SQLite DB (Required for Local Dev) |
+| `REDIS_HOST`   | `redis`                   | Hostname of Redis server (for external DB) |
+| `REDIS_PORT`   | `6379`                    | Port of Redis server                       |
 
 **Note regarding HTTPS:**
-Spotify requires HTTPS for OAuth callbacks unless using `localhost`. If deploying on a remote server, you should ideally use a Reverse Proxy (Nginx, Traefik, Caddy) to handle HTTPS.
-However, for internal use, SpotiArr defaults to HTTP on port 3000. Ensure your Spotify App Dashboard has the exact `http://IP:3000/...` URI whitelisted.
+The included `docker-compose.yml` uses **Traefik** as a reverse proxy to handle HTTPS automatically on port 443. This is required for Spotify authentication on remote servers. SpotiArr itself runs on HTTP (port 3000) internally.
 
 > For advanced/internal variables, see [CONTRIBUTING.md](CONTRIBUTING.md#environment-variables)
 
