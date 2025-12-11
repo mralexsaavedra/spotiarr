@@ -92,8 +92,8 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
    - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create an app → note your `Client ID` and `Client Secret`
    - **Set redirect URI:** Add this to your Spotify Developer Dashboard:
-   - `http://localhost:3000/api/auth/spotify/callback` (Local Development)
-   - `http://YOUR_SERVER_IP:3000/api/auth/spotify/callback` (Production - replace `YOUR_SERVER_IP` with your actual IP)
+   - `http://127.0.0.1:3000/api/auth/spotify/callback` (Local Development)
+   - `http://YOUR_SERVER_IP:3000/api/auth/spotify/callback` (Production - replace `YOUR_SERVER_IP` with actual IP)
 
 2. **Run with Docker Compose** (recommended):
 
@@ -153,13 +153,14 @@ pnpm dev
 
 **User-configurable variables:**
 
-| Variable                | Required | Default | Description                                    |
-| ----------------------- | -------- | ------- | ---------------------------------------------- |
-| `SPOTIFY_CLIENT_ID`     | ✅       | -       | Spotify app Client ID                          |
-| `SPOTIFY_CLIENT_SECRET` | ✅       | -       | Spotify app Client Secret                      |
-| `SPOTIFY_REDIRECT_URI`  | ✅       | -       | Full Callback URL (Required for remote access) |
-| `PUID`                  | ❌       | `1000`  | User ID for file permissions (Linux/NAS)       |
-| `PGID`                  | ❌       | `1000`  | Group ID for file permissions (Linux/NAS)      |
+| Variable                | Required | Default | Description                                   |
+| ----------------------- | -------- | ------- | --------------------------------------------- |
+| `SPOTIFY_CLIENT_ID`     | ✅       | -       | Spotify app Client ID                         |
+| `SPOTIFY_CLIENT_SECRET` | ✅       | -       | Spotify app Client Secret                     |
+| `SPOTIFY_REDIRECT_URI`  | ✅       | -       | Full Callback URL (e.g. `http://IP:3000/...`) |
+| `DOWNLOADS`             | ✅       | -       | Host path for downloads mapping               |
+| `PUID`                  | ❌       | `1000`  | User ID for file permissions (Linux/NAS)      |
+| `PGID`                  | ❌       | `1000`  | Group ID for file permissions (Linux/NAS)     |
 
 **Advanced Configuration:**
 
