@@ -97,23 +97,22 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 **User-facing variables** (documented in README):
 
 - `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` - Required
-- `PUBLIC_HOST` - Public hostname/IP (default: `localhost`)
+- `SPOTIFY_REDIRECT_URI` - Required for remote access (default: `http://localhost:3000/...`)
 
 **Internal/Auto-configured variables** (for developers):
 
-| Variable               | Default (dev)  | Default (prod)                    | Description                            |
-| ---------------------- | -------------- | --------------------------------- | -------------------------------------- |
-| `NODE_ENV`             | `development`  | `production` (set in Dockerfile)  | Controls HTTP vs HTTPS, port selection |
-| `SPOTIFY_REDIRECT_URI` | Auto-generated | Auto-generated from `PUBLIC_HOST` | OAuth callback URL                     |
-| `REDIS_HOST`           | `localhost`    | `redis` (Docker service name)     | Redis hostname                         |
-| `REDIS_PORT`           | `6379`         | `6379`                            | Redis port                             |
-| `DATABASE_URL`         | Auto-set       | `file:/spotiarr/config/db.sqlite` | SQLite database path                   |
-| `DOWNLOADS_PATH`       | `./downloads`  | `/downloads` (Docker volume)      | Where downloaded files are saved       |
+| Variable         | Default (dev) | Default (prod)                    | Description                                 |
+| ---------------- | ------------- | --------------------------------- | ------------------------------------------- |
+| `NODE_ENV`       | `development` | `production` (set in Dockerfile)  | Optimization flags (do not change manually) |
+| `REDIS_HOST`     | `localhost`   | `redis` (Docker service name)     | Redis hostname                              |
+| `REDIS_PORT`     | `6379`        | `6379`                            | Redis port                                  |
+| `DATABASE_URL`   | Auto-set      | `file:/spotiarr/config/db.sqlite` | SQLite database path                        |
+| `DOWNLOADS_PATH` | `./downloads` | `/downloads` (Docker volume)      | Where downloaded files are saved            |
 
 **How URLs are constructed:**
 
-- **Development:** `http://PUBLIC_HOST:5173` (Vite dev server)
-- **Production:** `https://PUBLIC_HOST:3000` (backend with auto-generated SSL certs)
+- **Development:** `http://localhost:5173` (Vite dev server)
+- **Production:** `http://YOUR_SERVER_IP:3000` (Backend API)
 
 ## Project Structure
 
