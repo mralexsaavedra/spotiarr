@@ -42,7 +42,7 @@ echo "👤 Running as effective user: $USER_NAME:$GROUP_NAME"
 echo "🔧 Fixing permissions for /spotiarr..."
 mkdir -p /spotiarr/config
 chown -R "$PUID:$PGID" /spotiarr/config
-chown -R "$PUID:$PGID" /spotiarr/src /spotiarr/node_modules /spotiarr/package.json
+chown -R "$PUID:$PGID" /spotiarr/src /spotiarr/package.json
 
 # Fix permissions for /downloads ROOT ONLY
 echo "🔧 Ensuring /downloads is writable..."
