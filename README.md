@@ -110,7 +110,7 @@ cp .env.example .env
 #   SPOTIFY_CLIENT_SECRET=your_client_secret
 #   # Configure Callback URL (Note: No port 3000 needed with Traefik)
 #   SPOTIFY_REDIRECT_URI=https://YOUR_SERVER_IP/api/auth/spotify/callback
-#   DOWNLOADS=/path/to/downloads
+#   DOWNLOADS_DIR=/path/to/downloads
 #   PUID=1000  # Optional (Linux/NAS)
 #   PGID=1000  # Optional (Linux/NAS)
 
@@ -158,14 +158,15 @@ pnpm dev
 
 **User-configurable variables:**
 
-| Variable                | Required | Default | Description                               |
-| ----------------------- | -------- | ------- | ----------------------------------------- |
-| `SPOTIFY_CLIENT_ID`     | ✅       | -       | Spotify app Client ID                     |
-| `SPOTIFY_CLIENT_SECRET` | ✅       | -       | Spotify app Client Secret                 |
-| `SPOTIFY_REDIRECT_URI`  | ✅       | -       | Full Callback URL (e.g. `https://IP/...`) |
-| `DOWNLOADS`             | ✅       | -       | Host path for downloads mapping           |
-| `PUID`                  | ❌       | `1000`  | User ID for file permissions (Linux/NAS)  |
-| `PGID`                  | ❌       | `1000`  | Group ID for file permissions (Linux/NAS) |
+| Variable                | Required    | Default | Description                                      |
+| ----------------------- | ----------- | ------- | ------------------------------------------------ |
+| `SPOTIFY_CLIENT_ID`     | ✅          | -       | Spotify app Client ID                            |
+| `SPOTIFY_CLIENT_SECRET` | ✅          | -       | Spotify app Client Secret                        |
+| `SPOTIFY_REDIRECT_URI`  | ✅          | -       | Full Callback URL (e.g. `https://IP/...`)        |
+| `DOWNLOADS_DIR`         | ✅ (Docker) | -       | Host path for downloads mapping (Docker Compose) |
+
+| `PUID` | ❌ | `1000` | User ID for file permissions (Linux/NAS) |
+| `PGID` | ❌ | `1000` | Group ID for file permissions (Linux/NAS) |
 
 **Advanced Configuration:**
 

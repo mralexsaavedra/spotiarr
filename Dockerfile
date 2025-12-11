@@ -59,7 +59,7 @@ COPY --chown=node:node --from=builder /spotiarr/src ./src
 ENV NODE_ENV=production
 ENV REDIS_HOST=redis
 ENV REDIS_PORT=6379
-ENV DOWNLOADS_PATH=/downloads
+ENV DOWNLOADS=/downloads
 ENV DATABASE_URL="file:/spotiarr/config/db.sqlite"
 
 EXPOSE 3000

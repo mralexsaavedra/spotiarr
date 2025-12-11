@@ -33,3 +33,18 @@ if (!process.env.DATABASE_URL) {
 
   process.env.DATABASE_URL = `file:${dbPath}`;
 }
+
+// Auto-configure DOWNLOADS path
+if (!process.env.DOWNLOADS) {
+  if (process.env.NODE_ENV === "production") {
+    process.env.DOWNLOADS = "/downloads";
+  } else {
+    process.env.DOWNLOADS = resolve(rootDir, "downloads");
+  }
+
+  // Ensure directory exists
+  if (!existsSync(process.env.DOWNLOADS)) {
+    mkdirSync(process.env.DOWNLOADS, { recursive: true });
+    // console.log(`[Env] Created downloads directory: ${process.env.DOWNLOADS}`);
+  }
+}

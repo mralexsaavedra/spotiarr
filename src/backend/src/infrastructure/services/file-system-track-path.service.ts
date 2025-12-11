@@ -10,7 +10,7 @@ export class FileSystemTrackPathService {
    * Get the base music library path
    */
   getMusicLibraryPath(): string {
-    return resolve(__dirname, "../..", getEnv().DOWNLOADS_PATH);
+    return getEnv().DOWNLOADS;
   }
 
   /**

@@ -17,7 +17,7 @@ const envSchema = z
       .transform(Number),
 
     // Downloads (auto-configured based on environment)
-    DOWNLOADS_PATH: z.string().min(1).default("./downloads"),
+    DOWNLOADS: z.string().min(1),
 
     // Optional
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),

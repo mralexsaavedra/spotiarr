@@ -18,7 +18,7 @@ async function bootstrap() {
   console.log("🚀 Starting SpotiArr Backend...\n");
 
   // Create downloads directory if it doesn't exist
-  const downloadsPath = resolve(__dirname, env.DOWNLOADS_PATH);
+  const downloadsPath = env.DOWNLOADS;
   if (!fs.existsSync(downloadsPath)) {
     fs.mkdirSync(downloadsPath, { recursive: true });
     console.log(`✅ Created downloads directory: ${downloadsPath}`);

@@ -29,7 +29,7 @@ services:
       - "3000:3000"
     volumes:
       - ./config:/spotiarr/config
-      - ${DOWNLOADS}:/downloads
+      - ${DOWNLOADS_DIR}:/downloads
     env_file:
       - .env
     depends_on:

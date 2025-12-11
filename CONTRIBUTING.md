@@ -110,12 +110,12 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 
 **Development & System Variables** (Auto-configured):
 
-| Variable         | Default (dev) | Default (prod)                   | Description                                 |
-| ---------------- | ------------- | -------------------------------- | ------------------------------------------- |
-| `NODE_ENV`       | `development` | `production` (set in Dockerfile) | Optimization flags (do not change manually) |
-| `REDIS_HOST`     | `localhost`   | `redis` (Docker service name)    | Redis hostname                              |
-| `REDIS_PORT`     | `6379`        | `6379`                           | Redis port                                  |
-| `DOWNLOADS_PATH` | `./downloads` | `/downloads` (Docker volume)     | Where downloaded files are saved            |
+| Variable        | Default (dev) | Default (prod)                   | Description                                 |
+| --------------- | ------------- | -------------------------------- | ------------------------------------------- |
+| `NODE_ENV`      | `development` | `production` (set in Dockerfile) | Optimization flags (do not change manually) |
+| `REDIS_HOST`    | `localhost`   | `redis` (Docker service name)    | Redis hostname                              |
+| `REDIS_PORT`    | `6379`        | `6379`                           | Redis port                                  |
+| `DOWNLOADS_DIR` | -             | `/path/to/downloads`             | Host directory for Docker volume mapping    |
 
 **How URLs are constructed:**
 
