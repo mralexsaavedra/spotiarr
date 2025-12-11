@@ -5,7 +5,7 @@ import { z, ZodError, ZodIssue } from "zod";
 import { AppError } from "@/domain/errors/app-error";
 
 // -----------------------------------------------------------------------------
-// Environment Loading & Auto-configuration
+// Environment Loading
 // -----------------------------------------------------------------------------
 
 // Monorepo root directory
@@ -14,48 +14,14 @@ const currentEnv = process.env.NODE_ENV || "development";
 
 // Cascade loading: Specific overrides first.
 // dotenv does NOT overwrite existing keys, so the first file loaded wins.
-
-// 1. .env.development.local (Local overrides, git-ignored)
 config({ path: resolve(rootDir, `.env.${currentEnv}.local`) });
-
-// 2. .env.development (Shared dev config)
 config({ path: resolve(rootDir, `.env.${currentEnv}`) });
-
-// 3. .env (Shared base config)
 config({ path: resolve(rootDir, ".env") });
 
 console.log(`[Env] Loaded environment for: ${currentEnv}`);
 
-// Auto-configure DATABASE_URL if missing (Magic 🪄)
-if (!process.env.DATABASE_URL) {
-  // Use standard Prisma location for local dev: src/backend/prisma/dev.db
-  const dbPath = resolve(rootDir, "src/backend/prisma/dev.db");
-
-  // Ensure directory exists
-  const dbDir = dirname(dbPath);
-  if (!existsSync(dbDir)) {
-    mkdirSync(dbDir, { recursive: true });
-  }
-
-  process.env.DATABASE_URL = `file:${dbPath}`;
-}
-
-// Auto-configure DOWNLOADS path
-if (!process.env.DOWNLOADS) {
-  if (process.env.NODE_ENV === "production") {
-    process.env.DOWNLOADS = "/downloads";
-  } else {
-    process.env.DOWNLOADS = resolve(rootDir, "downloads");
-  }
-
-  // Ensure directory exists
-  if (!existsSync(process.env.DOWNLOADS)) {
-    mkdirSync(process.env.DOWNLOADS, { recursive: true });
-  }
-}
-
 // -----------------------------------------------------------------------------
-// Schema Validation
+// Schema Validation & Auto-configuration
 // -----------------------------------------------------------------------------
 
 const envSchema = z
@@ -65,7 +31,7 @@ const envSchema = z
     SPOTIFY_CLIENT_SECRET: z.string().min(1, "SPOTIFY_CLIENT_SECRET is required"),
     SPOTIFY_REDIRECT_URI: z.string().url("SPOTIFY_REDIRECT_URI must be a valid URL"),
 
-    // Redis (auto-configured based on environment)
+    // Redis
     REDIS_HOST: z.string().min(1).default("localhost"),
     REDIS_PORT: z
       .string()
@@ -73,18 +39,51 @@ const envSchema = z
       .default("6379")
       .transform(Number),
 
-    // Downloads (auto-configured based on environment)
-    DOWNLOADS: z.string().min(1),
+    // Auto-configured fields (optional in input, guaranteed in output)
+    DOWNLOADS: z.string().optional(),
+    DATABASE_URL: z.string().optional(),
 
-    // Optional
+    // System
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
   })
   .transform((data) => {
-    // Extract Base URL from the Redirect URI for logs/cors
+    // 1. Auto-configure DOWNLOADS
+    let downloadsPath = data.DOWNLOADS;
+    if (!downloadsPath) {
+      downloadsPath = data.NODE_ENV === "production" ? "/downloads" : resolve(rootDir, "downloads");
+
+      if (!existsSync(downloadsPath)) {
+        mkdirSync(downloadsPath, { recursive: true });
+        // console.log(`[Env] Created downloads directory: ${downloadsPath}`);
+      }
+    }
+
+    // 2. Auto-configure DATABASE_URL
+    let databaseUrl = data.DATABASE_URL;
+    if (!databaseUrl) {
+      // Standard Prisma location for local dev: src/backend/prisma/dev.db
+      const dbPath = resolve(rootDir, "src/backend/prisma/dev.db");
+      const dbDir = dirname(dbPath);
+
+      if (!existsSync(dbDir)) {
+        mkdirSync(dbDir, { recursive: true });
+      }
+
+      databaseUrl = `file:${dbPath}`;
+      // CRITICAL: Prisma Client relies on process.env.DATABASE_URL internally
+      process.env.DATABASE_URL = databaseUrl;
+    }
+
+    // 3. Derived values
     const uriObj = new URL(data.SPOTIFY_REDIRECT_URI);
     const BASE_URL = uriObj.origin;
 
-    return { ...data, BASE_URL, SPOTIFY_REDIRECT_URI: data.SPOTIFY_REDIRECT_URI };
+    return {
+      ...data,
+      DOWNLOADS: downloadsPath, // Override with auto-configured value
+      DATABASE_URL: databaseUrl, // Override with auto-configured value
+      BASE_URL,
+    };
   });
 
 export type Env = z.infer<typeof envSchema>;
