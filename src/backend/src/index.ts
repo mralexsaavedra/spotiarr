@@ -43,12 +43,23 @@ async function bootstrap() {
 
   // Start server
   server.listen(PORT, "0.0.0.0", () => {
-    const protocol = server instanceof https.Server ? "🔒 HTTPS" : "🔓 HTTP";
-    console.log(`\n✅ API Server running (${protocol}) on port ${PORT}`);
-    console.log(`📡 API Base URL: ${env.BASE_URL}`);
+    const isHttps = server instanceof https.Server;
+    const protocol = isHttps ? "https" : "http";
+    const protocolLabel = isHttps ? "🔒 HTTPS" : "🔓 HTTP";
+
+    console.log(`\n✅ SpotiArr is running!`);
+    console.log(`-------------------------------------------`);
+    console.log(`🌍 Web UI:   ${protocol}://localhost:${PORT}`);
+    console.log(`📡 API URL:  ${protocol}://localhost:${PORT}/api`);
+    console.log(`🛡️  Protocol: ${protocolLabel}`);
+    console.log(`-------------------------------------------`);
 
     if (env.NODE_ENV === "development") {
-      console.log(`💻 Frontend URL: http://localhost:5173 (Expected)`);
+      console.log(`💻 Dev Frontend: http://localhost:5173`);
+    } else if (isHttps) {
+      console.log(
+        `⚠️  Note: You might need to accept the self-signed certificate warning in your browser.`,
+      );
     }
   });
 }
