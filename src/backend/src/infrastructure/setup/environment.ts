@@ -50,9 +50,8 @@ const envSchema = z
     // Derived configurations
     const DOWNLOADS = resolveDownloadsPath(data.DOWNLOADS, data.NODE_ENV);
     const DATABASE_URL = resolveDatabaseUrl(data.DATABASE_URL);
-    const BASE_URL = new URL(data.SPOTIFY_REDIRECT_URI).origin;
 
-    return { ...data, DOWNLOADS, DATABASE_URL, BASE_URL };
+    return { ...data, DOWNLOADS, DATABASE_URL };
   });
 
 export type Env = z.infer<typeof envSchema>;
