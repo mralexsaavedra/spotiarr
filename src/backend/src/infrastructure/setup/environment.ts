@@ -47,48 +47,51 @@ const envSchema = z
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
   })
   .transform((data) => {
-    // 1. Auto-configure DOWNLOADS
-    let downloadsPath = data.DOWNLOADS;
-    if (!downloadsPath) {
-      downloadsPath = data.NODE_ENV === "production" ? "/downloads" : resolve(rootDir, "downloads");
+    // Derived configurations
+    const DOWNLOADS = resolveDownloadsPath(data.DOWNLOADS, data.NODE_ENV);
+    const DATABASE_URL = resolveDatabaseUrl(data.DATABASE_URL);
+    const BASE_URL = new URL(data.SPOTIFY_REDIRECT_URI).origin;
 
-      if (!existsSync(downloadsPath)) {
-        mkdirSync(downloadsPath, { recursive: true });
-        // console.log(`[Env] Created downloads directory: ${downloadsPath}`);
-      }
-    }
-
-    // 2. Auto-configure DATABASE_URL
-    let databaseUrl = data.DATABASE_URL;
-    if (!databaseUrl) {
-      // Standard Prisma location for local dev: src/backend/prisma/dev.db
-      const dbPath = resolve(rootDir, "src/backend/prisma/dev.db");
-      const dbDir = dirname(dbPath);
-
-      if (!existsSync(dbDir)) {
-        mkdirSync(dbDir, { recursive: true });
-      }
-
-      databaseUrl = `file:${dbPath}`;
-      // CRITICAL: Prisma Client relies on process.env.DATABASE_URL internally
-      process.env.DATABASE_URL = databaseUrl;
-    }
-
-    // 3. Derived values
-    const uriObj = new URL(data.SPOTIFY_REDIRECT_URI);
-    const BASE_URL = uriObj.origin;
-
-    return {
-      ...data,
-      DOWNLOADS: downloadsPath, // Override with auto-configured value
-      DATABASE_URL: databaseUrl, // Override with auto-configured value
-      BASE_URL,
-    };
+    return { ...data, DOWNLOADS, DATABASE_URL, BASE_URL };
   });
 
 export type Env = z.infer<typeof envSchema>;
 
 let validatedEnv: Env;
+
+// -----------------------------------------------------------------------------
+// Helper Functions (Auto-configuration Logic)
+// -----------------------------------------------------------------------------
+
+function resolveDownloadsPath(providedPath: string | undefined, nodeEnv: string): string {
+  if (providedPath) return providedPath;
+
+  const defaultPath = nodeEnv === "production" ? "/downloads" : resolve(rootDir, "downloads");
+
+  if (!existsSync(defaultPath)) {
+    mkdirSync(defaultPath, { recursive: true });
+  }
+
+  return defaultPath;
+}
+
+function resolveDatabaseUrl(providedUrl: string | undefined): string {
+  if (providedUrl) return providedUrl;
+
+  // Standard Prisma location for local dev: src/backend/prisma/dev.db
+  const dbPath = resolve(rootDir, "src/backend/prisma/dev.db");
+  const dbDir = dirname(dbPath);
+
+  if (!existsSync(dbDir)) {
+    mkdirSync(dbDir, { recursive: true });
+  }
+
+  const databaseUrl = `file:${dbPath}`;
+  // CRITICAL: Prisma Client relies on process.env.DATABASE_URL internally
+  process.env.DATABASE_URL = databaseUrl;
+
+  return databaseUrl;
+}
 
 export function validateEnvironment(): void {
   try {
