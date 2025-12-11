@@ -46,7 +46,6 @@ async function bootstrap() {
     console.log(`-------------------------------------------`);
     console.log(`🌍 Web UI:   http://localhost:${PORT}`);
     console.log(`📡 API URL:  http://localhost:${PORT}/api`);
-    console.log(`🛡️  Protocol: 🔓 HTTP`);
     console.log(`-------------------------------------------`);
 
     if (env.NODE_ENV === "development") {

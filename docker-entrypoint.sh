@@ -1,55 +1,35 @@
 #!/bin/sh
 set -e
 
-# Default PUID/PGID if not specified (Standard Arr convention)
+# Default PUID/PGID (Standard Arr convention)
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 
-echo "🔧 Entrypoint started..."
-echo "👤 User/Group setup: PUID=$PUID, PGID=$PGID"
+echo "🔧 Entrypoint started (PUID=$PUID, PGID=$PGID)..."
 
-# --- User/Group Logic ---
-
-# Check if group exists with PGID
+# Create group if it doesn't exist
 if ! getent group "$PGID" >/dev/null; then
-    echo "Creating group spotiarr with GID $PGID"
     groupadd -g "$PGID" spotiarr
-else
-    echo "Group with GID $PGID already exists"
 fi
 
-# Check if user exists with PUID
+# Create user if it doesn't exist
 if ! getent passwd "$PUID" >/dev/null; then
-    echo "Creating user spotiarr with UID $PUID"
-    # We use the GID corresponding to PGID
-    TARGET_GID=$(getent group "$PGID" | cut -d: -f3)
-    useradd -u "$PUID" -g "$TARGET_GID" -d /spotiarr -s /bin/sh spotiarr
-else
-    echo "User with UID $PUID already exists"
-    # Ensure existing user is in the right group if needed? 
-    # Usually easier to just use the existing user
+    useradd -u "$PUID" -g "$PGID" -d /spotiarr -s /bin/sh spotiarr
 fi
 
-# Get the effective username/groupname
+# Get effective username
 USER_NAME=$(getent passwd "$PUID" | cut -d: -f1)
-GROUP_NAME=$(getent group "$PGID" | cut -d: -f1)
 
-echo "👤 Running as effective user: $USER_NAME:$GROUP_NAME"
-
-# --- Permission Fixes ---
-
-# Fix permissions for config directory and app directory
-echo "🔧 Fixing permissions for /spotiarr..."
+# Fix permissions
+echo "🔧 Fixing permissions..."
 mkdir -p /spotiarr/config
 chown -R "$PUID:$PGID" /spotiarr/config
-chown -R "$PUID:$PGID" /spotiarr/src /spotiarr/package.json
+# Note: /spotiarr code is already owned by node:node from build, 
+# but if PUID!=1000 we might need to adjust, though usually read-only is fine for code.
 
-# Fix permissions for /downloads ROOT ONLY
-echo "🔧 Ensuring /downloads is writable..."
+# Fix downloads root
 mkdir -p /downloads
-# Only chown the directory itself if possible
-chown "$PUID:$PGID" /downloads 2>/dev/null || echo "⚠️  Could not change ownership of /downloads (host mount?). Continuing..."
+chown "$PUID:$PGID" /downloads 2>/dev/null || true
 
-# Switch to configured user and execute the command
-echo "🚀 Starting application as $USER_NAME ($PUID:$PGID)..."
+echo "🚀 Starting application as $USER_NAME..."
 exec su-exec "$PUID:$PGID" "$@"
