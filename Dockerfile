@@ -45,29 +45,29 @@ WORKDIR /spotiarr
 RUN mkdir -p /downloads
 
 # Copy root configuration
-COPY --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
+COPY --chown=node:node --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
 
 # Copy entrypoint script
-COPY docker-entrypoint.sh ./
+COPY --chown=node:node docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
 # --- Selective Copy for Workspaces Optimization ---
 # 1. Copy only package.json files first to install production dependencies
-COPY --from=builder /spotiarr/src/backend/package.json ./src/backend/
-COPY --from=builder /spotiarr/src/frontend/package.json ./src/frontend/
-COPY --from=builder /spotiarr/src/shared/package.json ./src/shared/
+COPY --chown=node:node --from=builder /spotiarr/src/backend/package.json ./src/backend/
+COPY --chown=node:node --from=builder /spotiarr/src/frontend/package.json ./src/frontend/
+COPY --chown=node:node --from=builder /spotiarr/src/shared/package.json ./src/shared/
 
 # 2. Copy all dependencies (prod + dev) and generated artifacts from builder
 # This ensures Prisma Client is present and compatible
-COPY --from=builder /spotiarr/node_modules ./node_modules
+COPY --chown=node:node --from=builder /spotiarr/node_modules ./node_modules
 
 # 3. Copy compiled artifacts (dist) from builder
-COPY --from=builder /spotiarr/src/backend/dist ./src/backend/dist
-COPY --from=builder /spotiarr/src/frontend/dist ./src/frontend/dist
-COPY --from=builder /spotiarr/src/shared/dist ./src/shared/dist
+COPY --chown=node:node --from=builder /spotiarr/src/backend/dist ./src/backend/dist
+COPY --chown=node:node --from=builder /spotiarr/src/frontend/dist ./src/frontend/dist
+COPY --chown=node:node --from=builder /spotiarr/src/shared/dist ./src/shared/dist
 
 # 4. Copy Prisma schema (required for runtime migrations)
-COPY --from=builder /spotiarr/src/backend/prisma ./src/backend/prisma
+COPY --chown=node:node --from=builder /spotiarr/src/backend/prisma ./src/backend/prisma
 
 # Default environment variables
 ENV NODE_ENV=production
