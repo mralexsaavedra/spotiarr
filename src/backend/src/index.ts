@@ -1,10 +1,8 @@
 import * as fs from "fs";
 import * as http from "http";
-import { resolve } from "path";
 import { app } from "./app";
 import { container } from "./container";
 import { startScheduledJobs } from "./infrastructure/jobs";
-import "./infrastructure/setup/env";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { initializeQueues } from "./infrastructure/setup/queues";
 
