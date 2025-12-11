@@ -36,8 +36,13 @@ RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 # Install runtime dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
 # The trigger fails but packages install correctly, so we verify installation
-RUN apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec shadow || \
-    (ffmpeg -version && yt-dlp --version && python3 --version && curl --version)
+RUN apk add --no-cache ffmpeg python3 curl openssl su-exec shadow || \
+    (ffmpeg -version && python3 --version && curl --version)
+
+# Install latest yt-dlp directly from core source for best compatibility
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
+    chmod a+rx /usr/local/bin/yt-dlp && \
+    yt-dlp --version
 
 WORKDIR /spotiarr
 
