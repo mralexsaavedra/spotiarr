@@ -86,7 +86,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
             throw new AppError(
               401,
               "missing_user_access_token",
-              `This playlist requires user authentication. Please configure your Spotify user access token in Settings or set SPOTIFY_USER_ACCESS_TOKEN in your .env file. Playlist ID: ${playlistId}`,
+              `This playlist requires user authentication. Please login via the Web UI. Playlist ID: ${playlistId}`,
             );
           }
           throw userTokenError;
@@ -617,7 +617,7 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
                   throw new AppError(
                     401,
                     "missing_user_access_token",
-                    `This playlist requires user authentication. Please configure your Spotify user access token in Settings or set SPOTIFY_USER_ACCESS_TOKEN in your .env file. Playlist ID: ${playlistId}`,
+                    `This playlist requires user authentication. Please login via the Web UI. Playlist ID: ${playlistId}`,
                   );
                 }
                 throw userTokenError;

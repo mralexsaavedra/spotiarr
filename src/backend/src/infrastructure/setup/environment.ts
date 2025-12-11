@@ -7,7 +7,6 @@ const envSchema = z
     SPOTIFY_CLIENT_ID: z.string().min(1, "SPOTIFY_CLIENT_ID is required"),
     SPOTIFY_CLIENT_SECRET: z.string().min(1, "SPOTIFY_CLIENT_SECRET is required"),
     SPOTIFY_REDIRECT_URI: z.string().url("SPOTIFY_REDIRECT_URI must be a valid URL"),
-    SPOTIFY_USER_ACCESS_TOKEN: z.string().optional(),
 
     // Redis (auto-configured based on environment)
     REDIS_HOST: z.string().min(1).default("localhost"),
@@ -22,7 +21,6 @@ const envSchema = z
 
     // Optional
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
-    DATABASE_URL: z.string().optional(),
   })
   .transform((data) => {
     // Extract Base URL from the Redirect URI for logs/cors

@@ -15,6 +15,7 @@ bazel-out/
 # Database
 **/*.sqlite
 **/*.sqlite-*
+**/*.db
 
 # Docker
 docker-compose.override.yml

@@ -1,5 +1,6 @@
 import { config } from "dotenv";
-import { resolve } from "path";
+import { existsSync, mkdirSync } from "fs";
+import { resolve, dirname } from "path";
 
 // Monorepo root directory
 const rootDir = resolve(__dirname, "../../../../../");
@@ -18,3 +19,17 @@ config({ path: resolve(rootDir, `.env.${env}`) });
 config({ path: resolve(rootDir, ".env") });
 
 console.log(`[Env] Loaded environment for: ${env}`);
+
+// Auto-configure DATABASE_URL if missing (Magic 🪄)
+if (!process.env.DATABASE_URL) {
+  // Use standard Prisma location for local dev: src/backend/prisma/dev.db
+  const dbPath = resolve(rootDir, "src/backend/prisma/dev.db");
+
+  // Ensure directory exists
+  const dbDir = dirname(dbPath);
+  if (!existsSync(dbDir)) {
+    mkdirSync(dbDir, { recursive: true });
+  }
+
+  process.env.DATABASE_URL = `file:${dbPath}`;
+}

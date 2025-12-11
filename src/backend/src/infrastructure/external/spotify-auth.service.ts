@@ -93,13 +93,13 @@ export class SpotifyAuthService {
     }
 
     // Fallback to env var
-    const token = fromSettings ?? getEnv().SPOTIFY_USER_ACCESS_TOKEN;
+    const token = fromSettings;
 
     if (!token) {
       throw new AppError(
         401,
         "missing_user_access_token",
-        `Missing Spotify user access token. Set '${accessTokenKey}' in settings or SPOTIFY_USER_ACCESS_TOKEN in env`,
+        `Missing Spotify user access token. Please login via the Web UI.`,
       );
     }
 

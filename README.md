@@ -165,11 +165,10 @@ pnpm dev
 
 **Advanced Configuration:**
 
-| Variable       | Default                   | Description                                |
-| -------------- | ------------------------- | ------------------------------------------ |
-| `DATABASE_URL` | `file:./config/db.sqlite` | Path to SQLite DB (Required for Local Dev) |
-| `REDIS_HOST`   | `redis`                   | Hostname of Redis server (for external DB) |
-| `REDIS_PORT`   | `6379`                    | Port of Redis server                       |
+| Variable     | Default | Description                                |
+| ------------ | ------- | ------------------------------------------ |
+| `REDIS_HOST` | `redis` | Hostname of Redis server (for external DB) |
+| `REDIS_PORT` | `6379`  | Port of Redis server                       |
 
 **Note regarding HTTPS:**
 The included `docker-compose.yml` uses **Traefik** as a reverse proxy to handle HTTPS automatically on port 443. This is required for Spotify authentication on remote servers. SpotiArr itself runs on HTTP (port 3000) internally.
