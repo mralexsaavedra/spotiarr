@@ -62,7 +62,19 @@ cp .env.example .env
 # A symlink is automatically used by the backend to read this file
 ```
 
-4. **Install services**
+5. **Setup Database**
+
+   Configure the local development database:
+
+   ```bash
+   # 1. Create backend env file
+   cp src/backend/.env.example src/backend/.env
+
+   # 2. Run migrations (creates src/backend/prisma/dev.db)
+   pnpm --filter backend run prisma:migrate:deploy
+   ```
+
+6. **Install services**
 
 ```bash
 # macOS (Homebrew)
