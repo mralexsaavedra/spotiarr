@@ -1,10 +1,20 @@
 import { config } from "dotenv";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve } from "path";
 
-const devPath = resolve(__dirname, "../../../../../.env");
-const prodPath = resolve(__dirname, "../../../../.env");
+// Monorepo root directory
+const rootDir = resolve(__dirname, "../../../../../");
+const env = process.env.NODE_ENV || "development";
 
-const envPath = existsSync(devPath) ? devPath : prodPath;
+// Cascade loading: Specific overrides first.
+// dotenv does NOT overwrite existing keys, so the first file loaded wins.
 
-config({ path: envPath });
+// 1. .env.development.local (Local overrides, git-ignored)
+config({ path: resolve(rootDir, `.env.${env}.local`) });
+
+// 2. .env.development (Shared dev config)
+config({ path: resolve(rootDir, `.env.${env}`) });
+
+// 3. .env (Shared base config)
+config({ path: resolve(rootDir, ".env") });
+
+console.log(`[Env] Loaded environment for: ${env}`);
