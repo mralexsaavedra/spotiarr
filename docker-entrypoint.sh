@@ -50,20 +50,6 @@ mkdir -p /downloads
 # Only chown the directory itself if possible
 chown "$PUID:$PGID" /downloads 2>/dev/null || echo "⚠️  Could not change ownership of /downloads (host mount?). Continuing..."
 
-# Check if certificates exist in the config volume
-if [ ! -f "/spotiarr/config/server.key" ] || [ ! -f "/spotiarr/config/server.cert" ]; then
-    echo "🔒 Generating self-signed SSL certificates..."
-    
-    # Generate certs
-    openssl req -nodes -new -x509 -keyout /spotiarr/config/server.key -out /spotiarr/config/server.cert -days 365 -subj "/CN=spotiarr-local"
-    
-    # Fix permissions on generated files
-    chown "$PUID:$PGID" /spotiarr/config/server.key /spotiarr/config/server.cert
-    echo "✅ Certificates generated at /spotiarr/config/server.{key,cert}"
-else
-    echo "🔒 SSL certificates found in config directory."
-fi
-
 # Switch to configured user and execute the command
 echo "🚀 Starting application as $USER_NAME ($PUID:$PGID)..."
 exec su-exec "$PUID:$PGID" "$@"

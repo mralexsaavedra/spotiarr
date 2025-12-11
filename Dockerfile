@@ -80,7 +80,7 @@ EXPOSE 3000
 
 # Healthcheck to ensure the service is running (using -k to ignore self-signed cert errors if https)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f -k http://localhost:3000/api/health || curl -f -k https://localhost:3000/api/health || exit 1
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["sh", "-c", "pnpm --filter backend prisma:migrate:deploy && pnpm start"]
