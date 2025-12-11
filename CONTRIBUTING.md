@@ -57,7 +57,7 @@ cp .env.example .env
 
 # Edit .env:
 # 1. Add your Spotify credentials (REQUIRED)
-# 2. Change REDIS_HOST=redis to REDIS_HOST=localhost (REQUIRED for local dev)
+# 2. (Optional) Adjust advanced settings if needed
 
 # A symlink is automatically used by the backend to read this file
 ```
@@ -94,12 +94,9 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 
 ### Environment Variables
 
-**User-facing variables** (documented in README):
+**User-facing variables**: Please refer to the [README](../README.md#environment-variables) for the authoritative list of required and optional variables.
 
-- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` - Required
-- `SPOTIFY_REDIRECT_URI` - Required for remote access (default: `http://localhost:3000/...`)
-
-**Internal/Auto-configured variables** (for developers):
+**Development & System Variables** (Auto-configured):
 
 | Variable         | Default (dev) | Default (prod)                    | Description                                 |
 | ---------------- | ------------- | --------------------------------- | ------------------------------------------- |

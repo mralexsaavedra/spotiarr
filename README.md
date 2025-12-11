@@ -161,6 +161,13 @@ pnpm dev
 | `PUID`                  | ❌       | `1000`  | User ID for file permissions (Linux/NAS)       |
 | `PGID`                  | ❌       | `1000`  | Group ID for file permissions (Linux/NAS)      |
 
+**Advanced Configuration:**
+
+| Variable     | Default | Description                                |
+| ------------ | ------- | ------------------------------------------ |
+| `REDIS_HOST` | `redis` | Hostname of Redis server (for external DB) |
+| `REDIS_PORT` | `6379`  | Port of Redis server                       |
+
 **Note regarding HTTPS:**
 Spotify requires HTTPS for OAuth callbacks unless using `localhost`. If deploying on a remote server, you should ideally use a Reverse Proxy (Nginx, Traefik, Caddy) to handle HTTPS.
 However, for internal use, SpotiArr defaults to HTTP on port 3000. Ensure your Spotify App Dashboard has the exact `http://IP:3000/...` URI whitelisted.
