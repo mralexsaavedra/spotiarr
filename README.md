@@ -142,6 +142,7 @@ brew services start redis
 cp .env.example .env
 cp src/backend/.env.example src/backend/.env
 # Edit .env → add Spotify credentials + set REDIS_HOST=localhost
+# Note: Downloads are saved to './downloads' by default
 
 # 4. Migrate Database
 pnpm --filter backend run prisma:migrate:deploy
