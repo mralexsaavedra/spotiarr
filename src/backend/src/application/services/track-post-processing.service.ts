@@ -20,7 +20,8 @@ export class TrackPostProcessingService {
   ) {}
 
   /**
-   * Handles all post-download tasks: metadata embedding, cover art saving, and M3U generation
+   * Handles metadata embedding, cover art saving
+   * NOTE: Does NOT generate M3U. Call updatePlaylistM3u() after saving the track status.
    */
   async process(track: ITrack, trackFilePath: string): Promise<void> {
     try {
@@ -46,14 +47,38 @@ export class TrackPostProcessingService {
 
       // 3. Save Artist Image (if applicable)
       await this.saveArtistImageIfNeeded(track);
-
-      // 4. Generate/Update M3U Playlist
-      await this.generateM3uIfNeeded(track);
     } catch (error) {
       console.error(
         `Error during post-processing for track ${track.name}: ${getErrorMessage(error)}`,
       );
       // We don't throw here to avoid failing the whole download if just metadata fails
+    }
+  }
+
+  async updatePlaylistM3u(track: ITrack): Promise<void> {
+    if (!track.playlistId) return;
+
+    try {
+      const playlistEntity = await this.playlistRepository.findOne(track.playlistId);
+
+      // Only generate M3U for actual playlists
+      if (!playlistEntity || !playlistEntity.name || playlistEntity.type !== "playlist") {
+        return;
+      }
+
+      const playlist = playlistEntity.toPrimitive();
+      const playlistTracksEntities = await this.trackRepository.findAllByPlaylist(track.playlistId);
+      const playlistTracks = playlistTracksEntities.map((t) => t.toPrimitive());
+
+      if (playlistTracks.length > 0) {
+        const playlistFolderPath = this.utilsService.getPlaylistFolderPath(playlist.name!);
+        await this.m3uService.generateM3uFile(playlist, playlistTracks, playlistFolderPath);
+
+        const completedCount = this.m3uService.getCompletedTracksCount(playlistTracks);
+        console.debug(`Playlist M3U updated: ${completedCount}/${playlistTracks.length} tracks`);
+      }
+    } catch (err) {
+      console.error(`Failed to generate M3U file: ${getErrorMessage(err)}`);
     }
   }
 
@@ -112,33 +137,6 @@ export class TrackPostProcessingService {
       }
     } catch (error) {
       console.warn(`Failed to save artist image: ${getErrorMessage(error)}`);
-    }
-  }
-
-  private async generateM3uIfNeeded(track: ITrack): Promise<void> {
-    if (!track.playlistId) return;
-
-    try {
-      const playlistEntity = await this.playlistRepository.findOne(track.playlistId);
-
-      // Only generate M3U for actual playlists
-      if (!playlistEntity || !playlistEntity.name || playlistEntity.type !== "playlist") {
-        return;
-      }
-
-      const playlist = playlistEntity.toPrimitive();
-      const playlistTracksEntities = await this.trackRepository.findAllByPlaylist(track.playlistId);
-      const playlistTracks = playlistTracksEntities.map((t) => t.toPrimitive());
-
-      if (playlistTracks.length > 0) {
-        const playlistFolderPath = this.utilsService.getPlaylistFolderPath(playlist.name!);
-        await this.m3uService.generateM3uFile(playlist, playlistTracks, playlistFolderPath);
-
-        const completedCount = this.m3uService.getCompletedTracksCount(playlistTracks);
-        console.debug(`Playlist M3U updated: ${completedCount}/${playlistTracks.length} tracks`);
-      }
-    } catch (err) {
-      console.error(`Failed to generate M3U file: ${getErrorMessage(err)}`);
     }
   }
 }

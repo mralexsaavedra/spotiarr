@@ -71,6 +71,10 @@ export class DownloadTrackUseCase {
         await this.downloadHistoryRepository.createFromTrack(persistedTrack.toPrimitive());
         this.eventBus.emit("download-history-updated");
       }
+
+      // Generate M3U if successful (NOW SAFE: track is marked as completed in DB)
+      // This fixes the issue where the current track was missing from M3U
+      await this.trackPostProcessingService.updatePlaylistM3u(track.toPrimitive());
     }
 
     // Notify playlists have changed (track status affects playlist state)
