@@ -51,11 +51,22 @@ COPY --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotia
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# Copy entire src directory
-COPY --from=builder /spotiarr/src/ ./src/
+# --- Selective Copy for Workspaces Optimization ---
+# 1. Copy only package.json files first to install production dependencies
+COPY --from=builder /spotiarr/src/backend/package.json ./src/backend/
+COPY --from=builder /spotiarr/src/frontend/package.json ./src/frontend/
+COPY --from=builder /spotiarr/src/shared/package.json ./src/shared/
 
-# Install production dependencies only
+# 2. Install production dependencies (ignores scripts to avoid build tool executions)
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+
+# 3. Copy compiled artifacts (dist) from builder
+COPY --from=builder /spotiarr/src/backend/dist ./src/backend/dist
+COPY --from=builder /spotiarr/src/frontend/dist ./src/frontend/dist
+COPY --from=builder /spotiarr/src/shared/dist ./src/shared/dist
+
+# 4. Copy Prisma schema (required for runtime client generation and migrations)
+COPY --from=builder /spotiarr/src/backend/prisma ./src/backend/prisma
 
 # Generate Prisma Client for production
 RUN pnpm --filter backend prisma:generate
