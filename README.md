@@ -110,6 +110,8 @@ cp .env.example .env
 #   SPOTIFY_CLIENT_ID=your_client_id
 #   SPOTIFY_CLIENT_SECRET=your_client_secret
 #   PUBLIC_HOST=your_server_ip
+#   PUID=1000  # Optional (Linux/NAS)
+#   PGID=1000  # Optional (Linux/NAS)
 
 # 3. Start
 docker compose up -d
@@ -156,6 +158,8 @@ pnpm dev
 | `SPOTIFY_CLIENT_ID`     | ✅       | -           | Spotify app Client ID                                                |
 | `SPOTIFY_CLIENT_SECRET` | ✅       | -           | Spotify app Client Secret                                            |
 | `PUBLIC_HOST`           | ❌       | `localhost` | Public hostname or IP (e.g., `X.X.X.X` or `spotiarr.yourdomain.com`) |
+| `PUID`                  | ❌       | `1000`      | User ID for file permissions (Linux/NAS)                             |
+| `PGID`                  | ❌       | `1000`      | Group ID for file permissions (Linux/NAS)                            |
 
 **Note:** Protocol (HTTP/HTTPS) and port are automatic based on environment:
 
