@@ -5,9 +5,9 @@ import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 import { SpotifyService } from "@/domain/services/spotify.service";
 import { FileSystemM3uService } from "@/infrastructure/services/file-system-m3u.service";
+import { FileSystemTrackPathService } from "@/infrastructure/services/file-system-track-path.service";
 import { MetadataService } from "@/infrastructure/services/metadata.service";
 import { getErrorMessage } from "@/infrastructure/utils/error.utils";
-import { UtilsService } from "./utils.service";
 
 export class TrackPostProcessingService {
   constructor(
@@ -15,7 +15,7 @@ export class TrackPostProcessingService {
     private readonly metadataService: MetadataService,
     private readonly playlistRepository: PlaylistRepository,
     private readonly trackRepository: TrackRepository,
-    private readonly utilsService: UtilsService,
+    private readonly trackPathService: FileSystemTrackPathService,
     private readonly m3uService: FileSystemM3uService,
   ) {}
 
@@ -71,7 +71,7 @@ export class TrackPostProcessingService {
       const playlistTracks = playlistTracksEntities.map((t) => t.toPrimitive());
 
       if (playlistTracks.length > 0) {
-        const playlistFolderPath = this.utilsService.getPlaylistFolderPath(playlist.name!);
+        const playlistFolderPath = this.trackPathService.getPlaylistFolderPath(playlist.name!);
         await this.m3uService.generateM3uFile(playlist, playlistTracks, playlistFolderPath);
 
         const completedCount = this.m3uService.getCompletedTracksCount(playlistTracks);
@@ -123,7 +123,7 @@ export class TrackPostProcessingService {
 
       // Only save artist image if it's NOT a generic playlist and we have an image
       if (playlist && playlist.type !== PlaylistTypeEnum.Playlist && playlist.artistImageUrl) {
-        const artistFolderPath = this.utilsService.getArtistFolderPath(track.artist);
+        const artistFolderPath = this.trackPathService.getArtistFolderPath(track.artist);
 
         if (!fs.existsSync(artistFolderPath)) {
           fs.mkdirSync(artistFolderPath, { recursive: true });

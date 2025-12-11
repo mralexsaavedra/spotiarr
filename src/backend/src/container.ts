@@ -2,7 +2,6 @@ import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
-import { UtilsService } from "./application/services/utils.service";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "./application/use-cases/playlists/delete-playlist.use-case";
 import { GetMyPlaylistsUseCase } from "./application/use-cases/playlists/get-my-playlists.use-case";
@@ -45,12 +44,12 @@ const settingsRepository = new PrismaSettingsRepository();
 
 // Services (Base)
 const settingsService = new SettingsService(settingsRepository);
-const utilsService = new UtilsService();
+
 const m3uService = new FileSystemM3uService(settingsService);
 const youtubeSearchService = new YoutubeSearchService(settingsService);
 const youtubeDownloadService = new YoutubeDownloadService(settingsService, youtubeSearchService);
 const metadataService = new MetadataService();
-const trackFileHelper = new FileSystemTrackPathService(settingsService, utilsService);
+const trackFileHelper = new FileSystemTrackPathService(settingsService);
 const queueService = new BullMqTrackQueueService();
 const eventBus = new SseEventBus();
 
@@ -72,7 +71,7 @@ const trackPostProcessingService = new TrackPostProcessingService(
   metadataService,
   playlistRepository,
   trackRepository,
-  utilsService,
+  trackFileHelper,
   m3uService,
 );
 
