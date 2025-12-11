@@ -36,7 +36,7 @@ RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 # Install runtime dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
 # The trigger fails but packages install correctly, so we verify installation
-RUN apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec || \
+RUN apk add --no-cache ffmpeg yt-dlp python3 curl openssl su-exec shadow || \
     (ffmpeg -version && yt-dlp --version && python3 --version && curl --version)
 
 WORKDIR /spotiarr
@@ -62,7 +62,7 @@ RUN pnpm --filter backend prisma:generate
 
 # Default environment variables
 ENV NODE_ENV=production
-ENV PUBLIC_HOST=127.0.0.1
+ENV PUBLIC_HOST=0.0.0.0
 ENV REDIS_HOST=redis
 ENV REDIS_PORT=6379
 ENV DOWNLOADS_PATH=/downloads
