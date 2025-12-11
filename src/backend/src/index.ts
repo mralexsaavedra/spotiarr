@@ -3,6 +3,7 @@ import * as http from "http";
 import * as https from "https";
 import { resolve } from "path";
 import { app } from "./app";
+import { container } from "./container";
 import { startScheduledJobs } from "./infrastructure/jobs";
 import "./infrastructure/setup/env";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
@@ -30,6 +31,9 @@ async function bootstrap() {
   // Initialize workers
   await import("./infrastructure/workers/track-download.worker");
   await import("./infrastructure/workers/track-search.worker");
+
+  // Check for stuck tracks and rescue them
+  await container.rescueStuckTracksUseCase.execute();
 
   // Create server (HTTPS in production if certs exist, HTTP otherwise)
   const server = createServer();

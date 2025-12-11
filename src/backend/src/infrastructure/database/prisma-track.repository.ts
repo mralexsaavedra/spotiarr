@@ -108,6 +108,16 @@ export class PrismaTrackRepository implements TrackRepository {
     return tracks.map((t) => this.mapToTrack(t));
   }
 
+  async findAllByStatuses(statuses: TrackStatusEnum[]): Promise<Track[]> {
+    const tracks = await prisma.track.findMany({
+      where: {
+        status: { in: statuses },
+      },
+      include: { playlist: true },
+    });
+    return tracks.map((t) => this.mapToTrack(t));
+  }
+
   private mapToTrack(track: DbTrack): Track {
     const iTrack: ITrack = {
       id: track.id,

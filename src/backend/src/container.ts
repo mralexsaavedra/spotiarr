@@ -17,6 +17,7 @@ import { CreateTrackUseCase } from "./application/use-cases/tracks/create-track.
 import { DeleteTrackUseCase } from "./application/use-cases/tracks/delete-track.use-case";
 import { DownloadTrackUseCase } from "./application/use-cases/tracks/download-track.use-case";
 import { GetTracksUseCase } from "./application/use-cases/tracks/get-tracks.use-case";
+import { RescueStuckTracksUseCase } from "./application/use-cases/tracks/rescue-stuck-tracks.use-case";
 import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-track-download.use-case";
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.use-case";
@@ -89,6 +90,10 @@ const searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
   eventBus,
 );
 const retryTrackDownloadUseCase = new RetryTrackDownloadUseCase(trackRepository, queueService);
+const rescueStuckTracksUseCase = new RescueStuckTracksUseCase(
+  trackRepository,
+  retryTrackDownloadUseCase,
+);
 const downloadTrackUseCase = new DownloadTrackUseCase(
   trackRepository,
   youtubeDownloadService,
@@ -174,4 +179,5 @@ export const container = {
   queueService,
   eventBus,
   trackPostProcessingService,
+  rescueStuckTracksUseCase,
 };
