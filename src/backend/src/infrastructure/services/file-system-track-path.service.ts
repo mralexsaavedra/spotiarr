@@ -71,7 +71,10 @@ export class FileSystemTrackPathService {
     }
 
     const paddedNumber = String(trackNumber).padStart(2, "0");
-    const fileName = `${paddedNumber} - ${this.stripFileIllegalChars(trackName)}.${format}`;
+    const discPrefix = track.discNumber && track.discNumber > 1 ? `${track.discNumber}-` : "";
+    const fileName = `${discPrefix}${paddedNumber} - ${this.stripFileIllegalChars(
+      trackName,
+    )}.${format}`;
     return resolve(this.getAlbumFolderPath(artistName, albumName), fileName);
   }
 

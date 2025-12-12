@@ -31,6 +31,7 @@ export interface SpotifyTrack {
   preview_url?: string | null;
   external_urls?: SpotifyExternalUrls;
   track_number?: number;
+  disc_number?: number;
   duration_ms?: number;
   is_playable?: boolean;
 }

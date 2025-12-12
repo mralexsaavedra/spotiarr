@@ -70,6 +70,8 @@ export interface ITrack {
   album?: string;
   albumYear?: number;
   trackNumber?: number;
+  discNumber?: number;
+  totalTracks?: number;
   spotifyUrl?: string;
   trackUrl?: string;
   albumUrl?: string;

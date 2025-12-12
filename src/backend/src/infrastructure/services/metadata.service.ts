@@ -13,10 +13,13 @@ export class MetadataService {
       album?: string;
       albumYear?: number;
       trackNumber?: number;
+      discNumber?: number;
+      totalTracks?: number;
       coverUrl?: string; // Optional: download and embed if present
     },
   ): Promise<void> {
-    const { title, artist, album, albumYear, trackNumber, coverUrl } = fileTags;
+    const { title, artist, album, albumYear, trackNumber, discNumber, totalTracks, coverUrl } =
+      fileTags;
 
     const tags: NodeID3.Tags = {
       title,
@@ -33,7 +36,11 @@ export class MetadataService {
     }
 
     if (trackNumber) {
-      tags.trackNumber = trackNumber.toString();
+      tags.trackNumber = totalTracks ? `${trackNumber}/${totalTracks}` : trackNumber.toString();
+    }
+
+    if (discNumber) {
+      tags.partOfSet = discNumber.toString();
     }
 
     if (coverUrl) {

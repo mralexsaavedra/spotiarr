@@ -34,6 +34,8 @@ export class TrackPostProcessingService {
         album: track.album,
         albumYear: track.albumYear,
         trackNumber: track.trackNumber,
+        discNumber: track.discNumber,
+        totalTracks: track.totalTracks,
         coverUrl: trackCoverUrl || playlistCoverUrl || "",
       });
 

@@ -271,6 +271,8 @@ export class SpotifyCatalogService extends SpotifyHttpClient {
       albumCoverUrl,
       albumYear,
       trackNumber: track.track_number,
+      discNumber: track.disc_number,
+      totalTracks: album?.total_tracks,
       previewUrl: track.preview_url,
       durationMs: track.duration_ms,
       unavailable: context?.isUnavailable ?? undefined,
