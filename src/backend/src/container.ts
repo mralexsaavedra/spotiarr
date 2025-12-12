@@ -31,8 +31,8 @@ import { SpotifyCatalogService } from "./infrastructure/external/spotify-catalog
 import { SpotifyUserLibraryService } from "./infrastructure/external/spotify-user-library.service";
 import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
+import { AppEventBus } from "./infrastructure/messaging/app-event-bus";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
-import { SseEventBus } from "./infrastructure/messaging/sse-event-bus";
 import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
@@ -53,7 +53,7 @@ const youtubeDownloadService = new YoutubeDownloadService(settingsService, youtu
 const metadataService = new MetadataService();
 
 const queueService = new BullMqTrackQueueService();
-const eventBus = new SseEventBus();
+const eventBus = new AppEventBus();
 
 // Spotify
 const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
@@ -120,6 +120,7 @@ const getSettingsUseCase = new GetSettingsUseCase(settingsRepository);
 const updateSettingUseCase = new UpdateSettingUseCase(
   settingsRepository,
   spotifyUserLibraryService,
+  eventBus,
 );
 
 // Use Cases - Playlists

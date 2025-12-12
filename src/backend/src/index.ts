@@ -1,3 +1,4 @@
+import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as http from "http";
 import { app } from "./app";
@@ -39,6 +40,23 @@ async function bootstrap() {
 
   const { createTrackSearchWorker } = await import("./infrastructure/workers/track-search.worker");
   searchWorker = await createTrackSearchWorker();
+
+  // Listen for settings updates to hot-reload workers
+  (container.eventBus as unknown as EventEmitter).on(
+    "settings:updated",
+    async ({ key }: { key: string }) => {
+      if (key === "YT_SEARCH_CONCURRENCY") {
+        console.log("♻️  Settings changed: Reloading search worker...");
+        await searchWorker.close();
+        searchWorker = await createTrackSearchWorker();
+      }
+      if (key === "YT_DOWNLOADS_PER_MINUTE") {
+        console.log("♻️  Settings changed: Reloading download worker...");
+        await downloadWorker.close();
+        downloadWorker = await createTrackDownloadWorker();
+      }
+    },
+  );
 
   // Check for stuck tracks and rescue them
   await container.rescueStuckTracksUseCase.execute();
