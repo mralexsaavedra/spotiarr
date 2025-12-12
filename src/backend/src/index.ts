@@ -28,7 +28,11 @@ async function bootstrap() {
   initializeQueues();
 
   // Initialize workers
-  await import("./infrastructure/workers/track-download.worker");
+  const { createTrackDownloadWorker } = await import(
+    "./infrastructure/workers/track-download.worker"
+  );
+  await createTrackDownloadWorker();
+
   await import("./infrastructure/workers/track-search.worker");
 
   // Check for stuck tracks and rescue them
