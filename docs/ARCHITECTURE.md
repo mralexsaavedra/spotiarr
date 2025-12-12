@@ -73,6 +73,7 @@ src/backend/src/
 ├── infrastructure/      # Implementaciones concretas
 │   ├── database/        # Repositorios Prisma
 │   ├── external/        # Integraciones (Spotify API, YouTube, Filesystem)
+│   ├── jobs/            # Tareas programadas (Cron Jobs)
 │   └── messaging/       # Colas (BullMQ) y Eventos (SSE)
 ├── presentation/        # API Rest (Rutas y Controladores)
 └── container.ts         # Inyección de Dependencias (DI) Manual
@@ -113,13 +114,33 @@ src/frontend/src/
 2.  **Logic Segregation:**
     - `queries/` y `mutations/` centralizan las keys de caché y las llamadas a la API.
     - Esto permite reutilizar la lógica de "obtener playlists" en cualquier componente sin repetir código.
-
 3.  **Real-time Sync (`useServerEvents`):**
     - Un hook global escucha **Server-Sent Events** del backend.
     - Cuando llega un evento (ej: `track-downloaded`), invalida automáticamente las queries afectadas.
     - **Resultado:** La UI se actualiza sola sin que el usuario tenga que recargar, manteniendo la coherencia de datos "mágicamente".
 
-## 5. Ciclo de Vida de una Descarga
+## 5. Modelo de Datos y Persistencia
+
+Utilizamos **Prisma** con **SQLite** para una gestión de datos relacional robusta pero portable.
+
+**Entidades Principales:**
+
+- **Playlist:** Representa una lista de Spotify (álbum o playlist). Puede estar marcada como `subscribed` para actualizaciones automáticas.
+- **Track:** La unidad mínima. Contiene metadatos de Spotify y el estado de la descarga local (`New` -> `Searching` -> `Downloading` -> `Completed` -> `Error`).
+- **Setting:** Almacenamiento clave-valor para la configuración del usuario (ej: formato de audio, ruta de descargas).
+- **DownloadHistory:** Histórico inmutable de descargas completadas para estadísticas.
+
+## 6. Automatización y Background Jobs
+
+SpotiArr no es solo un descargador bajo demanda, es un sistema autónomo.
+
+1.  **Sincronización de Playlists (`Cron Job`):**
+    - Cada X minutos (configurable), el sistema revisa todas las playlists marcadas como `subscribed`.
+    - Compara con Spotify API y si detecta pistas nuevas, las encola automáticamente.
+2.  **Limpieza de Procesos Atascados:**
+    - Un job vigila descargas que lleven demasiado tiempo en estado "Downloading" (zombies) y las marca como error para permitir reintentos, evitando bloqueos eternos.
+
+## 7. Ciclo de Vida de una Descarga
 
 El proceso más crítico de la aplicación funciona así:
 
@@ -146,7 +167,7 @@ El proceso más crítico de la aplicación funciona así:
     - El backend emite eventos Server-Sent Events (SSE).
     - El frontend recibe el evento y actualiza la barra de progreso en tiempo real sin recargar.
 
-## 6. Infraestructura y Despliegue
+## 8. Infraestructura y Despliegue
 
 Todo está contenerizado con **Docker** para garantizar reproducibilidad.
 
