@@ -106,6 +106,14 @@ export class MetadataService {
       // Save cover.jpg
       fs.writeFileSync(coverFile, imageBuffer);
 
+      // Force permissions to be readable by everyone (rw-rw-rw-)
+      // This solves issues where Jellyfin/Plex run as different users/groups
+      try {
+        fs.chmodSync(coverFile, 0o666);
+      } catch (e) {
+        console.warn(`Could not set permissions for ${coverFile}: ${getErrorMessage(e)}`);
+      }
+
       console.debug(`✓ Cover art saved in ${directory}`);
     } catch (error) {
       console.error(`Failed to save cover art in ${directory}: ${getErrorMessage(error)}`);

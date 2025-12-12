@@ -131,10 +131,17 @@ export class TrackPostProcessingService {
           fs.mkdirSync(artistFolderPath, { recursive: true });
         }
 
+        // Save as folder.jpg (standard)
         await this.metadataService.saveCoverArt(
           artistFolderPath,
           playlist.artistImageUrl,
           "folder.jpg",
+        );
+        // Also save as artist.jpg (Jellyfin specific preference for Artists)
+        await this.metadataService.saveCoverArt(
+          artistFolderPath,
+          playlist.artistImageUrl,
+          "artist.jpg",
         );
       }
     } catch (error) {
