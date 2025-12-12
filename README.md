@@ -34,7 +34,7 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 | 🚫 **Duplicate Detection** | Smart checks to avoid re-downloading existing tracks                        |
 | 🐳 **Docker First**        | One-command deployment with Redis included                                  |
 
-**Stack:** Express + Prisma + React 18 + Vite + Tailwind + SQLite + Redis + BullMQ
+**Stack:** Express + Prisma + React 19 + Vite + Tailwind + SQLite + Redis + BullMQ
 
 > [!IMPORTANT]  
 > **Legal Notice:** Personal use only. Download music you have legal rights to access. The author is not responsible for misuse.
@@ -228,8 +228,10 @@ pnpm build     # Production build
 
 **Architecture:**
 
+> 📖 **Read the Story:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a deep dive into the project's initiative, monorepo structure, and technical decisions.
+
 - **Backend:** Express + Prisma + BullMQ + SQLite
-- **Frontend:** React 18 + Vite + TanStack Query + Tailwind + Zustand
+- **Frontend:** React 19 + Vite + TanStack Query + Tailwind v4 + Zustand
 - **Queue:** Redis + BullMQ for download jobs
 - **Processing:** FFmpeg + yt-dlp
 
