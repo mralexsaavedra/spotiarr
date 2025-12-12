@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.5](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.4...v0.1.5) (2025-12-12)
+
+### Features
+
+- Add disc number and total tracks to track metadata and file naming logic. ([9ea5546](https://github.com/mralexsaavedra/spotiarr/commit/9ea55462bb1c036d1a21101a81551340fc3a28cf))
+- Dynamically determine cover art file extension from content type and remove redundant artist image saving. ([e02b814](https://github.com/mralexsaavedra/spotiarr/commit/e02b8149508335cda3d6f44ef58e55c197691e2f))
+- Implement an application event bus to hot-reload workers when specific settings are updated. ([0e3cfe4](https://github.com/mralexsaavedra/spotiarr/commit/0e3cfe42b55a94ea6496a21cf350873f921e64ae))
+- Save artist images as both `folder.jpg` and `artist.jpg`, and set universal read permissions for cover art files. ([e467d3c](https://github.com/mralexsaavedra/spotiarr/commit/e467d3c021c36d7d903300e4d1dd6c2a807d6fde))
+
 ### [0.1.4](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.3...v0.1.4) (2025-12-11)
 
 ### Features
