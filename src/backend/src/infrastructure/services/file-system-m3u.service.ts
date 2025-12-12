@@ -68,7 +68,7 @@ export class FileSystemM3uService {
     for (const track of tracks) {
       // #EXTINF:<duration>,<artist> - <title>
       // Duration in seconds (we use -1 if not available)
-      const duration = -1; // We could calculate this with ffprobe if needed
+      const duration = track.durationMs ? Math.round(track.durationMs / 1000) : -1;
       const trackInfo = `${track.artist} - ${track.name}`;
 
       lines.push(`#EXTINF:${duration},${trackInfo}`);

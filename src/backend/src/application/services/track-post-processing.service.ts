@@ -28,14 +28,14 @@ export class TrackPostProcessingService {
       const { trackCoverUrl, playlistCoverUrl, isPlaylistType } = await this.getCoverUrls(track);
 
       // 1. Embed ID3 Tags (prefer specific track cover)
-      await this.metadataService.addImage(
-        trackFilePath,
-        trackCoverUrl || playlistCoverUrl || "",
-        track.name,
-        track.artist,
-        track.albumYear,
-        track.trackNumber,
-      );
+      await this.metadataService.writeTags(trackFilePath, {
+        title: track.name,
+        artist: track.artist,
+        album: track.album,
+        albumYear: track.albumYear,
+        trackNumber: track.trackNumber,
+        coverUrl: trackCoverUrl || playlistCoverUrl || "",
+      });
 
       // 2. Save folder cover.jpg
       const trackDirectory = path.dirname(trackFilePath);

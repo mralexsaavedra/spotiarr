@@ -4,51 +4,58 @@ import { join } from "path";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
 
-interface CoverTags extends NodeID3.Tags {
-  APIC?: {
-    mime: string;
-    type: { id: number; name: string };
-    description: string;
-    imageBuffer: Buffer;
-  };
-}
-
 export class MetadataService {
-  async addImage(
+  async writeTags(
     folderName: string,
-    coverUrl: string,
-    title: string,
-    artist: string,
-    albumYear?: number,
-    trackNumber?: number,
+    fileTags: {
+      title: string;
+      artist: string;
+      album?: string;
+      albumYear?: number;
+      trackNumber?: number;
+      coverUrl?: string; // Optional: download and embed if present
+    },
   ): Promise<void> {
-    if (coverUrl) {
-      const res = await fetch(coverUrl);
-      const arrayBuf = await res.arrayBuffer();
-      const imageBuffer = Buffer.from(arrayBuf);
+    const { title, artist, album, albumYear, trackNumber, coverUrl } = fileTags;
 
-      const tags: CoverTags = {
-        title,
-        artist,
-        APIC: {
+    const tags: NodeID3.Tags = {
+      title,
+      artist,
+      performerInfo: artist, // Album Artist - crucial for Jellyfin grouping
+    };
+
+    if (album) {
+      tags.album = album;
+    }
+
+    if (albumYear) {
+      tags.year = albumYear.toString();
+    }
+
+    if (trackNumber) {
+      tags.trackNumber = trackNumber.toString();
+    }
+
+    if (coverUrl) {
+      try {
+        const res = await fetch(coverUrl);
+        const arrayBuf = await res.arrayBuffer();
+        const imageBuffer = Buffer.from(arrayBuf);
+
+        tags.image = {
           mime: "image/jpeg",
-          type: { id: 3, name: "front cover" },
+          type: { id: 3, name: "front cover" }, // Cover (front)
           description: "cover",
           imageBuffer,
-        },
-      };
-
-      // Add year if available
-      if (albumYear) {
-        tags.year = albumYear.toString();
+        };
+      } catch (error) {
+        console.warn(`Failed to download cover for embedding: ${getErrorMessage(error)}`);
       }
+    }
 
-      // Add track number if available
-      if (trackNumber) {
-        tags.trackNumber = trackNumber.toString();
-      }
-
-      NodeID3.write(tags, folderName);
+    const success = NodeID3.write(tags, folderName);
+    if (!success) {
+      console.warn(`NodeID3.write returned false for ${folderName}`);
     }
   }
 
