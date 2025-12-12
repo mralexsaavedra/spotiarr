@@ -189,7 +189,15 @@ SpotiArr no es solo un descargador bajo demanda, es un sistema autónomo.
 2.  **Limpieza de Procesos Atascados:**
     - Un job vigila descargas que lleven demasiado tiempo en estado "Downloading" (zombies) y las marca como error para permitir reintentos, evitando bloqueos eternos.
 
-## 8. Ciclo de Vida de una Descarga
+## 8. Seguridad y Validación
+
+Implementamos una estrategia de **fail-fast** y validación estricta de datos.
+
+- **Zod Schemas:** Todas las entradas de API (`presentation/routes/schemas`) y las variables de entorno (`environment.ts`) se validan con Zod. Si un dato no tiene el formato correcto, la aplicación rechaza la petición inmediatamente antes de tocar la lógica de negocio.
+- **Error Handling Centralizado:** Middleware global (`error-handler.ts`) que captura cualquier excepción, la estandariza a una respuesta JSON segura (sin stack traces en producción) y previene caídas del servidor.
+- **Rate Limiting Personal:** El worker de descargas (`track-download.worker.ts`) implementa su propio mecanismo de pausa basado en la configuración del usuario (`YT_DOWNLOADS_PER_MINUTE`) para ser "buenos ciudadanos" con los servidores de YouTube.
+
+## 9. Ciclo de Vida de una Descarga
 
 El proceso más crítico de la aplicación funciona así:
 
@@ -216,7 +224,7 @@ El proceso más crítico de la aplicación funciona así:
     - El backend emite eventos Server-Sent Events (SSE).
     - El frontend recibe el evento y actualiza la barra de progreso en tiempo real sin recargar.
 
-## 9. Infraestructura y Despliegue
+## 10. Infraestructura y Despliegue
 
 Todo está contenerizado con **Docker** para garantizar reproducibilidad.
 
