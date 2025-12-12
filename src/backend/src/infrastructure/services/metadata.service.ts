@@ -101,37 +101,42 @@ export class MetadataService {
         );
       }
 
-      const contentType = response.headers.get("content-type");
-      let finalFileName = fileName;
+      const fileStream = fs.createWriteStream(coverFile);
 
-      // Correct extension based on content-type
-      if (contentType) {
-        if (contentType.includes("jpeg") || contentType.includes("jpg")) {
-          finalFileName = fileName.replace(/\.[^.]+$/, ".jpg");
-        } else if (contentType.includes("png")) {
-          finalFileName = fileName.replace(/\.[^.]+$/, ".png");
-        } else if (contentType.includes("webp")) {
-          finalFileName = fileName.replace(/\.[^.]+$/, ".webp");
+      // Use standard stream piping if available, or manual writing
+      // For fetch response.body (web stream), we need to iterate
+      if (response.body) {
+        const reader = response.body.getReader();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          fileStream.write(value);
         }
+
+        fileStream.end();
+
+        // Wait for finish
+        await new Promise<void>((resolve, reject) => {
+          fileStream.on("finish", () => resolve());
+          fileStream.on("error", reject);
+        });
+      } else {
+        // Fallback for unlikely case
+        const buffer = Buffer.from(await response.arrayBuffer());
+        fs.writeFileSync(coverFile, buffer);
       }
-
-      const imageBuffer = Buffer.from(await response.arrayBuffer());
-
-      // Update path with potentially new extension
-      const finalPath = join(directory, finalFileName);
-
-      // Save cover.jpg
-      fs.writeFileSync(finalPath, imageBuffer);
 
       // Force permissions to be readable by everyone (rw-rw-rw-)
-      // This solves issues where Jellyfin/Plex run as different users/groups
       try {
-        fs.chmodSync(finalPath, 0o666);
+        // Small delay to ensure file lock is released
+        await new Promise((r) => setTimeout(r, 100));
+        fs.chmodSync(coverFile, 0o666);
       } catch (e) {
-        console.warn(`Could not set permissions for ${finalPath}: ${getErrorMessage(e)}`);
+        console.warn(`Could not set permissions for ${coverFile}: ${getErrorMessage(e)}`);
       }
 
-      console.debug(`✓ Cover art saved in ${directory} as ${finalFileName}`);
+      console.debug(`✓ Cover art saved in ${directory}`);
     } catch (error) {
       console.error(`Failed to save cover art in ${directory}: ${getErrorMessage(error)}`);
     }
