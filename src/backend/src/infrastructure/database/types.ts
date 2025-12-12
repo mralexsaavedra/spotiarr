@@ -1,4 +1,4 @@
-import type { TrackArtist, TrackStatusEnum } from "@spotiarr/shared";
+import { TrackStatusEnum, type TrackArtist } from "@spotiarr/shared";
 
 /**
  * Type-safe helpers for Prisma JSON field conversions
@@ -66,8 +66,8 @@ export function jsonToTrackArtists(jsonString: unknown): TrackArtist[] | undefin
  * Type guard for TrackStatusEnum
  */
 export function isValidTrackStatus(status: unknown): status is TrackStatusEnum {
-  const validStatuses = ["new", "searching", "queued", "downloading", "completed", "error"];
-  return typeof status === "string" && validStatuses.includes(status);
+  const validStatuses = Object.values(TrackStatusEnum);
+  return typeof status === "string" && validStatuses.includes(status as TrackStatusEnum);
 }
 
 /**
@@ -77,6 +77,14 @@ export function toTrackStatus(status: unknown): TrackStatusEnum {
   if (isValidTrackStatus(status)) {
     return status;
   }
+
+  if (typeof status === "string") {
+    const lowerStatus = status.toLowerCase();
+    if (isValidTrackStatus(lowerStatus)) {
+      return lowerStatus;
+    }
+  }
+
   console.warn(`Invalid track status: ${status}, defaulting to 'new'`);
-  return "new" as TrackStatusEnum;
+  return TrackStatusEnum.New;
 }
