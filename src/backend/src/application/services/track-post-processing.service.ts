@@ -137,12 +137,6 @@ export class TrackPostProcessingService {
           playlist.artistImageUrl,
           "folder.jpg",
         );
-        // Also save as artist.jpg (Jellyfin specific preference for Artists)
-        await this.metadataService.saveCoverArt(
-          artistFolderPath,
-          playlist.artistImageUrl,
-          "artist.jpg",
-        );
       }
     } catch (error) {
       console.warn(`Failed to save artist image: ${getErrorMessage(error)}`);

@@ -101,20 +101,37 @@ export class MetadataService {
         );
       }
 
+      const contentType = response.headers.get("content-type");
+      let finalFileName = fileName;
+
+      // Correct extension based on content-type
+      if (contentType) {
+        if (contentType.includes("jpeg") || contentType.includes("jpg")) {
+          finalFileName = fileName.replace(/\.[^.]+$/, ".jpg");
+        } else if (contentType.includes("png")) {
+          finalFileName = fileName.replace(/\.[^.]+$/, ".png");
+        } else if (contentType.includes("webp")) {
+          finalFileName = fileName.replace(/\.[^.]+$/, ".webp");
+        }
+      }
+
       const imageBuffer = Buffer.from(await response.arrayBuffer());
 
+      // Update path with potentially new extension
+      const finalPath = join(directory, finalFileName);
+
       // Save cover.jpg
-      fs.writeFileSync(coverFile, imageBuffer);
+      fs.writeFileSync(finalPath, imageBuffer);
 
       // Force permissions to be readable by everyone (rw-rw-rw-)
       // This solves issues where Jellyfin/Plex run as different users/groups
       try {
-        fs.chmodSync(coverFile, 0o666);
+        fs.chmodSync(finalPath, 0o666);
       } catch (e) {
-        console.warn(`Could not set permissions for ${coverFile}: ${getErrorMessage(e)}`);
+        console.warn(`Could not set permissions for ${finalPath}: ${getErrorMessage(e)}`);
       }
 
-      console.debug(`✓ Cover art saved in ${directory}`);
+      console.debug(`✓ Cover art saved in ${directory} as ${finalFileName}`);
     } catch (error) {
       console.error(`Failed to save cover art in ${directory}: ${getErrorMessage(error)}`);
     }
