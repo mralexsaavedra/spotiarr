@@ -119,7 +119,56 @@ src/frontend/src/
     - Cuando llega un evento (ej: `track-downloaded`), invalida automáticamente las queries afectadas.
     - **Resultado:** La UI se actualiza sola sin que el usuario tenga que recargar, manteniendo la coherencia de datos "mágicamente".
 
-## 5. Modelo de Datos y Persistencia
+## 5. Componentes Internos Destacados
+
+### 5.1. Librería Compartida (`@spotiarr/shared`)
+
+El pegamento entre backend y frontend. Define el lenguaje común del sistema:
+
+- **Enums de Estado:** `TrackStatusEnum` (New, Searching, Downloading...) que controla la UI.
+- **Formatos:** `SUPPORTED_AUDIO_FORMATS` (mp3, flac, opus, etc.).
+- **i18n:** `APP_LOCALES` (es, en) para la internacionalización.
+
+### 5.2. Integración Spotify (`SpotifyAuthService`)
+
+Maneja la complejidad de OAuth2 de forma transparente:
+
+- **Dual Token Strategy:** Usa _Client Credentials_ para búsquedas públicas y _Authorization Code_ para datos de usuario.
+- **Auto-Refresh:** Almacena el `refresh_token` en base de datos cifrada y renueva el token automáticamente antes de que expire, garantizando que los Cron Jobs nocturnos nunca fallen por auth.
+
+### 5.3. Motor de Descarga (`YoutubeDownloadService`)
+
+No es solo un script de shell. Es un wrapper inteligente sobre `yt-dlp`:
+
+- **Configuración Dinámica:** Inyecta cookies del navegador para saltar restricciones de edad en YouTube.
+- **Calidad Adaptativa:** Mapea la preferencia del usuario (Best/Good/Acceptable).
+- **Seguridad:** Usa una copia local de `yt-dlp` en entornos restrictivos (como Docker) para asegurar permisos de ejecución.
+
+### 5.4. Motor de Búsqueda (`YoutubeSearchService`)
+
+La pieza clave para encontrar la canción correcta:
+
+- Utiliza el operador `ytsearch1:` de yt-dlp.
+- Soporta cookies del usuario para acceder a resultados "Premium" o verificados de YouTube Music.
+- Realiza una búsqueda precisa formato `Artist - Track` para minimizar falsos positivos.
+
+### 5.5. Server-Sent Events (SSE)
+
+Implementación nativa sin librerías pesadas como Socket.io:
+
+- El backend mantiene un array de conexiones abiertas (`events.routes.ts`).
+- `SseEventBus` desacopla la lógica: cualquier servicio puede hacer `eventBus.emit('event')` sin saber nada de HTTP.
+- Es unidireccional (Server -> Client), ideal para notificaciones de progreso.
+
+### 5.6. Post-Procesado (`TrackPostProcessingService`)
+
+Donde ocurre la magia de los metadatos:
+
+- **ID3 Tags:** No solo añade Artista y Título. Inyecta Álbum, Año, Número de Pista, Disco y Carátula.
+- **M3U Generator:** Regenera dinámicamente el archivo `.m3u8` de la playlist cada vez que se completa una descarga nueva.
+- **File Organization:** Mueve los archivos a la estructura canónica `Artist/Album/Track.ext` que Jellyfin espera.
+
+## 6. Modelo de Datos y Persistencia
 
 Utilizamos **Prisma** con **SQLite** para una gestión de datos relacional robusta pero portable.
 
@@ -130,7 +179,7 @@ Utilizamos **Prisma** con **SQLite** para una gestión de datos relacional robus
 - **Setting:** Almacenamiento clave-valor para la configuración del usuario (ej: formato de audio, ruta de descargas).
 - **DownloadHistory:** Histórico inmutable de descargas completadas para estadísticas.
 
-## 6. Automatización y Background Jobs
+## 7. Automatización y Background Jobs
 
 SpotiArr no es solo un descargador bajo demanda, es un sistema autónomo.
 
@@ -140,7 +189,7 @@ SpotiArr no es solo un descargador bajo demanda, es un sistema autónomo.
 2.  **Limpieza de Procesos Atascados:**
     - Un job vigila descargas que lleven demasiado tiempo en estado "Downloading" (zombies) y las marca como error para permitir reintentos, evitando bloqueos eternos.
 
-## 7. Ciclo de Vida de una Descarga
+## 8. Ciclo de Vida de una Descarga
 
 El proceso más crítico de la aplicación funciona así:
 
@@ -167,7 +216,7 @@ El proceso más crítico de la aplicación funciona así:
     - El backend emite eventos Server-Sent Events (SSE).
     - El frontend recibe el evento y actualiza la barra de progreso en tiempo real sin recargar.
 
-## 8. Infraestructura y Despliegue
+## 9. Infraestructura y Despliegue
 
 Todo está contenerizado con **Docker** para garantizar reproducibilidad.
 
