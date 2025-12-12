@@ -134,7 +134,7 @@ export class TrackPostProcessingService {
         await this.metadataService.saveCoverArt(
           artistFolderPath,
           playlist.artistImageUrl,
-          "cover.jpg",
+          "folder.jpg",
         );
       }
     } catch (error) {
