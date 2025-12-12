@@ -14,6 +14,10 @@ validateEnvironment();
 const env = getEnv();
 const PORT = 3000;
 
+// Worker references for shutdown
+let downloadWorker: import("bullmq").Worker;
+let searchWorker: import("bullmq").Worker;
+
 async function bootstrap() {
   console.log("🚀 Starting SpotiArr Backend...\n");
 
@@ -31,9 +35,10 @@ async function bootstrap() {
   const { createTrackDownloadWorker } = await import(
     "./infrastructure/workers/track-download.worker"
   );
-  await createTrackDownloadWorker();
+  downloadWorker = await createTrackDownloadWorker();
 
-  await import("./infrastructure/workers/track-search.worker");
+  const { createTrackSearchWorker } = await import("./infrastructure/workers/track-search.worker");
+  searchWorker = await createTrackSearchWorker();
 
   // Check for stuck tracks and rescue them
   await container.rescueStuckTracksUseCase.execute();
@@ -69,10 +74,15 @@ const gracefulShutdown = async (signal: string, server: http.Server) => {
   });
 
   try {
-    // 2. Close Queues
-    console.log("⏳ Closing queues...");
-    await Promise.allSettled([getTrackDownloadQueue().close(), getTrackSearchQueue().close()]);
-    console.log("✅ Queues closed");
+    // 2. Close Queues and Workers
+    console.log("⏳ Closing queues and workers...");
+    await Promise.allSettled([
+      getTrackDownloadQueue().close(),
+      getTrackSearchQueue().close(),
+      downloadWorker?.close(),
+      searchWorker?.close(),
+    ]);
+    console.log("✅ Queues and workers closed");
 
     // 3. Disconnect Database
     console.log("⏳ Disconnecting database...");

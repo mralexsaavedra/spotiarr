@@ -5,32 +5,32 @@ import { getEnv } from "../setup/environment";
 
 const { trackService, settingsService } = container;
 
-export const trackSearchWorker = new Worker(
-  "track-search-processor",
-  async (job) => {
-    const track: ITrack = job.data;
-    await trackService.findOnYoutube(track);
-  },
-  {
-    concurrency: 3,
-    connection: {
-      host: getEnv().REDIS_HOST,
-      port: getEnv().REDIS_PORT,
+export async function createTrackSearchWorker() {
+  const concurrency = await settingsService.getNumber("YT_SEARCH_CONCURRENCY");
+
+  const worker = new Worker(
+    "track-search-processor",
+    async (job) => {
+      const track: ITrack = job.data;
+      await trackService.findOnYoutube(track);
     },
-  },
-);
+    {
+      concurrency: concurrency || 3, // Default to 3 if setting missing
+      connection: {
+        host: getEnv().REDIS_HOST,
+        port: getEnv().REDIS_PORT,
+      },
+    },
+  );
 
-settingsService.getNumber("YT_SEARCH_CONCURRENCY").then((concurrency) => {
-  trackSearchWorker.concurrency = concurrency;
-  console.log(`✅ Track search worker concurrency set to ${concurrency}`);
-});
+  worker.on("completed", (job) => {
+    console.log(`[TrackSearchWorker] Job ${job.id} completed`);
+  });
 
-trackSearchWorker.on("completed", (job) => {
-  console.log(`[TrackSearchWorker] Job ${job.id} completed`);
-});
+  worker.on("failed", (job, err) => {
+    console.error(`[TrackSearchWorker] Job ${job?.id} failed:`, err);
+  });
 
-trackSearchWorker.on("failed", (job, err) => {
-  console.error(`[TrackSearchWorker] Job ${job?.id} failed:`, err);
-});
-
-console.log("✅ Track search worker initialized");
+  console.log(`✅ Track search worker initialized (Concurrency: ${concurrency || 3})`);
+  return worker;
+}
