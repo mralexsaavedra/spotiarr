@@ -228,7 +228,7 @@ pnpm build     # Production build
 
 **Architecture:**
 
-> 📖 **Read the Story:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a deep dive into the project's initiative, monorepo structure, and technical decisions.
+> 📖 **Read the Story:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (Español) or [docs/ARCHITECTURE.en.md](docs/ARCHITECTURE.en.md) (English) for a deep dive into the project's initiative, monorepo structure, and technical decisions.
 
 - **Backend:** Express + Prisma + BullMQ + SQLite
 - **Frontend:** React 19 + Vite + TanStack Query + Tailwind v4 + Zustand
