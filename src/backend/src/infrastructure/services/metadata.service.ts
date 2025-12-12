@@ -101,44 +101,14 @@ export class MetadataService {
         );
       }
 
-      const fileStream = fs.createWriteStream(coverFile);
+      const imageBuffer = Buffer.from(await response.arrayBuffer());
 
-      // Use standard stream piping if available, or manual writing
-      // For fetch response.body (web stream), we need to iterate
-      if (response.body) {
-        const reader = response.body.getReader();
+      // Save file
+      fs.writeFileSync(coverFile, imageBuffer);
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          fileStream.write(value);
-        }
-
-        fileStream.end();
-
-        // Wait for finish
-        await new Promise<void>((resolve, reject) => {
-          fileStream.on("finish", () => resolve());
-          fileStream.on("error", reject);
-        });
-      } else {
-        // Fallback for unlikely case
-        const buffer = Buffer.from(await response.arrayBuffer());
-        fs.writeFileSync(coverFile, buffer);
-      }
-
-      // Force permissions to be readable by everyone (rw-rw-rw-)
-      try {
-        // Small delay to ensure file lock is released
-        await new Promise((r) => setTimeout(r, 100));
-        fs.chmodSync(coverFile, 0o666);
-      } catch (e) {
-        console.warn(`Could not set permissions for ${coverFile}: ${getErrorMessage(e)}`);
-      }
-
-      console.debug(`✓ Cover art saved in ${directory}`);
+      console.debug(`✓ Cover art saved: ${coverFile}`);
     } catch (error) {
-      console.error(`Failed to save cover art in ${directory}: ${getErrorMessage(error)}`);
+      console.warn(`Failed to save cover art in ${directory}: ${getErrorMessage(error)}`);
     }
   }
 }
