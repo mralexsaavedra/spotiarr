@@ -95,26 +95,29 @@ src/frontend/src/
 │   ├── molecules/       # Campos de búsqueda, Cards simples
 │   └── organisms/       # Cards complejas, Listas, Modales
 ├── views/               # Páginas completas (Screens de la aplicación)
-│   ├── Home.tsx
-│   ├── PlaylistDetail.tsx
-│   └── ...
-├── routes/              # Configuración central de React Router
-├── hooks/               # Custom Hooks (Lógica y React Query)
-├── services/            # Llamadas a API (Fetchers)
-├── store/               # Estado Global UI (Zustand: sidebar, modals)
-└── types/               # Tipos TypeScript específicos de UI
+├── hooks/               # Custom Hooks Architecture
+│   ├── controllers/     # Lógica de Vistas (ViewModel Pattern)
+│   ├── queries/         # Wrappers de lectura API (React Query)
+│   ├── mutations/       # Wrappers de escritura API (React Query)
+│   └── useServerEvents  # Sincronización Real-time (SSE)
+├── services/            # Fetchers puros
+└── store/               # Estado Global UI (Zustand)
 ```
 
-**Patrones de Frontend utilizados:**
+**Patrones Avanzados de Hooks:**
 
-1.  **Atomic Design:**
-    - Organiza los componentes por complejidad (`atoms` -> `molecules` -> `organisms`).
-    - Facilita la reutilización y consistencia visual del diseño.
-2.  **State Separation:**
-    - **Server State:** `TanStack Query` maneja todo lo remoto (cache, loading, revalidación).
-    - **UI State:** `Zustand` maneja interactividad local (menús abiertos, temas).
-3.  **View/Logic Separation:**
-    - Las `views` componen la página usando componentes y hooks. No contienen lógica de negocio compleja ni llamadas `fetch` directas.
+1.  **Controller Pattern (`hooks/controllers`):**
+    - Implementamos el patrón **ViewModel**.
+    - En lugar de tener una vista como `PlaylistDetail.tsx` llena de lógica y `useEffect`, extraemos todo a un hook `usePlaylistDetailController`.
+    - La vista solo se encarga de "pintar" lo que el controller le devuelve.
+2.  **Logic Segregation:**
+    - `queries/` y `mutations/` centralizan las keys de caché y las llamadas a la API.
+    - Esto permite reutilizar la lógica de "obtener playlists" en cualquier componente sin repetir código.
+
+3.  **Real-time Sync (`useServerEvents`):**
+    - Un hook global escucha **Server-Sent Events** del backend.
+    - Cuando llega un evento (ej: `track-downloaded`), invalida automáticamente las queries afectadas.
+    - **Resultado:** La UI se actualiza sola sin que el usuario tenga que recargar, manteniendo la coherencia de datos "mágicamente".
 
 ## 5. Ciclo de Vida de una Descarga
 
