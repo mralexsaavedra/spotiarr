@@ -22,15 +22,15 @@ Para este proyecto, se eligió una arquitectura de **Monorepo** gestionada por *
     - **Beneficio:** Evita la duplicación. Si definimos la interfaz de una `Track` en el backend, el frontend la consume directamente. Si cambia, TypeScript nos avisa de los errores de compilación en ambos lados.
 
 2.  **Tooling Unificado:**
-    - Configuraciones centrales para ESLint, Prettier y TypeScript.
-    - **Beneficio:** Todo el código sigue el mismo estándar. No hay peleas por si usar comillas simples o dobles; el repo lo impone.
+    - Configuraciones centrales para ESLint, Prettier y TypeScript (`src/eslint-config`, `src/tsconfig`).
+    - **Beneficio:** Todo el código sigue el mismo estándar. No hay peleas por estilos; el repo lo impone automáticamente.
 
 3.  **Gestión Atómica:**
     - Versionado y despliegue conjunto. Un solo commit puede contener la migración de base de datos (Backend) y el componente UI que consume esos nuevos datos (Frontend).
 
 ### ¿Por qué pnpm?
 
-- **Eficiencia:** Es mucho más rápido que npm/yarn y utiliza un _store_ global, ahorrando cientos de megas en disco al no duplicar `node_modules` en cada paquete.
+- **Eficiencia:** Es mucho más rápido que npm/yarn y utiliza un _store_ global, ahorrando cientos de megas en disco al no duplicar `node_modules`.
 
 ## 3. Stack Tecnológico
 
@@ -38,33 +38,115 @@ La elección de tecnologías prioriza la **Modernidad**, el **Tipado (TypeScript
 
 ### Frontend (`/src/frontend`)
 
-- **React 19:** Utilizamos la versión más reciente para estar preparados para el futuro (Server Actions, mejoras en renderizado), aunque actualmente usamos principalmente el modelo de cliente SPA.
-- **Vite:** El estándar actual para builds. Arranque instantáneo y Hot Module Replacement (HMR) extremadamente rápido.
-- **Tailwind CSS v4:** Escribir CSS es tedioso; Tailwind nos permite iterar UI muy rápido. La versión 4 trae un motor nátivo mucho más rápido y simplificado.
-- **Gestión de Estado Híbrida:**
-  - **Zustand:** Para estado global de la interfaz (ej: "el modal está abierto", "el usuario colapsó el menú"). Es minimalista y evita el boilerplate de Redux.
-  - **TanStack Query (React Query):** Para el estado asíncrono (datos del servidor). Maneja caché, reintentos y estados de carga ("loading", "error") automáticamente.
-- **React Router:** Para el enrutamiento del lado del cliente.
+- **React 19:** Última versión para estar preparados para el futuro (aunque usamos modelo SPA).
+- **Vite:** Build tool estándar. Arranque instantáneo y HMR rapidísimo.
+- **Tailwind CSS v4:** Motor de estilos moderno y rápido.
+- **Estado:**
+  - **Zustand:** Estado UI global (modales, sidebar).
+  - **TanStack Query:** Estado asíncrono (server state, caching).
+- **React Router:** Navegación SPA.
 
 ### Backend (`/src/backend`)
 
-- **Node.js & Express:** La opción segura y robusta. Aunque existen frameworks más modernos (Hono, Fastify), Express v5 ofrece el ecosistema más amplio y facilidad de integración.
-- **Prisma ORM:**
-  - **¿Por qué?:** Es la mejor herramienta para TypeScript. Genera tipos automáticamente basados en nuestro esquema de base de datos.
-  - **DB:** SQLite por defecto (fácil, archivo único, sin configuración) pero cambiable a PostgreSQL fácilmente gracias a Prisma.
-- **BullMQ + Redis:**
-  - **El Corazón de las Descargas:** Descargar audio y convertirlo es costoso en CPU/tiempo. No podemos bloquear el servidor web.
-  - **Solución:** Usamos colas. El usuario pide una descarga -> Se añade un trabajo a BullMQ -> Un "worker" procesa la descarga en segundo plano -> Se notifica el progreso vía WebSocket/Polling.
+- **Node.js & Express:** Robusto y battle-tested.
+- **Prisma ORM:** Tipado seguro con la DB. SQLite por defecto (fácil deployment).
+- **BullMQ + Redis:** Sistema de colas robusto para manejar descargas pesadas en background.
 
 ### Core de Medios
 
-- **yt-dlp:** El motor de descarga más potente mantenido por la comunidad.
-- **FFmpeg:** Para conversión de audio y manipulación de metadatos.
-- **Node-ID3:** Para asegurar que los archivos MP3 tengan tags (ID3) correctos que Jellyfin/Plex puedan leer.
+- **yt-dlp:** Motor de descarga principal.
+- **FFmpeg:** Conversión de audio y post-procesado.
+- **Node-ID3:** Etiquetado de metadatos (Cover art, Artist, Album, etc.).
 
-## 4. Infraestructura y Despliegue
+## 4. Estructura del Proyecto
 
-Todo está contenerizado con **Docker**.
+### 4.1. Backend (Clean Architecture)
 
-- Resuelve el problema de "en mi máquina funciona".
-- Empaqueta dependencias del sistema difíciles de instalar manualmente (Python, FFmpeg, dependencias de compilación) en una imagen lista para usar.
+El backend sigue principios de **Clean Architecture** y **Domain-Driven Design (DDD)** simplificado.
+
+```
+src/backend/src/
+├── application/         # Lógica de negocio pura
+│   ├── services/        # Servicios orquestadores (TrackService, PlaylistService)
+│   └── use-cases/       # Acciones únicas: CreateTrack, DownloadTrack...
+├── domain/              # Modelos y contratos (Interfaces)
+├── infrastructure/      # Implementaciones concretas
+│   ├── database/        # Repositorios Prisma
+│   ├── external/        # Integraciones (Spotify API, YouTube, Filesystem)
+│   └── messaging/       # Colas (BullMQ) y Eventos (SSE)
+├── presentation/        # API Rest (Rutas y Controladores)
+└── container.ts         # Inyección de Dependencias (DI) Manual
+```
+
+**Patrones de Backend utilizados:**
+
+1.  **Dependency Injection (DI):** Todo se instancia en `container.ts` para testabilidad.
+2.  **Repository Pattern:** Desacopla la lógica de negocio de la base de datos (Prisma).
+3.  **Use Cases:** Cada acción del usuario tiene una clase dedicada, evitando servicios monolíticos.
+
+### 4.2. Frontend (Atomic Design + Feature Driven)
+
+El frontend está organizado para escalar, separando componentes visuales puros de la lógica de negocio y las vistas.
+
+```
+src/frontend/src/
+├── components/          # Elementos de UI reutilizables (Atomic Design)
+│   ├── atoms/           # Botones, Inputs, Iconos básicos
+│   ├── molecules/       # Campos de búsqueda, Cards simples
+│   └── organisms/       # Cards complejas, Listas, Modales
+├── views/               # Páginas completas (Screens de la aplicación)
+│   ├── Home.tsx
+│   ├── PlaylistDetail.tsx
+│   └── ...
+├── routes/              # Configuración central de React Router
+├── hooks/               # Custom Hooks (Lógica y React Query)
+├── services/            # Llamadas a API (Fetchers)
+├── store/               # Estado Global UI (Zustand: sidebar, modals)
+└── types/               # Tipos TypeScript específicos de UI
+```
+
+**Patrones de Frontend utilizados:**
+
+1.  **Atomic Design:**
+    - Organiza los componentes por complejidad (`atoms` -> `molecules` -> `organisms`).
+    - Facilita la reutilización y consistencia visual del diseño.
+2.  **State Separation:**
+    - **Server State:** `TanStack Query` maneja todo lo remoto (cache, loading, revalidación).
+    - **UI State:** `Zustand` maneja interactividad local (menús abiertos, temas).
+3.  **View/Logic Separation:**
+    - Las `views` componen la página usando componentes y hooks. No contienen lógica de negocio compleja ni llamadas `fetch` directas.
+
+## 5. Ciclo de Vida de una Descarga
+
+El proceso más crítico de la aplicación funciona así:
+
+1.  **Solicitud (Frontend -> API):**
+    - El usuario pega una URL de Spotify.
+    - Frontend llama a `POST /api/playlists`.
+
+2.  **Ingesta (UseCase):**
+    - `CreatePlaylistUseCase` obtiene metadatos de Spotify API.
+    - Guarda las pistas en DB con estado `PENDING`.
+    - Encola trabajos de descarga en **BullMQ**.
+
+3.  **Procesamiento (Worker):**
+    - Un worker de BullMQ toma el trabajo.
+    - **Búsqueda:** `YoutubeSearchService` busca el mejor match de audio en YouTube/YoutubeMusic.
+    - **Descarga:** `YoutubeDownloadService` invoca a `yt-dlp` para bajar el audio.
+    - **Post-Procesado:** `TrackPostProcessingService`:
+      - Convierte a MP3/M4A con **FFmpeg**.
+      - Incrusta carátula y tags ID3.
+      - Mueve el archivo a la carpeta final: `Downloads / Artista / Album / Track.mp3`.
+      - Genera archivo `.m3u8` para la playlist.
+
+4.  **Notificación (EventBus):**
+    - El backend emite eventos Server-Sent Events (SSE).
+    - El frontend recibe el evento y actualiza la barra de progreso en tiempo real sin recargar.
+
+## 6. Infraestructura y Despliegue
+
+Todo está contenerizado con **Docker** para garantizar reproducibilidad.
+
+- **Redis:** Persistencia de colas.
+- **Volúmenes:** Mapeo de carpetas locales para persistir descargas y base de datos.
+- **Traefik (Optional):** Proxy inverso configurado para manejo de HTTPS (necesario para Auth de Spotify en remoto).
