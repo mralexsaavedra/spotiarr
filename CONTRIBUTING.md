@@ -68,9 +68,9 @@ cp .env.example .env
 
    ```bash
    # 1. Create backend env file
-   cp src/backend/.env.example src/backend/.env
+   cp apps/backend/.env.example apps/backend/.env
 
-   # 2. Run migrations (creates src/backend/prisma/dev.db)
+   # 2. Run migrations (creates apps/backend/prisma/dev.db)
    pnpm --filter backend run prisma:migrate:deploy
    ```
 
@@ -126,7 +126,7 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 
 ```
 spotiarr/
-├── src/
+├── apps/
 │   ├── backend/
 │   │   ├── src/
 │   │   │   ├── application/   # Use cases & business logic
@@ -164,19 +164,19 @@ spotiarr/
 
 The frontend is built with React and follows **Atomic Design** principles to ensure component reusability and maintainability.
 
-1. **Atomic Design (`src/components`)**:
+1. **Atomic Design (`apps/frontend/src/components`)**:
    - **Atoms**: The smallest building blocks (e.g., `Button`, `Input`, `Icon`). These are highly reusable and contain no business logic.
    - **Molecules**: Combinations of atoms (e.g., `SearchBar` = Input + Button). They handle local UI state.
    - **Organisms**: Complex sections of the interface (e.g., `Header`, `TrackList`). They may interact with global state or services.
    - **Layouts**: Structuring wrappers (e.g., `MainLayout`, `AuthLayout`).
 
 2. **State Management**:
-   - **Server State (TanStack Query)**: Used for all data fetching, caching, and synchronization with the backend. See `src/hooks` and `src/services`.
-   - **UI State (Zustand)**: Used for global client-only state (e.g., theme, sidebar toggle, audio player state). See `src/store`.
+   - **Server State (TanStack Query)**: Used for all data fetching, caching, and synchronization with the backend. See `apps/frontend/src/hooks` and `apps/frontend/src/services`.
+   - **UI State (Zustand)**: Used for global client-only state (e.g., theme, sidebar toggle, audio player state). See `apps/frontend/src/store`.
 
 3. **Routing & Views**:
-   - **Views (`src/views`)**: Top-level page components. They should primarily orchestrate Layouts and Organisms.
-   - **Routes (`src/routes`)**: Defines the application's navigation structure using React Router.
+   - **Views (`apps/frontend/src/views`)**: Top-level page components. They should primarily orchestrate Layouts and Organisms.
+   - **Routes (`apps/frontend/src/routes`)**: Defines the application's navigation structure using React Router.
 
 4. **Styling**:
    - **Tailwind CSS**: The primary styling engine.
@@ -186,19 +186,19 @@ The frontend is built with React and follows **Atomic Design** principles to ens
 
 The backend follows a **layered architecture** with strict dependency rules:
 
-1. **Domain (`src/domain`)**:
+1. **Domain (`apps/backend/src/domain`)**:
    - The core. Contains business rules and entities.
    - **Must NOT depend** on any other layer.
    - Contains: Entities, Value Objects, Repository Interfaces, Domain Services.
    - Domain Services orchestrate business operations without knowing implementation details.
 
-2. **Application (`src/application`)**:
+2. **Application (`apps/backend/src/application`)**:
    - Application business rules (Use Cases and Application Services).
    - Coordinates data flow between Presentation and Domain.
    - **Depends only on** Domain.
    - Contains: Use Cases (single responsibility actions), Application Services (orchestrators).
 
-3. **Infrastructure (`src/infrastructure`)**:
+3. **Infrastructure (`apps/backend/src/infrastructure`)**:
    - Frameworks and tools (Database, External APIs, File System, Queues).
    - Implements interfaces defined in Domain/Application.
    - **Depends on** Domain and Application.
@@ -211,7 +211,7 @@ The backend follows a **layered architecture** with strict dependency rules:
      - `messaging/` - Queue implementations (BullMQ)
      - `services/` - Technical services (file system, metadata)
 
-4. **Presentation (`src/presentation`)**:
+4. **Presentation (`apps/backend/src/presentation`)**:
    - Interface adapters (HTTP Controllers, Routes, Middleware, SSE).
    - Receives inputs and converts them to Use Case requirements.
    - **Depends on** Application.

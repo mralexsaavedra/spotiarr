@@ -22,7 +22,7 @@ Para este proyecto, se eligió una arquitectura de **Monorepo** gestionada por *
     - **Beneficio:** Evita la duplicación. Si definimos la interfaz de una `Track` en el backend, el frontend la consume directamente. Si cambia, TypeScript nos avisa de los errores de compilación en ambos lados.
 
 2.  **Tooling Unificado:**
-    - Configuraciones centrales para ESLint, Prettier y TypeScript (`src/eslint-config`, `src/tsconfig`).
+    - Configuraciones centrales para ESLint, Prettier y TypeScript (`packages/eslint-config`, `packages/tsconfig`).
     - **Beneficio:** Todo el código sigue el mismo estándar. No hay peleas por estilos; el repo lo impone automáticamente.
 
 3.  **Gestión Atómica:**
@@ -36,7 +36,7 @@ Para este proyecto, se eligió una arquitectura de **Monorepo** gestionada por *
 
 La elección de tecnologías prioriza la **Modernidad**, el **Tipado (TypeScript)** y la **Experiencia de Desarrollo (DX)**.
 
-### Frontend (`/src/frontend`)
+### Frontend (`/apps/frontend`)
 
 - **React 19:** Última versión para estar preparados para el futuro (aunque usamos modelo SPA).
 - **Vite:** Build tool estándar. Arranque instantáneo y HMR rapidísimo.
@@ -46,7 +46,7 @@ La elección de tecnologías prioriza la **Modernidad**, el **Tipado (TypeScript
   - **TanStack Query:** Estado asíncrono (server state, caching).
 - **React Router:** Navegación SPA.
 
-### Backend (`/src/backend`)
+### Backend (`/apps/backend`)
 
 - **Node.js & Express:** Robusto y battle-tested.
 - **Prisma ORM:** Tipado seguro con la DB. SQLite por defecto (fácil deployment).
@@ -65,7 +65,7 @@ La elección de tecnologías prioriza la **Modernidad**, el **Tipado (TypeScript
 El backend sigue principios de **Clean Architecture** y **Domain-Driven Design (DDD)** simplificado.
 
 ```
-src/backend/src/
+apps/backend/src/
 ├── application/         # Lógica de negocio pura
 │   ├── services/        # Servicios orquestadores (TrackService, PlaylistService)
 │   └── use-cases/       # Acciones únicas: CreateTrack, DownloadTrack...
@@ -90,7 +90,7 @@ src/backend/src/
 El frontend está organizado para escalar, separando componentes visuales puros de la lógica de negocio y las vistas.
 
 ```
-src/frontend/src/
+apps/frontend/src/
 ├── components/          # Elementos de UI reutilizables (Atomic Design)
 │   ├── atoms/           # Botones, Inputs, Iconos básicos
 │   ├── molecules/       # Campos de búsqueda, Cards simples

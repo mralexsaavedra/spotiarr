@@ -2,7 +2,6 @@
   "name": "frontend",
   "version": "0.0.0",
   "description": "SpotiArr Frontend",
-  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

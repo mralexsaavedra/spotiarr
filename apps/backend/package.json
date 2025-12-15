@@ -2,7 +2,6 @@
   "name": "backend",
   "version": "0.0.0",
   "description": "SpotiArr Backend",
-  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -15,15 +15,16 @@ WORKDIR /spotiarr
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* .npmrc ./
 
 # Copy workspace package.json files for dependency installation
-COPY src/backend/package.json ./src/backend/
-COPY src/frontend/package.json ./src/frontend/
-COPY src/shared/package.json ./src/shared/
+COPY apps/backend/package.json ./apps/backend/
+COPY apps/frontend/package.json ./apps/frontend/
+COPY packages/shared/package.json ./packages/shared/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
 # Copy all source files
-COPY src/ ./src/
+COPY apps/ ./apps/
+COPY packages/ ./packages/
 
 # Build all packages (backend build runs prisma:generate internally)
 RUN pnpm run build
@@ -58,7 +59,8 @@ RUN chmod +x docker-entrypoint.sh
 
 # Copy application artifacts (node_modules, dist, prisma) from builder
 COPY --chown=node:node --from=builder /spotiarr/node_modules ./node_modules
-COPY --chown=node:node --from=builder /spotiarr/src ./src
+COPY --chown=node:node --from=builder /spotiarr/apps ./apps
+COPY --chown=node:node --from=builder /spotiarr/packages ./packages
 
 # Default environment variables
 ENV NODE_ENV=production

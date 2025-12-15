@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        "@spotiarr/shared": resolve(__dirname, "../shared/src/index.ts"),
+        "@spotiarr/shared": resolve(__dirname, "../../packages/shared/src/index.ts"),
         "@": resolve(__dirname, "./src"),
       },
     },

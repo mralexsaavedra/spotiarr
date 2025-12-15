@@ -140,7 +140,7 @@ brew services start redis
 
 # 3. Configure
 cp .env.example .env
-cp src/backend/.env.example src/backend/.env
+cp apps/backend/.env.example apps/backend/.env
 # Edit .env → add Spotify credentials + set REDIS_HOST=localhost
 # Note: Downloads are saved to './downloads' by default
 

@@ -5,7 +5,6 @@
   "type": "module",
   "main": "tsconfig.base.json",
   "description": "Shared TypeScript base configuration for SpotiArr projects",
-  "license": "MIT",
   "dependencies": {
     "typescript": "~5.9.3"
   }

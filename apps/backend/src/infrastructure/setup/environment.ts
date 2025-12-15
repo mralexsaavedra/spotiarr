@@ -77,8 +77,7 @@ function resolveDownloadsPath(providedPath: string | undefined, nodeEnv: string)
 function resolveDatabaseUrl(providedUrl: string | undefined): string {
   if (providedUrl) return providedUrl;
 
-  // Standard Prisma location for local dev: src/backend/prisma/dev.db
-  const dbPath = resolve(rootDir, "src/backend/prisma/dev.db");
+  const dbPath = resolve(rootDir, "apps/backend/prisma/dev.db");
   const dbDir = dirname(dbPath);
 
   if (!existsSync(dbDir)) {

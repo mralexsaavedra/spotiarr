@@ -22,7 +22,7 @@ For this project, a **Monorepo** architecture managed by **pnpm workspaces** was
     - **Benefit:** Avoids duplication. If we define a `Track` interface in the backend, the frontend consumes it directly. If it changes, TypeScript warns us of compilation errors on both sides.
 
 2.  **Unified Tooling:**
-    - Central configurations for ESLint, Prettier, and TypeScript (`src/eslint-config`, `src/tsconfig`).
+    - Central configurations for ESLint, Prettier, and TypeScript (`packages/eslint-config`, `packages/tsconfig`).
     - **Benefit:** All code follows the same standard. No fights over styles; the repo imposes it automatically.
 
 3.  **Atomic Management:**
@@ -36,7 +36,7 @@ For this project, a **Monorepo** architecture managed by **pnpm workspaces** was
 
 The technology choice prioritizes **Modernity**, **Typing (TypeScript)**, and **Developer Experience (DX)**.
 
-### Frontend (`/src/frontend`)
+### Frontend (`/apps/frontend`)
 
 - **React 19:** Latest version to be future-proof (although we use SPA model).
 - **Vite:** Standard build tool. Instant startup and extremely fast HMR.
@@ -46,7 +46,7 @@ The technology choice prioritizes **Modernity**, **Typing (TypeScript)**, and **
   - **TanStack Query:** Asynchronous state (server state, caching).
 - **React Router:** SPA navigation.
 
-### Backend (`/src/backend`)
+### Backend (`/apps/backend`)
 
 - **Node.js & Express:** Robust and battle-tested.
 - **Prisma ORM:** Type-safe with DB. SQLite by default (easy deployment).
@@ -65,7 +65,7 @@ The technology choice prioritizes **Modernity**, **Typing (TypeScript)**, and **
 The backend follows **Clean Architecture** and simplified **Domain-Driven Design (DDD)** principles.
 
 ```
-src/backend/src/
+apps/backend/src/
 ├── application/         # Pure business logic
 │   ├── services/        # Orchestrator services (TrackService, PlaylistService)
 │   └── use-cases/       # Unique actions: CreateTrack, DownloadTrack...
@@ -90,7 +90,7 @@ src/backend/src/
 The frontend is organized to scale, separating pure visual components from business logic and views.
 
 ```
-src/frontend/src/
+apps/frontend/src/
 ├── components/          # Reusable UI elements (Atomic Design)
 │   ├── atoms/           # Buttons, Inputs, Basic Icons
 │   ├── molecules/       # Search fields, Simple Cards

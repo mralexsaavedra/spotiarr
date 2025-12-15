@@ -33,9 +33,8 @@ async function bootstrap() {
   initializeQueues();
 
   // Initialize workers
-  const { createTrackDownloadWorker } = await import(
-    "./infrastructure/workers/track-download.worker"
-  );
+  const { createTrackDownloadWorker } =
+    await import("./infrastructure/workers/track-download.worker");
   downloadWorker = await createTrackDownloadWorker();
 
   const { createTrackSearchWorker } = await import("./infrastructure/workers/track-search.worker");

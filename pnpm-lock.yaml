@@ -26,14 +26,14 @@ importers:
         specifier: ^9.5.0
         version: 9.5.0
 
-  src/backend:
+  apps/backend:
     dependencies:
       "@prisma/client":
         specifier: 5.22.0
         version: 5.22.0(prisma@5.22.0)
       "@spotiarr/shared":
         specifier: workspace:*
-        version: link:../shared
+        version: link:../../packages/shared
       bullmq:
         specifier: ^5.65.1
         version: 5.65.1
@@ -64,13 +64,13 @@ importers:
     devDependencies:
       "@spotiarr/eslint-config":
         specifier: workspace:*
-        version: link:../eslint-config
+        version: link:../../packages/eslint-config
       "@spotiarr/prettier-config":
         specifier: workspace:*
-        version: link:../prettier-config
+        version: link:../../packages/prettier-config
       "@spotiarr/tsconfig":
         specifier: workspace:*
-        version: link:../tsconfig
+        version: link:../../packages/tsconfig
       "@types/cors":
         specifier: ^2.8.17
         version: 2.8.19
@@ -93,22 +93,7 @@ importers:
         specifier: ^4.7.0
         version: 4.20.6
 
-  src/eslint-config:
-    dependencies:
-      "@eslint/js":
-        specifier: ^9.9.0
-        version: 9.39.1
-      eslint:
-        specifier: ^9.39.0
-        version: 9.39.1(jiti@2.6.1)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@9.39.1(jiti@2.6.1))
-      typescript-eslint:
-        specifier: 8.49.0
-        version: 8.49.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
-
-  src/frontend:
+  apps/frontend:
     dependencies:
       "@fortawesome/fontawesome-svg-core":
         specifier: ^7.1.0
@@ -127,7 +112,7 @@ importers:
         version: 3.1.1(@fortawesome/fontawesome-svg-core@7.1.0)(react@19.2.1)
       "@spotiarr/shared":
         specifier: workspace:*
-        version: link:../shared
+        version: link:../../packages/shared
       "@tanstack/react-query":
         specifier: ^5.90.12
         version: 5.90.12(react@19.2.1)
@@ -164,13 +149,13 @@ importers:
     devDependencies:
       "@spotiarr/eslint-config":
         specifier: workspace:*
-        version: link:../eslint-config
+        version: link:../../packages/eslint-config
       "@spotiarr/prettier-config":
         specifier: workspace:*
-        version: link:../prettier-config
+        version: link:../../packages/prettier-config
       "@spotiarr/tsconfig":
         specifier: workspace:*
-        version: link:../tsconfig
+        version: link:../../packages/tsconfig
       "@tailwindcss/vite":
         specifier: ^4.1.17
         version: 4.1.17(vite@7.2.7(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))
@@ -205,16 +190,31 @@ importers:
         specifier: ^7.2.7
         version: 7.2.7(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)
 
-  src/prettier-config:
+  packages/eslint-config:
+    dependencies:
+      "@eslint/js":
+        specifier: ^9.9.0
+        version: 9.39.1
+      eslint:
+        specifier: ^9.39.0
+        version: 9.39.1(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@9.39.1(jiti@2.6.1))
+      typescript-eslint:
+        specifier: 8.49.0
+        version: 8.49.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/prettier-config:
     dependencies:
       prettier:
         specifier: ">=3"
-        version: 3.6.2
+        version: 3.7.4
       prettier-plugin-tailwindcss:
         specifier: ">=0.6.0"
-        version: 0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.6.2))(prettier@3.6.2)
+        version: 0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4))(prettier@3.7.4)
 
-  src/shared:
+  packages/shared:
     devDependencies:
       "@spotiarr/eslint-config":
         specifier: workspace:*
@@ -226,7 +226,7 @@ importers:
         specifier: workspace:*
         version: link:../tsconfig
 
-  src/tsconfig:
+  packages/tsconfig:
     dependencies:
       typescript:
         specifier: ~5.9.3
@@ -4379,14 +4379,6 @@ packages:
       prettier-plugin-svelte:
         optional: true
 
-  prettier@3.6.2:
-    resolution:
-      {
-        integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==,
-      }
-    engines: { node: ">=14" }
-    hasBin: true
-
   prettier@3.7.4:
     resolution:
       {
@@ -6167,21 +6159,6 @@ snapshots:
     dependencies:
       "@tanstack/query-core": 5.90.12
       react: 19.2.1
-
-  "@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.6.2)":
-    dependencies:
-      "@babel/generator": 7.28.5
-      "@babel/parser": 7.28.5
-      "@babel/traverse": 7.28.5
-      "@babel/types": 7.28.5
-      javascript-natural-sort: 0.7.1
-      lodash-es: 4.17.21
-      minimatch: 9.0.5
-      parse-imports-exports: 0.2.4
-      prettier: 3.6.2
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
 
   "@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4)":
     dependencies:
@@ -8197,19 +8174,11 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.6.2))(prettier@3.6.2):
-    dependencies:
-      prettier: 3.6.2
-    optionalDependencies:
-      "@trivago/prettier-plugin-sort-imports": 6.0.0(prettier@3.6.2)
-
   prettier-plugin-tailwindcss@0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4))(prettier@3.7.4):
     dependencies:
       prettier: 3.7.4
     optionalDependencies:
       "@trivago/prettier-plugin-sort-imports": 6.0.0(prettier@3.7.4)
-
-  prettier@3.6.2: {}
 
   prettier@3.7.4: {}
 
