@@ -24,7 +24,7 @@ bazel-out/
 docker-compose.override.yml
 
 # Docker volumes
-config/
+/config/
 
 # Logs
 logs/
