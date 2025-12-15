@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.6](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.5...v0.1.6) (2025-12-15)
+
+### Features
+
+- Add navigation, app settings, version, and external links configurations, and update .gitignore. ([6e184d0](https://github.com/mralexsaavedra/spotiarr/commit/6e184d0a412f6639ebe37ef6fe75f50bfcac972c))
+
 ### [0.1.5](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.4...v0.1.5) (2025-12-12)
 
 ### Features
