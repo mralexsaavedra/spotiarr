@@ -6,6 +6,6 @@
   "main": "tsconfig.base.json",
   "description": "Shared TypeScript base configuration for SpotiArr projects",
   "dependencies": {
-    "typescript": "~5.9.3"
+    "typescript": "^5.7.2"
   }
 }
