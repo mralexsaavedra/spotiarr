@@ -35,7 +35,7 @@ export const AppHeader: FC = () => {
           <div className="relative">
             <input
               className={cn(
-                "bg-background-elevated text-text-primary placeholder-text-secondary w-full rounded-full py-2 pr-12 pl-9 text-sm transition focus:outline-none md:py-2.5 md:pr-28 md:pl-10",
+                "bg-background-elevated text-text-primary placeholder-text-secondary w-full rounded-full py-2 pr-16 pl-9 text-sm transition focus:outline-none md:py-2.5 md:pr-36 md:pl-10",
                 url && !isValidUrl
                   ? "bg-red-500/5 ring-2 ring-red-500/50 focus:ring-red-500"
                   : "focus:bg-background-hover focus:ring-2 focus:ring-white/20",
