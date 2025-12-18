@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.6...v0.1.7) (2025-12-18)
+
+### Features
+
+- Add support for pasting YouTube cookies.txt content and improve YouTube search and download robustness. ([e9bcdf9](https://github.com/mralexsaavedra/spotiarr/commit/e9bcdf9d8cdaa7bccb4719da44758d7144084cf8))
+- Allow YouTube cookies to be provided as a file path or browser name for search and download, and slightly increase header search input padding. ([0f223f3](https://github.com/mralexsaavedra/spotiarr/commit/0f223f389df33b40d2733e1c4dabbefb7b16dcdb))
+
 ### [0.1.6](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.5...v0.1.6) (2025-12-15)
 
 ### Features
