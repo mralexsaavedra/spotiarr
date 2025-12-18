@@ -48,7 +48,7 @@ export interface SettingMetadata {
   key: string;
   defaultValue: string;
   type: "number" | "boolean" | "string";
-  component: "input" | "toggle" | "select";
+  component: "input" | "toggle" | "select" | "textarea";
   section: SettingSection;
   min?: number;
   max?: number;

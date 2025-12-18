@@ -128,11 +128,11 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     key: "YT_COOKIES",
     defaultValue: "",
     type: "string",
-    component: "input",
+    component: "textarea",
     section: "Downloads",
-    label: "YouTube cookies browser (optional)",
+    label: "YouTube Cookies",
     description:
-      "Browser to extract cookies from for age-restricted content (e.g., 'chrome', 'firefox', 'edge'). Leave empty if not needed.",
+      "Paste the content of your cookies.txt (Netscape format). It will be saved as a file.",
   },
   YT_SEARCH_CONCURRENCY: {
     key: "YT_SEARCH_CONCURRENCY",

@@ -44,6 +44,7 @@ export class YoutubeDownloadService {
 
     // Get cookies browser from settings
     const ytCookies = await this.settingsService.getString("YT_COOKIES");
+    const isCookieFile = ytCookies && (ytCookies.includes("/") || ytCookies.endsWith(".txt"));
 
     await ytdlp.downloadAsync(track.youtubeUrl, {
       format: {
@@ -52,7 +53,8 @@ export class YoutubeDownloadService {
         quality,
       },
       output,
-      cookiesFromBrowser: ytCookies || undefined,
+      cookies: isCookieFile ? ytCookies : undefined,
+      cookiesFromBrowser: !isCookieFile && ytCookies ? ytCookies : undefined,
       headers: HEADERS,
     });
     console.debug(`Downloaded ${track.artist} - ${track.name} to ${output}`);

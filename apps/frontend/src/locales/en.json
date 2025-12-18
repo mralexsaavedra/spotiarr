@@ -234,8 +234,8 @@
         "description": "Audio quality preference for YouTube downloads. 'best' for highest quality, 'good' for balanced, 'acceptable' for faster downloads."
       },
       "YT_COOKIES": {
-        "label": "YouTube cookies browser (optional)",
-        "description": "Browser to extract cookies from for age-restricted content (e.g., 'chrome', 'firefox', 'edge'). Leave empty if not needed."
+        "label": "YouTube Cookies",
+        "description": "Paste the content of your cookies.txt (Netscape format). It will be saved as a file."
       },
       "YT_SEARCH_CONCURRENCY": {
         "label": "YouTube search concurrency",

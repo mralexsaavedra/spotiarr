@@ -10,8 +10,29 @@ export class UpdateSettingUseCase {
   ) {}
 
   async execute(key: string, value: string): Promise<void> {
-    await this.repository.set(key, value);
+    let finalValue = value;
+
+    if (key === "YT_COOKIES") {
+      const isContent = value.includes("\n") || value.trim().startsWith("#");
+
+      if (isContent) {
+        const fs = await import("fs");
+        const path = await import("path");
+        const configDir = path.join(process.cwd(), "config");
+        const cookiePath = path.join(configDir, "cookies.txt");
+
+        if (!fs.existsSync(configDir)) {
+          fs.mkdirSync(configDir, { recursive: true });
+        }
+
+        fs.writeFileSync(cookiePath, value, "utf-8");
+        finalValue = cookiePath;
+        console.log(`Saved YouTube cookies to ${cookiePath}`);
+      }
+    }
+
+    await this.repository.set(key, finalValue);
     this.spotifyUserLibraryService.clearCache();
-    this.eventBus.emit("settings:updated", { key, value });
+    this.eventBus.emit("settings:updated", { key, value: finalValue });
   }
 }

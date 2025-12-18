@@ -234,8 +234,8 @@
         "description": "Preferencia de calidad de audio para descargas de YouTube. 'best' para máxima calidad, 'good' para equilibrado, 'acceptable' para descargas más rápidas."
       },
       "YT_COOKIES": {
-        "label": "Navegador de cookies de YouTube (opcional)",
-        "description": "Navegador del que extraer cookies para contenido con restricción de edad (ej: 'chrome', 'firefox', 'edge'). Dejar vacío si no es necesario."
+        "label": "Cookies de YouTube",
+        "description": "Pega el contenido de tu cookies.txt (formato Netscape). Se guardará como un archivo."
       },
       "YT_SEARCH_CONCURRENCY": {
         "label": "Concurrencia de búsqueda en YouTube",

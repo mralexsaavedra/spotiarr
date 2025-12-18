@@ -3,6 +3,7 @@ import { ChangeEvent, FC, memo, MouseEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { SettingInput } from "./SettingInput";
 import { SettingSelect } from "./SettingSelect";
+import { SettingTextarea } from "./SettingTextarea";
 import { SettingToggle } from "./SettingToggle";
 
 type SettingValue = string | number | boolean;
@@ -54,6 +55,15 @@ const RENDERERS: Record<
       options={setting.options || []}
       description={setting.description}
       formatLabel={LABEL_FORMATTERS[setting.key]}
+    />
+  ),
+  textarea: ({ setting, value, onChange }) => (
+    <SettingTextarea
+      id={setting.key}
+      label={setting.label}
+      value={value as string}
+      onChange={onChange as any}
+      description={setting.description}
     />
   ),
 };

@@ -48,9 +48,10 @@ export class YoutubeSearchService {
     const args = [
       "--print",
       "webpage_url",
-      `ytsearch1:${artist} - ${name}`,
+      `ytsearch3:${artist} - ${name}`,
       "--no-warnings",
       "--no-playlist",
+      "--ignore-errors",
       "--user-agent",
       HEADERS["User-Agent"],
     ];
@@ -58,20 +59,41 @@ export class YoutubeSearchService {
     // Get cookies browser from settings
     const ytCookies = await this.settingsService.getString("YT_COOKIES");
     if (ytCookies) {
-      args.push("--cookies-from-browser", ytCookies);
+      // Check if it's a file path or a browser name
+      const isFile = ytCookies.includes("/") || ytCookies.endsWith(".txt");
+      if (isFile) {
+        args.push("--cookies", ytCookies);
+      } else {
+        args.push("--cookies-from-browser", ytCookies);
+      }
     }
 
     try {
       const { stdout } = await execFilePromise(this.ytDlpPath, args);
-      const url = stdout.trim();
+      const urls = stdout.trim().split("\n");
+      // Get first non-empty line
+      const firstUrl = urls.find((u) => u.trim().length > 0);
 
-      if (!url) {
+      if (!firstUrl) {
         throw new AppError(404, "track_not_found", "No results found");
       }
 
-      console.debug(`Found ${artist} - ${name} on ${url}`);
-      return url;
-    } catch (error) {
+      console.debug(`Found ${artist} - ${name} on ${firstUrl}`);
+      return firstUrl;
+    } catch (error: any) {
+      // If yt-dlp fails (e.g. exit code 1) but printed a URL to stdout, use it
+      if (error.stdout && typeof error.stdout === "string") {
+        const urls = error.stdout.trim().split("\n");
+        const firstUrl = urls.find((u: string) => u.trim().length > 0);
+
+        if (firstUrl) {
+          console.debug(
+            `Found ${artist} - ${name} on ${firstUrl} (managed to recover from yt-dlp error)`,
+          );
+          return firstUrl;
+        }
+      }
+
       console.error(`Error searching ${artist} - ${name} with yt-dlp:`, error);
       throw error;
     }
