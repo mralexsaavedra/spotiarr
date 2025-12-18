@@ -188,7 +188,7 @@ Most options are configured via the **Settings** page (stored in database):
 - **Spotify Market/Region** → ISO country code for content availability
 - **Downloads path** → where files are saved
 - **Audio format** → mp3, m4a, etc.
-- **YouTube cookies browser** → for age-restricted content (optional)
+- **YouTube cookies** → paste content of cookies.txt for age-restricted content (optional)
 - **M3U generation** → auto-create playlist files
 - **Download rate limit** → avoid YouTube throttling
 - **Playlist sync interval** → how often to check for new tracks (default: 60 min)
