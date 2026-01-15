@@ -12,29 +12,48 @@ export class SpotifyHttpClient {
     init?: RequestInit,
     retries = 0,
   ): Promise<Response> {
-    const MAX_RETRIES = 3;
-    const response = await fetch(input.toString(), init);
+    const MAX_RETRIES = 5;
+    try {
+      const response = await fetch(input.toString(), init);
 
-    if (response.status === 429 && retries < MAX_RETRIES) {
-      const retryAfterHeader = response.headers.get("Retry-After");
-      // Default to 2^retries seconds if header is missing, or use header value
-      const retryAfterSeconds = retryAfterHeader
-        ? parseInt(retryAfterHeader, 10)
-        : Math.pow(2, retries);
+      if (response.status === 429 && retries < MAX_RETRIES) {
+        const retryAfterHeader = response.headers.get("Retry-After");
+        // Default to 2^retries seconds if header is missing, or use header value
+        const retryAfterSeconds = retryAfterHeader
+          ? parseInt(retryAfterHeader, 10)
+          : Math.pow(2, retries);
 
-      // Add 1s buffer to be safe
-      const waitMs = (retryAfterSeconds + 1) * 1000;
+        // Add 1s buffer to be safe
+        const waitMs = (retryAfterSeconds + 1) * 1000;
 
-      console.warn(
-        `[SpotifyHttpClient] Rate limited (429). Waiting ${waitMs}ms before retry ${retries + 1}/${MAX_RETRIES}`,
-      );
+        console.warn(
+          `[SpotifyHttpClient] Rate limited (429). Waiting ${waitMs}ms before retry ${retries + 1}/${MAX_RETRIES}`,
+        );
 
-      await this.sleep(waitMs);
-      // Recursively retry
-      return this.fetchWithRateLimitRetry(input, init, retries + 1);
+        await this.sleep(waitMs);
+        // Recursively retry
+        return this.fetchWithRateLimitRetry(input, init, retries + 1);
+      }
+
+      return response;
+    } catch (error: any) {
+      const isNetworkError =
+        error.message?.includes("fetch failed") ||
+        error.cause?.code === "ETIMEDOUT" ||
+        error.cause?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+        error.cause?.code === "ECONNRESET";
+
+      if (isNetworkError && retries < MAX_RETRIES) {
+        const waitMs = Math.pow(2, retries) * 2000; // Exponential backoff: 0s->2s, 1s->4s, 2s->8s...
+        console.warn(
+          `[SpotifyHttpClient] Network error (${error.message}). Retrying in ${waitMs}ms (${retries + 1}/${MAX_RETRIES})`,
+        );
+        await this.sleep(waitMs);
+        return this.fetchWithRateLimitRetry(input, init, retries + 1);
+      }
+
+      throw error;
     }
-
-    return response;
   }
 
   /**
