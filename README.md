@@ -165,7 +165,6 @@ pnpm dev
 | `SPOTIFY_CLIENT_SECRET` | ✅          | -       | Spotify app Client Secret                        |
 | `SPOTIFY_REDIRECT_URI`  | ✅          | -       | Full Callback URL (e.g. `https://IP/...`)        |
 | `DOWNLOADS_DIR`         | ✅ (Docker) | -       | Host path for downloads mapping (Docker Compose) |
-
 | `PUID` | ❌ | `1000` | User ID for file permissions (Linux/NAS) |
 | `PGID` | ❌ | `1000` | Group ID for file permissions (Linux/NAS) |
 
