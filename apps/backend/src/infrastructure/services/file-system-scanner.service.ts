@@ -5,6 +5,7 @@ import path from "path";
 
 export class FileSystemScannerService {
   private readonly audioExtensions = SUPPORTED_AUDIO_FORMATS.map((ext) => `.${ext}`);
+  private readonly imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
 
   /**
    * Scan a directory and return all artists with their albums and tracks
@@ -67,12 +68,16 @@ export class FileSystemScannerService {
       const totalTracks = albums.reduce((sum, album) => sum + album.trackCount, 0);
       const totalSize = albums.reduce((sum, album) => sum + album.totalSize, 0);
 
+      // Look for artist image
+      const artistImage = await this.findImage(artistPath);
+
       return {
         name: artistName,
         path: artistPath,
         albumCount: albums.length,
         trackCount: totalTracks,
         totalSize,
+        image: artistImage,
         albums,
       };
     } catch (error) {
@@ -125,6 +130,9 @@ export class FileSystemScannerService {
       // Try to extract year from album name or first track
       const year = this.extractYear(albumName);
 
+      // Look for album cover
+      const albumImage = await this.findImage(albumPath);
+
       return {
         name: albumName,
         path: albumPath,
@@ -132,6 +140,7 @@ export class FileSystemScannerService {
         trackCount: tracks.length,
         totalSize,
         year,
+        image: albumImage,
         tracks,
       };
     } catch (error) {
@@ -246,6 +255,48 @@ export class FileSystemScannerService {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Find an image file in a directory
+   * Prioritizes common names like folder.jpg, cover.jpg, artist.jpg
+   */
+  private async findImage(dirPath: string): Promise<string | undefined> {
+    try {
+      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+      const files = entries.filter((e) => e.isFile());
+
+      // Priority list
+      const priorities = ["folder", "cover", "artist", "album", "front"];
+
+      // Check for exact matches with any extension
+      for (const priority of priorities) {
+        for (const ext of this.imageExtensions) {
+          const match = files.find((f) => f.name.toLowerCase() === `${priority}${ext}`);
+          if (match) {
+            // Return relative path from the library, but since we don't have library root here easily,
+            // we'll return the absolute path and handle it later or ensuring we standardise.
+            // Actually, for now let's just return the absolute path and have the API serve it.
+            // But wait, the API needs to serve it securely.
+            // If we assume the frontend will ask for /api/library/image?path=..., we can return the absolute path.
+            return path.join(dirPath, match.name);
+          }
+        }
+      }
+
+      // If no priority match, find any image
+      const anyImage = files.find((f) =>
+        this.imageExtensions.includes(path.extname(f.name).toLowerCase()),
+      );
+
+      if (anyImage) {
+        return path.join(dirPath, anyImage.name);
+      }
+
+      return undefined;
+    } catch {
+      return undefined;
     }
   }
 }

@@ -56,6 +56,39 @@ export function createLibraryRouter(libraryService: LibraryService): Router {
     }
   });
 
+  // GET /api/library/image?path=...
+  router.get("/image", async (req, res) => {
+    try {
+      const imagePath = req.query.path as string;
+
+      if (!imagePath) {
+        res.status(400).json({
+          error: "invalid_request",
+          message: "Image path is required",
+        });
+        return;
+      }
+
+      res.sendFile(imagePath, (err) => {
+        if (err) {
+          console.error(`Error sending file ${imagePath}:`, err);
+          if (!res.headersSent) {
+            res.status(404).json({
+              error: "file_not_found",
+              message: "File not found",
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error serving image:", error);
+      res.status(500).json({
+        error: "internal_server_error",
+        message: error instanceof Error ? error.message : "Failed to serve image",
+      });
+    }
+  });
+
   // POST /api/library/scan - Trigger a manual library scan
   router.post("/scan", async (_req, res) => {
     try {

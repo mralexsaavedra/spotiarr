@@ -282,6 +282,7 @@ export interface LibraryAlbum {
   trackCount: number;
   totalSize: number;
   year?: number;
+  image?: string;
   tracks: LibraryTrack[];
 }
 
@@ -291,6 +292,7 @@ export interface LibraryArtist {
   albumCount: number;
   trackCount: number;
   totalSize: number;
+  image?: string;
   albums: LibraryAlbum[];
 }
 

@@ -53,6 +53,7 @@ export class LibraryService {
       albumCount: number;
       trackCount: number;
       totalSize: number;
+      image?: string;
     }>
   > {
     const library = await this.getLibrary();
@@ -63,6 +64,7 @@ export class LibraryService {
       albumCount: artist.albumCount,
       trackCount: artist.trackCount,
       totalSize: artist.totalSize,
+      image: artist.image,
     }));
   }
 
