@@ -9,4 +9,5 @@ export const ApiRoutes = {
   FEED: "/feed",
   AUTH: "/auth",
   HEALTH: "/health",
+  LIBRARY: "/library",
 } as const;

@@ -260,3 +260,54 @@ export interface SpotifyPlaylist {
   spotifyUrl: string;
   ownerUrl?: string;
 }
+
+export interface LibraryTrack {
+  fileName: string;
+  filePath: string;
+  trackNumber?: number;
+  discNumber?: number;
+  name: string;
+  artist: string;
+  album: string;
+  duration?: number;
+  format: string;
+  size: number;
+  modifiedAt: number;
+}
+
+export interface LibraryAlbum {
+  name: string;
+  path: string;
+  artist: string;
+  trackCount: number;
+  totalSize: number;
+  year?: number;
+  tracks: LibraryTrack[];
+}
+
+export interface LibraryArtist {
+  name: string;
+  path: string;
+  albumCount: number;
+  trackCount: number;
+  totalSize: number;
+  albums: LibraryAlbum[];
+}
+
+export interface LibraryScanResult {
+  artists: LibraryArtist[];
+  totalArtists: number;
+  totalAlbums: number;
+  totalTracks: number;
+  totalSize: number;
+  lastScannedAt: number;
+  scanDuration: number;
+}
+
+export interface LibraryStats {
+  totalArtists: number;
+  totalAlbums: number;
+  totalTracks: number;
+  totalSize: number;
+  lastScannedAt: number | null;
+}
