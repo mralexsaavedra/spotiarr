@@ -14,4 +14,7 @@ export const queryKeys = {
   artistAlbums: (artistId: string, limit: number, offset: number) =>
     ["artist-albums", artistId, limit, offset] as const,
   spotifyAuthStatus: ["spotify-auth-status"] as const,
+  library: ["library"] as const,
+  libraryStats: ["library", "stats"] as const,
+  libraryArtists: ["library", "artists"] as const,
 } as const;
