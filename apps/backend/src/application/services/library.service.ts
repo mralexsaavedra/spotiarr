@@ -2,8 +2,8 @@ import type { LibraryArtist, LibraryScanResult, LibraryStats } from "@spotiarr/s
 import { ScanLibraryUseCase } from "../use-cases/library/scan-library.use-case";
 
 export class LibraryService {
+  private scanPromise: Promise<LibraryScanResult> | null = null;
   private cachedScanResult: LibraryScanResult | null = null;
-  private isScanning = false;
 
   constructor(private readonly scanLibraryUseCase: ScanLibraryUseCase) {}
 
@@ -11,21 +11,25 @@ export class LibraryService {
    * Get the full library scan result (with caching)
    */
   async getLibrary(forceRefresh = false): Promise<LibraryScanResult> {
-    if (this.isScanning) {
-      throw new Error("A scan is already in progress");
+    if (this.scanPromise) {
+      return this.scanPromise;
     }
 
     if (!forceRefresh && this.cachedScanResult) {
       return this.cachedScanResult;
     }
 
-    this.isScanning = true;
-    try {
-      this.cachedScanResult = await this.scanLibraryUseCase.execute();
-      return this.cachedScanResult;
-    } finally {
-      this.isScanning = false;
-    }
+    this.scanPromise = (async () => {
+      try {
+        const result = await this.scanLibraryUseCase.execute();
+        this.cachedScanResult = result;
+        return result;
+      } finally {
+        this.scanPromise = null;
+      }
+    })();
+
+    return this.scanPromise;
   }
 
   /**
