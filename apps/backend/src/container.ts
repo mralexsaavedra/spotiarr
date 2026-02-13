@@ -1,7 +1,9 @@
+import { LibraryService } from "./application/services/library.service";
 import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
+import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "./application/use-cases/playlists/delete-playlist.use-case";
 import { GetMyPlaylistsUseCase } from "./application/use-cases/playlists/get-my-playlists.use-case";
@@ -34,6 +36,7 @@ import { YoutubeSearchService } from "./infrastructure/external/youtube-search.s
 import { AppEventBus } from "./infrastructure/messaging/app-event-bus";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
 import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
+import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
 
@@ -165,6 +168,11 @@ const playlistService = new PlaylistService({
   getMyPlaylistsUseCase,
 });
 
+// Library Services
+const fileSystemScannerService = new FileSystemScannerService();
+const scanLibraryUseCase = new ScanLibraryUseCase(fileSystemScannerService, trackFileHelper);
+const libraryService = new LibraryService(scanLibraryUseCase);
+
 // Export container
 export const container = {
   playlistService,
@@ -181,4 +189,5 @@ export const container = {
   eventBus,
   trackPostProcessingService,
   rescueStuckTracksUseCase,
+  libraryService,
 };

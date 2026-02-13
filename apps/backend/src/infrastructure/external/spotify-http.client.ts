@@ -36,7 +36,8 @@ export class SpotifyHttpClient {
       }
 
       return response;
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string; cause?: { code?: string } };
       const isNetworkError =
         error.message?.includes("fetch failed") ||
         error.cause?.code === "ETIMEDOUT" ||
