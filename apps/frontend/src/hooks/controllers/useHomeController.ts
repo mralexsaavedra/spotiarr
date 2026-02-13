@@ -1,43 +1,63 @@
-import { useCallback, useState } from "react";
+import { LibraryArtist } from "@spotiarr/shared";
+import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Path } from "@/routes/routes";
-import { useDeleteCompletedPlaylistsMutation } from "../mutations/useDeleteCompletedPlaylistsMutation";
-import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
+import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
+import { useLibraryArtistsQuery } from "../queries/useLibraryArtistsQuery";
+import { useLibraryStatsQuery } from "../queries/useLibraryStatsQuery";
 
 export const useHomeController = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: playlists, isLoading } = usePlaylistsQuery();
-  const deleteCompletedPlaylists = useDeleteCompletedPlaylistsMutation();
+  const { data: stats, isLoading: isStatsLoading } = useLibraryStatsQuery();
+  const { data: artists, isLoading: isArtistsLoading } = useLibraryArtistsQuery();
+  const { mutate: scanLibrary, isPending: isScanning } = useScanLibraryMutation();
 
-  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const isLoading = isStatsLoading || isArtistsLoading;
 
-  const handleClearAllClick = useCallback(() => {
-    setIsClearModalOpen(true);
-  }, []);
+  const handleScan = useCallback(() => {
+    scanLibrary();
+  }, [scanLibrary]);
 
-  const handleConfirmClearAll = useCallback(() => {
-    deleteCompletedPlaylists.mutate();
-    setIsClearModalOpen(false);
-  }, [deleteCompletedPlaylists]);
-
-  const handleCancelClearAll = useCallback(() => {
-    setIsClearModalOpen(false);
-  }, []);
-
-  const handlePlaylistClick = useCallback(
-    (id: string) => {
-      navigate(Path.PLAYLIST_DETAIL.replace(":id", id));
+  const handleArtistClick = useCallback(
+    (artist: LibraryArtist) => {
+      if (artist.name) {
+        navigate(Path.ARTIST_DETAIL.replace(":id", encodeURIComponent(artist.name)));
+      }
     },
     [navigate],
   );
 
+  const formatSize = useCallback((bytes: number) => {
+    const mb = bytes / 1024 / 1024;
+    return mb > 1024 ? `${(mb / 1024).toFixed(2)} GB` : `${mb.toFixed(2)} MB`;
+  }, []);
+
+  const statsData = useMemo(() => {
+    if (!stats) return null;
+    return {
+      artists: stats.totalArtists,
+      albums: stats.totalAlbums,
+      tracks: stats.totalTracks,
+      size: formatSize(stats.totalSize),
+    };
+  }, [stats, formatSize]);
+
+  // Sort artists alphabetically if not already
+  const sortedArtists = useMemo(() => {
+    if (!artists) return [];
+    return [...artists].sort((a, b) => a.name.localeCompare(b.name));
+  }, [artists]);
+
   return {
-    playlists,
+    t,
+    stats: statsData,
+    artists: sortedArtists,
     isLoading,
-    isClearModalOpen,
-    handleClearAllClick,
-    handleConfirmClearAll,
-    handleCancelClearAll,
-    handlePlaylistClick,
+    isScanning,
+    handleScan,
+    handleArtistClick,
+    formatSize,
   };
 };

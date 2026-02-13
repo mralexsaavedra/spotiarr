@@ -1,64 +1,69 @@
-import { faBroom, faMusic } from "@fortawesome/free-solid-svg-icons";
+import { faFolderOpen, faRotate } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
-import { useTranslation } from "react-i18next";
 import { Button } from "@/components/atoms/Button";
 import { Loading } from "@/components/atoms/Loading";
 import { EmptyState } from "@/components/molecules/EmptyState";
 import { PageHeader } from "@/components/molecules/PageHeader";
-import { ConfirmModal } from "@/components/organisms/ConfirmModal";
-import { PlaylistList } from "@/components/organisms/PlaylistList";
+import { StatCard } from "@/components/molecules/StatCard";
+import { LibraryArtistList } from "@/components/organisms/LibraryArtistList";
 import { useHomeController } from "@/hooks/controllers/useHomeController";
 
 export const Home: FC = () => {
-  const { t } = useTranslation();
-  const {
-    playlists,
-    isLoading,
-    isClearModalOpen,
-    handleClearAllClick,
-    handleConfirmClearAll,
-    handleCancelClearAll,
-    handlePlaylistClick,
-  } = useHomeController();
+  const { t, stats, artists, isLoading, isScanning, handleScan, handleArtistClick } =
+    useHomeController();
 
   return (
     <section className="bg-background w-full px-4 py-6 md:px-8">
       <div className="max-w-full">
         <PageHeader
-          title={t("home.title")}
+          title={t("library.title", "Library")}
+          description={t("library.description", "Your downloaded music collection")}
           className="mb-6"
           action={
-            playlists && playlists.length > 0 ? (
-              <Button variant="secondary" size="md" icon={faBroom} onClick={handleClearAllClick}>
-                <span className="hidden sm:inline">{t("home.clearCompleted")}</span>
-              </Button>
-            ) : undefined
+            <Button
+              variant="primary"
+              size="md"
+              icon={faRotate}
+              onClick={handleScan}
+              disabled={isScanning}
+              loading={isScanning}
+            >
+              {isScanning
+                ? t("library.scanning", "Scanning...")
+                : t("library.scan", "Scan Library")}
+            </Button>
           }
         />
 
+        {stats && (
+          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard label={t("library.artists", "Artists")} value={stats.artists} />
+            <StatCard label={t("library.albums", "Albums")} value={stats.albums} />
+            <StatCard label={t("library.tracks", "Tracks")} value={stats.tracks} />
+            <StatCard label={t("library.size", "Total Size")} value={stats.size} />
+          </div>
+        )}
+
         {isLoading ? (
           <Loading />
-        ) : !playlists || playlists.length === 0 ? (
+        ) : !artists || artists.length === 0 ? (
           <EmptyState
-            icon={faMusic}
-            title={t("home.emptyTitle")}
-            description={t("home.emptyDescription")}
+            icon={faFolderOpen}
+            title={t("library.emptyTitle", "Library is empty")}
+            description={t(
+              "library.emptyDescription",
+              "Scan your downloads folder to populate your library.",
+            )}
+            action={
+              <Button onClick={handleScan} icon={faRotate} variant="primary">
+                {t("library.scanNow", "Scan Now")}
+              </Button>
+            }
           />
         ) : (
-          <PlaylistList playlists={playlists} onPlaylistClick={handlePlaylistClick} />
+          <LibraryArtistList artists={artists} onArtistClick={handleArtistClick} />
         )}
       </div>
-
-      <ConfirmModal
-        isOpen={isClearModalOpen}
-        title={t("home.clearModal.title")}
-        description={t("home.clearModal.description")}
-        confirmLabel={t("common.clearAll")}
-        cancelLabel={t("common.cancel")}
-        onConfirm={handleConfirmClearAll}
-        onCancel={handleCancelClearAll}
-        isDestructive={true}
-      />
     </section>
   );
 };
