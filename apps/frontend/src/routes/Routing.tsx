@@ -6,6 +6,9 @@ import { AppLayout } from "@/components/layouts/AppLayout";
 import { Path } from "./routes";
 
 const Home = lazy(() => import("../views/Home").then((module) => ({ default: module.Home })));
+const Activity = lazy(() =>
+  import("../views/Activity").then((module) => ({ default: module.Activity })),
+);
 const PlaylistDetail = lazy(() =>
   import("../views/PlaylistDetail").then((module) => ({ default: module.PlaylistDetail })),
 );
@@ -52,6 +55,7 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
         }
       >
         <Route path={Path.HOME} element={<Home />} />
+        <Route path={Path.ACTIVITY} element={<Activity />} />
         <Route path={Path.PLAYLIST_DETAIL} element={<PlaylistDetail />} />
         <Route path={Path.PLAYLIST_PREVIEW} element={<PlaylistPreview />} />
         <Route path={Path.HISTORY} element={<History />} />

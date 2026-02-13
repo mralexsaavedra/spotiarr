@@ -69,7 +69,8 @@
     "download": "Download"
   },
   "navigation": {
-    "home": "Home",
+    "home": "Library",
+    "activity": "Activity",
     "history": "History",
     "releases": "Releases",
     "myPlaylists": "My Playlists",
@@ -89,6 +90,24 @@
       "title": "Clear completed playlists?",
       "description": "This will remove all completed playlists from your library. Downloaded files will NOT be deleted."
     }
+  },
+  "activity": {
+    "title": "Activity",
+    "emptyTitle": "No downloads in progress",
+    "emptyDescription": "Your queue looks empty. Add some tracks to see activity here."
+  },
+  "library": {
+    "title": "Library",
+    "description": "Your downloaded music collection",
+    "scanning": "Scanning...",
+    "scan": "Scan Library",
+    "artists": "Artists",
+    "albums": "Albums",
+    "tracks": "Tracks",
+    "size": "Total Size",
+    "emptyTitle": "Library is empty",
+    "emptyDescription": "Scan your downloads folder to populate your library.",
+    "scanNow": "Scan Now"
   },
   "history": {
     "title": "Download History",

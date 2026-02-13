@@ -1,5 +1,6 @@
 export enum Path {
   HOME = "/",
+  ACTIVITY = "/activity",
   PLAYLIST_DETAIL = "/playlist/:id",
   PLAYLIST_PREVIEW = "/preview",
   HISTORY = "/history",

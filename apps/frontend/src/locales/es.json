@@ -69,7 +69,8 @@
     "download": "Descargar"
   },
   "navigation": {
-    "home": "Inicio",
+    "home": "Biblioteca",
+    "activity": "Actividad",
     "history": "Historial",
     "releases": "Lanzamientos",
     "myPlaylists": "Mis Listas",
@@ -82,13 +83,31 @@
   },
   "home": {
     "title": "Tu Biblioteca",
-    "clearCompleted": "Limpiar completadas",
+    "clearCompleted": "Limpiar completados",
     "emptyTitle": "Crea tu primera lista",
     "emptyDescription": "Busca artistas o álbumes para empezar a construir tu colección.",
     "clearModal": {
       "title": "¿Limpiar listas completadas?",
       "description": "Esto eliminará todas las listas completadas de tu biblioteca. Los archivos descargados NO se borrarán."
     }
+  },
+  "activity": {
+    "title": "Actividad",
+    "emptyTitle": "Sin descargas en curso",
+    "emptyDescription": "Tu cola parece vacía. Añade algunas canciones para ver actividad aquí."
+  },
+  "library": {
+    "title": "Biblioteca",
+    "description": "Tu colección de música descargada",
+    "scanning": "Escaneando...",
+    "scan": "Escanear Biblioteca",
+    "artists": "Artistas",
+    "albums": "Álbumes",
+    "tracks": "Canciones",
+    "size": "Tamaño Total",
+    "emptyTitle": "La biblioteca está vacía",
+    "emptyDescription": "Escanea tu carpeta de descargas para poblar tu biblioteca.",
+    "scanNow": "Escanear Ahora"
   },
   "history": {
     "title": "Historial de Descargas",
