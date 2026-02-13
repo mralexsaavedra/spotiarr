@@ -56,8 +56,8 @@ importers:
         specifier: ^0.2.9
         version: 0.2.9
       ytdlp-nodejs:
-        specifier: ^2.3.5
-        version: 2.3.5
+        specifier: ^3.4.4
+        version: 3.4.4
       zod:
         specifier: ^4.1.13
         version: 4.1.13
@@ -5605,10 +5605,10 @@ packages:
       }
     engines: { node: ">=10" }
 
-  ytdlp-nodejs@2.3.5:
+  ytdlp-nodejs@3.4.4:
     resolution:
       {
-        integrity: sha512-7V08DRv8C1K0HxJFvRoaoLYFS/reJ9VJBlaMVhEvdi2IsYK/9Hae1Mah65Y+bhk3RAmx7G9eTfpOhkj3bp0Zbw==,
+        integrity: sha512-PR2nQOtyOzSuSQpWf6SHD97d6qlcfY2y6CVCeYnuDacYDc1YzNLXYiqAyIpFWk13UUrtQN+XD35h5DERli3SXQ==,
       }
     engines: { node: ">=16.0.0" }
     hasBin: true
@@ -8996,7 +8996,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  ytdlp-nodejs@2.3.5: {}
+  ytdlp-nodejs@3.4.4: {}
 
   zod-validation-error@4.0.2(zod@4.1.13):
     dependencies:

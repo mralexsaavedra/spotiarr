@@ -23,7 +23,7 @@
     "helmet": "^8.1.0",
     "node-cron": "^4.2.1",
     "node-id3": "^0.2.9",
-    "ytdlp-nodejs": "^2.3.5",
+    "ytdlp-nodejs": "^3.4.4",
     "zod": "^4.1.13"
   },
   "devDependencies": {
