@@ -146,6 +146,18 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     description:
       "Number of simultaneous YouTube searches. Higher values are faster but may trigger rate limits.",
   },
+  YT_SEARCH_DELAY_MS: {
+    key: "YT_SEARCH_DELAY_MS",
+    defaultValue: "1000",
+    type: "number",
+    component: "input",
+    section: "Downloads",
+    min: 500,
+    max: 5000,
+    label: "YouTube search delay (milliseconds)",
+    description:
+      "Delay between YouTube searches to avoid rate limiting. Recommended: 1000-2000ms. Use higher values if experiencing rate limit errors.",
+  },
   YT_DOWNLOADS_PER_MINUTE: {
     key: "YT_DOWNLOADS_PER_MINUTE",
     defaultValue: "5",
