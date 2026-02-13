@@ -15,6 +15,7 @@ const HEADERS = {
 
 export class YoutubeSearchService {
   private readonly ytDlpPath: string;
+  private lastSearchTime: number = 0;
 
   constructor(private readonly settingsService: SettingsService) {
     // Auto-detect yt-dlp path from system PATH
@@ -42,8 +43,91 @@ export class YoutubeSearchService {
     }
   }
 
+  /**
+   * Sleep for a specified number of milliseconds
+   */
+  private async sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Enforce rate limiting by ensuring minimum delay between searches
+   */
+  private async enforceRateLimit(): Promise<void> {
+    const delayMs = await this.settingsService.getNumber("YT_SEARCH_DELAY_MS");
+    const minDelay = delayMs || 1000; // Default 1 second
+
+    const now = Date.now();
+    const timeSinceLastSearch = now - this.lastSearchTime;
+
+    if (timeSinceLastSearch < minDelay) {
+      const waitTime = minDelay - timeSinceLastSearch;
+      console.debug(`Rate limiting: waiting ${waitTime}ms before next search`);
+      await this.sleep(waitTime);
+    }
+
+    this.lastSearchTime = Date.now();
+  }
+
+  /**
+   * Check if error is a rate limit error
+   */
+  private isRateLimitError(error: unknown): boolean {
+    const errorStr =
+      (error as { stderr?: string; message?: string }).stderr ||
+      (error as Error).message ||
+      String(error);
+    return (
+      errorStr.includes("rate-limited") ||
+      errorStr.includes("rate limited") ||
+      errorStr.includes("This content isn't available") ||
+      errorStr.includes("Video unavailable")
+    );
+  }
+
+  /**
+   * Execute yt-dlp search with retry logic
+   */
+  private async executeSearch(
+    args: string[],
+    retryCount: number = 0,
+    maxRetries: number = 3,
+  ): Promise<string> {
+    try {
+      const { stdout } = await execFilePromise(this.ytDlpPath, args);
+      return stdout;
+    } catch (error: unknown) {
+      const err = error as { stdout?: string; stderr?: string };
+
+      // If yt-dlp fails but printed a URL to stdout, use it
+      if (err.stdout && typeof err.stdout === "string") {
+        const urls = err.stdout.trim().split("\n");
+        const firstUrl = urls.find((u: string) => u.trim().length > 0);
+        if (firstUrl) {
+          return err.stdout;
+        }
+      }
+
+      // Check if it's a rate limit error
+      if (this.isRateLimitError(error) && retryCount < maxRetries) {
+        // Exponential backoff: 5s, 15s, 45s
+        const backoffMs = 5000 * Math.pow(3, retryCount);
+        console.warn(
+          `Rate limit detected. Retry ${retryCount + 1}/${maxRetries} after ${backoffMs / 1000}s`,
+        );
+        await this.sleep(backoffMs);
+        return this.executeSearch(args, retryCount + 1, maxRetries);
+      }
+
+      throw error;
+    }
+  }
+
   async findOnYoutubeOne(artist: string, name: string): Promise<string> {
     console.debug(`Searching ${artist} - ${name} on YT`);
+
+    // Enforce rate limiting before making the request
+    await this.enforceRateLimit();
 
     const args = [
       "--print",
@@ -69,7 +153,7 @@ export class YoutubeSearchService {
     }
 
     try {
-      const { stdout } = await execFilePromise(this.ytDlpPath, args);
+      const stdout = await this.executeSearch(args);
       const urls = stdout.trim().split("\n");
       // Get first non-empty line
       const firstUrl = urls.find((u) => u.trim().length > 0);
@@ -80,20 +164,7 @@ export class YoutubeSearchService {
 
       console.debug(`Found ${artist} - ${name} on ${firstUrl}`);
       return firstUrl;
-    } catch (error: any) {
-      // If yt-dlp fails (e.g. exit code 1) but printed a URL to stdout, use it
-      if (error.stdout && typeof error.stdout === "string") {
-        const urls = error.stdout.trim().split("\n");
-        const firstUrl = urls.find((u: string) => u.trim().length > 0);
-
-        if (firstUrl) {
-          console.debug(
-            `Found ${artist} - ${name} on ${firstUrl} (managed to recover from yt-dlp error)`,
-          );
-          return firstUrl;
-        }
-      }
-
+    } catch (error: unknown) {
       console.error(`Error searching ${artist} - ${name} with yt-dlp:`, error);
       throw error;
     }
