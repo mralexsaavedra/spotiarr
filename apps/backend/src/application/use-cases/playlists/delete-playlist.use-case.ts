@@ -23,6 +23,7 @@ export class DeletePlaylistUseCase {
     const playlists = await this.playlistRepository.findAll(true);
     const completedPlaylists = playlists.filter((playlist) => {
       const p = playlist.toPrimitive();
+      if (p.subscribed) return false;
       if (!p.tracks || p.tracks.length === 0) return false;
       return p.tracks.every((track) => track.status === TrackStatusEnum.Completed);
     });
