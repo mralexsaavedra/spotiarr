@@ -1,11 +1,21 @@
 import { LibraryArtist } from "@spotiarr/shared";
 import { FC, memo, useCallback } from "react";
 import { LibraryArtistCard } from "../molecules/LibraryArtistCard";
+import { VirtualGrid } from "../molecules/VirtualGrid";
 
 interface LibraryArtistListProps {
   artists: LibraryArtist[];
   onArtistClick?: (artist: LibraryArtist) => void;
 }
+
+interface LibraryArtistListItemProps {
+  artist: LibraryArtist;
+  onClick?: (artist: LibraryArtist) => void;
+}
+
+const LibraryArtistListItem: FC<LibraryArtistListItemProps> = memo(({ artist, onClick }) => {
+  return <LibraryArtistCard artist={artist} onClick={onClick} />;
+});
 
 export const LibraryArtistList: FC<LibraryArtistListProps> = memo(({ artists, onArtistClick }) => {
   const handleArtistClick = useCallback(
@@ -15,13 +25,14 @@ export const LibraryArtistList: FC<LibraryArtistListProps> = memo(({ artists, on
     [onArtistClick],
   );
 
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {artists.map((artist) => (
-        <LibraryArtistCard key={artist.path} artist={artist} onClick={handleArtistClick} />
-      ))}
-    </div>
+  const renderItem = useCallback(
+    (artist: LibraryArtist) => (
+      <LibraryArtistListItem artist={artist} onClick={handleArtistClick} />
+    ),
+    [handleArtistClick],
   );
+
+  return <VirtualGrid items={artists} itemKey={(artist) => artist.path} renderItem={renderItem} />;
 });
 
 LibraryArtistList.displayName = "LibraryArtistList";
