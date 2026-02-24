@@ -110,7 +110,9 @@
     "size": "Tamaño Total",
     "emptyTitle": "La biblioteca está vacía",
     "emptyDescription": "Escanea tu carpeta de descargas para poblar tu biblioteca.",
-    "scanNow": "Escanear Ahora"
+    "scanNow": "Escanear Ahora",
+    "artistNotFound": "Artista no encontrado",
+    "artistNotFoundDescription": "No se pudieron cargar los detalles del artista."
   },
   "history": {
     "title": "Historial de Descargas",

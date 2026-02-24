@@ -110,7 +110,9 @@
     "size": "Total Size",
     "emptyTitle": "Library is empty",
     "emptyDescription": "Scan your downloads folder to populate your library.",
-    "scanNow": "Scan Now"
+    "scanNow": "Scan Now",
+    "artistNotFound": "Artist not found",
+    "artistNotFoundDescription": "Could not load artist details."
   },
   "history": {
     "title": "Download History",
