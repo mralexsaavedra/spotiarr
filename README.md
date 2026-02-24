@@ -27,6 +27,7 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 | Feature                    | Description                                                                 |
 | -------------------------- | --------------------------------------------------------------------------- |
 | 🎵 **Smart Downloads**     | Paste any Spotify URL (track/album/playlist) and download with metadata     |
+| 📚 **Built-in Library**    | Browse your downloaded music organized by artists, albums, and tracks       |
 | 🔄 **Auto-Sync Playlists** | Subscribe to playlists for automatic updates when new tracks are added      |
 | 📁 **Jellyfin-Ready**      | Organized folder structure (`Playlists/`, `Artist/Album/`) + M3U generation |
 | 🎨 **Modern UI**           | Spotify-inspired dark theme with real-time progress tracking                |
@@ -34,7 +35,7 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 | 🚫 **Duplicate Detection** | Smart checks to avoid re-downloading existing tracks                        |
 | 🐳 **Docker First**        | One-command deployment with Redis included                                  |
 
-**Stack:** Express + Prisma + React 19 + Vite + Tailwind + SQLite + Redis + BullMQ
+**Stack:** Express + Prisma + React 19 + Vite + Tailwind 4 + SQLite + Redis + BullMQ
 
 > [!IMPORTANT]  
 > **Legal Notice:** Personal use only. Download music you have legal rights to access. The author is not responsible for misuse.
@@ -77,7 +78,8 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 
 ## 📱 Application Views
 
-- **🏠 Home:** Dashboard with recent activity, active downloads, and quick actions.
+- **🏠 Library (Home):** Browse your downloaded music collection, artists, and albums natively.
+- **⚡ Activity:** Real-time dashboard with active downloads, queue progress, and fast actions.
 - **📜 History:** Comprehensive log of all downloaded tracks and playlists.
 - **🔔 Releases:** New releases from your followed artists.
 - **💾 My Playlists:** Browse and import your followed Spotify playlists directly.
@@ -165,8 +167,8 @@ pnpm dev
 | `SPOTIFY_CLIENT_SECRET` | ✅          | -       | Spotify app Client Secret                        |
 | `SPOTIFY_REDIRECT_URI`  | ✅          | -       | Full Callback URL (e.g. `https://IP/...`)        |
 | `DOWNLOADS_DIR`         | ✅ (Docker) | -       | Host path for downloads mapping (Docker Compose) |
-| `PUID` | ❌ | `1000` | User ID for file permissions (Linux/NAS) |
-| `PGID` | ❌ | `1000` | Group ID for file permissions (Linux/NAS) |
+| `PUID`                  | ❌          | `1000`  | User ID for file permissions (Linux/NAS)         |
+| `PGID`                  | ❌          | `1000`  | Group ID for file permissions (Linux/NAS)        |
 
 **Advanced Configuration:**
 
