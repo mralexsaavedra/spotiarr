@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/molecules/EmptyState";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { ConfirmModal } from "@/components/organisms/ConfirmModal";
 import { PlaylistList } from "@/components/organisms/PlaylistList";
-import { useHomeController } from "@/hooks/controllers/useHomeController";
+import { useActivityController } from "@/hooks/controllers/useActivityController";
 
 export const Activity: FC = () => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const Activity: FC = () => {
     handleConfirmClearAll,
     handleCancelClearAll,
     handlePlaylistClick,
-  } = useHomeController();
+  } = useActivityController();
 
   return (
     <section className="bg-background w-full px-4 py-6 md:px-8">
