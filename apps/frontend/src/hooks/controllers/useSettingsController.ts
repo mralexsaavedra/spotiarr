@@ -80,10 +80,12 @@ export const useSettingsController = () => {
 
   const handleChange = useCallback((key: string) => {
     return (
-      event: ChangeEvent<HTMLInputElement | HTMLSelectElement> | MouseEvent<HTMLButtonElement>,
+      event:
+        | ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+        | MouseEvent<HTMLButtonElement>,
     ) => {
       if ("target" in event && event.target && "value" in event.target) {
-        const target = event.target as HTMLInputElement | HTMLSelectElement;
+        const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
         setValues((prev) => ({ ...prev, [key]: target.value }));
       } else {
         event.preventDefault();
