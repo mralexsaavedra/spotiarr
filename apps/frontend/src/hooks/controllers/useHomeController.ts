@@ -23,7 +23,7 @@ export const useHomeController = () => {
   const handleArtistClick = useCallback(
     (artist: LibraryArtist) => {
       if (artist.name) {
-        navigate(Path.ARTIST_DETAIL.replace(":id", encodeURIComponent(artist.name)));
+        navigate(Path.LIBRARY_ARTIST.replace(":name", encodeURIComponent(artist.name)));
       }
     },
     [navigate],
