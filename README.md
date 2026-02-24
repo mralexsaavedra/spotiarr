@@ -47,9 +47,19 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
   <br>
 
 <div align="center">
-  <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="100%">
+  <img src="assets/screenshots/dashboard.png" alt="Library" width="100%">
   <br>
-  <em>Modern Dashboard with Real-time Status</em>
+  <em>Built-in Native Music Library</em>
+  <br><br>
+
+  <img src="assets/screenshots/artist-profile.png" alt="Artist Profile" width="100%">
+  <br>
+  <em>Artist Profile with Discography & Metadata</em>
+  <br><br>
+
+  <img src="assets/screenshots/activity.png" alt="Activity Dashboard" width="100%">
+  <br>
+  <em>Real-time Activity Dashboard & Queue</em>
   <br><br>
 
   <img src="assets/screenshots/playlist.png" alt="Playlist Detail" width="100%">
