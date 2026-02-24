@@ -25,7 +25,7 @@ export const LibraryAlbumCard: FC<LibraryAlbumCardProps> = memo(({ album }) => {
         className="hover:bg-card-hover flex cursor-pointer items-center p-4 transition-colors"
         onClick={toggleExpanded}
       >
-        <div className="mr-4 h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-white/5 shadow-sm">
+        <div className="mr-4 h-16 w-16 shrink-0 overflow-hidden rounded-md bg-white/5 shadow-sm">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -68,17 +68,22 @@ LibraryAlbumCard.displayName = "LibraryAlbumCard";
 
 const TrackItem: FC<{ track: LibraryTrack }> = memo(({ track }) => {
   return (
-    <div className="text-text-secondary hover:text-text-primary flex items-center justify-between rounded px-3 py-2 text-sm transition-colors hover:bg-white/5">
-      <div className="flex items-center gap-3 overflow-hidden">
-        <span className="w-6 text-right font-mono text-xs opacity-50">
+    <div className="text-text-secondary hover:text-text-primary flex items-center justify-between gap-3 rounded px-3 py-2 text-sm transition-colors hover:bg-white/5">
+      <div className="flex flex-1 items-center gap-3 overflow-hidden">
+        <span className="w-6 shrink-0 text-right font-mono text-xs opacity-50">
           {track.trackNumber || "-"}
         </span>
-        <span className="truncate">{track.name}</span>
+        <span className="truncate" title={track.name}>
+          {track.name}
+        </span>
       </div>
-      {track.duration && (
-        <span className="text-xs opacity-70">{formatDuration(track.duration * 1000)} </span>
-      )}
-      {!track.duration && <span className="text-xs opacity-50">-</span>}
+      <div className="shrink-0">
+        {track.duration ? (
+          <span className="text-xs opacity-70">{formatDuration(track.duration * 1000)}</span>
+        ) : (
+          <span className="text-xs opacity-50">-</span>
+        )}
+      </div>
     </div>
   );
 });
