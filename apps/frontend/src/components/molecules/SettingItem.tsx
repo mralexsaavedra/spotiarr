@@ -8,7 +8,9 @@ import { SettingToggle } from "./SettingToggle";
 
 type SettingValue = string | number | boolean;
 type ChangeHandler = (
-  event: ChangeEvent<HTMLInputElement | HTMLSelectElement> | MouseEvent<HTMLButtonElement>,
+  event:
+    | ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    | MouseEvent<HTMLButtonElement>,
 ) => void;
 
 interface SettingItemProps {
@@ -62,7 +64,7 @@ const RENDERERS: Record<
       id={setting.key}
       label={setting.label}
       value={value as string}
-      onChange={onChange as any}
+      onChange={onChange}
       description={setting.description}
     />
   ),
