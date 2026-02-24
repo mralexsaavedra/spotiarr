@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 interface ArtistHeaderProps {
@@ -6,9 +6,16 @@ interface ArtistHeaderProps {
   image?: string | null;
   followersText?: string | null;
   spotifyUrl?: string | null;
+  subtitle?: ReactNode;
 }
 
-export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText, spotifyUrl }) => {
+export const ArtistHeader: FC<ArtistHeaderProps> = ({
+  name,
+  image,
+  followersText,
+  spotifyUrl,
+  subtitle,
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -19,11 +26,11 @@ export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText
           className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${image})` }}
         >
-          <div className="to-background absolute inset-0 bg-gradient-to-b from-transparent via-black/20" />
+          <div className="to-background absolute inset-0 bg-linear-to-b from-transparent via-black/20" />
         </div>
       ) : (
         <div className="absolute inset-0 bg-zinc-800">
-          <div className="to-background absolute inset-0 bg-gradient-to-b from-transparent" />
+          <div className="to-background absolute inset-0 bg-linear-to-b from-transparent" />
         </div>
       )}
 
@@ -44,11 +51,15 @@ export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, followersText
           )}
         </h1>
 
-        {followersText && (
-          <p className="text-base font-medium drop-shadow-md">
-            {followersText} {t("artist.followers")}
-          </p>
-        )}
+        <div className="flex flex-col gap-2">
+          {followersText && (
+            <p className="text-base font-medium drop-shadow-md">
+              {followersText} {t("artist.followers")}
+            </p>
+          )}
+
+          {subtitle && <div className="text-base font-medium drop-shadow-md">{subtitle}</div>}
+        </div>
       </div>
     </header>
   );
