@@ -165,6 +165,17 @@ export class FileSystemScannerService {
       // Parse track info from filename
       const { trackNumber, discNumber, name } = this.parseFileName(fileName);
 
+      let duration: number | undefined = undefined;
+      try {
+        const mm = await import("music-metadata");
+        const metadata = await mm.parseFile(filePath, { duration: true, skipCovers: true });
+        if (metadata.format?.duration) {
+          duration = Math.round(metadata.format.duration);
+        }
+      } catch (err) {
+        console.warn(`Failed to read metadata for ${fileName}:`, err);
+      }
+
       return {
         fileName,
         filePath,
@@ -175,6 +186,7 @@ export class FileSystemScannerService {
         album: albumName,
         format: ext,
         size: stats.size,
+        duration,
         modifiedAt: stats.mtimeMs,
       };
     } catch (error) {

@@ -170,7 +170,11 @@ const playlistService = new PlaylistService({
 
 // Library Services
 const fileSystemScannerService = new FileSystemScannerService();
-const scanLibraryUseCase = new ScanLibraryUseCase(fileSystemScannerService, trackFileHelper);
+const scanLibraryUseCase = new ScanLibraryUseCase(
+  fileSystemScannerService,
+  trackFileHelper,
+  trackRepository,
+);
 const libraryService = new LibraryService(scanLibraryUseCase);
 
 // Export container

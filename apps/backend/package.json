@@ -21,6 +21,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
+    "music-metadata": "^11.12.1",
     "node-cron": "^4.2.1",
     "node-id3": "^0.2.9",
     "ytdlp-nodejs": "^3.4.4",

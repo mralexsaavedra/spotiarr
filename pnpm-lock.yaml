@@ -49,6 +49,9 @@ importers:
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
+      music-metadata:
+        specifier: ^11.12.1
+        version: 11.12.1
       node-cron:
         specifier: ^4.2.1
         version: 4.2.1
@@ -379,6 +382,12 @@ packages:
         integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==,
       }
     engines: { node: ">=6.9.0" }
+
+  "@borewit/text-codec@0.2.1":
+    resolution:
+      {
+        integrity: sha512-k7vvKPbf7J2fZ5klGRD9AeKfUvojuZIQ3BT5u7Jfv+puwXkUBUT5PVyMDfJZpy30CBDXGMgw7fguK/lpOMBvgw==,
+      }
 
   "@esbuild/aix-ppc64@0.25.12":
     resolution:
@@ -1264,6 +1273,19 @@ packages:
       }
     peerDependencies:
       react: ^18 || ^19
+
+  "@tokenizer/inflate@0.4.1":
+    resolution:
+      {
+        integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==,
+      }
+    engines: { node: ">=18" }
+
+  "@tokenizer/token@0.3.0":
+    resolution:
+      {
+        integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==,
+      }
 
   "@trivago/prettier-plugin-sort-imports@6.0.0":
     resolution:
@@ -2706,6 +2728,13 @@ packages:
       }
     engines: { node: ">=16.0.0" }
 
+  file-type@21.3.0:
+    resolution:
+      {
+        integrity: sha512-8kPJMIGz1Yt/aPEwOsrR97ZyZaD1Iqm8PClb1nYFclUCkBi0Ma5IsYNQzvSFS9ib51lWyIw5mIT9rWzI/xjpzA==,
+      }
+    engines: { node: ">=20" }
+
   fill-range@7.1.1:
     resolution:
       {
@@ -3102,6 +3131,12 @@ packages:
         integrity: sha512-cf6L2Ds3h57VVmkZe+Pn+5APsT7FpqJtEhhieDCvrE2MK5Qk9MyffgQyuxQTm6BChfeZNtcOLHp9IcWRVcIcBQ==,
       }
     engines: { node: ">=0.10.0" }
+
+  ieee754@1.2.1:
+    resolution:
+      {
+        integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==,
+      }
 
   ignore@5.3.2:
     resolution:
@@ -3917,6 +3952,13 @@ packages:
       {
         integrity: sha512-UjkUHN0yqp9RWKy0Lplhh+wlpdt9oQBYgULZOiFhV3VclSF1JnSQWZ5r9gORQlNYaUKQoR8itv7g7z1xDDuACA==,
       }
+
+  music-metadata@11.12.1:
+    resolution:
+      {
+        integrity: sha512-j++ltLxHDb5VCXET9FzQ8bnueiLHwQKgCO7vcbkRH/3F7fRjPkv6qncGEJ47yFhmemcYtgvsOAlcQ1dRBTkDjg==,
+      }
+    engines: { node: ">=18" }
 
   mylas@2.1.14:
     resolution:
@@ -5101,6 +5143,13 @@ packages:
       }
     engines: { node: ">=8" }
 
+  strtok3@10.3.4:
+    resolution:
+      {
+        integrity: sha512-KIy5nylvC5le1OdaaoCJ07L+8iQzJHGH6pWDuzS+d07Cu7n1MZ2x26P8ZKIWfbK02+XIL8Mp4RkWeqdUCrDMfg==,
+      }
+    engines: { node: ">=18" }
+
   supports-color@5.5.0:
     resolution:
       {
@@ -5201,6 +5250,13 @@ packages:
         integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==,
       }
     engines: { node: ">=0.6" }
+
+  token-types@6.1.2:
+    resolution:
+      {
+        integrity: sha512-dRXchy+C0IgK8WPC6xvCHFRIWYUbqqdEIKPaKo/AcTUNzwLTK6AH7RjdLWsEZcAN/TBdtfUw3PYEgPr5VPr6ww==,
+      }
+    engines: { node: ">=14.16" }
 
   tree-kill@1.2.2:
     resolution:
@@ -5347,6 +5403,13 @@ packages:
       }
     engines: { node: ">=0.8.0" }
     hasBin: true
+
+  uint8array-extras@1.5.0:
+    resolution:
+      {
+        integrity: sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==,
+      }
+    engines: { node: ">=18" }
 
   unbox-primitive@1.1.0:
     resolution:
@@ -5502,6 +5565,12 @@ packages:
       }
     engines: { node: ">= 8" }
     hasBin: true
+
+  win-guid@0.2.1:
+    resolution:
+      {
+        integrity: sha512-gEIQU4mkgl2OPeoNrWflcJFJ3Ae2BPd4eCsHHA/XikslkIVms/nHhvnvzIZV7VLmBvtFlDOzLt9rrZT+n6D67A==,
+      }
 
   word-wrap@1.2.5:
     resolution:
@@ -5763,6 +5832,8 @@ snapshots:
     dependencies:
       "@babel/helper-string-parser": 7.27.1
       "@babel/helper-validator-identifier": 7.28.5
+
+  "@borewit/text-codec@0.2.1": {}
 
   "@esbuild/aix-ppc64@0.25.12":
     optional: true
@@ -6159,6 +6230,15 @@ snapshots:
     dependencies:
       "@tanstack/query-core": 5.90.12
       react: 19.2.1
+
+  "@tokenizer/inflate@0.4.1":
+    dependencies:
+      debug: 4.4.3
+      token-types: 6.1.2
+    transitivePeerDependencies:
+      - supports-color
+
+  "@tokenizer/token@0.3.0": {}
 
   "@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4)":
     dependencies:
@@ -7282,6 +7362,15 @@ snapshots:
     dependencies:
       flat-cache: 4.0.1
 
+  file-type@21.3.0:
+    dependencies:
+      "@tokenizer/inflate": 0.4.1
+      strtok3: 10.3.4
+      token-types: 6.1.2
+      uint8array-extras: 1.5.0
+    transitivePeerDependencies:
+      - supports-color
+
   fill-range@7.1.1:
     dependencies:
       to-regex-range: 5.0.1
@@ -7519,6 +7608,8 @@ snapshots:
   iconv-lite@0.7.0:
     dependencies:
       safer-buffer: 2.1.2
+
+  ieee754@1.2.1: {}
 
   ignore@5.3.2: {}
 
@@ -7963,6 +8054,21 @@ snapshots:
   msgpackr@1.11.5:
     optionalDependencies:
       msgpackr-extract: 3.0.3
+
+  music-metadata@11.12.1:
+    dependencies:
+      "@borewit/text-codec": 0.2.1
+      "@tokenizer/token": 0.3.0
+      content-type: 1.0.5
+      debug: 4.4.3
+      file-type: 21.3.0
+      media-typer: 1.1.0
+      strtok3: 10.3.4
+      token-types: 6.1.2
+      uint8array-extras: 1.5.0
+      win-guid: 0.2.1
+    transitivePeerDependencies:
+      - supports-color
 
   mylas@2.1.14: {}
 
@@ -8689,6 +8795,10 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
+  strtok3@10.3.4:
+    dependencies:
+      "@tokenizer/token": 0.3.0
+
   supports-color@5.5.0:
     dependencies:
       has-flag: 3.0.0
@@ -8740,6 +8850,12 @@ snapshots:
       is-number: 7.0.0
 
   toidentifier@1.0.1: {}
+
+  token-types@6.1.2:
+    dependencies:
+      "@borewit/text-codec": 0.2.1
+      "@tokenizer/token": 0.3.0
+      ieee754: 1.2.1
 
   tree-kill@1.2.2: {}
 
@@ -8842,6 +8958,8 @@ snapshots:
   uglify-js@3.19.3:
     optional: true
 
+  uint8array-extras@1.5.0: {}
+
   unbox-primitive@1.1.0:
     dependencies:
       call-bound: 1.0.4
@@ -8941,6 +9059,8 @@ snapshots:
   which@2.0.2:
     dependencies:
       isexe: 2.0.0
+
+  win-guid@0.2.1: {}
 
   word-wrap@1.2.5: {}
 

@@ -76,10 +76,7 @@ const TrackItem: FC<{ track: LibraryTrack }> = memo(({ track }) => {
         <span className="truncate">{track.name}</span>
       </div>
       {track.duration && (
-        <span className="text-xs opacity-70">
-          {formatDuration(track.duration * 1000)}{" "}
-          {/* Assuming duration is in seconds based on backend standard, but currently undefined in backend type so checking usage */}
-        </span>
+        <span className="text-xs opacity-70">{formatDuration(track.duration * 1000)} </span>
       )}
       {!track.duration && <span className="text-xs opacity-50">-</span>}
     </div>
