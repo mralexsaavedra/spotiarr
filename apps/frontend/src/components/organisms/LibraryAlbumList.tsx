@@ -1,14 +1,27 @@
 import { LibraryAlbum } from "@spotiarr/shared";
-import { FC } from "react";
+import { FC, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { LibraryAlbumCard } from "../molecules/LibraryAlbumCard";
+import { VirtualGrid } from "../molecules/VirtualGrid";
 
 interface LibraryAlbumListProps {
   albums: LibraryAlbum[];
 }
 
-export const LibraryAlbumList: FC<LibraryAlbumListProps> = ({ albums }) => {
+interface LibraryAlbumListItemProps {
+  album: LibraryAlbum;
+}
+
+const LibraryAlbumListItem: FC<LibraryAlbumListItemProps> = memo(({ album }) => {
+  return <LibraryAlbumCard album={album} />;
+});
+
+export const LibraryAlbumList: FC<LibraryAlbumListProps> = memo(({ albums }) => {
   const { t } = useTranslation();
+
+  const renderItem = useCallback((album: LibraryAlbum) => {
+    return <LibraryAlbumListItem album={album} />;
+  }, []);
 
   if (!albums || albums.length === 0) {
     return (
@@ -18,11 +31,7 @@ export const LibraryAlbumList: FC<LibraryAlbumListProps> = ({ albums }) => {
     );
   }
 
-  return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 xl:grid-cols-3">
-      {albums.map((album) => (
-        <LibraryAlbumCard key={album.path} album={album} />
-      ))}
-    </div>
-  );
-};
+  return <VirtualGrid items={albums} itemKey={(album) => album.path} renderItem={renderItem} />;
+});
+
+LibraryAlbumList.displayName = "LibraryAlbumList";
