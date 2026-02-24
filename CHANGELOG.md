@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.0](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.7...v1.0.0) (2026-02-24)
+
+### Features
+
+- **Built-in Library**: Introducing native library management! Browse your downloaded music organized by artists, albums, and tracks directly on the new `Library` home view. Local files are actively scanned with extracted metadata (like track duration) and disk statistics.
+- **Activity Dashboard**: Extracted active downloads to a dedicated `Activity` view for better queue progress management separate from your permanent library.
+- **Virtualization Performance**: Infinite scrolling and rendering for massive libraries using `VirtualGrid` on both the Library Artists and Library Albums lists. Experience zero lag regardless of library size.
+- **Auto-refresh**: Implemented Server-Sent Events (SSE) `library-updated` that automatically syncs the frontend instantly after the background download queue hits zero and completes a local scan.
+- **YouTube Reliability**: Upgraded `ytdlp-nodejs` alongside new custom rate-limiting, retry logic, and exponential backoff delays. YouTube searches are now dramatically more stable against HTTP 429 Too Many Requests errors.
+- **Artist Profiles**: Clicking an artist in the library displays a rich profile featuring their cover art, total stats, and a breakdown of every downloaded album and track.
+- **UI & UX Polish**: Fixed `SettingItem` input handling for TextAreas, improved `LibraryAlbumCard` layout styling with proper flexbox constraints and text tooltips for overly long track names.
+- **Translations**: Added full i18n support localized in English and Spanish for native library terms (Album, Albums, Track, Tracks) and edge cases like "Artist not found".
+
+### Bug Fixes
+
+- **Playlists**: Exclude actively subscribed playlists from automatic deletion consideration.
+- **Spotify Network**: Implement retry logic with exponential backoff for network errors in the Spotify HTTP client, increasing maximum retry attempts.
+
 ### [0.1.7](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.6...v0.1.7) (2025-12-18)
 
 ### Features
