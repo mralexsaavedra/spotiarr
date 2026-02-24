@@ -21,6 +21,16 @@ export const useServerEvents = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.downloadHistory });
     });
 
+    eventSource.addEventListener("library-updated", () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.libraryStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.libraryArtists });
+      // Invalidate specifically the active artist view if they are viewing one
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) && query.queryKey[0] === "libraryArtist",
+      });
+    });
+
     eventSource.onerror = (error) => {
       console.error("EventSource failed:", error);
     };

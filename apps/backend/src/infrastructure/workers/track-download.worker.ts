@@ -32,6 +32,17 @@ export async function createTrackDownloadWorker() {
     console.log(`[TrackDownloadWorker] Job ${job.id} completed`);
   });
 
+  worker.on("drained", async () => {
+    console.log(`[TrackDownloadWorker] Queue drained, triggering library scan...`);
+    try {
+      await container.libraryService.scan();
+      emitSseEvent("library-updated");
+      console.log(`[TrackDownloadWorker] Library scan completed successfully.`);
+    } catch (err) {
+      console.error(`[TrackDownloadWorker] Failed to scan library after queue drain:`, err);
+    }
+  });
+
   worker.on("failed", async (job, err) => {
     console.error(`[TrackDownloadWorker] Job ${job?.id} failed:`, err);
 
