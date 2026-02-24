@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.7...v1.1.0) (2026-02-24)
+
+### Features
+
+- Add downloaded music and album art for multiple artists and update SettingItem component to support textarea changes. ([096f808](https://github.com/mralexsaavedra/spotiarr/commit/096f808beaaf48ed762b45ba5746d0b2e978a871))
+- add image support for artists and albums, including file system scanning, API serving, and frontend display. ([416acf2](https://github.com/mralexsaavedra/spotiarr/commit/416acf2db38a751e41ff2c167edda4d87346bc82))
+- Add new music and album art downloads, and introduce album/track translation keys to locale files. ([1e3dc73](https://github.com/mralexsaavedra/spotiarr/commit/1e3dc731a5281611dea0d8830a421d25cc95b02a))
+- Add new music downloads and update localization with artist not found messages. ([6eebd42](https://github.com/mralexsaavedra/spotiarr/commit/6eebd42112ef43657c3f99d0cb86cabb694e8696))
+- Enhance YouTube search reliability with rate limiting, retry logic, and `ytdlp-nodejs` upgrade. ([cce6ba4](https://github.com/mralexsaavedra/spotiarr/commit/cce6ba4a7bac72b75808173a572c609f698d61fd))
+- Extend `handleChange` event type to support `HTMLTextAreaElement`. ([632e84b](https://github.com/mralexsaavedra/spotiarr/commit/632e84bdfe7edbcc2ab7014adb25371505ae5956))
+- Extract track durations from audio files during library scan and display them in the UI. ([bba1ff7](https://github.com/mralexsaavedra/spotiarr/commit/bba1ff7fa7e93f109ab8ee8e7677a98bd8b0d48c))
+- Implement a new Library Artist view to display artist details and their albums. ([a40f68e](https://github.com/mralexsaavedra/spotiarr/commit/a40f68ed2ecb7d21d793ad7eaeca27facbdb1443))
+- Implement frontend library management with statistics, artist display, and scan functionality. ([c638af6](https://github.com/mralexsaavedra/spotiarr/commit/c638af69a62f408c7041c29fcabb91b121a06d88))
+- Implement library management with scanning, statistics, and artist display. ([9d46ec0](https://github.com/mralexsaavedra/spotiarr/commit/9d46ec0fbb44ca4925f99ae603443b00b97c91d7))
+- Implement library management with scanning, statistics, artist listing, and a new activity view. ([68c897a](https://github.com/mralexsaavedra/spotiarr/commit/68c897af9cb313d4362a57f0789d4399a6af6337))
+- Implement library management with scanning, stats, and artist display, and introduce an Activity view. ([30c8150](https://github.com/mralexsaavedra/spotiarr/commit/30c8150f7a48861c0ac58813ce46ffe89416cfc4))
+- Implement library view on home screen with artist listing, statistics, and scan functionality. ([b326aae](https://github.com/mralexsaavedra/spotiarr/commit/b326aaee669b850c977a0161d029f952216e38a4))
+- Implement music library feature with scanning, statistics, and artist browsing on the home page. ([d963440](https://github.com/mralexsaavedra/spotiarr/commit/d9634404ab77dacad3ad70b89d0321b1c63ddd82))
+- implement rate limiting and retry logic with exponential backoff for YouTube searches ([32a5a18](https://github.com/mralexsaavedra/spotiarr/commit/32a5a1880bd2737f2f1f2137c9c2ab74b0f0071a))
+- Implement retry logic for network errors and increase maximum retries in the Spotify HTTP client. ([9d943e3](https://github.com/mralexsaavedra/spotiarr/commit/9d943e34451fa3d0879df6d49995b3b1758c0928))
+- Implement YouTube search rate limiting and retry logic with a new configurable delay setting. ([95c5e2a](https://github.com/mralexsaavedra/spotiarr/commit/95c5e2a9a2b8c4c497f4d7b455975bb46b285df2))
+- Introduce a dedicated library artist detail view displaying albums and tracks, along with supporting data fetching and routing. ([5fd756f](https://github.com/mralexsaavedra/spotiarr/commit/5fd756fbdbf98802af9ba50f35dba7f23c744bbf))
+- replace static artist list rendering with `VirtualGrid` component and introduce `LibraryArtistListItem` for individual artist rendering. ([dd596df](https://github.com/mralexsaavedra/spotiarr/commit/dd596df6242331cd33c525abcdb27e59bf370d99))
+- Trigger library scan and frontend refresh after track download queue is drained. ([e1da699](https://github.com/mralexsaavedra/spotiarr/commit/e1da699536d3e061e437321742fbc4d505ccd5de))
+
+### Bug Fixes
+
+- Exclude subscribed playlists from automatic deletion consideration. ([694d0ca](https://github.com/mralexsaavedra/spotiarr/commit/694d0cafc926b55ac462259ec5725c1610214feb))
+
 ### [1.0.0](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.7...v1.0.0) (2026-02-24)
 
 ### Features
