@@ -9,6 +9,7 @@ import healthRoutes from "./health.routes";
 import historyRoutes from "./history.routes";
 import { createLibraryRouter } from "./library.routes";
 import playlistRoutes from "./playlist.routes";
+import searchRoutes from "./search.routes";
 import settingsRoutes from "./settings.routes";
 import trackRoutes from "./track.routes";
 
@@ -24,5 +25,6 @@ router.use(ApiRoutes.FEED, feedRoutes);
 router.use(ApiRoutes.ARTIST, artistRoutes);
 router.use(ApiRoutes.AUTH, authRoutes);
 router.use(ApiRoutes.LIBRARY, createLibraryRouter(container.libraryService));
+router.use(ApiRoutes.SEARCH, searchRoutes);
 
 export default router;

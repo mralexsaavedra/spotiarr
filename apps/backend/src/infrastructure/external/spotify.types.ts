@@ -70,3 +70,9 @@ export interface SpotifyFollowedArtistsResponse {
 export interface SpotifyArtistAlbumsResponse {
   items: SpotifyAlbum[];
 }
+
+export interface SpotifySearchResponse {
+  tracks?: { items: SpotifyTrack[] };
+  albums?: { items: SpotifyAlbum[] };
+  artists?: { items: SpotifyArtistFull[] };
+}

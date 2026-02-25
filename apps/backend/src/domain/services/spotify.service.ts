@@ -1,4 +1,4 @@
-import { NormalizedTrack, SpotifyPlaylist } from "@spotiarr/shared";
+import { NormalizedTrack, SpotifyPlaylist, SpotifySearchResults } from "@spotiarr/shared";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyCatalogService } from "@/infrastructure/external/spotify-catalog.service";
 import { SpotifyUserLibraryService } from "@/infrastructure/external/spotify-user-library.service";
@@ -95,6 +95,20 @@ export class SpotifyService {
       return await this.spotifyUserLibraryService.getMyPlaylists();
     } catch (error) {
       console.error(`Error getting user playlists: ${getErrorMessage(error)}`);
+      throw error;
+    }
+  }
+
+  async searchCatalog(
+    query: string,
+    types?: string[],
+    limits?: { track?: number; album?: number; artist?: number },
+  ): Promise<SpotifySearchResults> {
+    console.debug(`Search catalog for ${query} on Spotify`);
+    try {
+      return await this.spotifyCatalogService.searchCatalog(query, types, limits);
+    } catch (error) {
+      console.error(`Error searching catalog: ${getErrorMessage(error)}`);
       throw error;
     }
   }
