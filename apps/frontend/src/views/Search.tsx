@@ -17,7 +17,6 @@ import { Path } from "@/routes/routes";
 
 type FilterTab = "all" | "tracks" | "albums" | "artists";
 
-// ─── Filter tabs ─────────────────────────────────────────────────────────────────
 const TABS: { key: FilterTab; label: string }[] = [
   { key: "all", label: "Todo" },
   { key: "tracks", label: "Canciones" },
@@ -25,7 +24,13 @@ const TABS: { key: FilterTab; label: string }[] = [
   { key: "albums", label: "Álbumes" },
 ];
 
-// ─── Main view ──────────────────────────────────────────────────────────────────
+const TYPES: Record<FilterTab, string[]> = {
+  all: ["track", "album", "artist"],
+  tracks: ["track"],
+  albums: ["album"],
+  artists: ["artist"],
+};
+
 export const Search: FC = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
@@ -34,14 +39,7 @@ export const Search: FC = () => {
   const createPlaylist = useCreatePlaylistMutation();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
-  const typesMap: Record<FilterTab, string[]> = {
-    all: ["track", "album", "artist"],
-    tracks: ["track"],
-    albums: ["album"],
-    artists: ["artist"],
-  };
-
-  const { data: results, isLoading } = useSearchQuery(query, typesMap[activeTab], 20);
+  const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
 
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
