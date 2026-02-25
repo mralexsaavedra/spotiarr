@@ -6,10 +6,11 @@ import { VirtualList } from "../molecules/VirtualList";
 
 interface SearchTrackListProps {
   tracks: NormalizedTrack[];
+  onPreview: (track: NormalizedTrack) => void;
   onDownload: (track: NormalizedTrack) => void;
 }
 
-export const SearchTrackList: FC<SearchTrackListProps> = ({ tracks, onDownload }) => {
+export const SearchTrackList: FC<SearchTrackListProps> = ({ tracks, onPreview, onDownload }) => {
   const { getBulkTrackStatus } = useDownloadStatusContext();
 
   const trackStatusesMap = useMemo(() => {
@@ -20,9 +21,17 @@ export const SearchTrackList: FC<SearchTrackListProps> = ({ tracks, onDownload }
   const renderItem = useCallback(
     (track: NormalizedTrack, index: number) => {
       const status = track.trackUrl ? trackStatusesMap.get(track.trackUrl) : undefined;
-      return <SearchTrackRow track={track} index={index} status={status} onDownload={onDownload} />;
+      return (
+        <SearchTrackRow
+          track={track}
+          index={index}
+          status={status}
+          onPreview={onPreview}
+          onDownload={onDownload}
+        />
+      );
     },
-    [onDownload, trackStatusesMap],
+    [onPreview, onDownload, trackStatusesMap],
   );
 
   const itemKey = useCallback(

@@ -11,15 +11,22 @@ interface SearchTrackRowProps {
   track: NormalizedTrack;
   index: number;
   status?: TrackStatusEnum;
+  onPreview: (track: NormalizedTrack) => void;
   onDownload: (track: NormalizedTrack) => void;
 }
 
-export const SearchTrackRow: FC<SearchTrackRowProps> = ({ track, index, status, onDownload }) => {
+export const SearchTrackRow: FC<SearchTrackRowProps> = ({
+  track,
+  index,
+  status,
+  onPreview,
+  onDownload,
+}) => {
   const { t } = useTranslation();
 
   return (
     <div
-      onClick={() => onDownload(track)}
+      onClick={() => onPreview(track)}
       className="group flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-white/5"
     >
       <div className="flex w-5 shrink-0 justify-center text-sm font-medium text-zinc-500">

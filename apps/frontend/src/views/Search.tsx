@@ -43,6 +43,15 @@ export const Search: FC = () => {
 
   const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
 
+  const handlePreviewTrack = useCallback(
+    (track: NormalizedTrack) => {
+      if (track.trackUrl) {
+        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`);
+      }
+    },
+    [navigate],
+  );
+
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
       if (track.trackUrl) createPlaylist.mutate(track.trackUrl);
@@ -147,6 +156,7 @@ export const Search: FC = () => {
                           status={
                             track.trackUrl ? topTracksStatusesMap.get(track.trackUrl) : undefined
                           }
+                          onPreview={handlePreviewTrack}
                           onDownload={handleDownloadTrack}
                         />
                       ))}
@@ -175,7 +185,11 @@ export const Search: FC = () => {
             {activeTab === "tracks" && (results?.tracks?.length ?? 0) > 0 && (
               <section className="flex flex-1 flex-col">
                 <h2 className="mb-4 text-2xl font-bold text-white">{t("search.tracks")}</h2>
-                <SearchTrackList tracks={results!.tracks} onDownload={handleDownloadTrack} />
+                <SearchTrackList
+                  tracks={results!.tracks}
+                  onPreview={handlePreviewTrack}
+                  onDownload={handleDownloadTrack}
+                />
               </section>
             )}
 
