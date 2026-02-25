@@ -39,7 +39,7 @@ export const Search: FC = () => {
   const navigate = useNavigate();
   const createPlaylist = useCreatePlaylistMutation();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const { getBulkTrackStatus } = useDownloadStatusContext();
+  const { getBulkTrackStatus, getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
 
@@ -90,6 +90,17 @@ export const Search: FC = () => {
     const urls = topTracks.map((t) => t.trackUrl).filter(Boolean) as string[];
     return getBulkTrackStatus(urls);
   }, [activeTab, topTracks, getBulkTrackStatus]);
+
+  const topAlbums = useMemo(() => results?.albums?.slice(0, 6) ?? [], [results?.albums]);
+
+  const topAlbumsStatusMap = useMemo(() => {
+    if (activeTab !== "all" || topAlbums.length === 0) return new Map();
+    const items = topAlbums.map((album) => ({
+      url: album.spotifyUrl,
+      totalTracks: album.totalTracks,
+    }));
+    return getBulkPlaylistStatus(items);
+  }, [activeTab, topAlbums, getBulkPlaylistStatus]);
 
   return (
     <section className="bg-background flex flex-1 flex-col px-4 pb-6 md:px-8">
@@ -200,25 +211,32 @@ export const Search: FC = () => {
             {/* ── Albums section ──────────────────────────────────────────── */}
             {activeTab === "all" && (results?.albums?.length ?? 0) > 0 && (
               <SearchGridSection title={t("search.albums")}>
-                {results!.albums.slice(0, 6).map((album) => (
-                  <AlbumCard
-                    key={album.albumId}
-                    albumId={album.albumId}
-                    artistId={album.artistId}
-                    albumName={album.albumName}
-                    artistName={album.artistName}
-                    coverUrl={album.coverUrl}
-                    releaseDate={album.releaseDate}
-                    spotifyUrl={album.spotifyUrl}
-                    albumType={album.albumType}
-                    onCardClick={() => album.spotifyUrl && handleAlbumClick(album.spotifyUrl)}
-                    onDownloadClick={(e) => {
-                      e.stopPropagation();
-                      if (album.spotifyUrl) handleDownloadAlbum(album.spotifyUrl);
-                    }}
-                    onArtistClick={handleArtistClick}
-                  />
-                ))}
+                {topAlbums.map((album) => {
+                  const downloadState = album.spotifyUrl
+                    ? topAlbumsStatusMap.get(album.spotifyUrl)
+                    : undefined;
+                  return (
+                    <AlbumCard
+                      key={album.albumId}
+                      albumId={album.albumId}
+                      artistId={album.artistId}
+                      albumName={album.albumName}
+                      artistName={album.artistName}
+                      coverUrl={album.coverUrl}
+                      releaseDate={album.releaseDate}
+                      spotifyUrl={album.spotifyUrl}
+                      albumType={album.albumType}
+                      isDownloaded={downloadState?.isDownloaded ?? false}
+                      isDownloading={downloadState?.isDownloading ?? false}
+                      onCardClick={() => album.spotifyUrl && handleAlbumClick(album.spotifyUrl)}
+                      onDownloadClick={(e) => {
+                        e.stopPropagation();
+                        if (album.spotifyUrl) handleDownloadAlbum(album.spotifyUrl);
+                      }}
+                      onArtistClick={handleArtistClick}
+                    />
+                  );
+                })}
               </SearchGridSection>
             )}
             {activeTab === "albums" && (results?.albums?.length ?? 0) > 0 && (
