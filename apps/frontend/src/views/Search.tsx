@@ -6,7 +6,6 @@ import { Loading } from "@/components/atoms/Loading";
 import { AlbumCard } from "@/components/molecules/AlbumCard";
 import { ArtistCard } from "@/components/molecules/ArtistCard";
 import { SearchTopResultCard } from "@/components/molecules/SearchTopResultCard";
-import { SearchTrackRow } from "@/components/molecules/SearchTrackRow";
 import { SearchAlbumGrid } from "@/components/organisms/SearchAlbumGrid";
 import { SearchArtistGrid } from "@/components/organisms/SearchArtistGrid";
 import { SearchGridSection } from "@/components/organisms/SearchGridSection";
@@ -39,18 +38,9 @@ export const Search: FC = () => {
   const navigate = useNavigate();
   const createPlaylist = useCreatePlaylistMutation();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const { getBulkTrackStatus, getBulkPlaylistStatus } = useDownloadStatusContext();
+  const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
-
-  const handlePreviewTrack = useCallback(
-    (track: NormalizedTrack) => {
-      if (track.trackUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`);
-      }
-    },
-    [navigate],
-  );
 
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
@@ -84,12 +74,6 @@ export const Search: FC = () => {
     (results?.tracks?.length ?? 0) > 0 ||
     (results?.albums?.length ?? 0) > 0 ||
     (results?.artists?.length ?? 0) > 0;
-
-  const topTracksStatusesMap = useMemo(() => {
-    if (activeTab !== "all" || topTracks.length === 0) return new Map();
-    const urls = topTracks.map((t) => t.trackUrl).filter(Boolean) as string[];
-    return getBulkTrackStatus(urls);
-  }, [activeTab, topTracks, getBulkTrackStatus]);
 
   const topAlbums = useMemo(() => results?.albums?.slice(0, 6) ?? [], [results?.albums]);
 
@@ -155,20 +139,7 @@ export const Search: FC = () => {
                 {topTracks.length > 0 && (
                   <div className="flex flex-col gap-2">
                     <h2 className="text-2xl font-bold text-white">{t("search.tracks")}</h2>
-                    <div className="flex flex-col">
-                      {topTracks.map((track, i) => (
-                        <SearchTrackRow
-                          key={track.spotifyUrl ?? i}
-                          track={track}
-                          index={i}
-                          status={
-                            track.trackUrl ? topTracksStatusesMap.get(track.trackUrl) : undefined
-                          }
-                          onPreview={handlePreviewTrack}
-                          onDownload={handleDownloadTrack}
-                        />
-                      ))}
-                    </div>
+                    <SearchTrackList tracks={topTracks} onDownload={handleDownloadTrack} />
                   </div>
                 )}
               </div>
