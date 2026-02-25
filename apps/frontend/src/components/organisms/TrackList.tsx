@@ -1,20 +1,25 @@
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TrackStatusEnum } from "@spotiarr/shared";
+import { ITrack, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
-import { Track } from "@/types";
 import { formatDuration } from "@/utils/date";
 import { Image } from "../atoms/Image";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 import { VirtualList } from "../molecules/VirtualList";
 
+// Minimum shape required to render a TrackList item
+export interface TrackListTrack extends ITrack {
+  id?: string;
+  albumCoverUrl?: string | null;
+}
+
 interface TrackListItemProps {
-  track: Track;
+  track: TrackListTrack;
   index: number;
-  onDownload: (track: Track) => void;
+  onDownload: (track: TrackListTrack) => void;
   status?: TrackStatusEnum;
 }
 
@@ -43,9 +48,9 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
 
       {/* Title & Image */}
       <div className="flex min-w-0 items-center gap-4">
-        <div className="h-10 w-10 flex-shrink-0">
+        <div className="h-10 w-10 shrink-0">
           <Image
-            src={track.albumUrl || undefined}
+            src={track.albumCoverUrl ?? track.albumUrl ?? undefined}
             alt={track.name}
             loading="lazy"
             className="rounded shadow-sm"
@@ -62,6 +67,7 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
           ) : (
             <span className="truncate text-base font-medium text-white">{track.name}</span>
           )}
+          <span className="text-text-secondary truncate text-sm">{track.artist}</span>
         </div>
       </div>
 
@@ -77,8 +83,8 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
 });
 
 interface TrackListProps {
-  tracks: Track[];
-  onDownload: (track: Track) => void;
+  tracks: TrackListTrack[];
+  onDownload: (track: TrackListTrack) => void;
 }
 
 export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
@@ -90,7 +96,7 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
   }, [tracks, getBulkTrackStatus]);
 
   const renderItem = useCallback(
-    (track: Track, index: number) => {
+    (track: TrackListTrack, index: number) => {
       const status = track.trackUrl ? trackStatusesMap.get(track.trackUrl) : undefined;
 
       return (
@@ -102,7 +108,11 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <VirtualList items={tracks} itemKey={(track) => track.id} renderItem={renderItem} />
+      <VirtualList
+        items={tracks}
+        itemKey={(track) => track.trackUrl ?? track.id ?? track.name}
+        renderItem={renderItem}
+      />
     </div>
   );
 };

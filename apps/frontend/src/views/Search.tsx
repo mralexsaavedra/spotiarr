@@ -200,11 +200,7 @@ export const Search: FC = () => {
             {activeTab === "tracks" && (results?.tracks?.length ?? 0) > 0 && (
               <section className="flex flex-1 flex-col">
                 <h2 className="mb-4 text-2xl font-bold text-white">{t("search.tracks")}</h2>
-                <SearchTrackList
-                  tracks={results!.tracks}
-                  onPreview={handlePreviewTrack}
-                  onDownload={handleDownloadTrack}
-                />
+                <SearchTrackList tracks={results!.tracks} onDownload={handleDownloadTrack} />
               </section>
             )}
 

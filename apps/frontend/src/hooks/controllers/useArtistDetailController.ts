@@ -1,6 +1,7 @@
 import { ArtistRelease, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { TrackListTrack } from "@/components/organisms/TrackList";
 import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { Track } from "@/types";
@@ -74,7 +75,7 @@ export const useArtistDetailController = () => {
   );
 
   const handleTrackDownload = useCallback(
-    (track: Track) => {
+    (track: TrackListTrack) => {
       if (track.trackUrl) {
         handleDownload(track.trackUrl);
       }
