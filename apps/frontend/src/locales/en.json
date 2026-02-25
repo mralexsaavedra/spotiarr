@@ -282,5 +282,15 @@
         "description": "How long before a track is considered stuck and eligible for cleanup."
       }
     }
+  },
+  "search": {
+    "title": "Search",
+    "resultsFor": "Results for",
+    "topResult": "Top result",
+    "tracks": "Tracks",
+    "albums": "Albums",
+    "artists": "Artists",
+    "emptyState": "Type something in the search bar to find tracks, albums, or artists",
+    "noResults": "No results found"
   }
 }

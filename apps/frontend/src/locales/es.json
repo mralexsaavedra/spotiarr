@@ -282,5 +282,15 @@
         "description": "Cuánto tiempo antes de que una pista se considere atascada y elegible para limpieza."
       }
     }
+  },
+  "search": {
+    "title": "Buscar",
+    "resultsFor": "Resultados para",
+    "topResult": "Resultado principal",
+    "tracks": "Canciones",
+    "albums": "Álbumes",
+    "artists": "Artistas",
+    "emptyState": "Escribe algo en la barra de búsqueda para encontrar canciones, álbumes o artistas",
+    "noResults": "No se encontraron resultados"
   }
 }

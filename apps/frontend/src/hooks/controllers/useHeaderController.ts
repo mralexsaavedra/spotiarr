@@ -1,11 +1,14 @@
 import { ChangeEvent, KeyboardEvent, useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { normalizeSpotifyUrl } from "@/utils/spotify";
+import { Path } from "../../routes/routes";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 
 export const useHeaderController = () => {
   const [url, setUrlState] = useState("");
   const [normalizedUrl, setNormalizedUrl] = useState<string | null>(null);
   const createPlaylist = useCreatePlaylistMutation();
+  const navigate = useNavigate();
 
   const setUrl = useCallback((value: string) => {
     setUrlState(value);
@@ -32,11 +35,15 @@ export const useHeaderController = () => {
 
   const handleKeyUp = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter" && isValidUrl) {
-        handleDownload();
+      if (event.key === "Enter") {
+        if (isValidUrl) {
+          handleDownload();
+        } else if (url.trim()) {
+          navigate(`${Path.SEARCH}?q=${encodeURIComponent(url.trim())}`);
+        }
       }
     },
-    [handleDownload, isValidUrl],
+    [handleDownload, isValidUrl, url, navigate],
   );
 
   return {

@@ -18,4 +18,6 @@ export const queryKeys = {
   libraryStats: ["library", "stats"] as const,
   libraryArtists: ["library", "artists"] as const,
   libraryArtistDetail: (name: string) => ["library", "artist", name] as const,
+  search: (query: string, types: string[], limit: number) =>
+    ["search", query, types, limit] as const,
 } as const;

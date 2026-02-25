@@ -313,3 +313,9 @@ export interface LibraryStats {
   totalSize: number;
   lastScannedAt: number | null;
 }
+
+export interface SpotifySearchResults {
+  tracks: NormalizedTrack[];
+  albums: ArtistRelease[];
+  artists: FollowedArtist[];
+}
