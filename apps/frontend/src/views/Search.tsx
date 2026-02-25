@@ -1,5 +1,5 @@
 import { ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useCallback, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loading } from "@/components/atoms/Loading";
@@ -11,6 +11,7 @@ import { SearchAlbumGrid } from "@/components/organisms/SearchAlbumGrid";
 import { SearchArtistGrid } from "@/components/organisms/SearchArtistGrid";
 import { SearchGridSection } from "@/components/organisms/SearchGridSection";
 import { SearchTrackList } from "@/components/organisms/SearchTrackList";
+import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
 import { useCreatePlaylistMutation } from "@/hooks/mutations/useCreatePlaylistMutation";
 import { useSearchQuery } from "@/hooks/queries/useSearchQuery";
 import { Path } from "@/routes/routes";
@@ -38,6 +39,7 @@ export const Search: FC = () => {
   const navigate = useNavigate();
   const createPlaylist = useCreatePlaylistMutation();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const { getBulkTrackStatus } = useDownloadStatusContext();
 
   const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
 
@@ -71,11 +73,17 @@ export const Search: FC = () => {
   );
 
   const topResult = results?.artists?.[0] ?? null;
-  const topTracks = results?.tracks?.slice(0, 4) ?? [];
+  const topTracks = useMemo(() => results?.tracks?.slice(0, 4) ?? [], [results?.tracks]);
   const hasResults =
     (results?.tracks?.length ?? 0) > 0 ||
     (results?.albums?.length ?? 0) > 0 ||
     (results?.artists?.length ?? 0) > 0;
+
+  const topTracksStatusesMap = useMemo(() => {
+    if (activeTab !== "all" || topTracks.length === 0) return new Map();
+    const urls = topTracks.map((t) => t.trackUrl).filter(Boolean) as string[];
+    return getBulkTrackStatus(urls);
+  }, [activeTab, topTracks, getBulkTrackStatus]);
 
   return (
     <section className="bg-background flex flex-1 flex-col px-4 pb-6 md:px-8">
@@ -136,6 +144,9 @@ export const Search: FC = () => {
                           key={track.spotifyUrl ?? i}
                           track={track}
                           index={i}
+                          status={
+                            track.trackUrl ? topTracksStatusesMap.get(track.trackUrl) : undefined
+                          }
                           onDownload={handleDownloadTrack}
                         />
                       ))}
