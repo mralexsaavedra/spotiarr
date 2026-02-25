@@ -1,7 +1,6 @@
 import { FollowedArtist } from "@spotiarr/shared";
-import { FC, useCallback } from "react";
-import { SearchArtistCard } from "../molecules/SearchArtistCard";
-import { VirtualGrid } from "../molecules/VirtualGrid";
+import { FC } from "react";
+import { ArtistList } from "./ArtistList";
 
 interface SearchArtistGridProps {
   artists: FollowedArtist[];
@@ -9,10 +8,5 @@ interface SearchArtistGridProps {
 }
 
 export const SearchArtistGrid: FC<SearchArtistGridProps> = ({ artists, onClick }) => {
-  const renderItem = useCallback(
-    (artist: FollowedArtist) => <SearchArtistCard artist={artist} onClick={onClick} />,
-    [onClick],
-  );
-
-  return <VirtualGrid items={artists} itemKey={(artist) => artist.id} renderItem={renderItem} />;
+  return <ArtistList artists={artists} onClick={onClick} />;
 };

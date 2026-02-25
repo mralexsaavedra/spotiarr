@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loading } from "@/components/atoms/Loading";
 import { AlbumCard } from "@/components/molecules/AlbumCard";
-import { SearchArtistCard } from "@/components/molecules/SearchArtistCard";
+import { ArtistCard } from "@/components/molecules/ArtistCard";
 import { SearchTopResultCard } from "@/components/molecules/SearchTopResultCard";
 import { SearchTrackRow } from "@/components/molecules/SearchTrackRow";
 import { SearchAlbumGrid } from "@/components/organisms/SearchAlbumGrid";
@@ -167,7 +167,14 @@ export const Search: FC = () => {
             {activeTab === "all" && (results?.artists?.length ?? 0) > 0 && (
               <SearchGridSection title={t("search.artists")}>
                 {results!.artists.slice(0, 6).map((artist) => (
-                  <SearchArtistCard key={artist.id} artist={artist} onClick={handleArtistClick} />
+                  <ArtistCard
+                    key={artist.id}
+                    id={artist.id}
+                    name={artist.name}
+                    image={artist.image}
+                    spotifyUrl={artist.spotifyUrl}
+                    onClick={handleArtistClick}
+                  />
                 ))}
               </SearchGridSection>
             )}
