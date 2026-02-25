@@ -1,9 +1,9 @@
-import { ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
-import React, { FC, useCallback, useState, useMemo } from "react";
+import { NormalizedTrack } from "@spotiarr/shared";
+import { FC, useCallback, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loading } from "@/components/atoms/Loading";
-import { SearchAlbumCard } from "@/components/molecules/SearchAlbumCard";
+import { AlbumCard } from "@/components/molecules/AlbumCard";
 import { SearchArtistCard } from "@/components/molecules/SearchArtistCard";
 import { SearchTopResultCard } from "@/components/molecules/SearchTopResultCard";
 import { SearchTrackRow } from "@/components/molecules/SearchTrackRow";
@@ -60,18 +60,15 @@ export const Search: FC = () => {
   );
 
   const handleAlbumClick = useCallback(
-    (album: ArtistRelease) => {
-      if (album.spotifyUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(album.spotifyUrl)}`);
-      }
+    (spotifyUrl: string) => {
+      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(spotifyUrl)}`);
     },
     [navigate],
   );
 
   const handleDownloadAlbum = useCallback(
-    (e: React.MouseEvent, spotifyUrl: string) => {
-      e.stopPropagation();
-      createPlaylist.mutate(spotifyUrl);
+    (url: string) => {
+      createPlaylist.mutate(url);
     },
     [createPlaylist],
   );
@@ -197,11 +194,22 @@ export const Search: FC = () => {
             {activeTab === "all" && (results?.albums?.length ?? 0) > 0 && (
               <SearchGridSection title={t("search.albums")}>
                 {results!.albums.slice(0, 6).map((album) => (
-                  <SearchAlbumCard
+                  <AlbumCard
                     key={album.albumId}
-                    album={album}
-                    onClick={handleAlbumClick}
-                    onDownload={handleDownloadAlbum}
+                    albumId={album.albumId}
+                    artistId={album.artistId}
+                    albumName={album.albumName}
+                    artistName={album.artistName}
+                    coverUrl={album.coverUrl}
+                    releaseDate={album.releaseDate}
+                    spotifyUrl={album.spotifyUrl}
+                    albumType={album.albumType}
+                    onCardClick={() => album.spotifyUrl && handleAlbumClick(album.spotifyUrl)}
+                    onDownloadClick={(e) => {
+                      e.stopPropagation();
+                      if (album.spotifyUrl) handleDownloadAlbum(album.spotifyUrl);
+                    }}
+                    onArtistClick={handleArtistClick}
                   />
                 ))}
               </SearchGridSection>
@@ -212,6 +220,7 @@ export const Search: FC = () => {
                 <SearchAlbumGrid
                   albums={results!.albums}
                   onClick={handleAlbumClick}
+                  onArtistClick={handleArtistClick}
                   onDownload={handleDownloadAlbum}
                 />
               </section>
