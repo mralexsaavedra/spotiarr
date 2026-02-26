@@ -1,6 +1,6 @@
 import { ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
 import { TFunction } from "i18next";
-import { FC, useMemo } from "react";
+import { FC, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Image } from "../atoms/Image";
 
@@ -23,41 +23,49 @@ interface ResultConfig {
   fallbackIcon: "user" | "music";
 }
 
-const RESULT_CONFIG_MAP: Record<TopResultItem["type"], (data: any, t: TFunction) => ResultConfig> =
-  {
-    artist: (data: FollowedArtist, t) => ({
-      imageSrc: data.image ?? undefined,
-      title: data.name,
-      typeLabel: t("common.cards.albumTypes.artist", "Artista"),
-      isCircular: true,
-      fallbackIcon: "user",
-    }),
-    album: (data: ArtistRelease, t) => ({
-      imageSrc: data.coverUrl ?? undefined,
-      title: data.albumName,
-      subtitle: data.artistName,
-      typeLabel: t("common.album", "Álbum"),
-      isCircular: false,
-      fallbackIcon: "music",
-    }),
-    track: (data: NormalizedTrack, t) => ({
-      imageSrc: data.albumCoverUrl ?? data.albumUrl ?? undefined,
-      title: data.name,
-      subtitle: data.artist,
-      typeLabel: t("common.track", "Canción"),
-      isCircular: false,
-      fallbackIcon: "music",
-    }),
-  };
+const getConfig = (item: TopResultItem, t: TFunction): ResultConfig => {
+  switch (item.type) {
+    case "artist":
+      return {
+        imageSrc: item.data.image ?? undefined,
+        title: item.data.name,
+        typeLabel: t("common.cards.albumTypes.artist", "Artista"),
+        isCircular: true,
+        fallbackIcon: "user",
+      };
+    case "album":
+      return {
+        imageSrc: item.data.coverUrl ?? undefined,
+        title: item.data.albumName,
+        subtitle: item.data.artistName,
+        typeLabel: t("common.album", "Álbum"),
+        isCircular: false,
+        fallbackIcon: "music",
+      };
+    case "track":
+      return {
+        imageSrc: item.data.albumCoverUrl ?? item.data.albumUrl ?? undefined,
+        title: item.data.name,
+        subtitle: item.data.artist,
+        typeLabel: t("common.track", "Canción"),
+        isCircular: false,
+        fallbackIcon: "music",
+      };
+  }
+};
 
 export const SearchTopResultCard: FC<SearchTopResultCardProps> = ({ item, onClick }) => {
   const { t } = useTranslation();
 
-  const config = useMemo(() => RESULT_CONFIG_MAP[item.type](item.data, t), [item, t]);
+  const config = useMemo(() => getConfig(item, t), [item, t]);
+
+  const handleClick = useCallback(() => {
+    onClick(item);
+  }, [item, onClick]);
 
   return (
     <div
-      onClick={() => onClick(item)}
+      onClick={handleClick}
       className="group flex min-h-[180px] cursor-pointer flex-col justify-end gap-4 overflow-hidden rounded-xl bg-white/5 p-5 transition-colors hover:bg-white/10"
     >
       <div
