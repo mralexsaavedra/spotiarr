@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { ArtistRelease } from "@spotiarr/shared";
+import { FC, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/atoms/Loading";
 import { AlbumCard } from "@/components/molecules/AlbumCard";
@@ -8,7 +9,82 @@ import { SearchAlbumGrid } from "@/components/organisms/SearchAlbumGrid";
 import { SearchArtistGrid } from "@/components/organisms/SearchArtistGrid";
 import { SearchGridSection } from "@/components/organisms/SearchGridSection";
 import { SearchTrackList } from "@/components/organisms/SearchTrackList";
-import { SEARCH_TABS, useSearchController } from "@/hooks/controllers/useSearchController";
+import {
+  FilterTab,
+  SEARCH_TABS,
+  useSearchController,
+} from "@/hooks/controllers/useSearchController";
+
+interface SearchTabButtonProps {
+  tab: { key: FilterTab; labelKey: string };
+  isActive: boolean;
+  onClick: (key: FilterTab) => void;
+}
+
+const SearchTabButton: FC<SearchTabButtonProps> = ({ tab, isActive, onClick }) => {
+  const { t } = useTranslation();
+  const handleClick = useCallback(() => onClick(tab.key), [onClick, tab.key]);
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+        isActive ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
+      }`}
+    >
+      {/* @ts-expect-error Typescript cannot infer template literal string accurately for i18n keys */}
+      {t(`common.${tab.labelKey}`)}
+    </button>
+  );
+};
+
+interface SearchPreviewAlbumCardProps {
+  album: ArtistRelease;
+  isDownloaded: boolean;
+  isDownloading: boolean;
+  onAlbumClick: (url: string) => void;
+  onDownloadAlbum: (url: string) => void;
+  onArtistClick: (id: string) => void;
+}
+
+const SearchPreviewAlbumCard: FC<SearchPreviewAlbumCardProps> = ({
+  album,
+  isDownloaded,
+  isDownloading,
+  onAlbumClick,
+  onDownloadAlbum,
+  onArtistClick,
+}) => {
+  const handleCardClick = useCallback(() => {
+    if (album.spotifyUrl) onAlbumClick(album.spotifyUrl);
+  }, [album.spotifyUrl, onAlbumClick]);
+
+  const handleDownloadClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (album.spotifyUrl) onDownloadAlbum(album.spotifyUrl);
+    },
+    [album.spotifyUrl, onDownloadAlbum],
+  );
+
+  return (
+    <AlbumCard
+      albumId={album.albumId}
+      artistId={album.artistId}
+      albumName={album.albumName}
+      artistName={album.artistName}
+      coverUrl={album.coverUrl}
+      releaseDate={album.releaseDate}
+      spotifyUrl={album.spotifyUrl}
+      albumType={album.albumType}
+      isDownloaded={isDownloaded}
+      isDownloading={isDownloading}
+      onCardClick={handleCardClick}
+      onDownloadClick={handleDownloadClick}
+      onArtistClick={onArtistClick}
+    />
+  );
+};
 
 export const Search: FC = () => {
   const { t } = useTranslation();
@@ -41,18 +117,12 @@ export const Search: FC = () => {
         )}
         <div className="flex flex-wrap gap-2">
           {SEARCH_TABS.map((tab) => (
-            <button
+            <SearchTabButton
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "bg-white text-black"
-                  : "bg-white/10 text-white hover:bg-white/20"
-              }`}
-            >
-              {/* @ts-expect-error Typescript cannot infer template literal string accurately for i18n keys */}
-              {t(`common.${tab.labelKey}`)}
-            </button>
+              tab={tab}
+              isActive={activeTab === tab.key}
+              onClick={setActiveTab}
+            />
           ))}
         </div>
       </div>
@@ -128,23 +198,13 @@ export const Search: FC = () => {
                     ? topAlbumsStatusMap.get(album.spotifyUrl)
                     : undefined;
                   return (
-                    <AlbumCard
+                    <SearchPreviewAlbumCard
                       key={album.albumId}
-                      albumId={album.albumId}
-                      artistId={album.artistId}
-                      albumName={album.albumName}
-                      artistName={album.artistName}
-                      coverUrl={album.coverUrl}
-                      releaseDate={album.releaseDate}
-                      spotifyUrl={album.spotifyUrl}
-                      albumType={album.albumType}
+                      album={album}
                       isDownloaded={downloadState?.isDownloaded ?? false}
                       isDownloading={downloadState?.isDownloading ?? false}
-                      onCardClick={() => album.spotifyUrl && handleAlbumClick(album.spotifyUrl)}
-                      onDownloadClick={(e) => {
-                        e.stopPropagation();
-                        if (album.spotifyUrl) handleDownloadAlbum(album.spotifyUrl);
-                      }}
+                      onAlbumClick={handleAlbumClick}
+                      onDownloadAlbum={handleDownloadAlbum}
                       onArtistClick={handleArtistClick}
                     />
                   );
