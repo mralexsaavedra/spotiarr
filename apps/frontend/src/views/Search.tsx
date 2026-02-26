@@ -113,7 +113,7 @@ export const Search: FC = () => {
       </div>
 
       {/* Content */}
-      <div className="flex min-w-0 flex-col gap-8 overflow-x-hidden">
+      <div className="flex min-w-0 flex-col gap-8">
         {!query ? (
           <div className="text-text-secondary flex flex-1 items-center justify-center py-20 text-lg">
             {t("search.emptyState")}
