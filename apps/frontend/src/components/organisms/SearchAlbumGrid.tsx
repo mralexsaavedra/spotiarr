@@ -20,7 +20,7 @@ interface SearchAlbumItemProps {
   onDownload: (url: string) => void;
 }
 
-const SearchAlbumItem: FC<SearchAlbumItemProps> = memo(
+export const SearchAlbumItem: FC<SearchAlbumItemProps> = memo(
   ({ album, isDownloaded, isDownloading, onClick, onArtistClick, onDownload }) => {
     const handleCardClick = useCallback(() => {
       if (album.spotifyUrl) onClick(album.spotifyUrl);
