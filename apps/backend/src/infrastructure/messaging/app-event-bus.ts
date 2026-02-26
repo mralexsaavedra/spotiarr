@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
+import { container } from "@/container";
 import type { EventBus } from "@/domain/events/event-bus";
-import { emitSseEvent } from "@/presentation/routes/events.routes";
 
 export class AppEventBus extends EventEmitter implements EventBus {
   // Override emit to send to both internal listeners and SSE
@@ -10,7 +10,7 @@ export class AppEventBus extends EventEmitter implements EventBus {
 
     // 2. Emit to Frontend via SSE
     // (We only send data if it's serializable, which it usually is in this app)
-    emitSseEvent(event, data);
+    container.eventsController.emit(event, data);
 
     return result;
   }

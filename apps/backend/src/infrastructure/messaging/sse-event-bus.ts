@@ -1,8 +1,9 @@
+import { container } from "@/container";
 import { EventBus } from "@/domain/events/event-bus";
-import { emitSseEvent } from "@/presentation/routes/events.routes";
 
 export class SseEventBus implements EventBus {
   emit(event: string, data: unknown = {}): void {
-    emitSseEvent(event, data);
+    // (We only send data if it's serializable, which it usually is in this app)
+    container.eventsController.emit(event, data);
   }
 }

@@ -3,6 +3,7 @@ import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
+import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
 import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "./application/use-cases/playlists/delete-playlist.use-case";
@@ -43,7 +44,16 @@ import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.
 import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
+import { ArtistController } from "./presentation/controllers/artist.controller";
+import { AuthController } from "./presentation/controllers/auth.controller";
+import { EventsController } from "./presentation/controllers/events.controller";
+import { FeedController } from "./presentation/controllers/feed.controller";
+import { HealthController } from "./presentation/controllers/health.controller";
+import { HistoryController } from "./presentation/controllers/history.controller";
+import { LibraryController } from "./presentation/controllers/library.controller";
 import { PlaylistController } from "./presentation/controllers/playlist.controller";
+import { SearchController } from "./presentation/controllers/search.controller";
+import { SettingsController } from "./presentation/controllers/settings.controller";
 import { TrackController } from "./presentation/controllers/track.controller";
 
 // Repositories
@@ -150,6 +160,12 @@ const trackService = new TrackService({
   updateTrackUseCase,
 });
 
+const trackController = new TrackController(
+  deleteTrackUseCase,
+  getTracksUseCase,
+  retryTrackDownloadUseCase,
+);
+
 // Use Cases - Settings
 const getSettingsUseCase = new GetSettingsUseCase(settingsRepository);
 const updateSettingUseCase = new UpdateSettingUseCase(
@@ -220,12 +236,35 @@ const scanLibraryUseCase = new ScanLibraryUseCase(
 );
 const libraryService = new LibraryService(scanLibraryUseCase);
 
+const libraryController = new LibraryController(libraryService);
+const artistController = new ArtistController(spotifyArtistClient);
+const searchController = new SearchController(spotifyService);
+
+const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
+
+const historyUseCases = new HistoryUseCases({ repository: historyRepository });
+const historyController = new HistoryController(historyUseCases);
+
+const feedController = new FeedController(spotifyUserLibraryService);
+const authController = new AuthController(spotifyAuthService, settingsService);
+const healthController = new HealthController();
+const eventsController = new EventsController();
+
 // Export container
 export const container = {
   playlistService,
   playlistController,
   trackService,
   trackController,
+  artistController,
+  searchController,
+  libraryController,
+  settingsController,
+  historyController,
+  feedController,
+  authController,
+  healthController,
+  eventsController,
   spotifyService,
   spotifyArtistClient,
   spotifyTrackClient,

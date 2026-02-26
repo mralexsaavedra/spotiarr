@@ -1,6 +1,5 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
-import { emitSseEvent } from "@/presentation/routes/events.routes";
 import { container } from "../../container";
 import { getEnv } from "../setup/environment";
 
@@ -36,7 +35,7 @@ export async function createTrackDownloadWorker() {
     console.log(`[TrackDownloadWorker] Queue drained, triggering library scan...`);
     try {
       await container.libraryService.scan();
-      emitSseEvent("library-updated");
+      container.eventsController.emit("library-updated");
       console.log(`[TrackDownloadWorker] Library scan completed successfully.`);
     } catch (err) {
       console.error(`[TrackDownloadWorker] Failed to scan library after queue drain:`, err);
@@ -61,7 +60,7 @@ export async function createTrackDownloadWorker() {
           status: TrackStatusEnum.Error,
           error: err instanceof Error ? err.message : String(err),
         });
-        emitSseEvent("playlists-updated");
+        container.eventsController.emit("playlists-updated");
       } catch (updateError) {
         console.error(`Failed to update track ${trackId} status after job failure:`, updateError);
       }
