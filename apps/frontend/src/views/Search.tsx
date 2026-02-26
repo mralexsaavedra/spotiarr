@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loading } from "@/components/atoms/Loading";
 import { AlbumCard } from "@/components/molecules/AlbumCard";
 import { ArtistCard } from "@/components/molecules/ArtistCard";
-import { SearchTopResultCard } from "@/components/molecules/SearchTopResultCard";
+import { SearchTopResultCard, TopResultItem } from "@/components/molecules/SearchTopResultCard";
 import { SearchAlbumGrid } from "@/components/organisms/SearchAlbumGrid";
 import { SearchArtistGrid } from "@/components/organisms/SearchArtistGrid";
 import { SearchGridSection } from "@/components/organisms/SearchGridSection";
@@ -68,8 +68,49 @@ export const Search: FC = () => {
     [navigate],
   );
 
-  const topResult = results?.artists?.[0] ?? null;
+  const handleTopResultClick = useCallback(
+    (item: TopResultItem) => {
+      if (item.type === "artist") {
+        navigate(Path.ARTIST_DETAIL.replace(":id", item.data.id));
+      } else if (item.type === "track" && item.data.trackUrl) {
+        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.trackUrl)}`);
+      } else if (item.type === "album" && item.data.spotifyUrl) {
+        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.spotifyUrl)}`);
+      }
+    },
+    [navigate],
+  );
+
   const topTracks = useMemo(() => results?.tracks?.slice(0, 4) ?? [], [results?.tracks]);
+
+  const topResult = useMemo<TopResultItem | null>(() => {
+    if (!results) return null;
+    const queryLower = query.toLowerCase();
+
+    const topArtist = results.artists?.[0];
+    const topAlbum = results.albums?.[0];
+    const topTrack = results.tracks?.[0];
+
+    // Priority 1: Exact matches
+    if (topTrack?.name.toLowerCase() === queryLower) return { type: "track", data: topTrack };
+    if (topArtist?.name.toLowerCase() === queryLower) return { type: "artist", data: topArtist };
+    if (topAlbum?.albumName.toLowerCase() === queryLower) return { type: "album", data: topAlbum };
+
+    // Priority 2: Starts with
+    if (topTrack?.name.toLowerCase().startsWith(queryLower))
+      return { type: "track", data: topTrack };
+    if (topArtist?.name.toLowerCase().startsWith(queryLower))
+      return { type: "artist", data: topArtist };
+    if (topAlbum?.albumName.toLowerCase().startsWith(queryLower))
+      return { type: "album", data: topAlbum };
+
+    // Priority 3: Whatever exists, prefer artist
+    if (topArtist) return { type: "artist", data: topArtist };
+    if (topTrack) return { type: "track", data: topTrack };
+    if (topAlbum) return { type: "album", data: topAlbum };
+
+    return null;
+  }, [results, query]);
   const hasResults =
     (results?.tracks?.length ?? 0) > 0 ||
     (results?.albums?.length ?? 0) > 0 ||
@@ -131,7 +172,7 @@ export const Search: FC = () => {
                 {topResult && (
                   <div className="flex flex-col gap-2">
                     <h2 className="text-2xl font-bold text-white">{t("search.topResult")}</h2>
-                    <SearchTopResultCard artist={topResult} onClick={handleArtistClick} />
+                    <SearchTopResultCard item={topResult} onClick={handleTopResultClick} />
                   </div>
                 )}
 
