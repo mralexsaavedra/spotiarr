@@ -1,5 +1,6 @@
 import { ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
-import { FC } from "react";
+import { TFunction } from "i18next";
+import { FC, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Image } from "../atoms/Image";
 
@@ -13,30 +14,46 @@ interface SearchTopResultCardProps {
   onClick: (item: TopResultItem) => void;
 }
 
+interface ResultConfig {
+  imageSrc?: string;
+  title: string;
+  subtitle?: string;
+  typeLabel: string;
+  isCircular: boolean;
+  fallbackIcon: "user" | "music";
+}
+
+const RESULT_CONFIG_MAP: Record<TopResultItem["type"], (data: any, t: TFunction) => ResultConfig> =
+  {
+    artist: (data: FollowedArtist, t) => ({
+      imageSrc: data.image ?? undefined,
+      title: data.name,
+      typeLabel: t("common.cards.albumTypes.artist", "Artista"),
+      isCircular: true,
+      fallbackIcon: "user",
+    }),
+    album: (data: ArtistRelease, t) => ({
+      imageSrc: data.coverUrl ?? undefined,
+      title: data.albumName,
+      subtitle: data.artistName,
+      typeLabel: t("common.album", "Álbum"),
+      isCircular: false,
+      fallbackIcon: "music",
+    }),
+    track: (data: NormalizedTrack, t) => ({
+      imageSrc: data.albumCoverUrl ?? data.albumUrl ?? undefined,
+      title: data.name,
+      subtitle: data.artist,
+      typeLabel: t("common.track", "Canción"),
+      isCircular: false,
+      fallbackIcon: "music",
+    }),
+  };
+
 export const SearchTopResultCard: FC<SearchTopResultCardProps> = ({ item, onClick }) => {
   const { t } = useTranslation();
-  let imageSrc: string | undefined;
-  let title: string;
-  let subtitle: string | undefined;
-  let typeLabel: string;
-  let isCircular = false;
 
-  if (item.type === "artist") {
-    imageSrc = item.data.image ?? undefined;
-    title = item.data.name;
-    typeLabel = t("common.cards.albumTypes.artist", "Artista");
-    isCircular = true;
-  } else if (item.type === "album") {
-    imageSrc = item.data.coverUrl ?? undefined;
-    title = item.data.albumName;
-    subtitle = item.data.artistName;
-    typeLabel = t("common.album", "Álbum");
-  } else {
-    imageSrc = item.data.albumCoverUrl ?? item.data.albumUrl ?? undefined;
-    title = item.data.name;
-    subtitle = item.data.artist;
-    typeLabel = t("common.track", "Canción");
-  }
+  const config = useMemo(() => RESULT_CONFIG_MAP[item.type](item.data, t), [item, t]);
 
   return (
     <div
@@ -45,27 +62,27 @@ export const SearchTopResultCard: FC<SearchTopResultCardProps> = ({ item, onClic
     >
       <div
         className={`relative h-24 w-24 overflow-hidden bg-zinc-800 shadow-2xl ${
-          isCircular ? "rounded-full" : "rounded-md"
+          config.isCircular ? "rounded-full" : "rounded-md"
         }`}
       >
         <Image
-          src={imageSrc}
-          alt={title}
-          fallbackIcon={item.type === "artist" ? "user" : "music"}
+          src={config.imageSrc}
+          alt={config.title}
+          fallbackIcon={config.fallbackIcon}
           className="transition-transform duration-300 group-hover:scale-105"
         />
       </div>
       <div>
-        <h2 className="mb-1 line-clamp-2 text-3xl font-extrabold text-white">{title}</h2>
+        <h2 className="mb-1 line-clamp-2 text-3xl font-extrabold text-white">{config.title}</h2>
         <div className="flex items-center gap-2">
-          {subtitle && (
+          {config.subtitle && (
             <span className="text-text-secondary text-sm font-medium hover:underline">
-              {subtitle}
+              {config.subtitle}
             </span>
           )}
-          {subtitle && <span className="text-text-secondary text-sm font-medium">•</span>}
+          {config.subtitle && <span className="text-text-secondary text-sm font-medium">•</span>}
           <span className="inline-block rounded-full bg-white/10 px-3 py-0.5 text-xs font-semibold tracking-wider text-zinc-300 uppercase">
-            {typeLabel}
+            {config.typeLabel}
           </span>
         </div>
       </div>
