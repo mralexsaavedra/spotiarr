@@ -1,131 +1,34 @@
-import { NormalizedTrack } from "@spotiarr/shared";
-import { FC, useCallback, useState, useMemo } from "react";
+import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loading } from "@/components/atoms/Loading";
 import { AlbumCard } from "@/components/molecules/AlbumCard";
 import { ArtistCard } from "@/components/molecules/ArtistCard";
-import { SearchTopResultCard, TopResultItem } from "@/components/molecules/SearchTopResultCard";
+import { SearchTopResultCard } from "@/components/molecules/SearchTopResultCard";
 import { SearchAlbumGrid } from "@/components/organisms/SearchAlbumGrid";
 import { SearchArtistGrid } from "@/components/organisms/SearchArtistGrid";
 import { SearchGridSection } from "@/components/organisms/SearchGridSection";
 import { SearchTrackList } from "@/components/organisms/SearchTrackList";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
-import { useCreatePlaylistMutation } from "@/hooks/mutations/useCreatePlaylistMutation";
-import { useSearchQuery } from "@/hooks/queries/useSearchQuery";
-import { Path } from "@/routes/routes";
-
-type FilterTab = "all" | "tracks" | "albums" | "artists";
-
-const TABS: { key: FilterTab; label: string }[] = [
-  { key: "all", label: "Todo" },
-  { key: "tracks", label: "Canciones" },
-  { key: "artists", label: "Artistas" },
-  { key: "albums", label: "Álbumes" },
-];
-
-const TYPES: Record<FilterTab, string[]> = {
-  all: ["track", "album", "artist"],
-  tracks: ["track"],
-  albums: ["album"],
-  artists: ["artist"],
-};
+import { SEARCH_TABS, useSearchController } from "@/hooks/controllers/useSearchController";
 
 export const Search: FC = () => {
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
-  const query = searchParams.get("q") ?? "";
-  const navigate = useNavigate();
-  const createPlaylist = useCreatePlaylistMutation();
-  const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const { getBulkPlaylistStatus } = useDownloadStatusContext();
-
-  const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
-
-  const handleDownloadTrack = useCallback(
-    (track: NormalizedTrack) => {
-      if (track.trackUrl) createPlaylist.mutate(track.trackUrl);
-    },
-    [createPlaylist],
-  );
-
-  const handleAlbumClick = useCallback(
-    (spotifyUrl: string) => {
-      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(spotifyUrl)}`);
-    },
-    [navigate],
-  );
-
-  const handleDownloadAlbum = useCallback(
-    (url: string) => {
-      createPlaylist.mutate(url);
-    },
-    [createPlaylist],
-  );
-
-  const handleArtistClick = useCallback(
-    (artistId: string) => navigate(Path.ARTIST_DETAIL.replace(":id", artistId)),
-    [navigate],
-  );
-
-  const handleTopResultClick = useCallback(
-    (item: TopResultItem) => {
-      if (item.type === "artist") {
-        navigate(Path.ARTIST_DETAIL.replace(":id", item.data.id));
-      } else if (item.type === "track" && item.data.trackUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.trackUrl)}`);
-      } else if (item.type === "album" && item.data.spotifyUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.spotifyUrl)}`);
-      }
-    },
-    [navigate],
-  );
-
-  const topTracks = useMemo(() => results?.tracks?.slice(0, 4) ?? [], [results?.tracks]);
-
-  const topResult = useMemo<TopResultItem | null>(() => {
-    if (!results) return null;
-    const queryLower = query.toLowerCase();
-
-    const topArtist = results.artists?.[0];
-    const topAlbum = results.albums?.[0];
-    const topTrack = results.tracks?.[0];
-
-    // Priority 1: Exact matches
-    if (topTrack?.name.toLowerCase() === queryLower) return { type: "track", data: topTrack };
-    if (topArtist?.name.toLowerCase() === queryLower) return { type: "artist", data: topArtist };
-    if (topAlbum?.albumName.toLowerCase() === queryLower) return { type: "album", data: topAlbum };
-
-    // Priority 2: Starts with
-    if (topTrack?.name.toLowerCase().startsWith(queryLower))
-      return { type: "track", data: topTrack };
-    if (topArtist?.name.toLowerCase().startsWith(queryLower))
-      return { type: "artist", data: topArtist };
-    if (topAlbum?.albumName.toLowerCase().startsWith(queryLower))
-      return { type: "album", data: topAlbum };
-
-    // Priority 3: Whatever exists, prefer artist
-    if (topArtist) return { type: "artist", data: topArtist };
-    if (topTrack) return { type: "track", data: topTrack };
-    if (topAlbum) return { type: "album", data: topAlbum };
-
-    return null;
-  }, [results, query]);
-  const hasResults =
-    (results?.tracks?.length ?? 0) > 0 ||
-    (results?.albums?.length ?? 0) > 0 ||
-    (results?.artists?.length ?? 0) > 0;
-
-  const topAlbums = useMemo(() => results?.albums?.slice(0, 6) ?? [], [results?.albums]);
-
-  const topAlbumsStatusMap = useMemo(() => {
-    if (activeTab !== "all" || topAlbums.length === 0) return new Map();
-    const items = topAlbums.map((album) => ({
-      url: album.spotifyUrl,
-      totalTracks: album.totalTracks,
-    }));
-    return getBulkPlaylistStatus(items);
-  }, [activeTab, topAlbums, getBulkPlaylistStatus]);
+  const {
+    query,
+    results,
+    isLoading,
+    hasResults,
+    activeTab,
+    setActiveTab,
+    topResult,
+    topTracks,
+    topAlbums,
+    topAlbumsStatusMap,
+    handleDownloadTrack,
+    handleAlbumClick,
+    handleDownloadAlbum,
+    handleArtistClick,
+    handleTopResultClick,
+  } = useSearchController();
 
   return (
     <section className="bg-background flex flex-1 flex-col px-4 pb-6 md:px-8">
@@ -137,7 +40,7 @@ export const Search: FC = () => {
           </h1>
         )}
         <div className="flex flex-wrap gap-2">
-          {TABS.map((tab) => (
+          {SEARCH_TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -147,7 +50,8 @@ export const Search: FC = () => {
                   : "bg-white/10 text-white hover:bg-white/20"
               }`}
             >
-              {tab.label}
+              {/* @ts-expect-error Typescript cannot infer template literal string accurately for i18n keys */}
+              {t(`common.${tab.labelKey}`)}
             </button>
           ))}
         </div>
