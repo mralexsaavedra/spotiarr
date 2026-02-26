@@ -15,14 +15,14 @@ export const useHeaderController = () => {
     setNormalizedUrl(normalizeSpotifyUrl(value));
   }, []);
 
-  const handleDownload = useCallback(() => {
-    if (!normalizedUrl) {
-      return;
+  const handleSubmit = useCallback(() => {
+    if (normalizedUrl) {
+      createPlaylist.mutate(normalizedUrl);
+      setUrl("");
+    } else if (url.trim()) {
+      navigate(`${Path.SEARCH}?q=${encodeURIComponent(url.trim())}`);
     }
-
-    createPlaylist.mutate(normalizedUrl);
-    setUrl("");
-  }, [createPlaylist, normalizedUrl, setUrl]);
+  }, [createPlaylist, normalizedUrl, url, navigate, setUrl]);
 
   const isValidUrl = Boolean(normalizedUrl);
 
@@ -36,21 +36,17 @@ export const useHeaderController = () => {
   const handleKeyUp = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
-        if (isValidUrl) {
-          handleDownload();
-        } else if (url.trim()) {
-          navigate(`${Path.SEARCH}?q=${encodeURIComponent(url.trim())}`);
-        }
+        handleSubmit();
       }
     },
-    [handleDownload, isValidUrl, url, navigate],
+    [handleSubmit],
   );
 
   return {
     url,
     isPending: createPlaylist.isPending,
     isValidUrl,
-    handleDownload,
+    handleSubmit,
     handleChangeUrl,
     handleKeyUp,
   };

@@ -68,7 +68,7 @@
     }
   },
   "header": {
-    "pasteUrl": "Paste Spotify URL...",
+    "searchOrPasteUrl": "Search or paste link...",
     "download": "Download"
   },
   "navigation": {

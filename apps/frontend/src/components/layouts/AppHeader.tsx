@@ -2,6 +2,7 @@ import {
   faClockRotateLeft,
   faDownload,
   faLink,
+  faMagnifyingGlass,
   faSliders,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,10 +15,10 @@ import { cn } from "@/utils/cn";
 
 export const AppHeader: FC = () => {
   const { t } = useTranslation();
-  const { url, handleDownload, isPending, isValidUrl, handleChangeUrl, handleKeyUp } =
+  const { url, handleSubmit, isPending, isValidUrl, handleChangeUrl, handleKeyUp } =
     useHeaderController();
 
-  const isDownloadDisabled = !isValidUrl || isPending;
+  const isButtonDisabled = isPending || !url.trim();
 
   return (
     <header className="bg-background/95 sticky top-0 z-50 border-b border-white/10 px-4 py-3 backdrop-blur-md md:px-8">
@@ -36,32 +37,29 @@ export const AppHeader: FC = () => {
             <input
               className={cn(
                 "bg-background-elevated text-text-primary placeholder-text-secondary w-full rounded-full py-2 pr-16 pl-9 text-sm transition focus:outline-none md:py-2.5 md:pr-36 md:pl-10",
-                url && !isValidUrl
-                  ? "bg-red-500/5 ring-2 ring-red-500/50 focus:ring-red-500"
-                  : "focus:bg-background-hover focus:ring-2 focus:ring-white/20",
+                "focus:bg-background-hover focus:ring-2 focus:ring-white/20",
               )}
               type="text"
               value={url}
               onChange={handleChangeUrl}
               onKeyUp={handleKeyUp}
-              placeholder={t("header.pasteUrl")}
+              placeholder={t("header.searchOrPasteUrl", "Buscar o pegar enlace...")}
             />
             <FontAwesomeIcon
-              icon={faLink}
-              className={cn(
-                "pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm",
-                url && !isValidUrl ? "text-red-400" : "text-text-secondary",
-              )}
+              icon={isValidUrl ? faLink : faMagnifyingGlass}
+              className="text-text-secondary pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm"
             />
 
             {url && (
               <button
-                className="bg-primary absolute top-1/2 right-1 flex h-7 -translate-y-1/2 items-center justify-center rounded-full px-3 text-xs font-bold text-black transition-colors disabled:cursor-not-allowed disabled:opacity-50 md:h-8 md:px-4"
-                onClick={handleDownload}
-                disabled={isDownloadDisabled}
+                className="bg-primary absolute top-1/2 right-1 flex h-7 -translate-y-1/2 items-center justify-center gap-1.5 rounded-full px-3 text-xs font-bold text-black transition-colors disabled:cursor-not-allowed disabled:opacity-50 md:h-8 md:px-4"
+                onClick={handleSubmit}
+                disabled={isButtonDisabled}
               >
-                <span className="hidden md:inline">{t("header.download")}</span>
-                <FontAwesomeIcon icon={faDownload} className="md:hidden" />
+                <span className="hidden md:inline">
+                  {isValidUrl ? t("header.download") : t("common.search")}
+                </span>
+                <FontAwesomeIcon icon={isValidUrl ? faDownload : faMagnifyingGlass} />
               </button>
             )}
           </div>
