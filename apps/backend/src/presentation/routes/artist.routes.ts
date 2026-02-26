@@ -3,7 +3,7 @@ import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();
-const { spotifyCatalogService } = container;
+const { spotifyArtistClient } = container;
 
 // GET /api/artist/:id - Artist detail (metadata + top tracks)
 router.get(
@@ -18,9 +18,9 @@ router.get(
     const limit = parseInt(req.query.limit as string) || 12;
 
     const [details, topTracks, albums] = await Promise.all([
-      spotifyCatalogService.getArtistDetails(id),
-      spotifyCatalogService.getArtistTopTracks(id),
-      spotifyCatalogService.getArtistAlbums(id, limit),
+      spotifyArtistClient.getArtistDetails(id),
+      spotifyArtistClient.getArtistTopTracks(id),
+      spotifyArtistClient.getArtistAlbums(id, limit),
     ]);
 
     return res.json({
@@ -49,7 +49,7 @@ router.get(
       return res.status(400).json({ error: "missing_artist_id" });
     }
 
-    const albums = await spotifyCatalogService.getArtistAlbums(id, limit, offset);
+    const albums = await spotifyArtistClient.getArtistAlbums(id, limit, offset);
     return res.json(albums);
   }),
 );
