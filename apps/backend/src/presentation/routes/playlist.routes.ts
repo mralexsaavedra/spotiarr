@@ -10,96 +10,41 @@ import {
 } from "./schemas/playlist.schema";
 
 const router: ExpressRouter = Router();
-const { playlistService } = container;
+const { playlistController } = container;
 
 // GET /api/playlist/preview - Get playlist preview from Spotify URL
 router.get(
   "/preview",
   validate(playlistPreviewSchema),
-  asyncHandler(async (req, res) => {
-    const { url } = req.query as { url: string };
-    const preview = await playlistService.getPreview(url);
-    res.json(preview);
-  }),
+  asyncHandler(playlistController.getPreview),
 );
 
 // GET /api/playlist/me - Get user's playlists from Spotify
-router.get(
-  "/me",
-  asyncHandler(async (req, res) => {
-    const playlists = await playlistService.getMyPlaylists();
-    res.json(playlists);
-  }),
-);
+router.get("/me", asyncHandler(playlistController.getMyPlaylists));
 
 // GET /api/playlist/status - Get download status summary
-router.get(
-  "/status",
-  asyncHandler(async (req, res) => {
-    const status = await playlistService.getDownloadStatus();
-    res.json(status);
-  }),
-);
+router.get("/status", asyncHandler(playlistController.getDownloadStatus));
 
 // GET /api/playlist - Get all playlists
-router.get(
-  "/",
-  asyncHandler(async (req, res) => {
-    const playlists = await playlistService.findAll();
-    res.json({ data: playlists });
-  }),
-);
+router.get("/", asyncHandler(playlistController.findAll));
 
 // POST /api/playlist - Create new playlist
-router.post(
-  "/",
-  validate(createPlaylistSchema),
-  asyncHandler(async (req, res) => {
-    const playlist = await playlistService.create(req.body);
-    res.status(201).json(playlist);
-  }),
-);
+router.post("/", validate(createPlaylistSchema), asyncHandler(playlistController.create));
 
 // PUT /api/playlist/:id - Update playlist
-router.put(
-  "/:id",
-  validate(updatePlaylistSchema),
-  asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    await playlistService.update(id, req.body);
-    res.status(204).send();
-  }),
-);
+router.put("/:id", validate(updatePlaylistSchema), asyncHandler(playlistController.update));
 
 // DELETE /api/playlist/completed - Delete all completed playlists
-router.delete(
-  "/completed",
-  asyncHandler(async (req, res) => {
-    await playlistService.removeCompleted();
-    res.status(204).send();
-  }),
-);
+router.delete("/completed", asyncHandler(playlistController.removeCompleted));
 
 // DELETE /api/playlist/:id - Delete playlist
-router.delete(
-  "/:id",
-  validate(playlistIdSchema),
-  asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    await playlistService.remove(id);
-    res.status(204).send();
-  }),
-);
+router.delete("/:id", validate(playlistIdSchema), asyncHandler(playlistController.remove));
 
 // GET /api/playlist/retry/:id - Retry failed tracks
 router.get(
   "/retry/:id",
   validate(playlistIdSchema),
-  asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    await playlistService.retryFailedOfPlaylist(id);
-    res.status(204).send();
-  }),
+  asyncHandler(playlistController.retryFailedOfPlaylist),
 );
 
 export default router;

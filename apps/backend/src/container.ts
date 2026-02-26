@@ -43,6 +43,8 @@ import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.
 import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
+import { PlaylistController } from "./presentation/controllers/playlist.controller";
+import { TrackController } from "./presentation/controllers/track.controller";
 
 // Repositories
 const playlistRepository = new PrismaPlaylistRepository();
@@ -198,6 +200,17 @@ const playlistService = new PlaylistService({
   getMyPlaylistsUseCase,
 });
 
+const playlistController = new PlaylistController(
+  createPlaylistUseCase,
+  deletePlaylistUseCase,
+  getMyPlaylistsUseCase,
+  getPlaylistPreviewUseCase,
+  getPlaylistsUseCase,
+  getSystemStatusUseCase,
+  retryPlaylistDownloadsUseCase,
+  updatePlaylistUseCase,
+);
+
 // Library Services
 const fileSystemScannerService = new FileSystemScannerService();
 const scanLibraryUseCase = new ScanLibraryUseCase(
@@ -210,7 +223,9 @@ const libraryService = new LibraryService(scanLibraryUseCase);
 // Export container
 export const container = {
   playlistService,
+  playlistController,
   trackService,
+  trackController,
   spotifyService,
   spotifyArtistClient,
   spotifyTrackClient,
