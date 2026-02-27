@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.1.0...v1.2.0) (2026-02-27)
+
+### Features
+
+- Add search functionality to find Spotify tracks, albums, and artists. ([f8aaeb0](https://github.com/mralexsaavedra/spotiarr/commit/f8aaeb0dc9a68c682b16be0df074067a0ccfb011))
+- Added Search new view ([1a41ddf](https://github.com/mralexsaavedra/spotiarr/commit/1a41ddf33533944e7b75c20b45248635651b4ff9))
+- Consolidate header input to support both Spotify URL downloads and general searches, with adaptive UI. ([6ba233d](https://github.com/mralexsaavedra/spotiarr/commit/6ba233d87ae8bd0391ae0491dee390f1563e92ea))
+- display download status for albums in the search results. ([9456261](https://github.com/mralexsaavedra/spotiarr/commit/945626131e777097dc771263fcd886ea457e115c))
+- Display track download status in search results using `DownloadStatusContext`. ([36aa17a](https://github.com/mralexsaavedra/spotiarr/commit/36aa17a5dfaeeacf13ed1911faf86dbe0c623155))
+- Implement debounced header search input that synchronizes with URL query parameters. ([7e210ec](https://github.com/mralexsaavedra/spotiarr/commit/7e210ec44f71670b701f4e50186940ed5e82b8ef))
+- Implement dynamic top search result display for artists, albums, and tracks with type-specific card rendering and navigation. ([72a5475](https://github.com/mralexsaavedra/spotiarr/commit/72a5475ea1c32e134044755b01cd342ad41cf160))
+- Implement track preview functionality and update track row click behavior to trigger preview instead of download. ([f25af7f](https://github.com/mralexsaavedra/spotiarr/commit/f25af7f0283c7633e8cb94698d4028b8fb0df0a4))
+- Integrate album download status into `AlbumCard` and refactor search album components. ([fc38b00](https://github.com/mralexsaavedra/spotiarr/commit/fc38b00cc60aa02d7f7a6a917583b4ad213f567a))
+- Introduce PlaylistController and refactor playlist routes to use its methods. ([779d645](https://github.com/mralexsaavedra/spotiarr/commit/779d64529397148f2023cd25ff3e9d91bb76206f))
+- replace SearchTrackList ([41498cd](https://github.com/mralexsaavedra/spotiarr/commit/41498cd64b2c0ba1f5fd73bb243d44cb7b14cd8a))
+
 ## [1.1.0](https://github.com/mralexsaavedra/spotiarr/compare/v0.1.7...v1.1.0) (2026-02-24)
 
 ### Features
