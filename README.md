@@ -27,6 +27,7 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 | Feature                    | Description                                                                 |
 | -------------------------- | --------------------------------------------------------------------------- |
 | 🎵 **Smart Downloads**     | Paste any Spotify URL (track/album/playlist) and download with metadata     |
+| 🔍 **Live Search**         | Fast debounced search synchronized with browser history and parameters      |
 | 📚 **Built-in Library**    | Browse your downloaded music organized by artists, albums, and tracks       |
 | 🔄 **Auto-Sync Playlists** | Subscribe to playlists for automatic updates when new tracks are added      |
 | 📁 **Jellyfin-Ready**      | Organized folder structure (`Playlists/`, `Artist/Album/`) + M3U generation |
