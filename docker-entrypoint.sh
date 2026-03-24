@@ -24,6 +24,13 @@ USER_NAME=$(getent passwd "$PUID" | cut -d: -f1)
 echo "🔧 Fixing permissions..."
 mkdir -p /spotiarr/config
 chown -R "$PUID:$PGID" /spotiarr/config
+
+mkdir -p /spotiarr/.cache
+chown -R "$PUID:$PGID" /spotiarr/.cache
+
+# This is needed for `prisma migrate deploy` to run correctly
+chown -R "$PUID:$PGID" /spotiarr/node_modules/.pnpm/@prisma+engines*
+
 # Note: /spotiarr code is already owned by node:node from build, 
 # but if PUID!=1000 we might need to adjust, though usually read-only is fine for code.
 
