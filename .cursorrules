@@ -1,0 +1,6 @@
+## Cursor Bridge
+
+This repository uses `AGENTS.md` as the single source of truth for agent behavior, coding conventions, and validation steps.
+
+When working in Cursor, follow `./AGENTS.md` first.
+If any other instruction conflicts, `AGENTS.md` takes precedence.
