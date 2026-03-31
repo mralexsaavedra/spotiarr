@@ -1,6 +1,14 @@
-## Windsurf Bridge
+## Spotiarr — Windsurf Rules
 
-Use `./AGENTS.md` as the canonical guide for this repository.
+pnpm monorepo. React 19 + Express + Prisma + Tailwind 4 + Zustand.
 
-All workflow, architecture, and coding instructions should be taken from `AGENTS.md`.
-If there is any mismatch, follow `AGENTS.md`.
+**Key rules:**
+- Clean Architecture backend: domain ← application ← infrastructure ← presentation
+- Atomic Design frontend: components (atoms/molecules/organisms/layouts), views, hooks, services, store
+- TypeScript strict. Use cn() for conditional Tailwind classes.
+- Zod for backend validation. TanStack Query for server state.
+- Import order: third-party → @/ aliases → relative
+- Branches: feat/, fix/, refactor/, docs/, chore/
+- Never commit secrets
+
+**Full guide:** `AGENTS.md`

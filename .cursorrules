@@ -1,6 +1,18 @@
-## Cursor Bridge
+## Spotiarr — Cursor Rules
 
-This repository uses `AGENTS.md` as the single source of truth for agent behavior, coding conventions, and validation steps.
+This is a pnpm monorepo with React 19 frontend and Express backend.
 
-When working in Cursor, follow `./AGENTS.md` first.
-If any other instruction conflicts, `AGENTS.md` takes precedence.
+**Architecture:**
+- Backend: Clean Architecture (domain → application → infrastructure → presentation). Dependencies point inward.
+- Frontend: Atomic Design (atoms/molecules/organisms/layouts), views/, hooks/, services/, store/.
+
+**Rules:**
+- TypeScript strict mode. No `any`.
+- Use `cn()` (clsx + tailwind-merge) for conditional classes.
+- Validate inputs with Zod in backend.
+- Server state: TanStack Query. UI state: Zustand.
+- Follow import order: third-party → aliases (@/...) → relative.
+- Branch naming: feat/, fix/, refactor/, docs/, chore/.
+- Never commit secrets (.env, tokens).
+
+**Source of truth:** `AGENTS.md`

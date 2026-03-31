@@ -21,7 +21,7 @@ Need more detail? Keep reading 👇
 
 **Core tools**
 
-- Node.js v24 LTS or higher (`nvm use` recommended)
+- Node.js v22 or higher (`nvm use` recommended, see `.nvmrc`)
 - pnpm v10.0.0 or higher (`corepack enable` recommended)
 - Python 3.11 or 3.12 (native addons)
 
@@ -245,6 +245,14 @@ The backend follows a **layered architecture** with strict dependency rules:
 5. **Open a PR**
    - `git push origin feature/my-feature`
    - Fill template: summary, motivation, verification steps, screenshots (if UI), linked issues
+
+## AI Agent Setup
+
+This repo is configured for coding agents (Claude Code, Cursor, Windsurf, Copilot, etc.). See `AGENTS.md` for conventions, and `.atl/skill-registry.md` for available skills.
+
+- Quick start for agents: `AGENTS.md`
+- Architecture guide: `.agents/skills/spotiarr-architecture/SKILL.md`
+- Workflow commands: `.agents/skills/spotiarr-workflow/SKILL.md`
 
 ## Code Style Guidelines
 

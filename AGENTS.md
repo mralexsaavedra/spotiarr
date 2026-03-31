@@ -52,7 +52,6 @@ External services: Redis, FFmpeg, yt-dlp, Python 3.11/3.12.
 | Commands, validation, PR workflow, branches | `spotiarr-workflow`           |
 | Architecture, layers, conventions           | `spotiarr-architecture`       |
 | Multi-agent compatibility setup             | `spotiarr-compatibility`      |
+| Prisma queries, migrations, schemas         | `spotiarr-prisma`             |
 
-For SDD flow (medium/large changes): use `sdd-init`, `sdd-explore`, `sdd-propose`, `sdd-spec`, `sdd-design`, `sdd-tasks`, `sdd-apply`, `sdd-verify`, `sdd-archive`.
-
-Full skill paths: see `.atl/skill-registry.md`.
+For medium/large changes use the SDD flow. Full skill paths: see `.atl/skill-registry.md`.

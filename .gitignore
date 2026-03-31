@@ -75,4 +75,4 @@ Thumbs.db
 
 # Local folders
 .netlify
-.atl/
+#.atl/  # tracked: skill-registry.md is in version control

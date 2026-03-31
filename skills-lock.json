@@ -15,6 +15,22 @@
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
+    },
+    "spotiarr-workflow": {
+      "source": "local",
+      "sourceType": "local"
+    },
+    "spotiarr-architecture": {
+      "source": "local",
+      "sourceType": "local"
+    },
+    "spotiarr-compatibility": {
+      "source": "local",
+      "sourceType": "local"
+    },
+    "spotiarr-prisma": {
+      "source": "local",
+      "sourceType": "local"
     }
   }
 }
