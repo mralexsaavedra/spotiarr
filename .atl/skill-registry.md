@@ -25,6 +25,8 @@ Orchestrator-only. Resolve paths once per session, then pass pre-resolved paths 
 | When making architectural decisions, writing code across layers, or understanding repo structure    | spotiarr-architecture       | ./.agents/skills/spotiarr-architecture/SKILL.md       |
 | When setting up coding assistant compatibility, adding bridge files, or managing multi-agent config | spotiarr-compatibility      | ./.agents/skills/spotiarr-compatibility/SKILL.md      |
 | When writing database queries, migrations, or Prisma schemas                                        | spotiarr-prisma             | ./.agents/skills/spotiarr-prisma/SKILL.md             |
+| When writing queue definitions, workers, job handlers, or cron jobs                                 | spotiarr-bullmq             | ./.agents/skills/spotiarr-bullmq/SKILL.md             |
+| When adding or modifying translations, working with i18n keys, or adding a new language             | spotiarr-i18n               | ./.agents/skills/spotiarr-i18n/SKILL.md               |
 
 ## Project Conventions
 

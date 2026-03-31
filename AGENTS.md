@@ -53,5 +53,7 @@ External services: Redis, FFmpeg, yt-dlp, Python 3.11/3.12.
 | Architecture, layers, conventions           | `spotiarr-architecture`       |
 | Multi-agent compatibility setup             | `spotiarr-compatibility`      |
 | Prisma queries, migrations, schemas         | `spotiarr-prisma`             |
+| BullMQ queues, workers, cron jobs           | `spotiarr-bullmq`             |
+| i18n translations (i18next)                 | `spotiarr-i18n`               |
 
 For medium/large changes use the SDD flow. Full skill paths: see `.atl/skill-registry.md`.

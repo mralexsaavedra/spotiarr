@@ -31,6 +31,14 @@
     "spotiarr-prisma": {
       "source": "local",
       "sourceType": "local"
+    },
+    "spotiarr-bullmq": {
+      "source": "local",
+      "sourceType": "local"
+    },
+    "spotiarr-i18n": {
+      "source": "local",
+      "sourceType": "local"
     }
   }
 }
