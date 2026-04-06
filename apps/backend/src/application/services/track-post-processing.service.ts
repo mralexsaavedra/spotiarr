@@ -31,6 +31,7 @@ export class TrackPostProcessingService {
       await this.metadataService.writeTags(trackFilePath, {
         title: track.name,
         artist: track.artist,
+        albumArtist: track.albumArtist,
         album: track.album,
         albumYear: track.albumYear,
         trackNumber: track.trackNumber,

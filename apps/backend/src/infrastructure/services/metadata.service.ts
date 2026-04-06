@@ -10,6 +10,7 @@ export class MetadataService {
     fileTags: {
       title: string;
       artist: string;
+      albumArtist?: string;
       album?: string;
       albumYear?: number;
       trackNumber?: number;
@@ -18,13 +19,13 @@ export class MetadataService {
       coverUrl?: string; // Optional: download and embed if present
     },
   ): Promise<void> {
-    const { title, artist, album, albumYear, trackNumber, discNumber, totalTracks, coverUrl } =
+    const { title, artist, albumArtist, album, albumYear, trackNumber, discNumber, totalTracks, coverUrl } =
       fileTags;
 
     const tags: NodeID3.Tags = {
       title,
       artist,
-      performerInfo: artist, // Album Artist - crucial for Jellyfin grouping
+      performerInfo: albumArtist || artist, // Album Artist - crucial for Jellyfin grouping
     };
 
     if (album) {
