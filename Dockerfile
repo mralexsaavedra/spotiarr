@@ -31,8 +31,12 @@ RUN pnpm run build
 
 FROM node:22-alpine
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
+# Pre-cache pnpm in a system-wide corepack store. The entrypoint sets
+# COREPACK_HOME=/usr/local/share/corepack before su-exec so the shim
+# finds the cached binary without attempting any download at startup.
+RUN corepack enable && \
+    COREPACK_HOME=/usr/local/share/corepack corepack prepare pnpm@10.20.0 --activate && \
+    chmod -R a+r /usr/local/share/corepack
 
 # Install runtime dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
@@ -47,8 +51,8 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o 
 
 WORKDIR /spotiarr
 
-# Create downloads directory
-RUN mkdir -p /downloads
+# Create downloads directory and a writable config dir for the node user
+RUN mkdir -p /downloads /spotiarr/config && chown node:node /spotiarr/config
 
 # Copy root configuration
 COPY --chown=node:node --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
@@ -61,6 +65,11 @@ RUN chmod +x docker-entrypoint.sh
 COPY --chown=node:node --from=builder /spotiarr/node_modules ./node_modules
 COPY --chown=node:node --from=builder /spotiarr/apps ./apps
 COPY --chown=node:node --from=builder /spotiarr/packages ./packages
+
+# Prisma writes engine binaries at startup; make those dirs world-writable
+# so they work when PUID != 1000 (the build uid).
+RUN find /spotiarr/node_modules/.pnpm -name "engines" -path "*/@prisma/*" -type d \
+    -exec chmod a+w {} + 2>/dev/null || true
 
 # Default environment variables
 ENV NODE_ENV=production
