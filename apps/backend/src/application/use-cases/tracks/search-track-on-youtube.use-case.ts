@@ -24,22 +24,27 @@ export class SearchTrackOnYoutubeUseCase {
       return;
     }
 
-    existingTrack.markAsSearching();
-    await this.trackRepository.update(track.id, existingTrack);
-    this.eventBus.emit("playlists-updated");
+    // If a YouTube URL is already set (e.g. manually overridden), skip the search.
+    if (existingTrack.youtubeUrl) {
+      existingTrack.markAsQueued(existingTrack.youtubeUrl);
+    } else {
+      existingTrack.markAsSearching();
+      await this.trackRepository.update(track.id, existingTrack);
+      this.eventBus.emit("playlists-updated");
 
-    try {
-      const youtubeUrl = await this.youtubeSearchService.findOnYoutubeOne(
-        existingTrack.artist,
-        existingTrack.name,
-      );
-      existingTrack.markAsQueued(youtubeUrl);
-    } catch (error) {
-      console.error(
-        `Failed to find track on YouTube: ${existingTrack.artist} - ${existingTrack.name}`,
-        error instanceof Error ? error.stack : String(error),
-      );
-      existingTrack.markAsError(error instanceof Error ? error.message : String(error));
+      try {
+        const youtubeUrl = await this.youtubeSearchService.findOnYoutubeOne(
+          existingTrack.artist,
+          existingTrack.name,
+        );
+        existingTrack.markAsQueued(youtubeUrl);
+      } catch (error) {
+        console.error(
+          `Failed to find track on YouTube: ${existingTrack.artist} - ${existingTrack.name}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+        existingTrack.markAsError(error instanceof Error ? error.message : String(error));
+      }
     }
 
     await this.trackRepository.update(track.id, existingTrack);
