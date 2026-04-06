@@ -130,12 +130,11 @@ export class YoutubeSearchService {
     await this.enforceRateLimit();
 
     const args = [
+      "--flat-playlist",
       "--print",
-      "webpage_url",
+      "url",
       `ytsearch3:${artist} - ${name}`,
       "--no-warnings",
-      "--no-playlist",
-      "--ignore-errors",
       "--user-agent",
       HEADERS["User-Agent"],
     ];
