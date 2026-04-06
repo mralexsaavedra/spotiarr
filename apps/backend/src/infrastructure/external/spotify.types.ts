@@ -38,6 +38,10 @@ export interface SpotifyTrack {
 
 export interface SpotifyAlbumTracksResponse {
   items: SpotifyTrack[];
+  total: number;
+  limit: number;
+  offset: number;
+  next: string | null;
 }
 
 export interface SpotifyPlaylistTrackItem {

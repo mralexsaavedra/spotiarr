@@ -22,38 +22,54 @@ export class SpotifyAlbumClient extends SpotifyBaseClient {
    */
   async getAlbumTracks(albumId: string): Promise<NormalizedTrack[]> {
     try {
-      const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/albums/${albumId}/tracks`,
-      );
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new AppError(404, "playlist_not_found", `Album not found: ${albumId}`);
-        }
-        if (response.status === 429) {
-          throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
-        }
-        throw new AppError(
-          response.status,
-          "internal_server_error",
-          `Failed to fetch album: ${response.status}`,
-        );
-      }
-
-      const data = (await response.json()) as SpotifyAlbumTracksResponse;
+      // Fetch full album metadata (includes album-level artists, cover, etc.)
       const albumResponse = await this.fetchWithAppToken(
         `https://api.spotify.com/v1/albums/${albumId}`,
       );
-
+      if (!albumResponse.ok) {
+        if (albumResponse.status === 404) {
+          throw new AppError(404, "playlist_not_found", `Album not found: ${albumId}`);
+        }
+        if (albumResponse.status === 429) {
+          throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+        }
+        throw new AppError(
+          albumResponse.status,
+          "internal_server_error",
+          `Failed to fetch album: ${albumResponse.status}`,
+        );
+      }
       const albumData = (await albumResponse.json()) as SpotifyAlbum;
 
-      // Get artist image (all tracks in album have same primary artist)
-      const firstArtistId = data.items[0]?.artists[0]?.id;
+      // Paginate through all tracks (Spotify returns max 50 per page)
+      const allTracks: SpotifyTrack[] = [];
+      let url: string | null =
+        `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`;
+
+      while (url) {
+        const response = await this.fetchWithAppToken(url);
+        if (!response.ok) {
+          if (response.status === 429) {
+            throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+          }
+          throw new AppError(
+            response.status,
+            "internal_server_error",
+            `Failed to fetch album tracks: ${response.status}`,
+          );
+        }
+        const page = (await response.json()) as SpotifyAlbumTracksResponse;
+        allTracks.push(...page.items);
+        url = page.next;
+      }
+
+      // Get artist image using the album's primary artist
+      const firstArtistId = albumData.artists?.[0]?.id ?? allTracks[0]?.artists[0]?.id;
       const artistImage = firstArtistId
         ? await this.artistClient.getArtistImage(firstArtistId)
         : null;
 
-      return data.items.map((track: SpotifyTrack) => {
+      return allTracks.map((track: SpotifyTrack) => {
         const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
           album: albumData,
           primaryArtistImage: artistImage,
