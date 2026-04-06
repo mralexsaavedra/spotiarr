@@ -165,6 +165,7 @@ export class CreatePlaylistUseCase {
 
       await this.trackService.create({
         artist: artistToUse,
+        albumArtist: track.albumArtist,
         name: track.name,
         album: track.album ?? (useSinglesFallback ? "Singles" : context.playlistName),
         albumYear: track.albumYear,
