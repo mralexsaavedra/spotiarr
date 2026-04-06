@@ -27,6 +27,7 @@ model Playlist {
 model Track {
   id                    String    @id @default(uuid())
   artist                String
+  albumArtist           String?
   name                  String
   album                 String?
   albumYear             Int?

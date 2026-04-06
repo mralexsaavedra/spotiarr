@@ -44,6 +44,7 @@ export class PrismaTrackRepository implements TrackRepository {
         id: data.id,
         name: data.name,
         artist: data.artist,
+        albumArtist: data.albumArtist ?? null,
         album: data.album,
         albumUrl: data.albumUrl ?? null,
         albumYear: data.albumYear,
@@ -72,6 +73,7 @@ export class PrismaTrackRepository implements TrackRepository {
       data: {
         name: data.name,
         artist: data.artist,
+        albumArtist: data.albumArtist !== undefined ? data.albumArtist : undefined,
         album: data.album,
         albumUrl: data.albumUrl ?? null,
         albumYear: data.albumYear,
@@ -123,6 +125,7 @@ export class PrismaTrackRepository implements TrackRepository {
       id: track.id,
       name: track.name,
       artist: track.artist,
+      albumArtist: track.albumArtist ?? undefined,
       album: track.album ?? undefined,
       albumUrl: track.albumUrl ?? undefined,
       albumYear: track.albumYear ?? undefined,
