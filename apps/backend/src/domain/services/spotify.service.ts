@@ -58,7 +58,7 @@ export class SpotifyService {
       } else if (urlType === SpotifyUrlType.Playlist) {
         const metadata = await this.spotifyPlaylistClient.getPlaylistMetadata(spotifyUrl);
 
-        const tracks = await this.spotifyPlaylistClient.getAllPlaylistTracks(spotifyUrl);
+        const tracks = await this.spotifyPlaylistClient.getAllPlaylistTracks(spotifyUrl, true);
 
         return {
           name: metadata.name,

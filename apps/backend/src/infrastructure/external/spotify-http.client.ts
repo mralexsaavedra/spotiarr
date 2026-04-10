@@ -75,22 +75,26 @@ const interactiveRateLimiter = new RateLimiter({
 
 export class SpotifyHttpClient {
   private readonly limiter: RateLimiter;
+  private readonly useFailFastRetry: boolean;
 
   constructor(
     private readonly authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
   ) {
+    let resolvedLimiter = userRateLimiter;
+    let useFailFastRetry = false;
+
     if (limiterMode === SPOTIFY_LIMITER_MODE.SYNC) {
-      this.limiter = syncRateLimiter;
-      return;
+      resolvedLimiter = syncRateLimiter;
     }
 
     if (limiterMode === SPOTIFY_LIMITER_MODE.INTERACTIVE) {
-      this.limiter = interactiveRateLimiter;
-      return;
+      resolvedLimiter = interactiveRateLimiter;
+      useFailFastRetry = true;
     }
 
-    this.limiter = userRateLimiter;
+    this.limiter = resolvedLimiter;
+    this.useFailFastRetry = useFailFastRetry;
   }
 
   private async sleep(ms: number): Promise<void> {
@@ -101,16 +105,20 @@ export class SpotifyHttpClient {
     input: string | URL,
     init?: RequestInit,
     retries = 0,
+    options: { failFast?: boolean } = {},
   ): Promise<Response> {
-    const MAX_RETRIES = 5;
+    const isFailFast = options.failFast === true;
+    const MAX_RETRIES = isFailFast ? 1 : 5;
+    const RETRY_AFTER_CAP_SECONDS = isFailFast ? 10 : 60;
+
     try {
       const response = await fetch(input.toString(), init);
 
       if (response.status === 429 && retries < MAX_RETRIES) {
         const retryAfterHeader = response.headers.get("Retry-After");
-        // Cap at 60s to avoid absurd waits (Spotify sometimes returns huge values)
+        // Cap wait to avoid absurd waits (Spotify sometimes returns huge values)
         const retryAfterSeconds = retryAfterHeader
-          ? Math.min(parseInt(retryAfterHeader, 10), 60)
+          ? Math.min(parseInt(retryAfterHeader, 10), RETRY_AFTER_CAP_SECONDS)
           : Math.pow(2, retries);
 
         // Add 1s buffer to be safe
@@ -121,7 +129,7 @@ export class SpotifyHttpClient {
         );
 
         await this.sleep(waitMs);
-        return this.fetchWithRateLimitRetry(input, init, retries + 1);
+        return this.fetchWithRateLimitRetry(input, init, retries + 1, options);
       }
 
       return response;
@@ -139,7 +147,7 @@ export class SpotifyHttpClient {
           `[SpotifyHttpClient] Network error (${error.message}). Retrying in ${waitMs}ms (${retries + 1}/${MAX_RETRIES})`,
         );
         await this.sleep(waitMs);
-        return this.fetchWithRateLimitRetry(input, init, retries + 1);
+        return this.fetchWithRateLimitRetry(input, init, retries + 1, options);
       }
 
       throw error;
@@ -157,10 +165,15 @@ export class SpotifyHttpClient {
     } as Record<string, string>;
 
     return this.limiter.queueRequest(() =>
-      this.fetchWithRateLimitRetry(input, {
-        ...init,
-        headers,
-      }),
+      this.fetchWithRateLimitRetry(
+        input,
+        {
+          ...init,
+          headers,
+        },
+        0,
+        { failFast: this.useFailFastRetry },
+      ),
     );
   }
 
@@ -175,10 +188,15 @@ export class SpotifyHttpClient {
     } as Record<string, string>;
 
     return this.limiter.queueRequest(() =>
-      this.fetchWithRateLimitRetry(input, {
-        ...init,
-        headers,
-      }),
+      this.fetchWithRateLimitRetry(
+        input,
+        {
+          ...init,
+          headers,
+        },
+        0,
+        { failFast: this.useFailFastRetry },
+      ),
     );
   }
 

@@ -99,7 +99,10 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
     });
   }
 
-  async getAllPlaylistTracks(spotifyUrl: string): Promise<NormalizedTrack[]> {
+  async getAllPlaylistTracks(
+    spotifyUrl: string,
+    previewOnly: boolean = false,
+  ): Promise<NormalizedTrack[]> {
     try {
       this.log(`Getting all tracks for ${spotifyUrl}`);
 
@@ -225,6 +228,10 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
 
           if (pageTracks.length > 0) {
             allTracks.push(...pageTracks);
+          }
+
+          if (previewOnly) {
+            break;
           }
 
           nextUrl = data.next ?? null;

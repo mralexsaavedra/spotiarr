@@ -34,6 +34,23 @@ interface SyncStateRecord {
 export class FeedRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  async getArtistBySpotifyId(spotifyId: string): Promise<FollowedArtist | null> {
+    const row = await this.prisma.followedArtistCache.findUnique({
+      where: { spotifyId },
+    });
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: row.spotifyId,
+      name: row.name,
+      image: row.imageUrl ?? null,
+      spotifyUrl: row.spotifyUrl ?? null,
+    };
+  }
+
   async getReleases(lookbackDays: number): Promise<ArtistRelease[]> {
     const safeLookbackDays = lookbackDays > 0 ? lookbackDays : 30;
     const cutoff = new Date(Date.now() - safeLookbackDays * 24 * 60 * 60 * 1000);
