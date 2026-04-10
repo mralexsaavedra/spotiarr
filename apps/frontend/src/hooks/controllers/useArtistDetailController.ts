@@ -9,14 +9,15 @@ import { useGridColumns } from "../useGridColumns";
 import { useArtistDiscographyController } from "./useArtistDiscographyController";
 
 const EMPTY_ALBUMS: ArtistRelease[] = [];
+const DETAIL_PAGE_SIZE = 25;
 
 export const useArtistDetailController = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const columns = useGridColumns();
-  const limit = columns * 2;
+  const pageSize = columns * 2;
 
-  const { artist, isLoading, error } = useArtistDetailQuery(id || null, limit);
+  const { artist, isLoading, error } = useArtistDetailQuery(id || null, DETAIL_PAGE_SIZE);
   const createPlaylistMutation = useCreatePlaylistMutation();
 
   const { isPlaylistDownloaded } = useDownloadStatusContext();
@@ -34,7 +35,7 @@ export const useArtistDetailController = () => {
   } = useArtistDiscographyController({
     artistId: id!,
     initialAlbums: artist?.albums || EMPTY_ALBUMS,
-    pageSize: limit,
+    pageSize,
   });
 
   const handleDownload = useCallback(

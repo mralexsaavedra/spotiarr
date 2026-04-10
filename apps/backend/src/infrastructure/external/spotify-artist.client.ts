@@ -8,6 +8,11 @@ import { SpotifyBaseClient } from "./spotify-base.client";
 import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyArtistAlbumsResponse, SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
 
+function normalizeAlbumLimit(n: number): number {
+  if (n <= 0) return 25;
+  return Math.ceil(n / 25) * 25;
+}
+
 export class SpotifyArtistClient extends SpotifyBaseClient {
   private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
   private static readonly MAX_LIMIT_PER_REQUEST = 50;
@@ -119,17 +124,18 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     offset: number = 0,
   ): Promise<ArtistRelease[]> {
     const market = await this.getMarket();
-    const cacheKey = `artist-albums:${artistId}:${limit}:${offset}:${market}`;
+    const effectiveLimit = offset === 0 ? normalizeAlbumLimit(limit) : limit;
+    const cacheKey = `artist-albums:${artistId}:${effectiveLimit}:${offset}:${market}`;
 
     return this.requestCache.getOrSet(cacheKey, async () => {
       try {
-        if (limit <= SpotifyArtistClient.MAX_LIMIT_PER_REQUEST) {
-          return this.fetchArtistAlbumsPage(artistId, limit, offset, market);
+        if (effectiveLimit <= SpotifyArtistClient.MAX_LIMIT_PER_REQUEST) {
+          return this.fetchArtistAlbumsPage(artistId, effectiveLimit, offset, market);
         }
 
         const allAlbums: ArtistRelease[] = [];
         let currentOffset = offset;
-        let remainingLimit = limit;
+        let remainingLimit = effectiveLimit;
 
         while (remainingLimit > 0) {
           const fetchLimit = Math.min(remainingLimit, SpotifyArtistClient.MAX_LIMIT_PER_REQUEST);
