@@ -1,8 +1,7 @@
 import { ApiErrorCode, type ArtistRelease } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import { artistService } from "@/services/artist.service";
-import { getCacheMinutesFromSettings } from "@/utils/cache";
+import { getSettingsCacheTimings } from "@/utils/cache";
 import { mapSpotifyError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 import { useSettingsQuery } from "./useSettingsQuery";
@@ -15,15 +14,14 @@ interface UseReleasesState {
 
 export const useReleasesQuery = (): UseReleasesState => {
   const { data: settings = [] } = useSettingsQuery();
-
-  const cacheMinutes = useMemo(() => {
-    return getCacheMinutesFromSettings(settings);
-  }, [settings]);
+  const { staleTime, gcTime } = getSettingsCacheTimings(settings);
 
   const { data, isLoading, error } = useQuery<ArtistRelease[], Error>({
     queryKey: queryKeys.releases,
     queryFn: () => artistService.getReleases(),
-    staleTime: 1000 * 60 * cacheMinutes,
+    staleTime,
+    gcTime,
+    refetchOnWindowFocus: false,
   });
 
   const mappedError = mapSpotifyError(error, "failed_to_fetch_releases");

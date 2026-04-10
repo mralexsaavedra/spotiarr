@@ -1,0 +1,54 @@
+import { createPromiseCacheEntry, isCacheEntryStale, PromiseCacheEntry } from "./cache.types";
+
+interface PromiseCacheOptions {
+  ttlMs?: number;
+}
+
+const DEFAULT_TTL_MS = 30_000;
+
+export class PromiseCache {
+  private readonly ttlMs: number;
+  private readonly entries = new Map<string, PromiseCacheEntry<unknown>>();
+
+  constructor(options: PromiseCacheOptions = {}) {
+    this.ttlMs = Math.max(1, options.ttlMs ?? DEFAULT_TTL_MS);
+  }
+
+  getOrSet<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    const existing = this.entries.get(key);
+
+    if (existing && !isCacheEntryStale(existing)) {
+      return existing.promise as Promise<T>;
+    }
+
+    if (existing && isCacheEntryStale(existing)) {
+      this.entries.delete(key);
+    }
+
+    const promise = fn();
+    this.entries.set(key, createPromiseCacheEntry(promise, this.ttlMs));
+
+    const cleanup = () => {
+      const current = this.entries.get(key);
+      if (current?.promise === promise) {
+        this.entries.delete(key);
+      }
+    };
+
+    promise.then(cleanup, cleanup);
+
+    const ttlTimer = setTimeout(cleanup, this.ttlMs);
+    ttlTimer.unref?.();
+
+    return promise;
+  }
+
+  clear(key?: string): void {
+    if (key) {
+      this.entries.delete(key);
+      return;
+    }
+
+    this.entries.clear();
+  }
+}

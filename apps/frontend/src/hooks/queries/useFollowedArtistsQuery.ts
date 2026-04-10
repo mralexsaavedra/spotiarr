@@ -1,8 +1,7 @@
 import { ApiErrorCode } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import { artistService } from "@/services/artist.service";
-import { getCacheMinutesFromSettings } from "@/utils/cache";
+import { getSettingsCacheTimings } from "@/utils/cache";
 import { mapSpotifyError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 import { useSettingsQuery } from "./useSettingsQuery";
@@ -22,15 +21,14 @@ interface UseFollowedArtistsState {
 
 export const useFollowedArtistsQuery = (): UseFollowedArtistsState => {
   const { data: settings = [] } = useSettingsQuery();
-
-  const cacheMinutes = useMemo(() => {
-    return getCacheMinutesFromSettings(settings);
-  }, [settings]);
+  const { staleTime, gcTime } = getSettingsCacheTimings(settings);
 
   const { data, isLoading, error } = useQuery<FollowedArtist[], Error>({
     queryKey: queryKeys.followedArtists,
     queryFn: () => artistService.getFollowedArtists(),
-    staleTime: 1000 * 60 * cacheMinutes,
+    staleTime,
+    gcTime,
+    refetchOnWindowFocus: false,
   });
 
   const mappedError = mapSpotifyError(error, "failed_to_fetch_followed_artists");
