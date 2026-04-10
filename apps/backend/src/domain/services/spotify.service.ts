@@ -69,15 +69,11 @@ export class SpotifyService {
           ownerUrl: metadata.ownerUrl,
         };
       } else if (urlType === SpotifyUrlType.Artist) {
-        const artistId = SpotifyUrlHelper.extractId(spotifyUrl);
-        const artistDetails = await this.spotifyArtistClient.getArtistDetails(artistId);
-        const tracks = await this.spotifyArtistClient.getArtistTopTracks(artistId);
-        return {
-          name: artistDetails.name,
-          tracks: tracks || [],
-          image: artistDetails.image ?? "",
-          type,
-        };
+        throw new AppError(
+          400,
+          "invalid_spotify_url",
+          "Artist downloads are no longer supported due to Spotify API changes.",
+        );
       }
 
       const _exhaustiveCheck: never = urlType;

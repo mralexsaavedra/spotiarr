@@ -8,7 +8,7 @@ import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
 import { SpotifyTrackClient } from "./spotify-track.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
-import { SpotifyImage, SpotifyPlaylistTrackItem } from "./spotify.types";
+import { SpotifyImage, SpotifyPlaylistItem } from "./spotify.types";
 
 export class SpotifyPlaylistClient extends SpotifyBaseClient {
   constructor(
@@ -129,27 +129,26 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
         this.log("Playlist detected, using Spotify API");
         const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
         const allTracks: NormalizedTrack[] = [];
-        let offset = 0;
-        let hasMoreTracks = true;
+        const market = await this.getMarket();
+        let nextUrl: string | null =
+          `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=0&limit=100&market=${market}&fields=items(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms,is_playable),next`;
         let useUserToken = false; // Track if we need to use user token
+        let isFirstPage = true;
 
-        while (hasMoreTracks) {
-          this.log(`Fetching tracks from Spotify API with offset ${offset}`);
-
-          const market = await this.getMarket();
-          const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}&limit=100&market=${market}&fields=items(track(name,artists(name,external_urls),preview_url,external_urls,album(name,release_date,images,external_urls),track_number,duration_ms,is_playable)),next`;
+        while (nextUrl) {
+          this.log(`Fetching tracks from Spotify API via ${nextUrl}`);
 
           let response: Response;
 
           if (useUserToken) {
-            response = await this.fetchWithUserToken(url);
+            response = await this.fetchWithUserToken(nextUrl);
           } else {
-            response = await this.fetchWithAppToken(url);
+            response = await this.fetchWithAppToken(nextUrl);
 
-            if (response.status === 404 && offset === 0) {
+            if (response.status === 404 && isFirstPage) {
               this.log(`Playlist not accessible with app token, trying user token...`, "warn");
               try {
-                response = await this.fetchWithUserToken(url);
+                response = await this.fetchWithUserToken(nextUrl);
                 useUserToken = true;
               } catch (userTokenError) {
                 if (
@@ -169,6 +168,13 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
 
           if (!response.ok) {
             const errorText = await response.text();
+            if (response.status === 403) {
+              this.log(
+                `Playlist items not accessible for this user/playlist. Returning metadata with empty tracks. Playlist ID: ${playlistId}`,
+                "warn",
+              );
+              return [];
+            }
             if (response.status === 404) {
               throw new AppError(
                 404,
@@ -188,35 +194,32 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
           }
 
           const data = (await response.json()) as {
-            items?: SpotifyPlaylistTrackItem[];
+            items?: SpotifyPlaylistItem[];
+            next?: string | null;
           };
 
           if (!data.items || data.items.length === 0) {
             this.log("No more tracks to fetch from Spotify API");
-            hasMoreTracks = false;
+            nextUrl = data.next ?? null;
             continue;
           }
 
           const pageTracks = (data.items ?? [])
-            .map((item: SpotifyPlaylistTrackItem) => {
-              if (!item.track) return null;
-              return SpotifyTrackMapper.toNormalizedTrack(item.track, {
-                isUnavailable: item.track.is_playable === false,
+            .map((item: SpotifyPlaylistItem) => {
+              return SpotifyTrackMapper.toNormalizedTrack(item, {
+                isUnavailable: item.is_playable === false,
               });
             })
             .filter((track: NormalizedTrack | null) => track !== null) as typeof allTracks;
 
-          this.log(`Retrieved ${pageTracks.length} tracks from Spotify API at offset ${offset}`);
+          this.log(`Retrieved ${pageTracks.length} tracks from Spotify API page`);
 
           if (pageTracks.length > 0) {
             allTracks.push(...pageTracks);
           }
 
-          if (pageTracks.length < 100) {
-            hasMoreTracks = false;
-          } else {
-            offset += 100;
-          }
+          nextUrl = data.next ?? null;
+          isFirstPage = false;
         }
 
         this.log(`Total tracks retrieved from Spotify API: ${allTracks.length}`);

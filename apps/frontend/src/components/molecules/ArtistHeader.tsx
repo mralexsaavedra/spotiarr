@@ -1,23 +1,13 @@
 import { FC, ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 
 interface ArtistHeaderProps {
   name: string;
   image?: string | null;
-  followersText?: string | null;
   spotifyUrl?: string | null;
   subtitle?: ReactNode;
 }
 
-export const ArtistHeader: FC<ArtistHeaderProps> = ({
-  name,
-  image,
-  followersText,
-  spotifyUrl,
-  subtitle,
-}) => {
-  const { t } = useTranslation();
-
+export const ArtistHeader: FC<ArtistHeaderProps> = ({ name, image, spotifyUrl, subtitle }) => {
   return (
     <header className="relative h-[40vh] max-h-[500px] min-h-[340px] w-full">
       {/* Background Image */}
@@ -52,12 +42,6 @@ export const ArtistHeader: FC<ArtistHeaderProps> = ({
         </h1>
 
         <div className="flex flex-col gap-2">
-          {followersText && (
-            <p className="text-base font-medium drop-shadow-md">
-              {followersText} {t("artist.followers")}
-            </p>
-          )}
-
           {subtitle && <div className="text-base font-medium drop-shadow-md">{subtitle}</div>}
         </div>
       </div>

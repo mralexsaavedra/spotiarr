@@ -3,6 +3,8 @@ import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 import { getErrorMessage } from "../utils/error.utils";
+import { CacheEntry } from "./cache.types";
+import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient } from "./spotify-http.client";
 import {
@@ -12,16 +14,14 @@ import {
   SpotifyImage,
 } from "./spotify.types";
 
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-}
-
 const FOLLOWED_ARTISTS_MAX_KEY = "FOLLOWED_ARTISTS_MAX";
+const FOLLOWED_ARTISTS_CACHE_KEY = "followed-artists:list";
+const FOLLOWED_ARTISTS_IN_FLIGHT_KEY = "followed-artists:in-flight";
 
 export class SpotifyUserLibraryService extends SpotifyHttpClient {
   private static instance: SpotifyUserLibraryService | null = null;
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private readonly cache: Map<string, CacheEntry<unknown>> = new Map();
+  private readonly inFlightPromises = new PromiseCache({ ttlMs: 30_000 });
 
   private constructor(
     private readonly settingsService: SettingsService,
@@ -50,6 +50,10 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     return SpotifyUserLibraryService.instance;
   }
 
+  static clearGlobalCache(): void {
+    SpotifyUserLibraryService.instance?.clearCache();
+  }
+
   private getCacheKey(method: string, ...args: unknown[]): string {
     return `${method}:${JSON.stringify(args)}`;
   }
@@ -62,24 +66,50 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     const cacheTTL = cacheMinutes * 60 * 1000;
 
     const now = Date.now();
-    if (now - entry.timestamp > cacheTTL) {
+    if (now - entry.createdAt > cacheTTL) {
       this.cache.delete(key);
       return null;
     }
 
-    return entry.data as T;
+    return entry.value as T;
   }
 
   private setCache<T>(key: string, data: T): void {
     this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
+      value: data,
+      createdAt: Date.now(),
+      ttlMs: 0,
     });
   }
 
   clearCache(): void {
     this.cache.clear();
+    this.inFlightPromises.clear();
     this.log("Cache cleared");
+  }
+
+  private async getFollowedArtistsSnapshot(maxArtists: number): Promise<SpotifyArtistFull[]> {
+    const cacheKey = this.getCacheKey(FOLLOWED_ARTISTS_CACHE_KEY, maxArtists);
+    const cached = await this.getFromCache<SpotifyArtistFull[]>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    return this.inFlightPromises.getOrSet(
+      `${FOLLOWED_ARTISTS_IN_FLIGHT_KEY}:${maxArtists}`,
+      async () => {
+        const warmCache = await this.getFromCache<SpotifyArtistFull[]>(cacheKey);
+        if (warmCache) {
+          return warmCache;
+        }
+
+        const artists = await this.fetchAllFollowedArtists(maxArtists);
+        const slicedArtists = artists.slice(0, maxArtists);
+        this.setCache(cacheKey, slicedArtists);
+        return slicedArtists;
+      },
+    );
   }
 
   private log(message: string, level: "debug" | "error" | "warn" = "debug") {
@@ -159,7 +189,7 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
 
     try {
       const maxArtists = await this.settingsService.getNumber(FOLLOWED_ARTISTS_MAX_KEY);
-      const artists = await this.fetchAllFollowedArtists(maxArtists);
+      const artists = await this.getFollowedArtistsSnapshot(maxArtists);
 
       const releasesPerArtist = await Promise.all(
         artists.slice(0, maxArtists).map(async (artist) => {
@@ -193,7 +223,7 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
             artistImageUrl: artist.images?.[0]?.url ?? null,
             albumId: album.id as string,
             albumName: album.name,
-            albumType: (album.album_group ?? album.album_type) as AlbumType,
+            albumType: album.album_type as AlbumType,
             releaseDate: album.release_date,
             coverUrl: album.images?.[0]?.url ?? null,
             spotifyUrl: album.external_urls?.spotify,
@@ -252,7 +282,7 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
 
     try {
       const maxArtists = await this.settingsService.getNumber("FOLLOWED_ARTISTS_MAX");
-      const artists = await this.fetchAllFollowedArtists(maxArtists);
+      const artists = await this.getFollowedArtistsSnapshot(maxArtists);
 
       const sliced = artists.slice(0, maxArtists);
 

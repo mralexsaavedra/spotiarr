@@ -14,15 +14,17 @@ export class SearchController {
 
     const typesStr = req.query.types as string;
     const types = typesStr ? typesStr.split(",") : ["track", "album", "artist"];
-    const limit = parseInt(req.query.limit as string) || 20;
+    const requestedLimit = Number.parseInt(req.query.limit as string, 10);
+    const safeLimit = Number.isNaN(requestedLimit) ? 10 : requestedLimit;
+    const limit = Math.max(1, Math.min(safeLimit, 10));
 
     const limits =
       types.length === 1
         ? { track: limit, album: limit, artist: limit }
         : {
-            track: 10,
-            album: 10,
-            artist: 5,
+            track: limit,
+            album: limit,
+            artist: limit,
           };
 
     const results = await this.spotifyService.searchCatalog(query, types, limits);

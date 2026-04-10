@@ -17,7 +17,6 @@ export interface SpotifyAlbum {
   images?: SpotifyImage[];
   release_date?: string;
   id?: string;
-  album_group?: string;
   album_type?: string;
   external_urls?: SpotifyExternalUrls;
   artists?: SpotifyArtist[];
@@ -40,12 +39,8 @@ export interface SpotifyAlbumTracksResponse {
   items: SpotifyTrack[];
 }
 
-export interface SpotifyPlaylistTrackItem {
-  track: SpotifyTrack | null;
-}
-
-export interface SpotifyArtistTopTracksResponse {
-  tracks?: SpotifyTrack[];
+export interface SpotifyPlaylistItem extends SpotifyTrack {
+  is_playable?: boolean;
 }
 
 export interface SpotifyCursor {

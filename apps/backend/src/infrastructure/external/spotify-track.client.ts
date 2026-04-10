@@ -2,18 +2,13 @@ import { NormalizedTrack } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
-import { SpotifyArtistClient } from "./spotify-artist.client";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyTrack } from "./spotify.types";
 
 export class SpotifyTrackClient extends SpotifyBaseClient {
-  constructor(
-    authService: SpotifyAuthService,
-    settingsService: SettingsService,
-    private readonly artistClient: SpotifyArtistClient, // Required to fetch artist images
-  ) {
+  constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
     super(authService, settingsService, "SpotifyTrackClient");
   }
 
@@ -40,13 +35,9 @@ export class SpotifyTrackClient extends SpotifyBaseClient {
 
       const track = (await response.json()) as SpotifyTrack;
 
-      // Get artist image
-      const artistId = track.artists[0]?.id;
-      const artistImage = artistId ? await this.artistClient.getArtistImage(artistId) : null;
-
       // Use the unified mapper
       const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
-        primaryArtistImage: artistImage,
+        primaryArtistImage: null,
       });
 
       return {

@@ -2,19 +2,59 @@ import { AlbumType, SpotifySearchResults } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
-import { SpotifyArtistClient } from "./spotify-artist.client";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyAlbum, SpotifyTrack } from "./spotify.types";
 
 export class SpotifySearchClient extends SpotifyBaseClient {
-  constructor(
-    authService: SpotifyAuthService,
-    settingsService: SettingsService,
-    private readonly artistClient: SpotifyArtistClient,
-  ) {
+  constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
     super(authService, settingsService, "SpotifySearchClient");
+  }
+
+  private async getArtistImagesBatch(artistIds: string[]): Promise<Record<string, string | null>> {
+    const uniqueIds = Array.from(new Set(artistIds.filter(Boolean)));
+    if (uniqueIds.length === 0) {
+      return {};
+    }
+
+    const MAX_ARTISTS_PER_REQUEST = 50;
+    const imageMap: Record<string, string | null> = {};
+
+    for (let index = 0; index < uniqueIds.length; index += MAX_ARTISTS_PER_REQUEST) {
+      const chunk = uniqueIds.slice(index, index + MAX_ARTISTS_PER_REQUEST);
+      const response = await this.fetchWithAppToken(
+        `https://api.spotify.com/v1/artists?ids=${chunk.join(",")}`,
+      );
+
+      if (!response.ok) {
+        this.log(`Failed to fetch batched artist images: ${response.status}`, "warn");
+        chunk.forEach((artistId) => {
+          imageMap[artistId] = null;
+        });
+        continue;
+      }
+
+      const payload = (await response.json()) as {
+        artists?: Array<{ id?: string; images?: Array<{ url: string }> }>;
+      };
+
+      const artists = payload.artists ?? [];
+
+      chunk.forEach((artistId) => {
+        imageMap[artistId] = null;
+      });
+
+      artists.forEach((artist) => {
+        if (!artist.id) {
+          return;
+        }
+
+        imageMap[artist.id] = artist.images?.[0]?.url ?? null;
+      });
+    }
+
+    return imageMap;
   }
 
   async searchCatalog(
@@ -81,29 +121,22 @@ export class SpotifySearchClient extends SpotifyBaseClient {
           };
 
           if (data.tracks?.items) {
-            const artistImageCache: Record<string, string | null> = {};
-            const getPrimaryArtistImage = async (
-              primaryArtistId: string | undefined,
-            ): Promise<string | null> => {
-              if (!primaryArtistId) return null;
-              if (primaryArtistId in artistImageCache) {
-                return artistImageCache[primaryArtistId];
-              }
-              const image = await this.artistClient.getArtistImage(primaryArtistId);
-              artistImageCache[primaryArtistId] = image;
-              return image;
-            };
+            const primaryArtistIds = data.tracks.items
+              .map((track) => track.artists?.[0]?.id)
+              .filter((artistId): artistId is string => Boolean(artistId));
 
-            result.tracks = await Promise.all(
-              data.tracks.items.map(async (track: SpotifyTrack, index: number) => {
-                const primaryArtistId = track.artists?.[0]?.id;
-                const primaryArtistImage = await getPrimaryArtistImage(primaryArtistId);
-                const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
-                  primaryArtistImage,
-                });
-                return { ...normalized, trackNumber: normalized.trackNumber ?? index + 1 };
-              }),
-            );
+            const artistImageCache = await this.getArtistImagesBatch(primaryArtistIds);
+
+            result.tracks = data.tracks.items.map((track: SpotifyTrack, index: number) => {
+              const primaryArtistId = track.artists?.[0]?.id;
+              const primaryArtistImage = primaryArtistId
+                ? (artistImageCache[primaryArtistId] ?? null)
+                : null;
+              const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
+                primaryArtistImage,
+              });
+              return { ...normalized, trackNumber: normalized.trackNumber ?? index + 1 };
+            });
           }
 
           if (data.albums?.items) {
@@ -113,7 +146,7 @@ export class SpotifySearchClient extends SpotifyBaseClient {
               artistImageUrl: null,
               albumId: album.id as string,
               albumName: album.name,
-              albumType: (album.album_group ?? album.album_type) as AlbumType,
+              albumType: album.album_type as AlbumType,
               releaseDate: album.release_date,
               coverUrl: album.images?.[0]?.url ?? null,
               spotifyUrl: album.external_urls?.spotify,

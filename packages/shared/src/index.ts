@@ -207,9 +207,7 @@ export interface ArtistDetail {
   image: string | null;
   spotifyUrl?: string | null;
   followers?: number | null;
-  popularity?: number | null;
   genres?: string[];
-  topTracks: ArtistTopTrack[];
   albums: ArtistRelease[];
 }
 

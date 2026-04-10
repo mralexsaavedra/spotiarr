@@ -13,9 +13,8 @@ export class ArtistController {
 
     const limit = parseInt(req.query.limit as string) || 12;
 
-    const [details, topTracks, albums] = await Promise.all([
+    const [details, albums] = await Promise.all([
       this.spotifyArtistClient.getArtistDetails(id),
-      this.spotifyArtistClient.getArtistTopTracks(id),
       this.spotifyArtistClient.getArtistAlbums(id, limit),
     ]);
 
@@ -25,9 +24,7 @@ export class ArtistController {
       image: details.image,
       spotifyUrl: details.spotifyUrl,
       followers: details.followers,
-      popularity: details.popularity,
       genres: details.genres,
-      topTracks,
       albums,
     });
   };

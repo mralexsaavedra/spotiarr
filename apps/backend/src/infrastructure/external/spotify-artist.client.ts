@@ -1,17 +1,10 @@
-import { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
+import { AlbumType, ArtistRelease } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
-import { SpotifyTrackMapper } from "./spotify-track.mapper";
-import {
-  SpotifyArtistAlbumsResponse,
-  SpotifyArtistTopTracksResponse,
-  SpotifyExternalUrls,
-  SpotifyImage,
-  SpotifyTrack,
-} from "./spotify.types";
+import { SpotifyArtistAlbumsResponse, SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
 
 export class SpotifyArtistClient extends SpotifyBaseClient {
   constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
@@ -19,15 +12,13 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
   }
 
   /**
-   * Get artist metadata (including followers, genres, popularity) from Spotify API
+   * Get artist metadata from Spotify API
    */
   async getArtistRaw(artistId: string): Promise<{
     name?: string;
     images?: SpotifyImage[];
     external_urls?: SpotifyExternalUrls;
-    followers?: { total?: number };
     genres?: string[];
-    popularity?: number;
   } | null> {
     try {
       const response = await this.fetchWithAppToken(
@@ -43,9 +34,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
         name?: string;
         images?: SpotifyImage[];
         external_urls?: SpotifyExternalUrls;
-        followers?: { total?: number };
         genres?: string[];
-        popularity?: number;
       };
     } catch (error) {
       this.log(`Failed to fetch artist data: ${getErrorMessage(error)}`);
@@ -77,7 +66,6 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     image: string | null;
     spotifyUrl: string | null;
     followers: number | null;
-    popularity: number | null;
     genres: string[];
   }> {
     try {
@@ -88,7 +76,6 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
           image: null,
           spotifyUrl: null,
           followers: null,
-          popularity: null,
           genres: [],
         };
       }
@@ -97,8 +84,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
         name: artist.name,
         image: artist.images?.[0]?.url || null,
         spotifyUrl: artist.external_urls?.spotify || null,
-        followers: artist.followers?.total ?? null,
-        popularity: artist.popularity ?? null,
+        followers: null,
         genres: artist.genres ?? [],
       };
     } catch (error) {
@@ -108,72 +94,8 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
         image: null,
         spotifyUrl: null,
         followers: null,
-        popularity: null,
         genres: [],
       };
-    }
-  }
-
-  /**
-   * Get top tracks for an artist from Spotify API
-   */
-  async getArtistTopTracks(artistId: string, market?: string): Promise<NormalizedTrack[]> {
-    try {
-      const defaultMarket = await this.getMarket();
-      const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=${market || defaultMarket}`,
-      );
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
-        }
-        throw new AppError(
-          response.status,
-          "internal_server_error",
-          `Failed to fetch artist top tracks: ${response.status}`,
-        );
-      }
-
-      const data = (await response.json()) as SpotifyArtistTopTracksResponse;
-      const tracks: SpotifyTrack[] = data.tracks ?? [];
-
-      // Build a cache of primary artist images to avoid duplicate API calls
-      const artistImageCache: Record<string, string | null> = {};
-
-      const getPrimaryArtistImage = async (
-        primaryArtistId: string | undefined,
-      ): Promise<string | null> => {
-        if (!primaryArtistId) return null;
-        if (primaryArtistId in artistImageCache) {
-          return artistImageCache[primaryArtistId];
-        }
-
-        const image = await this.getArtistImage(primaryArtistId);
-        artistImageCache[primaryArtistId] = image;
-        return image;
-      };
-
-      const mappedTracks = await Promise.all(
-        tracks.map(async (track, index) => {
-          const primaryArtistId = track.artists?.[0]?.id as string | undefined;
-          const primaryArtistImage = await getPrimaryArtistImage(primaryArtistId);
-
-          const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
-            primaryArtistImage,
-          });
-
-          return {
-            ...normalized,
-            trackNumber: normalized.trackNumber ?? index + 1,
-          };
-        }),
-      );
-
-      return mappedTracks;
-    } catch (error) {
-      this.log(`Failed to get artist top tracks: ${getErrorMessage(error)}`);
-      throw error;
     }
   }
 
@@ -218,7 +140,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
           artistImageUrl: null,
           albumId: album.id as string,
           albumName: album.name,
-          albumType: (album.album_group ?? album.album_type) as AlbumType,
+          albumType: album.album_type as AlbumType,
           releaseDate: album.release_date,
           coverUrl: album.images?.[0]?.url ?? null,
           spotifyUrl: album.external_urls?.spotify,

@@ -23,6 +23,7 @@ export class AuthController {
       response_type: "code",
       redirect_uri: redirectUri,
       scope: SCOPES,
+      show_dialog: "true",
     });
 
     const url = `https://accounts.spotify.com/authorize?${params.toString()}`;
