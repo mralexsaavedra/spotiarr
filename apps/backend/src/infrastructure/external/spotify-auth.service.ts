@@ -13,6 +13,7 @@ export class SpotifyAuthService {
   private static instance: SpotifyAuthService | null = null;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
+  private appTokenPromise: Promise<string> | null = null;
 
   constructor(private readonly settingsService: SettingsService) {}
 
@@ -35,7 +36,11 @@ export class SpotifyAuthService {
       return this.accessToken;
     }
 
-    try {
+    if (this.appTokenPromise) {
+      return this.appTokenPromise;
+    }
+
+    this.appTokenPromise = (async () => {
       this.log("Getting new Spotify access token");
 
       const env = getEnv();
@@ -76,9 +81,15 @@ export class SpotifyAuthService {
 
       this.log("Successfully obtained Spotify access token");
       return this.accessToken as string;
+    })();
+
+    try {
+      return await this.appTokenPromise;
     } catch (error) {
       this.log(`Error getting Spotify access token: ${getErrorMessage(error)}`);
       throw error;
+    } finally {
+      this.appTokenPromise = null;
     }
   }
 

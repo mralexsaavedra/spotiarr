@@ -3,91 +3,100 @@ import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper } from "@/domain/helpers/spotify-url.helper";
 import { getErrorMessage } from "../utils/error.utils";
+import { PromiseCache } from "./promise-cache";
 import { SpotifyAlbumClient } from "./spotify-album.client";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
+import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyTrackClient } from "./spotify-track.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyImage, SpotifyPlaylistItem } from "./spotify.types";
 
 export class SpotifyPlaylistClient extends SpotifyBaseClient {
+  private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
+
   constructor(
     authService: SpotifyAuthService,
     settingsService: SettingsService,
     private readonly trackClient: SpotifyTrackClient,
     private readonly albumClient: SpotifyAlbumClient,
+    limiterMode: SpotifyLimiterMode = "interactive",
   ) {
-    super(authService, settingsService, "SpotifyPlaylistClient");
+    super(authService, settingsService, "SpotifyPlaylistClient", limiterMode);
   }
 
   async getPlaylistMetadata(
     spotifyUrl: string,
   ): Promise<{ name: string; image: string; owner: string; ownerUrl?: string }> {
-    try {
-      this.log(`Getting playlist metadata for ${spotifyUrl}`);
+    const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
+    const market = await this.getMarket();
+    const cacheKey = `playlist-metadata:${playlistId}:${market}`;
 
-      const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
-      const market = await this.getMarket();
-      const url = `https://api.spotify.com/v1/playlists/${playlistId}?market=${market}`;
+    return this.requestCache.getOrSet(cacheKey, async () => {
+      try {
+        this.log(`Getting playlist metadata for ${spotifyUrl}`);
 
-      // Try with app token first
-      let response = await this.fetchWithAppToken(url);
+        const url = `https://api.spotify.com/v1/playlists/${playlistId}?market=${market}`;
 
-      // If we get a 404, try with user token (some playlists require user auth)
-      if (response.status === 404) {
-        this.log(`Playlist not accessible with app token, trying user token...`, "warn");
-        try {
-          response = await this.fetchWithUserToken(url);
-        } catch (userTokenError) {
-          if (
-            userTokenError instanceof AppError &&
-            userTokenError.errorCode === "missing_user_access_token"
-          ) {
+        // Try with app token first
+        let response = await this.fetchWithAppToken(url);
+
+        // If we get a 404, try with user token (some playlists require user auth)
+        if (response.status === 404) {
+          this.log(`Playlist not accessible with app token, trying user token...`, "warn");
+          try {
+            response = await this.fetchWithUserToken(url);
+          } catch (userTokenError) {
+            if (
+              userTokenError instanceof AppError &&
+              userTokenError.errorCode === "missing_user_access_token"
+            ) {
+              throw new AppError(
+                401,
+                "missing_user_access_token",
+                `This playlist requires user authentication. Please login via the Web UI. Playlist ID: ${playlistId}`,
+              );
+            }
+            throw userTokenError;
+          }
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          if (response.status === 404) {
             throw new AppError(
-              401,
-              "missing_user_access_token",
-              `This playlist requires user authentication. Please login via the Web UI. Playlist ID: ${playlistId}`,
+              404,
+              "playlist_not_found",
+              `Playlist not found or not accessible. This may be a private playlist or a region-restricted playlist. Playlist ID: ${playlistId}`,
             );
           }
-          throw userTokenError;
-        }
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        if (response.status === 404) {
+          if (response.status === 429) {
+            throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+          }
           throw new AppError(
-            404,
-            "playlist_not_found",
-            `Playlist not found or not accessible. This may be a private playlist or a region-restricted playlist. Playlist ID: ${playlistId}`,
+            response.status >= 500 ? 502 : 500,
+            "internal_server_error",
+            `Failed to get playlist metadata: ${response.status} ${errorText}`,
           );
         }
-        if (response.status === 429) {
-          throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
-        }
-        throw new AppError(
-          response.status >= 500 ? 502 : 500,
-          "internal_server_error",
-          `Failed to get playlist metadata: ${response.status} ${errorText}`,
-        );
+
+        const data = (await response.json()) as {
+          name: string;
+          images?: SpotifyImage[];
+          owner?: { display_name: string; external_urls?: { spotify: string } };
+        };
+
+        return {
+          name: data.name,
+          image: data.images?.[0]?.url ?? "",
+          owner: data.owner?.display_name ?? "Unknown",
+          ownerUrl: data.owner?.external_urls?.spotify,
+        };
+      } catch (error) {
+        this.log(`Failed to get playlist metadata: ${getErrorMessage(error)}`, "error");
+        throw error;
       }
-
-      const data = (await response.json()) as {
-        name: string;
-        images?: SpotifyImage[];
-        owner?: { display_name: string; external_urls?: { spotify: string } };
-      };
-
-      return {
-        name: data.name,
-        image: data.images?.[0]?.url ?? "",
-        owner: data.owner?.display_name ?? "Unknown",
-        ownerUrl: data.owner?.external_urls?.spotify,
-      };
-    } catch (error) {
-      this.log(`Failed to get playlist metadata: ${getErrorMessage(error)}`, "error");
-      throw error;
-    }
+    });
   }
 
   async getAllPlaylistTracks(spotifyUrl: string): Promise<NormalizedTrack[]> {
@@ -130,39 +139,35 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
         const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
         const allTracks: NormalizedTrack[] = [];
         const market = await this.getMarket();
+        // is_playable requires user token — always use user token for playlist items
+        const fields =
+          "items(track(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms,is_playable)),next";
         let nextUrl: string | null =
-          `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=0&limit=100&market=${market}&fields=items(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms,is_playable),next`;
-        let useUserToken = false; // Track if we need to use user token
-        let isFirstPage = true;
+          `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=0&limit=100&market=${market}&fields=${encodeURIComponent(fields)}`;
 
         while (nextUrl) {
           this.log(`Fetching tracks from Spotify API via ${nextUrl}`);
 
           let response: Response;
 
-          if (useUserToken) {
+          try {
             response = await this.fetchWithUserToken(nextUrl);
-          } else {
-            response = await this.fetchWithAppToken(nextUrl);
-
-            if (response.status === 404 && isFirstPage) {
-              this.log(`Playlist not accessible with app token, trying user token...`, "warn");
-              try {
-                response = await this.fetchWithUserToken(nextUrl);
-                useUserToken = true;
-              } catch (userTokenError) {
-                if (
-                  userTokenError instanceof AppError &&
-                  userTokenError.errorCode === "missing_user_access_token"
-                ) {
-                  throw new AppError(
-                    401,
-                    "missing_user_access_token",
-                    `This playlist requires user authentication. Please login via the Web UI. Playlist ID: ${playlistId}`,
-                  );
-                }
-                throw userTokenError;
-              }
+          } catch (userTokenError) {
+            if (
+              userTokenError instanceof AppError &&
+              userTokenError.errorCode === "missing_user_access_token"
+            ) {
+              // Fallback to app token without is_playable if no user token available
+              this.log(
+                `No user token available, falling back to app token without is_playable`,
+                "warn",
+              );
+              const fallbackFields =
+                "items(track(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms)),next";
+              const fallbackUrl = `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=0&limit=100&market=${market}&fields=${encodeURIComponent(fallbackFields)}`;
+              response = await this.fetchWithAppToken(fallbackUrl);
+            } else {
+              throw userTokenError;
             }
           }
 
@@ -206,8 +211,12 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
 
           const pageTracks = (data.items ?? [])
             .map((item: SpotifyPlaylistItem) => {
-              return SpotifyTrackMapper.toNormalizedTrack(item, {
-                isUnavailable: item.is_playable === false,
+              if (!item.track) {
+                return null;
+              }
+
+              return SpotifyTrackMapper.toNormalizedTrack(item.track, {
+                isUnavailable: item.track.is_playable === false,
               });
             })
             .filter((track: NormalizedTrack | null) => track !== null) as typeof allTracks;
@@ -219,7 +228,6 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
           }
 
           nextUrl = data.next ?? null;
-          isFirstPage = false;
         }
 
         this.log(`Total tracks retrieved from Spotify API: ${allTracks.length}`);

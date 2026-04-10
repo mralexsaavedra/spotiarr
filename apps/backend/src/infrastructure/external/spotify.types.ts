@@ -39,8 +39,8 @@ export interface SpotifyAlbumTracksResponse {
   items: SpotifyTrack[];
 }
 
-export interface SpotifyPlaylistItem extends SpotifyTrack {
-  is_playable?: boolean;
+export interface SpotifyPlaylistItem {
+  track?: SpotifyTrack | null;
 }
 
 export interface SpotifyCursor {
