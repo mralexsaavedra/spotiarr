@@ -2,14 +2,22 @@ import { AlbumType, SpotifySearchResults } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
+import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
+import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyAlbum, SpotifyTrack } from "./spotify.types";
 
 export class SpotifySearchClient extends SpotifyBaseClient {
-  constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
-    super(authService, settingsService, "SpotifySearchClient");
+  private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
+
+  constructor(
+    authService: SpotifyAuthService,
+    settingsService: SettingsService,
+    limiterMode: SpotifyLimiterMode = "interactive",
+  ) {
+    super(authService, settingsService, "SpotifySearchClient", limiterMode);
   }
 
   private async getArtistImagesBatch(artistIds: string[]): Promise<Record<string, string | null>> {
@@ -23,8 +31,10 @@ export class SpotifySearchClient extends SpotifyBaseClient {
 
     for (let index = 0; index < uniqueIds.length; index += MAX_ARTISTS_PER_REQUEST) {
       const chunk = uniqueIds.slice(index, index + MAX_ARTISTS_PER_REQUEST);
-      const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/artists?ids=${chunk.join(",")}`,
+      const chunkKey = chunk.join(",");
+      const response = await this.requestCache.getOrSet(
+        `search-artist-image-batch:${chunkKey}`,
+        () => this.fetchWithAppToken(`https://api.spotify.com/v1/artists?ids=${chunkKey}`),
       );
 
       if (!response.ok) {

@@ -2,14 +2,40 @@ import { NormalizedTrack } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
+import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
+import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyAlbum, SpotifyAlbumTracksResponse, SpotifyTrack } from "./spotify.types";
 
 export class SpotifyAlbumClient extends SpotifyBaseClient {
-  constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
-    super(authService, settingsService, "SpotifyAlbumClient");
+  private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
+
+  constructor(
+    authService: SpotifyAuthService,
+    settingsService: SettingsService,
+    limiterMode: SpotifyLimiterMode = "interactive",
+  ) {
+    super(authService, settingsService, "SpotifyAlbumClient", limiterMode);
+  }
+
+  private getAlbumDetails(albumId: string): Promise<SpotifyAlbum> {
+    return this.requestCache.getOrSet(`album-detail:${albumId}`, async () => {
+      const albumResponse = await this.fetchWithAppToken(
+        `https://api.spotify.com/v1/albums/${albumId}`,
+      );
+
+      if (!albumResponse.ok) {
+        throw new AppError(
+          albumResponse.status,
+          "internal_server_error",
+          `Failed to fetch album details: ${albumResponse.status}`,
+        );
+      }
+
+      return (await albumResponse.json()) as SpotifyAlbum;
+    });
   }
 
   /**
@@ -36,11 +62,7 @@ export class SpotifyAlbumClient extends SpotifyBaseClient {
       }
 
       const data = (await response.json()) as SpotifyAlbumTracksResponse;
-      const albumResponse = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/albums/${albumId}`,
-      );
-
-      const albumData = (await albumResponse.json()) as SpotifyAlbum;
+      const albumData = await this.getAlbumDetails(albumId);
 
       return data.items.map((track: SpotifyTrack) => {
         const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {

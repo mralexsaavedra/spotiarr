@@ -4,12 +4,17 @@ import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
+import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyTrack } from "./spotify.types";
 
 export class SpotifyTrackClient extends SpotifyBaseClient {
-  constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
-    super(authService, settingsService, "SpotifyTrackClient");
+  constructor(
+    authService: SpotifyAuthService,
+    settingsService: SettingsService,
+    limiterMode: SpotifyLimiterMode = "interactive",
+  ) {
+    super(authService, settingsService, "SpotifyTrackClient", limiterMode);
   }
 
   /**

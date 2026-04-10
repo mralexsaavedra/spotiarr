@@ -1,38 +1,97 @@
 import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
 
-const DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY = 3;
-const DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS = 30_000;
-const DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS = 200;
+const DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY = 5;
+const DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS = 60_000;
+const DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS = 100;
+
+// Background sync limiter — more conservative to avoid starving user requests
+const DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY = 1;
+const DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS = 600_000;
+const DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS = 1_000;
+const DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY = 5;
+const DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS = 30_000;
+const DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS = 50;
+
+export const SPOTIFY_LIMITER_MODE = {
+  USER: "user",
+  SYNC: "sync",
+  INTERACTIVE: "interactive",
+} as const;
+
+export type SpotifyLimiterMode = (typeof SPOTIFY_LIMITER_MODE)[keyof typeof SPOTIFY_LIMITER_MODE];
 
 const resolveLimiterNumber = (value: string | undefined, fallback: number): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
-const SPOTIFY_HTTP_MAX_CONCURRENCY = resolveLimiterNumber(
-  process.env.SPOTIFY_HTTP_MAX_CONCURRENCY,
-  DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY,
-);
+// User-facing limiter: faster, shorter timeout
+const userRateLimiter = new RateLimiter({
+  maxConcurrency: resolveLimiterNumber(
+    process.env.SPOTIFY_HTTP_MAX_CONCURRENCY,
+    DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY,
+  ),
+  queueTimeoutMs: resolveLimiterNumber(
+    process.env.SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
+    DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
+  ),
+  minIntervalMs: resolveLimiterNumber(
+    process.env.SPOTIFY_HTTP_MIN_INTERVAL_MS,
+    DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS,
+  ),
+});
 
-const SPOTIFY_HTTP_QUEUE_TIMEOUT_MS = resolveLimiterNumber(
-  process.env.SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
-  DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
-);
+// Background sync limiter: slower, longer timeout, doesn't block user requests
+const syncRateLimiter = new RateLimiter({
+  maxConcurrency: resolveLimiterNumber(
+    process.env.SPOTIFY_SYNC_MAX_CONCURRENCY,
+    DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY,
+  ),
+  queueTimeoutMs: resolveLimiterNumber(
+    process.env.SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
+    DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
+  ),
+  minIntervalMs: resolveLimiterNumber(
+    process.env.SPOTIFY_SYNC_MIN_INTERVAL_MS,
+    DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS,
+  ),
+});
 
-const SPOTIFY_HTTP_MIN_INTERVAL_MS = resolveLimiterNumber(
-  process.env.SPOTIFY_HTTP_MIN_INTERVAL_MS,
-  DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS,
-);
+const interactiveRateLimiter = new RateLimiter({
+  maxConcurrency: resolveLimiterNumber(
+    process.env.SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
+    DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
+  ),
+  queueTimeoutMs: resolveLimiterNumber(
+    process.env.SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
+    DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
+  ),
+  minIntervalMs: resolveLimiterNumber(
+    process.env.SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
+    DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
+  ),
+});
 
 export class SpotifyHttpClient {
-  private static readonly rateLimiter = new RateLimiter({
-    maxConcurrency: SPOTIFY_HTTP_MAX_CONCURRENCY,
-    queueTimeoutMs: SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
-    minIntervalMs: SPOTIFY_HTTP_MIN_INTERVAL_MS,
-  });
+  private readonly limiter: RateLimiter;
 
-  constructor(private readonly authService: SpotifyAuthService) {}
+  constructor(
+    private readonly authService: SpotifyAuthService,
+    limiterMode: SpotifyLimiterMode = "user",
+  ) {
+    if (limiterMode === SPOTIFY_LIMITER_MODE.SYNC) {
+      this.limiter = syncRateLimiter;
+      return;
+    }
+
+    if (limiterMode === SPOTIFY_LIMITER_MODE.INTERACTIVE) {
+      this.limiter = interactiveRateLimiter;
+      return;
+    }
+
+    this.limiter = userRateLimiter;
+  }
 
   private async sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -49,7 +108,6 @@ export class SpotifyHttpClient {
 
       if (response.status === 429 && retries < MAX_RETRIES) {
         const retryAfterHeader = response.headers.get("Retry-After");
-        // Default to 2^retries seconds if header is missing, or use header value
         // Cap at 60s to avoid absurd waits (Spotify sometimes returns huge values)
         const retryAfterSeconds = retryAfterHeader
           ? Math.min(parseInt(retryAfterHeader, 10), 60)
@@ -63,7 +121,6 @@ export class SpotifyHttpClient {
         );
 
         await this.sleep(waitMs);
-        // Recursively retry
         return this.fetchWithRateLimitRetry(input, init, retries + 1);
       }
 
@@ -77,7 +134,7 @@ export class SpotifyHttpClient {
         error.cause?.code === "ECONNRESET";
 
       if (isNetworkError && retries < MAX_RETRIES) {
-        const waitMs = Math.pow(2, retries) * 2000; // Exponential backoff: 0s->2s, 1s->4s, 2s->8s...
+        const waitMs = Math.pow(2, retries) * 2000;
         console.warn(
           `[SpotifyHttpClient] Network error (${error.message}). Retrying in ${waitMs}ms (${retries + 1}/${MAX_RETRIES})`,
         );
@@ -99,7 +156,7 @@ export class SpotifyHttpClient {
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 
-    return SpotifyHttpClient.rateLimiter.queueRequest(() =>
+    return this.limiter.queueRequest(() =>
       this.fetchWithRateLimitRetry(input, {
         ...init,
         headers,
@@ -117,7 +174,7 @@ export class SpotifyHttpClient {
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 
-    return SpotifyHttpClient.rateLimiter.queueRequest(() =>
+    return this.limiter.queueRequest(() =>
       this.fetchWithRateLimitRetry(input, {
         ...init,
         headers,
@@ -130,7 +187,6 @@ export class SpotifyHttpClient {
    * attempting a single refresh on 401 responses.
    */
   async fetchWithUserToken(input: string | URL, init?: RequestInit): Promise<Response> {
-    // First attempt with current token
     const initialToken = await this.authService.getUserToken();
     const response = await this.fetchUserTokenRequest(input, initialToken, init);
 
@@ -144,7 +200,6 @@ export class SpotifyHttpClient {
       return response;
     }
 
-    // Retry with new token
     const newToken = await this.authService.getUserToken();
     return this.fetchUserTokenRequest(input, newToken, init);
   }

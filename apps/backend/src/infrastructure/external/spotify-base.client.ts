@@ -1,15 +1,16 @@
 import { SettingsService } from "@/application/services/settings.service";
 import { getEnv } from "../setup/environment";
 import { SpotifyAuthService } from "./spotify-auth.service";
-import { SpotifyHttpClient } from "./spotify-http.client";
+import { SpotifyHttpClient, type SpotifyLimiterMode } from "./spotify-http.client";
 
 export abstract class SpotifyBaseClient extends SpotifyHttpClient {
   constructor(
     authService: SpotifyAuthService,
     protected readonly settingsService: SettingsService,
     private readonly contextName: string,
+    limiterMode: SpotifyLimiterMode = "interactive",
   ) {
-    super(authService);
+    super(authService, limiterMode);
   }
 
   protected async getMarket(): Promise<string> {

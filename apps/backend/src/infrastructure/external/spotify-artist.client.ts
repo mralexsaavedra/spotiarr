@@ -2,13 +2,21 @@ import { AlbumType, ArtistRelease } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
+import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
+import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyArtistAlbumsResponse, SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
 
 export class SpotifyArtistClient extends SpotifyBaseClient {
-  constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
-    super(authService, settingsService, "SpotifyArtistClient");
+  private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
+
+  constructor(
+    authService: SpotifyAuthService,
+    settingsService: SettingsService,
+    limiterMode: SpotifyLimiterMode = "interactive",
+  ) {
+    super(authService, settingsService, "SpotifyArtistClient", limiterMode);
   }
 
   /**
@@ -20,26 +28,28 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     external_urls?: SpotifyExternalUrls;
     genres?: string[];
   } | null> {
-    try {
-      const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/artists/${artistId}`,
-      );
+    return this.requestCache.getOrSet(`artist-raw:${artistId}`, async () => {
+      try {
+        const response = await this.fetchWithAppToken(
+          `https://api.spotify.com/v1/artists/${artistId}`,
+        );
 
-      if (!response.ok) {
-        this.log(`Failed to fetch artist data: ${response.status}`);
+        if (!response.ok) {
+          this.log(`Failed to fetch artist data: ${response.status}`);
+          return null;
+        }
+
+        return (await response.json()) as {
+          name?: string;
+          images?: SpotifyImage[];
+          external_urls?: SpotifyExternalUrls;
+          genres?: string[];
+        };
+      } catch (error) {
+        this.log(`Failed to fetch artist data: ${getErrorMessage(error)}`);
         return null;
       }
-
-      return (await response.json()) as {
-        name?: string;
-        images?: SpotifyImage[];
-        external_urls?: SpotifyExternalUrls;
-        genres?: string[];
-      };
-    } catch (error) {
-      this.log(`Failed to fetch artist data: ${getErrorMessage(error)}`);
-      return null;
-    }
+    });
   }
 
   /**
@@ -107,60 +117,64 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     limit: number = 50,
     offset: number = 0,
   ): Promise<ArtistRelease[]> {
-    try {
-      const allAlbums: ArtistRelease[] = [];
-      let currentOffset = offset;
-      let remainingLimit = limit;
-      const MAX_LIMIT_PER_REQUEST = 50;
+    const market = await this.getMarket();
+    const cacheKey = `artist-albums:${artistId}:${limit}:${offset}:${market}`;
 
-      while (remainingLimit > 0) {
-        const fetchLimit = Math.min(remainingLimit, MAX_LIMIT_PER_REQUEST);
-        const market = await this.getMarket();
-        const url = `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,compilation&limit=${fetchLimit}&offset=${currentOffset}&market=${market}`;
+    return this.requestCache.getOrSet(cacheKey, async () => {
+      try {
+        const allAlbums: ArtistRelease[] = [];
+        let currentOffset = offset;
+        let remainingLimit = limit;
+        const MAX_LIMIT_PER_REQUEST = 50;
 
-        const response = await this.fetchWithAppToken(url);
+        while (remainingLimit > 0) {
+          const fetchLimit = Math.min(remainingLimit, MAX_LIMIT_PER_REQUEST);
+          const url = `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,compilation&limit=${fetchLimit}&offset=${currentOffset}&market=${market}`;
 
-        if (!response.ok) {
-          if (response.status === 429) {
-            throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+          const response = await this.fetchWithAppToken(url);
+
+          if (!response.ok) {
+            if (response.status === 429) {
+              throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+            }
+            throw new AppError(
+              response.status,
+              "internal_server_error",
+              `Failed to fetch artist albums: ${response.status}`,
+            );
           }
-          throw new AppError(
-            response.status,
-            "internal_server_error",
-            `Failed to fetch artist albums: ${response.status}`,
-          );
+
+          const data = (await response.json()) as SpotifyArtistAlbumsResponse;
+          const albums = data.items ?? [];
+
+          const mappedAlbums = albums.map((album) => ({
+            artistId: album.artists?.[0]?.id || artistId,
+            artistName: album.artists?.[0]?.name || "Unknown Artist",
+            artistImageUrl: null,
+            albumId: album.id as string,
+            albumName: album.name,
+            albumType: album.album_type as AlbumType,
+            releaseDate: album.release_date,
+            coverUrl: album.images?.[0]?.url ?? null,
+            spotifyUrl: album.external_urls?.spotify,
+            totalTracks: album.total_tracks,
+          }));
+
+          allAlbums.push(...mappedAlbums);
+
+          if (albums.length < fetchLimit) {
+            break;
+          }
+
+          currentOffset += albums.length;
+          remainingLimit -= albums.length;
         }
 
-        const data = (await response.json()) as SpotifyArtistAlbumsResponse;
-        const albums = data.items ?? [];
-
-        const mappedAlbums = albums.map((album) => ({
-          artistId: album.artists?.[0]?.id || artistId,
-          artistName: album.artists?.[0]?.name || "Unknown Artist",
-          artistImageUrl: null,
-          albumId: album.id as string,
-          albumName: album.name,
-          albumType: album.album_type as AlbumType,
-          releaseDate: album.release_date,
-          coverUrl: album.images?.[0]?.url ?? null,
-          spotifyUrl: album.external_urls?.spotify,
-          totalTracks: album.total_tracks,
-        }));
-
-        allAlbums.push(...mappedAlbums);
-
-        if (albums.length < fetchLimit) {
-          break; // No more items available
-        }
-
-        currentOffset += albums.length;
-        remainingLimit -= albums.length;
+        return allAlbums;
+      } catch (error) {
+        this.log(`Failed to get artist albums: ${getErrorMessage(error)}`);
+        throw error;
       }
-
-      return allAlbums;
-    } catch (error) {
-      this.log(`Failed to get artist albums: ${getErrorMessage(error)}`);
-      throw error;
-    }
+    });
   }
 }

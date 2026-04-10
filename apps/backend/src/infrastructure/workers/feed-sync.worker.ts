@@ -4,7 +4,7 @@ import { SYNC_STATUS } from "../database/feed.repository";
 import { getEnv } from "../setup/environment";
 import { FEED_SYNC_QUEUE } from "../setup/queues";
 
-const { spotifyUserLibraryService, feedRepository, eventBus } = container;
+const { spotifyUserLibrarySyncService, feedRepository, eventBus } = container;
 
 export function createFeedSyncWorker(): Worker {
   const worker = new Worker(
@@ -13,10 +13,10 @@ export function createFeedSyncWorker(): Worker {
       await feedRepository.setSyncState(SYNC_STATUS.Running);
 
       try {
-        const artists = await spotifyUserLibraryService.getFollowedArtists();
+        const artists = await spotifyUserLibrarySyncService.getFollowedArtists();
         await feedRepository.upsertArtists(artists);
 
-        const releases = await spotifyUserLibraryService.getFollowedArtistsRecentReleases();
+        const releases = await spotifyUserLibrarySyncService.getFollowedArtistsRecentReleases();
         await feedRepository.upsertReleases(releases);
 
         await feedRepository.setSyncState(SYNC_STATUS.Idle);
@@ -32,6 +32,10 @@ export function createFeedSyncWorker(): Worker {
         host: getEnv().REDIS_HOST,
         port: getEnv().REDIS_PORT,
       },
+      concurrency: 1,
+      lockDuration: 5 * 60_000,
+      stalledInterval: 60_000,
+      maxStalledCount: 1,
     },
   );
 

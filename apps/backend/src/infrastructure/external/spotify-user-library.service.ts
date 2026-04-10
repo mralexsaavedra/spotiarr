@@ -20,21 +20,26 @@ const FOLLOWED_ARTISTS_IN_FLIGHT_KEY = "followed-artists:in-flight";
 
 export class SpotifyUserLibraryService extends SpotifyHttpClient {
   private static instance: SpotifyUserLibraryService | null = null;
+  private static syncInstance: SpotifyUserLibraryService | null = null;
   private readonly cache: Map<string, CacheEntry<unknown>> = new Map();
   private readonly inFlightPromises = new PromiseCache({ ttlMs: 30_000 });
 
   private constructor(
     private readonly settingsService: SettingsService,
     authService: SpotifyAuthService,
+    limiterMode: "user" | "sync" = "user",
   ) {
-    super(authService);
+    super(authService, limiterMode);
   }
 
   static getInstance(
     settingsService?: SettingsService,
     authService?: SpotifyAuthService,
+    limiterMode: "user" | "sync" = "user",
   ): SpotifyUserLibraryService {
-    if (!SpotifyUserLibraryService.instance) {
+    const instanceKey = limiterMode === "sync" ? "syncInstance" : "instance";
+
+    if (!SpotifyUserLibraryService[instanceKey]) {
       if (!settingsService || !authService) {
         throw new AppError(
           500,
@@ -42,16 +47,18 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
           "SettingsService and SpotifyAuthService must be provided when initializing SpotifyUserLibraryService",
         );
       }
-      SpotifyUserLibraryService.instance = new SpotifyUserLibraryService(
+      SpotifyUserLibraryService[instanceKey] = new SpotifyUserLibraryService(
         settingsService,
         authService,
+        limiterMode,
       );
     }
-    return SpotifyUserLibraryService.instance;
+    return SpotifyUserLibraryService[instanceKey] as SpotifyUserLibraryService;
   }
 
   static clearGlobalCache(): void {
     SpotifyUserLibraryService.instance?.clearCache();
+    SpotifyUserLibraryService.syncInstance?.clearCache();
   }
 
   private getCacheKey(method: string, ...args: unknown[]): string {
