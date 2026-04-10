@@ -79,20 +79,42 @@ const eventBus = new AppEventBus();
 
 // Spotify
 const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
-const spotifyArtistClient = new SpotifyArtistClient(spotifyAuthService, settingsService);
-const spotifyTrackClient = new SpotifyTrackClient(spotifyAuthService, settingsService);
-const spotifyAlbumClient = new SpotifyAlbumClient(spotifyAuthService, settingsService);
+const spotifyArtistClient = new SpotifyArtistClient(
+  spotifyAuthService,
+  settingsService,
+  "interactive",
+);
+const spotifyTrackClient = new SpotifyTrackClient(
+  spotifyAuthService,
+  settingsService,
+  "interactive",
+);
+const spotifyAlbumClient = new SpotifyAlbumClient(
+  spotifyAuthService,
+  settingsService,
+  "interactive",
+);
 const spotifyPlaylistClient = new SpotifyPlaylistClient(
   spotifyAuthService,
   settingsService,
   spotifyTrackClient,
   spotifyAlbumClient,
+  "interactive",
 );
-const spotifySearchClient = new SpotifySearchClient(spotifyAuthService, settingsService);
+const spotifySearchClient = new SpotifySearchClient(
+  spotifyAuthService,
+  settingsService,
+  "interactive",
+);
 
 const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,
+);
+const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
+  settingsService,
+  spotifyAuthService,
+  "sync",
 );
 const spotifyService = new SpotifyService(
   spotifyArtistClient,
@@ -267,6 +289,7 @@ export const container = {
   spotifyPlaylistClient,
   spotifySearchClient,
   spotifyUserLibraryService,
+  spotifyUserLibrarySyncService,
   spotifyAuthService,
 
   settingsService,

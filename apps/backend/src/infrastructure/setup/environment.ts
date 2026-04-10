@@ -30,6 +30,50 @@ const envSchema = z
     SPOTIFY_CLIENT_ID: z.string().min(1, "SPOTIFY_CLIENT_ID is required"),
     SPOTIFY_CLIENT_SECRET: z.string().min(1, "SPOTIFY_CLIENT_SECRET is required"),
     SPOTIFY_REDIRECT_URI: z.string().url("SPOTIFY_REDIRECT_URI must be a valid URL"),
+    SPOTIFY_INTERACTIVE_MAX_CONCURRENCY: z
+      .string()
+      .regex(/^\d+$/, "SPOTIFY_INTERACTIVE_MAX_CONCURRENCY must be a number")
+      .default("5")
+      .transform(Number)
+      .pipe(z.number().int().min(1).max(20)),
+    SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS: z
+      .string()
+      .regex(/^\d+$/, "SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS must be a number")
+      .default("30000")
+      .transform(Number)
+      .pipe(z.number().int().min(1000).max(120000)),
+    SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS: z
+      .string()
+      .regex(/^\d+$/, "SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS must be a number")
+      .default("50")
+      .transform(Number)
+      .pipe(z.number().int().min(0).max(5000)),
+
+    // Internalized Spotify efficiency controls
+    FEED_SYNC_INTERVAL_MINUTES: z
+      .string()
+      .regex(/^\d+$/, "FEED_SYNC_INTERVAL_MINUTES must be a number")
+      .default("30")
+      .transform(Number)
+      .pipe(z.number().int().min(1).max(1440)),
+    FOLLOWED_ARTISTS_MAX: z
+      .string()
+      .regex(/^\d+$/, "FOLLOWED_ARTISTS_MAX must be a number")
+      .default("200")
+      .transform(Number)
+      .pipe(z.number().int().min(20).max(300)),
+    RELEASES_LOOKBACK_DAYS: z
+      .string()
+      .regex(/^\d+$/, "RELEASES_LOOKBACK_DAYS must be a number")
+      .default("14")
+      .transform(Number)
+      .pipe(z.number().int().min(7).max(90)),
+    RELEASES_CACHE_MINUTES: z
+      .string()
+      .regex(/^\d+$/, "RELEASES_CACHE_MINUTES must be a number")
+      .default("15")
+      .transform(Number)
+      .pipe(z.number().int().min(5).max(240)),
 
     // Redis
     REDIS_HOST: z.string().min(1).default("localhost"),
