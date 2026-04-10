@@ -177,11 +177,11 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
           if (!response.ok) {
             const errorText = await response.text();
             if (response.status === 403) {
-              this.log(
-                `Playlist items not accessible for this user/playlist. Returning metadata with empty tracks. Playlist ID: ${playlistId}`,
-                "warn",
+              throw new AppError(
+                403,
+                "playlist_not_accessible",
+                `This playlist belongs to another user. Since the Spotify API February 2026 update, only tracks from your own playlists can be accessed. Playlist ID: ${playlistId}`,
               );
-              return [];
             }
             if (response.status === 404) {
               throw new AppError(

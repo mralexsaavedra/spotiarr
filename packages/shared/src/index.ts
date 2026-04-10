@@ -134,7 +134,8 @@ export type ApiErrorCode =
   | "track_not_found"
   | "internal_server_error"
   | "failed_to_fetch_artist_detail"
-  | "failed_to_fetch_followed_artists";
+  | "failed_to_fetch_followed_artists"
+  | "playlist_not_accessible";
 
 export interface ApiErrorShape {
   error: ApiErrorCode;
