@@ -74,6 +74,11 @@ const envSchema = z
       .default("15")
       .transform(Number)
       .pipe(z.number().int().min(5).max(240)),
+    YT_SEARCH_CONCURRENCY: z.coerce.number().int().min(1).max(10).default(2),
+    YT_SEARCH_DELAY_MS: z.coerce.number().int().min(500).max(10000).default(1500),
+    YT_DOWNLOADS_PER_MINUTE: z.coerce.number().int().min(1).max(60).default(5),
+    STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES: z.coerce.number().int().min(1).max(60).default(5),
+    STUCK_TRACKS_TIMEOUT_MINUTES: z.coerce.number().int().min(1).max(120).default(10),
 
     // Redis
     REDIS_HOST: z.string().min(1).default("localhost"),
