@@ -16,9 +16,12 @@ export const useArtistAlbumsQuery = ({
   offset,
   enabled = true,
 }: UseArtistAlbumsQueryOptions) => {
+  const STALE_TIME_MS = 5 * 60 * 1000;
+
   return useQuery<ArtistRelease[], Error>({
     queryKey: queryKeys.artistAlbums(artistId, limit, offset),
     queryFn: () => artistService.getArtistAlbums(artistId, limit, offset),
     enabled,
+    staleTime: STALE_TIME_MS,
   });
 };

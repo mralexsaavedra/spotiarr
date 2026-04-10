@@ -1,5 +1,5 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DiscographyFilter } from "@/components/molecules/ArtistDiscographyFilters";
 import { APP_CONFIG } from "@/config/app";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
@@ -19,18 +19,21 @@ export const useArtistDiscographyController = ({
   const [visibleItems, setVisibleItems] = useState(pageSize);
   const [allAlbums, setAllAlbums] = useState<ArtistRelease[]>(initialAlbums);
   const [offset, setOffset] = useState(initialAlbums.length);
-  const [hasFetchedAll, setHasFetchedAll] = useState(false);
+  const [hasFetchedAll, setHasFetchedAll] = useState(initialAlbums.length < pageSize);
+  const shouldFetchMoreRef = useRef(false);
 
   const { data: moreAlbums, isFetching: isLoadingMore } = useArtistAlbumsQuery({
     artistId,
     limit: pageSize,
     offset,
-    enabled: offset > initialAlbums.length && !hasFetchedAll,
+    enabled: shouldFetchMoreRef.current && offset > initialAlbums.length && !hasFetchedAll,
   });
 
   useEffect(() => {
+    shouldFetchMoreRef.current = false;
     setAllAlbums(initialAlbums);
     setOffset(initialAlbums.length);
+    setHasFetchedAll(initialAlbums.length < pageSize);
   }, [initialAlbums]);
 
   useEffect(() => {
@@ -38,23 +41,32 @@ export const useArtistDiscographyController = ({
   }, [filter, pageSize]);
 
   useEffect(() => {
-    if (moreAlbums && moreAlbums.length > 0) {
-      if (moreAlbums.length < pageSize) {
-        setHasFetchedAll(true);
-      }
-
-      setAllAlbums((prev) => {
-        const existingIds = new Set(prev.map((a) => a.albumId));
-        const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
-
-        if (uniqueNewAlbums.length === 0) {
-          return prev;
-        }
-
-        return [...prev, ...uniqueNewAlbums];
-      });
+    if (!moreAlbums || !shouldFetchMoreRef.current) {
+      return;
     }
-  }, [moreAlbums, pageSize]);
+
+    if (moreAlbums.length < pageSize) {
+      setHasFetchedAll(true);
+    }
+
+    if (moreAlbums.length === 0) {
+      shouldFetchMoreRef.current = false;
+      return;
+    }
+
+    const existingIds = new Set(allAlbums.map((a) => a.albumId));
+    const uniqueNewAlbums = moreAlbums.filter((a) => !existingIds.has(a.albumId));
+
+    if (uniqueNewAlbums.length === 0) {
+      setHasFetchedAll(true);
+      shouldFetchMoreRef.current = false;
+      return;
+    }
+
+    setAllAlbums((prev) => [...prev, ...uniqueNewAlbums]);
+
+    shouldFetchMoreRef.current = false;
+  }, [allAlbums, moreAlbums, pageSize]);
 
   const filteredAlbums = useMemo(() => {
     let result = allAlbums;
@@ -74,6 +86,7 @@ export const useArtistDiscographyController = ({
     setVisibleItems((prev) => prev + pageSize);
 
     if (!hasFetchedAll && visibleItems + pageSize >= allAlbums.length) {
+      shouldFetchMoreRef.current = true;
       setOffset((prev) => prev + pageSize);
     }
   }, [pageSize, hasFetchedAll, visibleItems, allAlbums.length]);

@@ -14,10 +14,13 @@ export const useArtistDetailQuery = (
   artistId: string | null,
   limit: number = 12,
 ): UseArtistDetailState => {
+  const STALE_TIME_MS = 5 * 60 * 1000;
+
   const { data, isLoading, error } = useQuery<ArtistDetail, Error>({
     queryKey: [...queryKeys.artistDetail(artistId || ""), limit],
     queryFn: () => artistService.getArtistDetail(artistId!, limit),
     enabled: !!artistId,
+    staleTime: STALE_TIME_MS,
   });
 
   const mappedError = mapSpotifyError(error, "failed_to_fetch_artist_detail");

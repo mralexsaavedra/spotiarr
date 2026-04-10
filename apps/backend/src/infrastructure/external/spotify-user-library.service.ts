@@ -279,6 +279,65 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     }
   }
 
+  async getFollowedArtistsAlbumsSnapshot(limitPerArtist: number = 50): Promise<ArtistRelease[]> {
+    const safeLimit = Math.min(Math.max(limitPerArtist, 1), 50);
+    const cacheKey = this.getCacheKey("getFollowedArtistsAlbumsSnapshot", safeLimit);
+    const cached = await this.getFromCache<ArtistRelease[]>(cacheKey);
+
+    if (cached) {
+      this.log("Returning cached followed artists album snapshot");
+      return cached;
+    }
+
+    const maxArtists = await this.settingsService.getNumber(FOLLOWED_ARTISTS_MAX_KEY);
+    const artists = await this.getFollowedArtistsSnapshot(maxArtists);
+
+    const albumsPerArtist = await Promise.all(
+      artists.slice(0, maxArtists).map(async (artist) => {
+        const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single,compilation&limit=${safeLimit}`;
+        const albumsResponse = await this.fetchWithUserToken(albumsUrl);
+
+        if (!albumsResponse.ok) {
+          const errorText = await albumsResponse.text();
+
+          if (albumsResponse.status === 401) {
+            throw new AppError(
+              401,
+              "missing_user_access_token",
+              "Spotify user token expired or invalid",
+            );
+          }
+
+          this.log(
+            `Failed to fetch album snapshot for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
+            "warn",
+          );
+          return [] as const;
+        }
+
+        const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
+        const albums = albumsData.items ?? [];
+
+        return albums.map((album) => ({
+          artistId: artist.id,
+          artistName: artist.name,
+          artistImageUrl: artist.images?.[0]?.url ?? null,
+          albumId: album.id as string,
+          albumName: album.name,
+          albumType: album.album_type as AlbumType,
+          releaseDate: album.release_date,
+          coverUrl: album.images?.[0]?.url ?? null,
+          spotifyUrl: album.external_urls?.spotify,
+          totalTracks: album.total_tracks,
+        }));
+      }),
+    );
+
+    const flat = albumsPerArtist.flat();
+    this.setCache(cacheKey, flat);
+    return flat;
+  }
+
   async getFollowedArtists(): Promise<FollowedArtist[]> {
     const cacheKey = this.getCacheKey("getFollowedArtists");
     const cached = await this.getFromCache<FollowedArtist[]>(cacheKey);

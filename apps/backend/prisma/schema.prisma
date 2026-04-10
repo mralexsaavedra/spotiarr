@@ -101,6 +101,23 @@ model ArtistReleaseCache {
   @@index([releaseDate])
 }
 
+model ArtistAlbumCache {
+  id              String   @id
+  spotifyArtistId String
+  albumId         String
+  albumName       String
+  albumType       String?
+  releaseDate     String?
+  coverUrl        String?
+  spotifyUrl      String?
+  totalTracks     Int?
+  syncedAt        DateTime
+
+  @@index([spotifyArtistId])
+  @@index([releaseDate])
+  @@index([spotifyArtistId, releaseDate])
+}
+
 model SyncState {
   id         Int       @id @default(1)
   lastSyncAt DateTime?

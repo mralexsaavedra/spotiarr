@@ -19,6 +19,8 @@ export class ArtistController {
 
     const cachedArtist = await this.feedRepository.getArtistBySpotifyId(id);
 
+    const cachedAlbums = await this.feedRepository.getArtistAlbums(id, limit, 0);
+
     const [details, albums] = await Promise.all([
       cachedArtist
         ? Promise.resolve({
@@ -29,7 +31,12 @@ export class ArtistController {
             genres: [],
           })
         : this.spotifyArtistClient.getArtistDetails(id),
-      this.spotifyArtistClient.getArtistAlbums(id, limit),
+      cachedAlbums.length > 0
+        ? Promise.resolve(cachedAlbums)
+        : this.spotifyArtistClient.getArtistAlbums(id, limit).then(async (spotifyAlbums) => {
+            await this.feedRepository.upsertArtistAlbums(spotifyAlbums);
+            return spotifyAlbums;
+          }),
     ]);
 
     return res.json({
@@ -52,7 +59,16 @@ export class ArtistController {
       return res.status(400).json({ error: "missing_artist_id" });
     }
 
+    const cachedCount = await this.feedRepository.getArtistAlbumCount(id);
+
+    if (cachedCount > offset) {
+      const cachedAlbums = await this.feedRepository.getArtistAlbums(id, limit, offset);
+      return res.json(cachedAlbums);
+    }
+
     const albums = await this.spotifyArtistClient.getArtistAlbumsPaginated(id, limit, offset);
+    await this.feedRepository.upsertArtistAlbums(albums);
+
     return res.json(albums);
   };
 }

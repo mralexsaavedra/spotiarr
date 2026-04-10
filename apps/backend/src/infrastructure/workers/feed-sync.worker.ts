@@ -16,6 +16,9 @@ export function createFeedSyncWorker(): Worker {
         const artists = await spotifyUserLibrarySyncService.getFollowedArtists();
         await feedRepository.upsertArtists(artists);
 
+        const artistAlbums = await spotifyUserLibrarySyncService.getFollowedArtistsAlbumsSnapshot();
+        await feedRepository.upsertArtistAlbums(artistAlbums);
+
         const releases = await spotifyUserLibrarySyncService.getFollowedArtistsRecentReleases();
         await feedRepository.upsertReleases(releases);
 

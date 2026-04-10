@@ -34,6 +34,30 @@ interface SyncStateRecord {
 export class FeedRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  private mapArtistAlbumRowToRelease(row: {
+    spotifyArtistId: string;
+    albumId: string;
+    albumName: string;
+    albumType: string | null;
+    releaseDate: string | null;
+    coverUrl: string | null;
+    spotifyUrl: string | null;
+    totalTracks: number | null;
+  }): ArtistRelease {
+    return {
+      artistId: row.spotifyArtistId,
+      artistName: "Unknown Artist",
+      artistImageUrl: null,
+      albumId: row.albumId,
+      albumName: row.albumName,
+      albumType: row.albumType as ArtistRelease["albumType"],
+      releaseDate: row.releaseDate ?? undefined,
+      coverUrl: row.coverUrl,
+      spotifyUrl: row.spotifyUrl ?? undefined,
+      totalTracks: row.totalTracks ?? undefined,
+    };
+  }
+
   async getArtistBySpotifyId(spotifyId: string): Promise<FollowedArtist | null> {
     const row = await this.prisma.followedArtistCache.findUnique({
       where: { spotifyId },
@@ -148,6 +172,68 @@ export class FeedRepository {
             releaseDate: release.releaseDate,
             coverUrl: release.coverUrl,
             spotifyUrl: release.spotifyUrl,
+            syncedAt: now,
+          },
+        });
+      }),
+    );
+  }
+
+  async getArtistAlbumCount(spotifyArtistId: string): Promise<number> {
+    return this.prisma.artistAlbumCache.count({
+      where: { spotifyArtistId },
+    });
+  }
+
+  async getArtistAlbums(
+    spotifyArtistId: string,
+    limit: number,
+    offset: number = 0,
+  ): Promise<ArtistRelease[]> {
+    const rows = await this.prisma.artistAlbumCache.findMany({
+      where: { spotifyArtistId },
+      orderBy: [{ releaseDate: "desc" }, { albumId: "asc" }],
+      skip: offset,
+      take: limit,
+    });
+
+    return rows.map((row) => this.mapArtistAlbumRowToRelease(row));
+  }
+
+  async upsertArtistAlbums(albums: ArtistRelease[]): Promise<void> {
+    if (albums.length === 0) {
+      return;
+    }
+
+    const now = new Date();
+
+    await this.prisma.$transaction(
+      albums.map((album) => {
+        const id = `${album.artistId}:${album.albumId}`;
+
+        return this.prisma.artistAlbumCache.upsert({
+          where: { id },
+          update: {
+            spotifyArtistId: album.artistId,
+            albumId: album.albumId,
+            albumName: album.albumName,
+            albumType: album.albumType,
+            releaseDate: album.releaseDate,
+            coverUrl: album.coverUrl,
+            spotifyUrl: album.spotifyUrl,
+            totalTracks: album.totalTracks ?? null,
+            syncedAt: now,
+          },
+          create: {
+            id,
+            spotifyArtistId: album.artistId,
+            albumId: album.albumId,
+            albumName: album.albumName,
+            albumType: album.albumType,
+            releaseDate: album.releaseDate,
+            coverUrl: album.coverUrl,
+            spotifyUrl: album.spotifyUrl,
+            totalTracks: album.totalTracks ?? null,
             syncedAt: now,
           },
         });
