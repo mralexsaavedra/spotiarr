@@ -22,8 +22,11 @@ interface PlaylistProps {
   isSaved?: boolean;
   displayTitle: string;
   completedCount: number;
+  hasMoreTracks?: boolean;
+  isLoadingMoreTracks?: boolean;
   onRetryTrack: (trackId: string) => void;
   onDownloadTrack: (track: Track) => void;
+  onLoadMoreTracks?: () => void;
   onConfirmDelete: (() => void) | undefined;
   onRetryFailed: () => void;
   onToggleSubscription: () => void;
@@ -40,8 +43,11 @@ export const Playlist: FC<PlaylistProps> = ({
   isSaved = true,
   displayTitle,
   completedCount,
+  hasMoreTracks = false,
+  isLoadingMoreTracks = false,
   onRetryTrack,
   onDownloadTrack,
+  onLoadMoreTracks,
   onConfirmDelete,
   onRetryFailed,
   onToggleSubscription,
@@ -122,6 +128,9 @@ export const Playlist: FC<PlaylistProps> = ({
               tracks={tracks}
               onRetryTrack={onRetryTrack}
               onDownloadTrack={onDownloadTrack}
+              onLoadMoreTracks={onLoadMoreTracks}
+              hasMoreTracks={hasMoreTracks}
+              isLoadingMoreTracks={isLoadingMoreTracks}
             />
           )}
         </div>

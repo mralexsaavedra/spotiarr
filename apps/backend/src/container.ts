@@ -8,6 +8,7 @@ import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "./application/use-cases/playlists/delete-playlist.use-case";
 import { GetMyPlaylistsUseCase } from "./application/use-cases/playlists/get-my-playlists.use-case";
+import { GetPlaylistPreviewTracksPageUseCase } from "./application/use-cases/playlists/get-playlist-preview-tracks-page.use-case";
 import { GetPlaylistPreviewUseCase } from "./application/use-cases/playlists/get-playlist-preview.use-case";
 import { GetPlaylistsUseCase } from "./application/use-cases/playlists/get-playlists.use-case";
 import { GetSystemStatusUseCase } from "./application/use-cases/playlists/get-system-status.use-case";
@@ -190,6 +191,7 @@ const updateSettingUseCase = new UpdateSettingUseCase(
 // Use Cases - Playlists
 const getSystemStatusUseCase = new GetSystemStatusUseCase(playlistRepository);
 const getPlaylistPreviewUseCase = new GetPlaylistPreviewUseCase(spotifyService);
+const getPlaylistPreviewTracksPageUseCase = new GetPlaylistPreviewTracksPageUseCase(spotifyService);
 const getPlaylistsUseCase = new GetPlaylistsUseCase(playlistRepository);
 const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
 const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
@@ -234,6 +236,7 @@ const playlistController = new PlaylistController(
   deletePlaylistUseCase,
   getMyPlaylistsUseCase,
   getPlaylistPreviewUseCase,
+  getPlaylistPreviewTracksPageUseCase,
   getPlaylistsUseCase,
   getSystemStatusUseCase,
   retryPlaylistDownloadsUseCase,

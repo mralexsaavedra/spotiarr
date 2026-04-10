@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { CreatePlaylistUseCase } from "@/application/use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "@/application/use-cases/playlists/delete-playlist.use-case";
 import { GetMyPlaylistsUseCase } from "@/application/use-cases/playlists/get-my-playlists.use-case";
+import { GetPlaylistPreviewTracksPageUseCase } from "@/application/use-cases/playlists/get-playlist-preview-tracks-page.use-case";
 import { GetPlaylistPreviewUseCase } from "@/application/use-cases/playlists/get-playlist-preview.use-case";
 import { GetPlaylistsUseCase } from "@/application/use-cases/playlists/get-playlists.use-case";
 import { GetSystemStatusUseCase } from "@/application/use-cases/playlists/get-system-status.use-case";
@@ -14,6 +15,7 @@ export class PlaylistController {
     private readonly deletePlaylistUseCase: DeletePlaylistUseCase,
     private readonly getMyPlaylistsUseCase: GetMyPlaylistsUseCase,
     private readonly getPlaylistPreviewUseCase: GetPlaylistPreviewUseCase,
+    private readonly getPlaylistPreviewTracksPageUseCase: GetPlaylistPreviewTracksPageUseCase,
     private readonly getPlaylistsUseCase: GetPlaylistsUseCase,
     private readonly getSystemStatusUseCase: GetSystemStatusUseCase,
     private readonly retryPlaylistDownloadsUseCase: RetryPlaylistDownloadsUseCase,
@@ -24,6 +26,25 @@ export class PlaylistController {
     const { url } = req.query as { url: string };
     const preview = await this.getPlaylistPreviewUseCase.execute(url);
     res.json(preview);
+  };
+
+  getPreviewTracks = async (req: Request, res: Response) => {
+    const { url, offset, limit } = req.query as {
+      url: string;
+      offset?: string;
+      limit?: string;
+    };
+
+    const parsedOffset = Number.parseInt(offset ?? "0", 10);
+    const parsedLimit = Number.parseInt(limit ?? "100", 10);
+
+    const page = await this.getPlaylistPreviewTracksPageUseCase.execute(
+      url,
+      Number.isNaN(parsedOffset) ? 0 : parsedOffset,
+      Number.isNaN(parsedLimit) ? 100 : parsedLimit,
+    );
+
+    res.json(page);
   };
 
   getMyPlaylists = async (req: Request, res: Response) => {

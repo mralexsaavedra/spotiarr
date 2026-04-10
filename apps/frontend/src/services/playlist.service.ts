@@ -7,6 +7,13 @@ import {
 import { Playlist } from "@/types";
 import { ApiError, httpClient } from "./httpClient";
 
+interface PlaylistPreviewTracksPage {
+  tracks: PlaylistPreview["tracks"];
+  total: number;
+  hasMore: boolean;
+  nextOffset: number | null;
+}
+
 export const playlistService = {
   getPlaylists: async (): Promise<Playlist[]> => {
     const response = await httpClient.get<{ data: Playlist[] }>(ApiRoutes.PLAYLIST);
@@ -24,6 +31,22 @@ export const playlistService = {
   getPlaylistPreview: async (spotifyUrl: string): Promise<PlaylistPreview> => {
     const params = new URLSearchParams({ url: spotifyUrl });
     return httpClient.get<PlaylistPreview>(`${ApiRoutes.PLAYLIST}/preview?${params.toString()}`);
+  },
+
+  getPlaylistPreviewTracksPage: async (
+    spotifyUrl: string,
+    offset: number,
+    limit: number,
+  ): Promise<PlaylistPreviewTracksPage> => {
+    const params = new URLSearchParams({
+      url: spotifyUrl,
+      offset: String(offset),
+      limit: String(limit),
+    });
+
+    return httpClient.get<PlaylistPreviewTracksPage>(
+      `${ApiRoutes.PLAYLIST}/preview/tracks?${params.toString()}`,
+    );
   },
 
   createPlaylist: async (spotifyUrl: string): Promise<Playlist> => {

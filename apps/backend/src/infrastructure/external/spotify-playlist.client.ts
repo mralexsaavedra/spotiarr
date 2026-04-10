@@ -12,6 +12,13 @@ import { SpotifyTrackClient } from "./spotify-track.client";
 import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyImage, SpotifyPlaylistItem } from "./spotify.types";
 
+export interface PlaylistTracksPage {
+  tracks: NormalizedTrack[];
+  total: number;
+  hasMore: boolean;
+  nextOffset: number | null;
+}
+
 export class SpotifyPlaylistClient extends SpotifyBaseClient {
   private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
 
@@ -246,6 +253,135 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
     } catch (error) {
       this.log(`Failed to get all playlist tracks: ${getErrorMessage(error)}`);
       throw error;
+    }
+  }
+
+  async getPlaylistTracksPage(
+    spotifyUrl: string,
+    offset: number,
+    limit: number,
+  ): Promise<PlaylistTracksPage> {
+    try {
+      this.log(
+        `Getting playlist tracks page for ${spotifyUrl} (offset: ${offset}, limit: ${limit})`,
+      );
+
+      if (!spotifyUrl.includes("/playlist/")) {
+        return {
+          tracks: [],
+          total: 0,
+          hasMore: false,
+          nextOffset: null,
+        };
+      }
+
+      const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
+      const market = await this.getMarket();
+      const safeLimit = Math.max(1, Math.min(limit, 100));
+      const safeOffset = Math.max(0, offset);
+
+      const fields =
+        "total,items(item(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms,is_playable)),next";
+      const requestUrl = `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=${safeOffset}&limit=${safeLimit}&market=${market}&fields=${encodeURIComponent(fields)}`;
+
+      let response: Response;
+
+      try {
+        response = await this.fetchWithUserToken(requestUrl);
+      } catch (userTokenError) {
+        if (
+          userTokenError instanceof AppError &&
+          userTokenError.errorCode === "missing_user_access_token"
+        ) {
+          this.log(
+            `No user token available, falling back to app token without is_playable`,
+            "warn",
+          );
+          const fallbackFields =
+            "total,items(item(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms)),next";
+          const fallbackUrl = `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=${safeOffset}&limit=${safeLimit}&market=${market}&fields=${encodeURIComponent(fallbackFields)}`;
+          response = await this.fetchWithAppToken(fallbackUrl);
+        } else {
+          throw userTokenError;
+        }
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 403) {
+          throw new AppError(
+            403,
+            "playlist_not_accessible",
+            `This playlist belongs to another user. Since the Spotify API February 2026 update, only tracks from your own playlists can be accessed. Playlist ID: ${playlistId}`,
+          );
+        }
+        if (response.status === 404) {
+          throw new AppError(
+            404,
+            "playlist_not_found",
+            `Playlist not found or not accessible. This may be a private playlist or a region-restricted playlist. Playlist ID: ${playlistId}`,
+          );
+        }
+        if (response.status === 429) {
+          throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+        }
+        throw new AppError(
+          response.status >= 500 ? 502 : 500,
+          "internal_server_error",
+          `Failed to fetch playlist tracks page: ${response.status} ${errorText}`,
+        );
+      }
+
+      const data = (await response.json()) as {
+        items?: SpotifyPlaylistItem[];
+        next?: string | null;
+        total?: number;
+      };
+
+      const tracks = (data.items ?? [])
+        .map((item: SpotifyPlaylistItem) => {
+          if (!item.item) {
+            return null;
+          }
+
+          return SpotifyTrackMapper.toNormalizedTrack(item.item, {
+            isUnavailable: item.item.is_playable === false,
+          });
+        })
+        .filter((track: NormalizedTrack | null) => track !== null) as NormalizedTrack[];
+
+      const nextOffset = this.getNextOffsetFromSpotifyNext(data.next);
+      const total = data.total ?? safeOffset + tracks.length;
+
+      return {
+        tracks,
+        total,
+        hasMore: nextOffset !== null,
+        nextOffset,
+      };
+    } catch (error) {
+      this.log(`Failed to get playlist tracks page: ${getErrorMessage(error)}`);
+      throw error;
+    }
+  }
+
+  private getNextOffsetFromSpotifyNext(nextUrl: string | null | undefined): number | null {
+    if (!nextUrl) {
+      return null;
+    }
+
+    try {
+      const parsed = new URL(nextUrl);
+      const offsetParam = parsed.searchParams.get("offset");
+
+      if (!offsetParam) {
+        return null;
+      }
+
+      const parsedOffset = Number.parseInt(offsetParam, 10);
+      return Number.isNaN(parsedOffset) ? null : parsedOffset;
+    } catch {
+      return null;
     }
   }
 }

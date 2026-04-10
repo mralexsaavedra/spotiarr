@@ -12,6 +12,8 @@ export const PlaylistPreview: FC = () => {
     isLoading,
     error,
     isButtonLoading,
+    hasMoreTracks,
+    isLoadingMoreTracks,
     isDownloaded,
     isSaved,
     hasFailed,
@@ -22,6 +24,7 @@ export const PlaylistPreview: FC = () => {
     handleDelete,
     handleRetryFailed,
     handleRetryTrack,
+    handleLoadMoreTracks,
     handleGoBack,
     handleGoHome,
   } = usePlaylistPreviewController();
@@ -49,8 +52,11 @@ export const PlaylistPreview: FC = () => {
       isSaved={isSaved}
       displayTitle={displayTitle}
       completedCount={completedCount}
+      hasMoreTracks={hasMoreTracks}
+      isLoadingMoreTracks={isLoadingMoreTracks}
       onDownloadTrack={handleRetryTrack}
       onDownload={handleDownload}
+      onLoadMoreTracks={handleLoadMoreTracks}
       onRetryTrack={(trackId) => {
         const track = tracks.find((t) => t.id === trackId);
         if (track) handleRetryTrack(track);

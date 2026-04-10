@@ -121,12 +121,18 @@ interface PlaylistTracksListProps {
   tracks: Track[];
   onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
+  onLoadMoreTracks?: () => void;
+  hasMoreTracks?: boolean;
+  isLoadingMoreTracks?: boolean;
 }
 
 export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   tracks,
   onRetryTrack,
   onDownloadTrack,
+  onLoadMoreTracks,
+  hasMoreTracks = false,
+  isLoadingMoreTracks = false,
 }) => {
   const { t } = useTranslation();
   const { getBulkTrackStatus } = useDownloadStatusContext();
@@ -168,7 +174,19 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
       </div>
 
       {/* List */}
-      <VirtualList items={tracks} itemKey={(track) => track.id} renderItem={renderItem} />
+      <VirtualList
+        items={tracks}
+        itemKey={(track) => track.id}
+        renderItem={renderItem}
+        onEndReached={hasMoreTracks ? onLoadMoreTracks : undefined}
+        footer={
+          isLoadingMoreTracks ? (
+            <div className="text-text-secondary py-4 text-center text-sm">
+              {t("common.loading")}
+            </div>
+          ) : undefined
+        }
+      />
     </div>
   );
 };

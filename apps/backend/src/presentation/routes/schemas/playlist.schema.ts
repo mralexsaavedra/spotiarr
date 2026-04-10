@@ -30,6 +30,14 @@ export const playlistPreviewSchema = z.object({
   }),
 });
 
+export const playlistPreviewTracksSchema = z.object({
+  query: z.object({
+    url: z.string().min(1, "url query parameter is required"),
+    offset: z.coerce.number().int().min(0).default(0),
+    limit: z.coerce.number().int().min(1).max(100).default(100),
+  }),
+});
+
 // Schema for playlist ID param
 export const playlistIdSchema = z.object({
   params: z.object({

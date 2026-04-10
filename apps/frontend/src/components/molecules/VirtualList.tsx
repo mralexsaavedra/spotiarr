@@ -6,6 +6,8 @@ interface VirtualListProps<T> {
   renderItem: (item: T, index: number) => ReactNode;
   itemKey?: (item: T) => string;
   emptyState?: ReactNode;
+  onEndReached?: () => void;
+  footer?: ReactNode;
 }
 
 export const VirtualList = <T,>({
@@ -13,6 +15,8 @@ export const VirtualList = <T,>({
   renderItem,
   itemKey,
   emptyState,
+  onEndReached,
+  footer,
 }: VirtualListProps<T>) => {
   const itemContent = useCallback(
     (index: number, item: T) => (
@@ -27,5 +31,16 @@ export const VirtualList = <T,>({
     return <>{emptyState}</>;
   }
 
-  return <Virtuoso useWindowScroll data={items} itemContent={itemContent} overscan={500} />;
+  const Footer = footer ? () => <>{footer}</> : undefined;
+
+  return (
+    <Virtuoso
+      useWindowScroll
+      data={items}
+      itemContent={itemContent}
+      overscan={500}
+      endReached={onEndReached ? () => onEndReached() : undefined}
+      components={Footer ? { Footer } : undefined}
+    />
+  );
 };

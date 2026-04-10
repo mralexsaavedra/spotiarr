@@ -11,6 +11,13 @@ import { SpotifyUrlHelper, SpotifyUrlType } from "../helpers/spotify-url.helper"
 
 export type PlaylistTrack = NormalizedTrack;
 
+export interface PlaylistTracksPageResult {
+  tracks: PlaylistTrack[];
+  total: number;
+  hasMore: boolean;
+  nextOffset: number | null;
+}
+
 export class SpotifyService {
   constructor(
     private readonly spotifyArtistClient: SpotifyArtistClient,
@@ -99,6 +106,24 @@ export class SpotifyService {
       return [];
     }
   }
+
+  async getPlaylistTracksPage(
+    spotifyUrl: string,
+    offset: number,
+    limit: number,
+  ): Promise<PlaylistTracksPageResult> {
+    console.debug(
+      `Get playlist page ${spotifyUrl} on Spotify (offset: ${offset}, limit: ${limit})`,
+    );
+
+    try {
+      return await this.spotifyPlaylistClient.getPlaylistTracksPage(spotifyUrl, offset, limit);
+    } catch (error) {
+      console.error(`Error getting playlist tracks page: ${getErrorMessage(error)}`);
+      throw error;
+    }
+  }
+
   async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
     console.debug(`Get user's playlists on Spotify`);
     try {

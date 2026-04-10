@@ -6,6 +6,7 @@ import {
   createPlaylistSchema,
   playlistIdSchema,
   playlistPreviewSchema,
+  playlistPreviewTracksSchema,
   updatePlaylistSchema,
 } from "./schemas/playlist.schema";
 
@@ -17,6 +18,13 @@ router.get(
   "/preview",
   validate(playlistPreviewSchema),
   asyncHandler(playlistController.getPreview),
+);
+
+// GET /api/playlist/preview/tracks - Get paginated preview tracks from Spotify URL
+router.get(
+  "/preview/tracks",
+  validate(playlistPreviewTracksSchema),
+  asyncHandler(playlistController.getPreviewTracks),
 );
 
 // GET /api/playlist/me - Get user's playlists from Spotify
