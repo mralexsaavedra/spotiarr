@@ -31,16 +31,14 @@ export const VirtualList = <T,>({
     return <>{emptyState}</>;
   }
 
-  const Footer = footer ? () => <>{footer}</> : undefined;
-
   return (
     <Virtuoso
       useWindowScroll
       data={items}
       itemContent={itemContent}
       overscan={500}
-      endReached={onEndReached ? () => onEndReached() : undefined}
-      components={Footer ? { Footer } : undefined}
+      endReached={onEndReached}
+      {...(footer && { components: { Footer: () => <>{footer}</> } })}
     />
   );
 };
