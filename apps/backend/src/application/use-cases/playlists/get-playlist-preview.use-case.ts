@@ -5,7 +5,7 @@ export class GetPlaylistPreviewUseCase {
   constructor(private readonly spotifyService: SpotifyService) {}
 
   async execute(spotifyUrl: string): Promise<PlaylistPreview> {
-    const details = await this.spotifyService.getPlaylistDetail(spotifyUrl);
+    const details = await this.spotifyService.getPlaylistDetail(spotifyUrl, true);
 
     return {
       name: details.name,

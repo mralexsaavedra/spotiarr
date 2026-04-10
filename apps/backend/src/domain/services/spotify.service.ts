@@ -21,7 +21,10 @@ export class SpotifyService {
     private readonly spotifyUserLibraryService: SpotifyUserLibraryService,
   ) {}
 
-  async getPlaylistDetail(spotifyUrl: string): Promise<{
+  async getPlaylistDetail(
+    spotifyUrl: string,
+    previewOnly = false,
+  ): Promise<{
     name: string;
     tracks: PlaylistTrack[];
     image: string;
@@ -58,7 +61,10 @@ export class SpotifyService {
       } else if (urlType === SpotifyUrlType.Playlist) {
         const metadata = await this.spotifyPlaylistClient.getPlaylistMetadata(spotifyUrl);
 
-        const tracks = await this.spotifyPlaylistClient.getAllPlaylistTracks(spotifyUrl, true);
+        const tracks = await this.spotifyPlaylistClient.getAllPlaylistTracks(
+          spotifyUrl,
+          previewOnly,
+        );
 
         return {
           name: metadata.name,
