@@ -143,8 +143,9 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
         const allTracks: NormalizedTrack[] = [];
         const market = await this.getMarket();
         // is_playable requires user token — always use user token for playlist items
+        // Since Spotify Feb 2026, the item wrapper field is 'item', not 'track'
         const fields =
-          "items(track(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms,is_playable)),next";
+          "items(item(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms,is_playable)),next";
         let nextUrl: string | null =
           `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=0&limit=100&market=${market}&fields=${encodeURIComponent(fields)}`;
 
@@ -166,7 +167,7 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
                 "warn",
               );
               const fallbackFields =
-                "items(track(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms)),next";
+                "items(item(name,artists(name,external_urls,id),preview_url,external_urls,album(name,release_date,images,external_urls,total_tracks),track_number,duration_ms)),next";
               const fallbackUrl = `https://api.spotify.com/v1/playlists/${playlistId}/items?offset=0&limit=100&market=${market}&fields=${encodeURIComponent(fallbackFields)}`;
               response = await this.fetchWithAppToken(fallbackUrl);
             } else {
@@ -214,12 +215,12 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
 
           const pageTracks = (data.items ?? [])
             .map((item: SpotifyPlaylistItem) => {
-              if (!item.track) {
+              if (!item.item) {
                 return null;
               }
 
-              return SpotifyTrackMapper.toNormalizedTrack(item.track, {
-                isUnavailable: item.track.is_playable === false,
+              return SpotifyTrackMapper.toNormalizedTrack(item.item, {
+                isUnavailable: item.item.is_playable === false,
               });
             })
             .filter((track: NormalizedTrack | null) => track !== null) as typeof allTracks;

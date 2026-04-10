@@ -40,7 +40,8 @@ export interface SpotifyAlbumTracksResponse {
 }
 
 export interface SpotifyPlaylistItem {
-  track?: SpotifyTrack | null;
+  // Spotify /playlists/{id}/items returns items[].item (renamed from .track in Feb 2026)
+  item?: SpotifyTrack | null;
 }
 
 export interface SpotifyCursor {
