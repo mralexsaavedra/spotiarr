@@ -36,7 +36,6 @@ Use this skill when:
 ### Dedicated bridge files
 
 - `.cursorrules` — Cursor
-- `.windsurfrules` — Windsurf
 - `.github/copilot-instructions.md` — GitHub Copilot / VSCode
 
 ### Registry files
