@@ -1,6 +1,7 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import cron from "node-cron";
 import { container } from "../../container";
+import { startFeedSyncJob } from "./feed-sync.job";
 
 const { playlistService, settingsService, trackService, eventBus } = container;
 
@@ -71,5 +72,6 @@ export const cleanStuckTracksJob = cron.schedule("* * * * *", async () => {
 export function startScheduledJobs(): void {
   checkPlaylistsJob.start();
   cleanStuckTracksJob.start();
+  startFeedSyncJob();
   console.log("✅ Scheduled jobs started (intervals configurable in Settings)");
 }

@@ -7,7 +7,11 @@ import { startScheduledJobs } from "./infrastructure/jobs";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
 import { initializeQueues } from "./infrastructure/setup/queues";
-import { getTrackDownloadQueue, getTrackSearchQueue } from "./infrastructure/setup/queues";
+import {
+  getFeedSyncQueue,
+  getTrackDownloadQueue,
+  getTrackSearchQueue,
+} from "./infrastructure/setup/queues";
 
 // Validate environment variables first
 validateEnvironment();
@@ -18,6 +22,7 @@ const PORT = 3000;
 // Worker references for shutdown
 let downloadWorker: import("bullmq").Worker;
 let searchWorker: import("bullmq").Worker;
+let feedSyncWorker: import("bullmq").Worker;
 
 async function bootstrap() {
   console.log("🚀 Starting SpotiArr Backend...\n");
@@ -39,6 +44,9 @@ async function bootstrap() {
 
   const { createTrackSearchWorker } = await import("./infrastructure/workers/track-search.worker");
   searchWorker = await createTrackSearchWorker();
+
+  const { createFeedSyncWorker } = await import("./infrastructure/workers/feed-sync.worker");
+  feedSyncWorker = createFeedSyncWorker();
 
   // Listen for settings updates to hot-reload workers
   (container.eventBus as unknown as EventEmitter).on(
@@ -96,8 +104,10 @@ const gracefulShutdown = async (signal: string, server: http.Server) => {
     await Promise.allSettled([
       getTrackDownloadQueue().close(),
       getTrackSearchQueue().close(),
+      getFeedSyncQueue().close(),
       downloadWorker?.close(),
       searchWorker?.close(),
+      feedSyncWorker?.close(),
     ]);
     console.log("✅ Queues and workers closed");
 

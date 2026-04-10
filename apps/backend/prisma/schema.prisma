@@ -75,3 +75,35 @@ model DownloadHistory {
   completedAt       BigInt
   createdAt         BigInt @default(0)
 }
+
+model FollowedArtistCache {
+  spotifyId String              @id
+  name      String
+  imageUrl  String?
+  spotifyUrl String?
+  syncedAt  DateTime
+  releases  ArtistReleaseCache[]
+}
+
+model ArtistReleaseCache {
+  id          String              @id
+  artistId    String
+  artist      FollowedArtistCache @relation(fields: [artistId], references: [spotifyId], onDelete: Cascade)
+  albumId     String
+  albumName   String
+  albumType   String?
+  releaseDate String?
+  coverUrl    String?
+  spotifyUrl  String?
+  syncedAt    DateTime
+
+  @@index([artistId])
+  @@index([releaseDate])
+}
+
+model SyncState {
+  id         Int       @id @default(1)
+  lastSyncAt DateTime?
+  status     String    @default("idle")
+  error      String?
+}

@@ -1,0 +1,168 @@
+import type { PrismaClient } from "@prisma/client";
+import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
+
+export const SYNC_STATUS = {
+  Idle: "idle",
+  Running: "running",
+  Error: "error",
+} as const;
+
+export type SyncStatus = (typeof SYNC_STATUS)[keyof typeof SYNC_STATUS];
+
+const parseSpotifyDate = (value?: string | null): Date | null => {
+  if (!value) return null;
+
+  const parts = value.split("-");
+  const year = Number(parts[0]);
+  let month = parts.length >= 2 ? Number(parts[1]) - 1 : 0;
+  let day = parts.length >= 3 ? Number(parts[2]) : 1;
+
+  if (Number.isNaN(year) || year <= 0) return null;
+  if (Number.isNaN(month) || month < 0 || month > 11) month = 0;
+  if (Number.isNaN(day) || day <= 0 || day > 31) day = 1;
+
+  return new Date(year, month, day);
+};
+
+interface SyncStateRecord {
+  id: number;
+  lastSyncAt: Date | null;
+  status: string;
+  error: string | null;
+}
+
+export class FeedRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  async getReleases(lookbackDays: number): Promise<ArtistRelease[]> {
+    const safeLookbackDays = lookbackDays > 0 ? lookbackDays : 30;
+    const cutoff = new Date(Date.now() - safeLookbackDays * 24 * 60 * 60 * 1000);
+
+    const rows = await this.prisma.artistReleaseCache.findMany({
+      include: { artist: true },
+      orderBy: { releaseDate: "desc" },
+    });
+
+    const mapped = rows
+      .map<ArtistRelease>((row) => ({
+        artistId: row.artistId,
+        artistName: row.artist.name,
+        artistImageUrl: row.artist.imageUrl ?? null,
+        albumId: row.albumId,
+        albumName: row.albumName,
+        albumType: row.albumType as ArtistRelease["albumType"],
+        releaseDate: row.releaseDate ?? undefined,
+        coverUrl: row.coverUrl ?? null,
+        spotifyUrl: row.spotifyUrl ?? undefined,
+      }))
+      .filter((release) => {
+        const parsedReleaseDate = parseSpotifyDate(release.releaseDate);
+        return parsedReleaseDate ? parsedReleaseDate >= cutoff : false;
+      });
+
+    mapped.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
+
+    return mapped;
+  }
+
+  async getArtists(): Promise<FollowedArtist[]> {
+    const rows = await this.prisma.followedArtistCache.findMany({
+      orderBy: { name: "asc" },
+    });
+
+    return rows.map((row) => ({
+      id: row.spotifyId,
+      name: row.name,
+      image: row.imageUrl ?? null,
+      spotifyUrl: row.spotifyUrl ?? null,
+    }));
+  }
+
+  async upsertArtists(artists: FollowedArtist[]): Promise<void> {
+    const now = new Date();
+
+    await this.prisma.$transaction(
+      artists.map((artist) =>
+        this.prisma.followedArtistCache.upsert({
+          where: { spotifyId: artist.id },
+          update: {
+            name: artist.name,
+            imageUrl: artist.image,
+            spotifyUrl: artist.spotifyUrl,
+            syncedAt: now,
+          },
+          create: {
+            spotifyId: artist.id,
+            name: artist.name,
+            imageUrl: artist.image,
+            spotifyUrl: artist.spotifyUrl,
+            syncedAt: now,
+          },
+        }),
+      ),
+    );
+  }
+
+  async upsertReleases(releases: ArtistRelease[]): Promise<void> {
+    const now = new Date();
+
+    await this.prisma.$transaction(
+      releases.map((release) => {
+        const id = `${release.artistId}:${release.albumId}`;
+
+        return this.prisma.artistReleaseCache.upsert({
+          where: { id },
+          update: {
+            artistId: release.artistId,
+            albumId: release.albumId,
+            albumName: release.albumName,
+            albumType: release.albumType,
+            releaseDate: release.releaseDate,
+            coverUrl: release.coverUrl,
+            spotifyUrl: release.spotifyUrl,
+            syncedAt: now,
+          },
+          create: {
+            id,
+            artistId: release.artistId,
+            albumId: release.albumId,
+            albumName: release.albumName,
+            albumType: release.albumType,
+            releaseDate: release.releaseDate,
+            coverUrl: release.coverUrl,
+            spotifyUrl: release.spotifyUrl,
+            syncedAt: now,
+          },
+        });
+      }),
+    );
+  }
+
+  async getSyncState(): Promise<SyncStateRecord> {
+    return this.prisma.syncState.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
+        status: SYNC_STATUS.Idle,
+      },
+    });
+  }
+
+  async setSyncState(status: SyncStatus, error?: string): Promise<void> {
+    await this.prisma.syncState.upsert({
+      where: { id: 1 },
+      update: {
+        status,
+        error: error ?? null,
+        lastSyncAt: status === SYNC_STATUS.Running ? undefined : new Date(),
+      },
+      create: {
+        id: 1,
+        status,
+        error: error ?? null,
+        lastSyncAt: status === SYNC_STATUS.Running ? null : new Date(),
+      },
+    });
+  }
+}

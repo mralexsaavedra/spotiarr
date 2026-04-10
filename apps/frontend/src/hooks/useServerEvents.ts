@@ -31,6 +31,11 @@ export const useServerEvents = () => {
       });
     });
 
+    eventSource.addEventListener("feed-updated", () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.releases });
+      queryClient.invalidateQueries({ queryKey: queryKeys.followedArtists });
+    });
+
     eventSource.onerror = (error) => {
       console.error("EventSource failed:", error);
     };

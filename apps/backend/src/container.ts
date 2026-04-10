@@ -25,6 +25,7 @@ import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.use-case";
 import { SpotifyService } from "./domain/services/spotify.service";
+import { FeedRepository } from "./infrastructure/database/feed.repository";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
@@ -44,6 +45,7 @@ import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.
 import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
+import { prisma } from "./infrastructure/setup/prisma";
 import { ArtistController } from "./presentation/controllers/artist.controller";
 import { AuthController } from "./presentation/controllers/auth.controller";
 import { EventsController } from "./presentation/controllers/events.controller";
@@ -61,6 +63,7 @@ const playlistRepository = new PrismaPlaylistRepository();
 const trackRepository = new PrismaTrackRepository();
 const historyRepository = new PrismaHistoryRepository();
 const settingsRepository = new PrismaSettingsRepository();
+const feedRepository = new FeedRepository(prisma);
 
 // Services (Base)
 const settingsService = new SettingsService(settingsRepository);
@@ -77,27 +80,15 @@ const eventBus = new AppEventBus();
 // Spotify
 const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
 const spotifyArtistClient = new SpotifyArtistClient(spotifyAuthService, settingsService);
-const spotifyTrackClient = new SpotifyTrackClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyArtistClient,
-);
-const spotifyAlbumClient = new SpotifyAlbumClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyArtistClient,
-);
+const spotifyTrackClient = new SpotifyTrackClient(spotifyAuthService, settingsService);
+const spotifyAlbumClient = new SpotifyAlbumClient(spotifyAuthService, settingsService);
 const spotifyPlaylistClient = new SpotifyPlaylistClient(
   spotifyAuthService,
   settingsService,
   spotifyTrackClient,
   spotifyAlbumClient,
 );
-const spotifySearchClient = new SpotifySearchClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyArtistClient,
-);
+const spotifySearchClient = new SpotifySearchClient(spotifyAuthService, settingsService);
 
 const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
   settingsService,
@@ -245,7 +236,11 @@ const settingsController = new SettingsController(getSettingsUseCase, updateSett
 const historyUseCases = new HistoryUseCases({ repository: historyRepository });
 const historyController = new HistoryController(historyUseCases);
 
-const feedController = new FeedController(spotifyUserLibraryService);
+const feedController = new FeedController(
+  spotifyUserLibraryService,
+  feedRepository,
+  settingsService,
+);
 const authController = new AuthController(spotifyAuthService, settingsService);
 const healthController = new HealthController();
 const eventsController = new EventsController();
@@ -282,4 +277,5 @@ export const container = {
   trackPostProcessingService,
   rescueStuckTracksUseCase,
   libraryService,
+  feedRepository,
 };
