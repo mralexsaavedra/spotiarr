@@ -34,20 +34,23 @@ interface SyncStateRecord {
 export class FeedRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  private mapArtistAlbumRowToRelease(row: {
-    spotifyArtistId: string;
-    albumId: string;
-    albumName: string;
-    albumType: string | null;
-    releaseDate: string | null;
-    coverUrl: string | null;
-    spotifyUrl: string | null;
-    totalTracks: number | null;
-  }): ArtistRelease {
+  private mapArtistAlbumRowToRelease(
+    row: {
+      spotifyArtistId: string;
+      albumId: string;
+      albumName: string;
+      albumType: string | null;
+      releaseDate: string | null;
+      coverUrl: string | null;
+      spotifyUrl: string | null;
+      totalTracks: number | null;
+    },
+    artistMeta?: { name?: string | null; imageUrl?: string | null },
+  ): ArtistRelease {
     return {
       artistId: row.spotifyArtistId,
-      artistName: "Unknown Artist",
-      artistImageUrl: null,
+      artistName: artistMeta?.name ?? "Unknown Artist",
+      artistImageUrl: artistMeta?.imageUrl ?? null,
       albumId: row.albumId,
       albumName: row.albumName,
       albumType: row.albumType as ArtistRelease["albumType"],
@@ -191,7 +194,15 @@ export class FeedRepository {
       take: limit,
     });
 
-    return rows.map((row) => this.mapArtistAlbumRowToRelease(row));
+    const artistRow = await this.prisma.followedArtistCache.findUnique({
+      where: { spotifyId: spotifyArtistId },
+    });
+
+    const artistMeta = artistRow
+      ? { name: artistRow.name, imageUrl: artistRow.imageUrl }
+      : undefined;
+
+    return rows.map((row) => this.mapArtistAlbumRowToRelease(row, artistMeta));
   }
 
   async upsertArtistAlbums(albums: ArtistRelease[]): Promise<void> {
