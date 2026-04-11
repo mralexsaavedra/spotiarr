@@ -253,7 +253,11 @@ const scanLibraryUseCase = new ScanLibraryUseCase(
 const libraryService = new LibraryService(scanLibraryUseCase);
 
 const libraryController = new LibraryController(libraryService);
-const artistController = new ArtistController(spotifyArtistClient, feedRepository);
+const artistController = new ArtistController(
+  spotifyArtistClient,
+  feedRepository,
+  spotifyAlbumClient,
+);
 const searchController = new SearchController(spotifyService);
 
 const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);

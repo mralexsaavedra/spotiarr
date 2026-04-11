@@ -8,6 +8,7 @@ interface VirtualGridProps<T> {
   itemKey: (item: T) => string;
   emptyState?: ReactNode;
   footer?: ReactNode;
+  endReached?: () => void;
 }
 
 export const VirtualGrid = <T,>({
@@ -16,6 +17,7 @@ export const VirtualGrid = <T,>({
   itemKey,
   emptyState,
   footer,
+  endReached,
 }: VirtualGridProps<T>) => {
   const columns = useGridColumns();
 
@@ -61,6 +63,7 @@ export const VirtualGrid = <T,>({
       components={virtuosoComponents}
       itemContent={itemContent}
       overscan={500}
+      endReached={endReached}
     />
   );
 };

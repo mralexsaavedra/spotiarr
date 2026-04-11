@@ -10,6 +10,7 @@ import { useArtistDiscographyController } from "./useArtistDiscographyController
 
 const EMPTY_ALBUMS: ArtistRelease[] = [];
 const DETAIL_PAGE_SIZE = 25;
+const NON_FOLLOWED_INITIAL_LIMIT = 5;
 
 export const useArtistDetailController = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,12 +18,20 @@ export const useArtistDetailController = () => {
   const columns = useGridColumns();
   const pageSize = columns * 2;
 
+  // Use isFollowed from API response to determine initial limit
+  // Backend enforces album cap: non-followed artists get max 5 albums
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, DETAIL_PAGE_SIZE);
   const createPlaylistMutation = useCreatePlaylistMutation();
 
   const { isPlaylistDownloaded } = useDownloadStatusContext();
   const isArtistDownloaded = isPlaylistDownloaded(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
+
+  // Determine if we should show more options based on followed status
+  // Non-followed artists are capped at 5 albums by the backend
+  const isFollowed = artist?.isFollowed ?? false;
+  const canShowMoreOptions =
+    isFollowed && (artist?.albums.length ?? 0) >= NON_FOLLOWED_INITIAL_LIMIT;
 
   const {
     filter,
@@ -31,11 +40,17 @@ export const useArtistDetailController = () => {
     visibleItems,
     isLoadingMore,
     handleShowMore,
+    handleAlbumExpand,
+    handleAlbumExpandClose,
     canShowMore,
+    expandedAlbum,
+    albumTracks,
+    isLoadingTracks,
   } = useArtistDiscographyController({
     artistId: id!,
     initialAlbums: artist?.albums || EMPTY_ALBUMS,
     pageSize,
+    hasMore: canShowMoreOptions,
   });
 
   const handleDownload = useCallback(
@@ -76,6 +91,7 @@ export const useArtistDetailController = () => {
     error,
     hasArtist,
     isArtistDownloaded,
+    isFollowed,
     filter,
     setFilter,
     filteredAlbums,
@@ -87,5 +103,10 @@ export const useArtistDetailController = () => {
     handleDownload,
     handleNavigate,
     handleArtistClick,
+    handleAlbumExpand,
+    handleAlbumExpandClose,
+    expandedAlbum,
+    albumTracks,
+    isLoadingTracks,
   };
 };

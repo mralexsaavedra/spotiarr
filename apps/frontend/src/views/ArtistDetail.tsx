@@ -30,6 +30,11 @@ export const ArtistDetail: FC = () => {
     handleDownload,
     handleNavigate,
     handleArtistClick,
+    handleAlbumExpand,
+    handleAlbumExpandClose,
+    expandedAlbum,
+    albumTracks,
+    isLoadingTracks,
   } = useArtistDetailController();
 
   if (isLoading) {
@@ -100,6 +105,11 @@ export const ArtistDetail: FC = () => {
             onDownload={handleDownload}
             onDiscographyItemClick={handleNavigate}
             onArtistClick={handleArtistClick}
+            onAlbumExpand={handleAlbumExpand}
+            onAlbumExpandClose={handleAlbumExpandClose}
+            expandedAlbum={expandedAlbum}
+            albumTracks={albumTracks}
+            isLoadingTracks={isLoadingTracks}
           />
         ) : (
           <div className="text-text-secondary mt-10 text-center">

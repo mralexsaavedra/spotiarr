@@ -1,4 +1,10 @@
-import { ApiRoutes, ArtistDetail, ArtistRelease, FollowedArtist } from "@spotiarr/shared";
+import {
+  ApiRoutes,
+  ArtistDetail,
+  ArtistRelease,
+  FollowedArtist,
+  NormalizedTrack,
+} from "@spotiarr/shared";
 import { httpClient } from "./httpClient";
 
 export const artistService = {
@@ -27,6 +33,12 @@ export const artistService = {
 
     return httpClient.get<ArtistRelease[]>(
       `${ApiRoutes.ARTIST}/${artistId}/albums?${params.toString()}`,
+    );
+  },
+
+  getAlbumTracks: async (artistId: string, albumId: string): Promise<NormalizedTrack[]> => {
+    return httpClient.get<NormalizedTrack[]>(
+      `${ApiRoutes.ARTIST}/${artistId}/albums/${albumId}/tracks`,
     );
   },
 };

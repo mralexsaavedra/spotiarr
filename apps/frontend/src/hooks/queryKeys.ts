@@ -15,6 +15,8 @@ export const queryKeys = {
   artistDetail: (artistId: string) => ["artist-detail", artistId] as const,
   artistAlbums: (artistId: string, limit: number, offset: number) =>
     ["artist-albums", artistId, limit, offset] as const,
+  artistAlbumTracks: (artistId: string, albumId: string) =>
+    ["artist-album-tracks", artistId, albumId] as const,
   spotifyAuthStatus: ["spotify-auth-status"] as const,
   library: ["library"] as const,
   libraryStats: ["library", "stats"] as const,

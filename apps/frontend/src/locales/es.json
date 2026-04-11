@@ -6,6 +6,7 @@
     "clearAll": "Limpiar todo",
     "search": "Buscar",
     "filter": "Filtrar",
+    "close": "Cerrar",
     "unknownError": "Error desconocido",
     "downloadAll": "Descargar todo",
     "downloaded": "Descargado",
@@ -57,7 +58,8 @@
         "alreadyDownloaded": "Ya descargado",
         "downloading": "Descargando...",
         "download": "Descargar",
-        "subscribed": "Suscrito"
+        "subscribed": "Suscrito",
+        "viewTracks": "Ver canciones"
       },
       "status": {
         "downloading": "Descargando...",
@@ -178,6 +180,9 @@
       "title": "Discografía",
       "emptyFiltered": "No se encontraron lanzamientos para esta categoría.",
       "showMore": "Mostrar más"
+    },
+    "albums": {
+      "noTracks": "No hay canciones disponibles para este álbum."
     }
   },
   "artists": {

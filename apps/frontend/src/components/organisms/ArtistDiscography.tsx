@@ -1,4 +1,4 @@
-import { ArtistRelease } from "@spotiarr/shared";
+import { ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
@@ -6,6 +6,7 @@ import { Button } from "../atoms/Button";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
 import { VirtualGrid } from "../molecules/VirtualGrid";
+import { TracksModal } from "./TracksModal";
 
 interface ArtistDiscographyProps {
   artistId: string;
@@ -20,6 +21,11 @@ interface ArtistDiscographyProps {
   onDownload: (url: string) => void;
   onDiscographyItemClick: (url: string) => void;
   onArtistClick: (artistId: string) => void;
+  onAlbumExpand: (album: ArtistRelease) => void;
+  onAlbumExpandClose: () => void;
+  expandedAlbum: ArtistRelease | null;
+  albumTracks: NormalizedTrack[];
+  isLoadingTracks: boolean;
 }
 
 interface DiscographyItemProps {
@@ -29,10 +35,19 @@ interface DiscographyItemProps {
   onDiscographyItemClick: (url: string) => void;
   onDownload: (url: string) => void;
   onArtistClick: (artistId: string) => void;
+  onExpandClick: (album: ArtistRelease) => void;
 }
 
 const DiscographyItem: FC<DiscographyItemProps> = memo(
-  ({ album, isDownloaded, isDownloading, onDiscographyItemClick, onDownload, onArtistClick }) => {
+  ({
+    album,
+    isDownloaded,
+    isDownloading,
+    onDiscographyItemClick,
+    onDownload,
+    onArtistClick,
+    onExpandClick,
+  }) => {
     const handleCardClick = useCallback(() => {
       if (album.spotifyUrl) {
         onDiscographyItemClick(album.spotifyUrl);
@@ -47,6 +62,14 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
         }
       },
       [album.spotifyUrl, onDownload],
+    );
+
+    const handleExpandClick = useCallback(
+      (e: MouseEvent) => {
+        e.stopPropagation();
+        onExpandClick(album);
+      },
+      [album, onExpandClick],
     );
 
     return (
@@ -64,6 +87,7 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}
         onArtistClick={onArtistClick}
+        onExpandClick={handleExpandClick}
       />
     );
   },
@@ -80,6 +104,11 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   onDownload,
   onDiscographyItemClick,
   onArtistClick,
+  onAlbumExpand,
+  onAlbumExpandClose,
+  expandedAlbum,
+  albumTracks,
+  isLoadingTracks,
 }) => {
   const { t } = useTranslation();
   const { getBulkPlaylistStatus } = useDownloadStatusContext();
@@ -113,10 +142,11 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
           onDiscographyItemClick={onDiscographyItemClick}
           onDownload={onDownload}
           onArtistClick={onArtistClick}
+          onExpandClick={onAlbumExpand}
         />
       );
     },
-    [downloadStatesMap, onDiscographyItemClick, onDownload, onArtistClick],
+    [downloadStatesMap, onDiscographyItemClick, onDownload, onArtistClick, onAlbumExpand],
   );
 
   return (
@@ -154,6 +184,16 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
           />
         </>
       )}
+
+      <TracksModal
+        isOpen={!!expandedAlbum}
+        albumName={expandedAlbum?.albumName ?? ""}
+        artistName={expandedAlbum?.artistName ?? ""}
+        coverUrl={expandedAlbum?.coverUrl}
+        tracks={albumTracks}
+        isLoading={isLoadingTracks}
+        onClose={onAlbumExpandClose}
+      />
     </div>
   );
 };

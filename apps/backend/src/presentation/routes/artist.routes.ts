@@ -9,4 +9,6 @@ router.get("/:id", asyncHandler(artistController.getArtistDetail));
 
 router.get("/:id/albums", asyncHandler(artistController.getArtistAlbums));
 
+router.get("/:id/albums/:albumId/tracks", asyncHandler(artistController.getAlbumTracks));
+
 export default router;

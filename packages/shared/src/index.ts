@@ -210,6 +210,7 @@ export interface ArtistDetail {
   followers?: number | null;
   genres?: string[];
   albums: ArtistRelease[];
+  isFollowed: boolean;
 }
 
 export interface SettingItem {
