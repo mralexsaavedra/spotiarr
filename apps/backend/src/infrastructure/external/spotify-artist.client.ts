@@ -8,13 +8,13 @@ import { SpotifyBaseClient } from "./spotify-base.client";
 import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyArtistAlbumsResponse, SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
 
-const ALBUM_PAGE_SIZE = 25;
-const SPOTIFY_MAX_LIMIT = 50;
+// Spotify /artists/{id}/albums endpoint caps limit at 10 (API change Mar 2026)
+const SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT = 10;
+const ALBUM_PAGE_SIZE = 10;
 
 function normalizeAlbumLimit(n: number): number {
   if (!Number.isFinite(n) || n <= 0) return ALBUM_PAGE_SIZE;
-  const normalized = Math.ceil(n / ALBUM_PAGE_SIZE) * ALBUM_PAGE_SIZE;
-  return Math.min(normalized, SPOTIFY_MAX_LIMIT);
+  return Math.min(n, SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT);
 }
 
 export class SpotifyArtistClient extends SpotifyBaseClient {
@@ -132,7 +132,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
 
     return this.requestCache.getOrSet(cacheKey, async () => {
       try {
-        if (effectiveLimit <= SPOTIFY_MAX_LIMIT) {
+        if (effectiveLimit <= SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT) {
           return this.fetchArtistAlbumsPage(artistId, effectiveLimit, offset, market);
         }
 
@@ -141,7 +141,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
         let remainingLimit = effectiveLimit;
 
         while (remainingLimit > 0) {
-          const fetchLimit = Math.min(remainingLimit, SPOTIFY_MAX_LIMIT);
+          const fetchLimit = Math.min(remainingLimit, SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT);
           const mappedAlbums = await this.fetchArtistAlbumsPage(
             artistId,
             fetchLimit,
@@ -178,7 +178,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     return this.requestCache.getOrSet(cacheKey, async () => {
       return this.fetchArtistAlbumsPage(
         artistId,
-        Math.min(limit, SPOTIFY_MAX_LIMIT),
+        Math.min(limit, SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT),
         offset,
         market,
       );
