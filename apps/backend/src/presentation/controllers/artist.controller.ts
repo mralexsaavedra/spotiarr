@@ -62,7 +62,8 @@ export class ArtistController {
       return res.json(response);
     }
 
-    const limit = parseInt(req.query.limit as string) || 12;
+    const limitRaw = parseInt(req.query.limit as string, 10);
+    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 25;
 
     pruneActiveDetailRequests();
 
@@ -114,8 +115,10 @@ export class ArtistController {
 
   getArtistAlbums = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const limit = parseInt(req.query.limit as string) || 50;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limitRaw = parseInt(req.query.limit as string, 10);
+    const offsetRaw = parseInt(req.query.offset as string, 10);
+    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 50) : 25;
+    const offset = Number.isFinite(offsetRaw) && offsetRaw >= 0 ? offsetRaw : 0;
 
     if (!id) {
       return res.status(400).json({ error: "missing_artist_id" });

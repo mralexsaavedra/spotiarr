@@ -8,14 +8,17 @@ import { SpotifyBaseClient } from "./spotify-base.client";
 import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyArtistAlbumsResponse, SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
 
+const ALBUM_PAGE_SIZE = 25;
+const SPOTIFY_MAX_LIMIT = 50;
+
 function normalizeAlbumLimit(n: number): number {
-  if (n <= 0) return 25;
-  return Math.ceil(n / 25) * 25;
+  if (!Number.isFinite(n) || n <= 0) return ALBUM_PAGE_SIZE;
+  const normalized = Math.ceil(n / ALBUM_PAGE_SIZE) * ALBUM_PAGE_SIZE;
+  return Math.min(normalized, SPOTIFY_MAX_LIMIT);
 }
 
 export class SpotifyArtistClient extends SpotifyBaseClient {
   private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
-  private static readonly MAX_LIMIT_PER_REQUEST = 50;
 
   constructor(
     authService: SpotifyAuthService,
@@ -129,7 +132,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
 
     return this.requestCache.getOrSet(cacheKey, async () => {
       try {
-        if (effectiveLimit <= SpotifyArtistClient.MAX_LIMIT_PER_REQUEST) {
+        if (effectiveLimit <= SPOTIFY_MAX_LIMIT) {
           return this.fetchArtistAlbumsPage(artistId, effectiveLimit, offset, market);
         }
 
@@ -138,7 +141,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
         let remainingLimit = effectiveLimit;
 
         while (remainingLimit > 0) {
-          const fetchLimit = Math.min(remainingLimit, SpotifyArtistClient.MAX_LIMIT_PER_REQUEST);
+          const fetchLimit = Math.min(remainingLimit, SPOTIFY_MAX_LIMIT);
           const mappedAlbums = await this.fetchArtistAlbumsPage(
             artistId,
             fetchLimit,
@@ -175,7 +178,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     return this.requestCache.getOrSet(cacheKey, async () => {
       return this.fetchArtistAlbumsPage(
         artistId,
-        Math.min(limit, SpotifyArtistClient.MAX_LIMIT_PER_REQUEST),
+        Math.min(limit, SPOTIFY_MAX_LIMIT),
         offset,
         market,
       );
