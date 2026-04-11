@@ -20,16 +20,18 @@ export interface PlaylistTracksPage {
 }
 
 export class SpotifyPlaylistClient extends SpotifyBaseClient {
-  private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
+  private readonly requestCache: PromiseCache;
 
   constructor(
     authService: SpotifyAuthService,
     settingsService: SettingsService,
     private readonly trackClient: SpotifyTrackClient,
     private readonly albumClient: SpotifyAlbumClient,
+    requestCache: PromiseCache,
     limiterMode: SpotifyLimiterMode = "interactive",
   ) {
     super(authService, settingsService, "SpotifyPlaylistClient", limiterMode);
+    this.requestCache = requestCache;
   }
 
   async getPlaylistMetadata(

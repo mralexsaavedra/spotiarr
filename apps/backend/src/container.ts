@@ -31,6 +31,7 @@ import { PrismaHistoryRepository } from "./infrastructure/database/prisma-histor
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
+import { PromiseCache } from "./infrastructure/external/promise-cache";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
 import { SpotifyArtistClient } from "./infrastructure/external/spotify-artist.client";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
@@ -80,9 +81,11 @@ const eventBus = new AppEventBus();
 
 // Spotify
 const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
+const spotifyRequestCache = new PromiseCache({ ttlMs: 30_000 });
 const spotifyArtistClient = new SpotifyArtistClient(
   spotifyAuthService,
   settingsService,
+  spotifyRequestCache,
   "interactive",
 );
 const spotifyTrackClient = new SpotifyTrackClient(
@@ -93,6 +96,7 @@ const spotifyTrackClient = new SpotifyTrackClient(
 const spotifyAlbumClient = new SpotifyAlbumClient(
   spotifyAuthService,
   settingsService,
+  spotifyRequestCache,
   "interactive",
 );
 const spotifyPlaylistClient = new SpotifyPlaylistClient(
@@ -100,11 +104,13 @@ const spotifyPlaylistClient = new SpotifyPlaylistClient(
   settingsService,
   spotifyTrackClient,
   spotifyAlbumClient,
+  spotifyRequestCache,
   "interactive",
 );
 const spotifySearchClient = new SpotifySearchClient(
   spotifyAuthService,
   settingsService,
+  spotifyRequestCache,
   "interactive",
 );
 

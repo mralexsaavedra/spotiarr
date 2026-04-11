@@ -10,14 +10,16 @@ import { SpotifyTrackMapper } from "./spotify-track.mapper";
 import { SpotifyAlbum, SpotifyAlbumTracksResponse, SpotifyTrack } from "./spotify.types";
 
 export class SpotifyAlbumClient extends SpotifyBaseClient {
-  private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
+  private readonly requestCache: PromiseCache;
 
   constructor(
     authService: SpotifyAuthService,
     settingsService: SettingsService,
+    requestCache: PromiseCache,
     limiterMode: SpotifyLimiterMode = "interactive",
   ) {
     super(authService, settingsService, "SpotifyAlbumClient", limiterMode);
+    this.requestCache = requestCache;
   }
 
   private getAlbumDetails(albumId: string): Promise<SpotifyAlbum> {

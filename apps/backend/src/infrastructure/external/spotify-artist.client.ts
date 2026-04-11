@@ -17,14 +17,16 @@ function normalizeAlbumLimit(n: number): number {
 }
 
 export class SpotifyArtistClient extends SpotifyBaseClient {
-  private readonly requestCache = new PromiseCache({ ttlMs: 30_000 });
+  private readonly requestCache: PromiseCache;
 
   constructor(
     authService: SpotifyAuthService,
     settingsService: SettingsService,
+    requestCache: PromiseCache,
     limiterMode: SpotifyLimiterMode = "interactive",
   ) {
     super(authService, settingsService, "SpotifyArtistClient", limiterMode);
+    this.requestCache = requestCache;
   }
 
   /**
