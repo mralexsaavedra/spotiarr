@@ -6,6 +6,7 @@ import { getErrorMessage } from "../utils/error.utils";
 import { CacheEntry } from "./cache.types";
 import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
+import { SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT } from "./spotify-constants";
 import { SpotifyHttpClient } from "./spotify-http.client";
 import {
   SpotifyArtistAlbumsResponse,
@@ -126,6 +127,14 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     else if (getEnv().NODE_ENV === "development") console.log(prefix, message);
   }
 
+  private async getMarket(): Promise<string> {
+    try {
+      return await this.settingsService.getString("SPOTIFY_MARKET");
+    } catch {
+      return "ES";
+    }
+  }
+
   async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
     try {
       this.log("Getting user's playlists from Spotify");
@@ -198,9 +207,11 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
       const maxArtists = await this.settingsService.getNumber(FOLLOWED_ARTISTS_MAX_KEY);
       const artists = await this.getFollowedArtistsSnapshot(maxArtists);
 
+      const market = await this.getMarket();
+
       const releasesPerArtist = await Promise.all(
         artists.slice(0, maxArtists).map(async (artist) => {
-          const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single&limit=10`;
+          const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single&limit=${SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT}&market=${market}`;
           const albumsResponse = await this.fetchWithUserToken(albumsUrl);
 
           if (!albumsResponse.ok) {
@@ -294,42 +305,63 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
 
     const albumsPerArtist = await Promise.all(
       artists.slice(0, maxArtists).map(async (artist) => {
-        const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single,compilation&limit=${safeLimit}`;
-        const albumsResponse = await this.fetchWithUserToken(albumsUrl);
+        const albums: ArtistRelease[] = [];
+        let offset = 0;
+        const market = await this.getMarket();
 
-        if (!albumsResponse.ok) {
-          const errorText = await albumsResponse.text();
+        while (albums.length < safeLimit) {
+          const pageLimit = Math.min(SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT, safeLimit - albums.length);
+          const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single,compilation&limit=${pageLimit}&offset=${offset}&market=${market}`;
+          const albumsResponse = await this.fetchWithUserToken(albumsUrl);
 
-          if (albumsResponse.status === 401) {
-            throw new AppError(
-              401,
-              "missing_user_access_token",
-              "Spotify user token expired or invalid",
+          if (!albumsResponse.ok) {
+            const errorText = await albumsResponse.text();
+
+            if (albumsResponse.status === 401) {
+              throw new AppError(
+                401,
+                "missing_user_access_token",
+                "Spotify user token expired or invalid",
+              );
+            }
+
+            this.log(
+              `Failed to fetch album snapshot for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
+              "warn",
             );
+            break;
           }
 
-          this.log(
-            `Failed to fetch album snapshot for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
-            "warn",
+          const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
+          const pageAlbums = albumsData.items ?? [];
+
+          if (pageAlbums.length === 0) {
+            break;
+          }
+
+          albums.push(
+            ...pageAlbums.map((album) => ({
+              artistId: artist.id,
+              artistName: artist.name,
+              artistImageUrl: artist.images?.[0]?.url ?? null,
+              albumId: album.id as string,
+              albumName: album.name,
+              albumType: album.album_type as AlbumType,
+              releaseDate: album.release_date,
+              coverUrl: album.images?.[0]?.url ?? null,
+              spotifyUrl: album.external_urls?.spotify,
+              totalTracks: album.total_tracks,
+            })),
           );
-          return [] as const;
+
+          if (pageAlbums.length < pageLimit) {
+            break;
+          }
+
+          offset += pageAlbums.length;
         }
 
-        const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
-        const albums = albumsData.items ?? [];
-
-        return albums.map((album) => ({
-          artistId: artist.id,
-          artistName: artist.name,
-          artistImageUrl: artist.images?.[0]?.url ?? null,
-          albumId: album.id as string,
-          albumName: album.name,
-          albumType: album.album_type as AlbumType,
-          releaseDate: album.release_date,
-          coverUrl: album.images?.[0]?.url ?? null,
-          spotifyUrl: album.external_urls?.spotify,
-          totalTracks: album.total_tracks,
-        }));
+        return albums;
       }),
     );
 

@@ -5,12 +5,11 @@ import { getErrorMessage } from "../utils/error.utils";
 import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
+import { SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT } from "./spotify-constants";
 import type { SpotifyLimiterMode } from "./spotify-http.client";
 import { SpotifyArtistAlbumsResponse, SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
 
-// Spotify /artists/{id}/albums endpoint caps limit at 10 (API change Mar 2026)
-const SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT = 10;
-const ALBUM_PAGE_SIZE = 10;
+const ALBUM_PAGE_SIZE = SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT;
 
 function normalizeAlbumLimit(n: number): number {
   if (!Number.isFinite(n) || n <= 0) return ALBUM_PAGE_SIZE;
