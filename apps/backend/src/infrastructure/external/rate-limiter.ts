@@ -1,3 +1,5 @@
+import { AppError } from "../../domain/errors/app-error.js";
+
 interface RateLimiterOptions {
   maxConcurrency?: number;
   queueTimeoutMs?: number;
@@ -40,10 +42,13 @@ export class RateLimiter {
     }
 
     if (this.queue.length >= this.maxQueueSize) {
+      console.warn("[RateLimiter] Queue overflow", {
+        queueSize: this.queue.length,
+        maxQueueSize: this.maxQueueSize,
+        timestamp: new Date().toISOString(),
+      });
       return Promise.reject(
-        new Error(
-          `[RateLimiter] Queue overflow: ${this.queue.length}/${this.maxQueueSize} pending requests`,
-        ),
+        new AppError(503, "rate_limiter_overflow", "Rate limiter queue overflow."),
       );
     }
 
