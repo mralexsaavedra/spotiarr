@@ -1,5 +1,6 @@
 import { ApiRoutes } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
+import { STALE_TIME_AUTH } from "@/utils/cache";
 import { queryKeys } from "../queryKeys";
 
 interface SpotifyAuthStatus {
@@ -17,5 +18,6 @@ export const useSpotifyAuthStatusQuery = () => {
       }
       return response.json();
     },
+    staleTime: STALE_TIME_AUTH,
   });
 };

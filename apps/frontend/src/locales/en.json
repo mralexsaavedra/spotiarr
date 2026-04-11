@@ -143,6 +143,10 @@
     "error": "Failed to load your playlists from Spotify."
   },
   "playlist": {
+    "errors": {
+      "createFailed": "Failed to create playlist. Please try again.",
+      "retryFailedTracks": "Failed to retry tracks. Please try again."
+    },
     "emptyTracksTitle": "No tracks in this playlist yet",
     "emptyTracksDescription": "Tracks you download or sync will appear here.",
     "deleteModal": {

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { trackService } from "@/services/track.service";
 import { Track } from "@/types";
+import { STALE_TIME_MEDIUM } from "@/utils/cache";
 import { queryKeys } from "../queryKeys";
 
 export const useTracksQuery = (playlistId: string | undefined) => {
@@ -8,5 +9,6 @@ export const useTracksQuery = (playlistId: string | undefined) => {
     queryKey: queryKeys.tracks(playlistId as string),
     queryFn: () => trackService.getTracksByPlaylist(playlistId as string),
     enabled: !!playlistId,
+    staleTime: STALE_TIME_MEDIUM,
   });
 };

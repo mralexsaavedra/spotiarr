@@ -34,6 +34,10 @@ export const buildStaleWhileRevalidateTimings = (cacheMinutes: number): QueryCac
   };
 };
 
+export const STALE_TIME_LONG = 5 * 60 * 1000;
+export const STALE_TIME_MEDIUM = 60 * 1000;
+export const STALE_TIME_AUTH = 30 * 1000;
+
 export const getSettingsCacheTimings = (
   settings: Array<{ key: string; value: string }>,
   key = APP_CONFIG.CACHE.RELEASES_CACHE_KEY,

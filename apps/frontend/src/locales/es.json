@@ -143,6 +143,10 @@
     "error": "Error al cargar tus listas de Spotify."
   },
   "playlist": {
+    "errors": {
+      "createFailed": "Error al crear la lista. Por favor, inténtalo de nuevo.",
+      "retryFailedTracks": "Error al reintentar las canciones. Por favor, inténtalo de nuevo."
+    },
     "emptyTracksTitle": "Lista vacía",
     "emptyTracksDescription": "Las canciones que descargues o sincronices aparecerán aquí.",
     "deleteModal": {
