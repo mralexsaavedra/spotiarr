@@ -1,7 +1,7 @@
 import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { usePlaylistDownloaded, usePlaylistDownloading } from "@/contexts/DownloadStatusContext";
 import { Playlist, PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
 import { formatPlaylistTitle } from "@/utils/playlist";
@@ -32,10 +32,8 @@ export const usePlaylistController = ({
   const retryFailedTracks = useRetryFailedTracksMutation();
   const { mutate: retryTrack } = useRetryTrackMutation(id || "");
 
-  const { isPlaylistDownloading, isPlaylistDownloaded } = useDownloadStatusContext();
-
-  const isDownloading = isPlaylistDownloading(spotifyUrl);
-  const isDownloaded = isPlaylistDownloaded(spotifyUrl, tracks.length);
+  const isDownloading = usePlaylistDownloading(spotifyUrl);
+  const isDownloaded = usePlaylistDownloaded(spotifyUrl, tracks.length);
 
   const hasFailed = useMemo(() => {
     return tracks.some((t) => t.status === TrackStatusEnum.Error);

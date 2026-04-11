@@ -5,7 +5,7 @@ import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { Track } from "@/types";
 import { ArtistLinks } from "../molecules/ArtistLinks";
@@ -135,12 +135,10 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   isLoadingMoreTracks = false,
 }) => {
   const { t } = useTranslation();
-  const { getBulkTrackStatus } = useDownloadStatusContext();
 
-  const trackStatusesMap = useMemo(() => {
-    const urls = tracks.map((t) => t.trackUrl);
-    return getBulkTrackStatus(urls);
-  }, [tracks, getBulkTrackStatus]);
+  const trackUrls = useMemo(() => tracks.map((t) => t.trackUrl), [tracks]);
+
+  const trackStatusesMap = useBulkTrackStatus(trackUrls);
 
   const renderItem = useCallback(
     (track: Track, index: number) => {

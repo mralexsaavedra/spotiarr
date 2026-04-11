@@ -1,6 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 
@@ -60,15 +60,16 @@ export const SearchAlbumGrid: FC<SearchAlbumGridProps> = ({
   onArtistClick,
   onDownload,
 }) => {
-  const { getBulkPlaylistStatus } = useDownloadStatusContext();
+  const albumStatusItems = useMemo(
+    () =>
+      albums.map((album) => ({
+        url: album.spotifyUrl,
+        totalTracks: album.totalTracks,
+      })),
+    [albums],
+  );
 
-  const downloadStatesMap = useMemo(() => {
-    const items = albums.map((album) => ({
-      url: album.spotifyUrl,
-      totalTracks: album.totalTracks,
-    }));
-    return getBulkPlaylistStatus(items);
-  }, [albums, getBulkPlaylistStatus]);
+  const downloadStatesMap = useBulkPlaylistStatus(albumStatusItems);
 
   const renderItem = useCallback(
     (album: ArtistRelease) => {

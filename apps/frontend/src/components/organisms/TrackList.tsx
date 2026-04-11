@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ITrack, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { formatDuration } from "@/utils/date";
 import { Image } from "../atoms/Image";
@@ -88,12 +88,9 @@ interface TrackListProps {
 }
 
 export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
-  const { getBulkTrackStatus } = useDownloadStatusContext();
+  const trackUrls = useMemo(() => tracks.map((t) => t.trackUrl), [tracks]);
 
-  const trackStatusesMap = useMemo(() => {
-    const urls = tracks.map((t) => t.trackUrl);
-    return getBulkTrackStatus(urls);
-  }, [tracks, getBulkTrackStatus]);
+  const trackStatusesMap = useBulkTrackStatus(trackUrls);
 
   const renderItem = useCallback(
     (track: TrackListTrack, index: number) => {

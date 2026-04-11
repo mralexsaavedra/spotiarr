@@ -1,7 +1,7 @@
 import { ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
 import { Button } from "../atoms/Button";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
@@ -111,20 +111,22 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   isLoadingTracks,
 }) => {
   const { t } = useTranslation();
-  const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const displayedItems = useMemo(
     () => filteredAlbums.slice(0, visibleItems),
     [filteredAlbums, visibleItems],
   );
 
-  const downloadStatesMap = useMemo(() => {
-    const items = displayedItems.map((album) => ({
-      url: album.spotifyUrl,
-      totalTracks: album.totalTracks,
-    }));
-    return getBulkPlaylistStatus(items);
-  }, [displayedItems, getBulkPlaylistStatus]);
+  const albumStatusItems = useMemo(
+    () =>
+      displayedItems.map((album) => ({
+        url: album.spotifyUrl,
+        totalTracks: album.totalTracks,
+      })),
+    [displayedItems],
+  );
+
+  const downloadStatesMap = useBulkPlaylistStatus(albumStatusItems);
 
   const renderDiscographyItem = useCallback(
     (album: ArtistRelease) => {

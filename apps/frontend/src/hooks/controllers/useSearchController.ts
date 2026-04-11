@@ -2,7 +2,7 @@ import { NormalizedTrack } from "@spotiarr/shared";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TopResultItem } from "@/components/molecules/SearchTopResultCard";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
 import { useCreatePlaylistMutation } from "@/hooks/mutations/useCreatePlaylistMutation";
 import { useSearchQuery } from "@/hooks/queries/useSearchQuery";
 import { Path } from "@/routes/routes";
@@ -29,7 +29,6 @@ export const useSearchController = () => {
   const navigate = useNavigate();
   const createPlaylist = useCreatePlaylistMutation();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
 
@@ -107,14 +106,16 @@ export const useSearchController = () => {
 
   const topAlbums = useMemo(() => results?.albums?.slice(0, 6) ?? [], [results?.albums]);
 
-  const topAlbumsStatusMap = useMemo(() => {
-    if (activeTab !== "all" || topAlbums.length === 0) return new Map();
-    const items = topAlbums.map((album) => ({
-      url: album.spotifyUrl,
-      totalTracks: album.totalTracks,
-    }));
-    return getBulkPlaylistStatus(items);
-  }, [activeTab, topAlbums, getBulkPlaylistStatus]);
+  const topAlbumStatusItems = useMemo(
+    () =>
+      topAlbums.map((album) => ({
+        url: album.spotifyUrl,
+        totalTracks: album.totalTracks,
+      })),
+    [topAlbums],
+  );
+
+  const topAlbumsStatusMap = useBulkPlaylistStatus(topAlbumStatusItems);
 
   return {
     query,

@@ -1,7 +1,7 @@
 import { PlaylistPreview, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { playlistService } from "@/services/playlist.service";
 import { PlaylistWithStats } from "@/types";
@@ -39,7 +39,6 @@ export const usePlaylistPreviewController = () => {
 
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
   const { data: playlists } = usePlaylistsQuery();
-  const { getTrackStatus } = useDownloadStatusContext();
   const [pagedTracks, setPagedTracks] = useState<PlaylistPreviewTrack[]>([]);
   const [hasMoreTracks, setHasMoreTracks] = useState(false);
   const [nextOffset, setNextOffset] = useState<number | null>(null);
@@ -111,6 +110,13 @@ export const usePlaylistPreviewController = () => {
 
   const savedPlaylistId = savedPlaylist?.id;
 
+  const trackUrls = useMemo(
+    () => accumulatedPreviewTracks.map((t) => t.trackUrl),
+    [accumulatedPreviewTracks],
+  );
+
+  const trackStatusesMap = useBulkTrackStatus(trackUrls);
+
   const playlist: PlaylistWithStats | undefined = useMemo(() => {
     if (!previewData || !spotifyUrl) {
       return undefined;
@@ -147,7 +153,7 @@ export const usePlaylistPreviewController = () => {
     if (!accumulatedPreviewTracks.length) return [];
 
     return accumulatedPreviewTracks.map((t, i) => {
-      const status = t.trackUrl ? getTrackStatus(t.trackUrl) : undefined;
+      const status = t.trackUrl ? trackStatusesMap.get(t.trackUrl) : undefined;
 
       return {
         id: `preview-${i}`,
@@ -162,7 +168,7 @@ export const usePlaylistPreviewController = () => {
         playlistId: "preview",
       };
     });
-  }, [accumulatedPreviewTracks, getTrackStatus]);
+  }, [accumulatedPreviewTracks, trackStatusesMap]);
 
   const {
     isDownloading,

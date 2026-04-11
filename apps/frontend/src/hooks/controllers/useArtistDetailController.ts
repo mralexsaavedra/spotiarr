@@ -1,7 +1,7 @@
 import { ArtistRelease } from "@spotiarr/shared";
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { usePlaylistDownloaded } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../queries/useArtistDetailQuery";
@@ -23,8 +23,7 @@ export const useArtistDetailController = () => {
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, DETAIL_PAGE_SIZE);
   const createPlaylistMutation = useCreatePlaylistMutation();
 
-  const { isPlaylistDownloaded } = useDownloadStatusContext();
-  const isArtistDownloaded = isPlaylistDownloaded(artist?.spotifyUrl);
+  const isArtistDownloaded = usePlaylistDownloaded(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
 
   // Determine if we should show more options based on followed status

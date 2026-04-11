@@ -4,7 +4,7 @@ import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useDownloadStatusContext } from "@/contexts/DownloadStatusContext";
+import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { type Playlist } from "@/types";
 import { formatRelativeDate } from "@/utils/date";
@@ -137,7 +137,6 @@ export const HistoryList: FC<HistoryListProps> = ({
   onItemClick,
 }) => {
   const { t } = useTranslation();
-  const { getBulkPlaylistStatus } = useDownloadStatusContext();
 
   const activePlaylistsMap = useMemo(() => {
     const map = new Map<string, Playlist>();
@@ -147,10 +146,9 @@ export const HistoryList: FC<HistoryListProps> = ({
     return map;
   }, [activePlaylists]);
 
-  const downloadStatesMap = useMemo(() => {
-    const urls = history.map((item) => item.playlistSpotifyUrl);
-    return getBulkPlaylistStatus(urls);
-  }, [history, getBulkPlaylistStatus]);
+  const historyUrls = useMemo(() => history.map((item) => item.playlistSpotifyUrl), [history]);
+
+  const downloadStatesMap = useBulkPlaylistStatus(historyUrls);
 
   const renderItem = useCallback(
     (item: PlaylistHistory) => {
