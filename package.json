@@ -34,15 +34,13 @@
     "lint": "pnpm -r --if-present run lint",
     "format": "pnpm -r --if-present run format",
     "clean": "pnpm -r --if-present run clean && rm -rf apps/*/dist packages/*/dist",
-    "prepare": "husky",
-    "release": "standard-version"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "concurrently": "^9.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4",
-    "standard-version": "^9.5.0"
+    "prettier": "^3.7.4"
   }
 }

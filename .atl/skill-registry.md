@@ -27,6 +27,7 @@ Orchestrator-only. Resolve paths once per session, then pass pre-resolved paths 
 | When writing database queries, migrations, or Prisma schemas                                        | spotiarr-prisma             | ./.agents/skills/spotiarr-prisma/SKILL.md             |
 | When writing queue definitions, workers, job handlers, or cron jobs                                 | spotiarr-bullmq             | ./.agents/skills/spotiarr-bullmq/SKILL.md             |
 | When adding or modifying translations, working with i18n keys, or adding a new language             | spotiarr-i18n               | ./.agents/skills/spotiarr-i18n/SKILL.md               |
+| When user says "sube de version", "nueva release", "publish release", or asks to publish a version  | spotiarr-release            | ./.agents/skills/spotiarr-release/SKILL.md            |
 
 ## Project Conventions
 

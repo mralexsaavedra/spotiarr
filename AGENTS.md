@@ -55,5 +55,6 @@ External services: Redis, FFmpeg, yt-dlp, Python 3.11/3.12.
 | Prisma queries, migrations, schemas         | `spotiarr-prisma`             |
 | BullMQ queues, workers, cron jobs           | `spotiarr-bullmq`             |
 | i18n translations (i18next)                 | `spotiarr-i18n`               |
+| Release workflow (bump, tag, publish)       | `spotiarr-release`            |
 
 For medium/large changes use the SDD flow. Full skill paths: see `.atl/skill-registry.md`.
