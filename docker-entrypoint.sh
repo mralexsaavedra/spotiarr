@@ -24,12 +24,17 @@ USER_NAME=$(getent passwd "$PUID" | cut -d: -f1)
 echo "🔧 Fixing permissions..."
 mkdir -p /spotiarr/config
 chown -R "$PUID:$PGID" /spotiarr/config
-# Note: /spotiarr code is already owned by node:node from build, 
-# but if PUID!=1000 we might need to adjust, though usually read-only is fine for code.
 
 # Fix downloads root
 mkdir -p /downloads
 chown "$PUID:$PGID" /downloads 2>/dev/null || true
 
+# Run prisma migrations as root before dropping privileges.
+# This avoids permission issues on read-only overlay filesystems (e.g. Kubernetes)
+# where node_modules is part of the image layer and not writable by non-root users.
+echo "🔧 Running database migrations..."
+cd /spotiarr
+pnpm --filter backend prisma:migrate:deploy || echo "⚠️ Migration failed (may be first run without DB)"
+
 echo "🚀 Starting application as $USER_NAME..."
-exec su-exec "$PUID:$PGID" "$@"
+exec su-exec "$PUID:$PGID" pnpm start
