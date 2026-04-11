@@ -22,6 +22,8 @@ export function createFeedSyncWorker(): Worker {
         const releases = await spotifyUserLibrarySyncService.getFollowedArtistsRecentReleases();
         await feedRepository.upsertReleases(releases);
 
+        await feedRepository.evictStaleFeedCache(artists.map((a) => a.id));
+
         await feedRepository.setSyncState(SYNC_STATUS.Idle);
         eventBus.emit("feed-updated", { artists: artists.length, releases: releases.length });
       } catch (error) {

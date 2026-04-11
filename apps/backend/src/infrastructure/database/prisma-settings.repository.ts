@@ -1,6 +1,11 @@
+import { Prisma } from "@prisma/client";
 import type { SettingItem } from "@spotiarr/shared";
+import { AppError } from "@/domain/errors/app-error";
 import type { SettingsRepository } from "@/domain/repositories/settings.repository";
 import { prisma } from "../setup/prisma";
+
+const isPrismaNotFoundError = (error: unknown): error is { code: string } =>
+  error instanceof Error && "code" in error && error.code === "P2025";
 
 export class PrismaSettingsRepository implements SettingsRepository {
   async findAll(): Promise<SettingItem[]> {
@@ -28,6 +33,15 @@ export class PrismaSettingsRepository implements SettingsRepository {
   }
 
   async delete(key: string): Promise<void> {
-    await prisma.setting.delete({ where: { key } }).catch(() => {});
+    try {
+      await prisma.setting.delete({ where: { key } });
+    } catch (error) {
+      if (isPrismaNotFoundError(error)) {
+        // Record not found — idempotent, ignore
+        return;
+      }
+      console.error("[PrismaSettingsRepository] delete failed", error);
+      throw new AppError(500, "internal_server_error", "Failed to delete setting");
+    }
   }
 }

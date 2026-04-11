@@ -76,15 +76,16 @@ export class FeedRepository {
   }
 
   async getReleases(lookbackDays: number): Promise<ArtistRelease[]> {
-    const safeLookbackDays = lookbackDays > 0 ? lookbackDays : 30;
-    const cutoff = new Date(Date.now() - safeLookbackDays * 24 * 60 * 60 * 1000);
+    const safeDays = Number.isFinite(lookbackDays) && lookbackDays > 0 ? lookbackDays : 30;
+    const cutoff = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
     const rows = await this.prisma.artistReleaseCache.findMany({
+      where: { releaseDate: { not: null, gte: cutoff } },
       include: { artist: true },
       orderBy: { releaseDate: "desc" },
     });
 
-    const mapped = rows
+    return rows
       .map<ArtistRelease>((row) => ({
         artistId: row.artistId,
         artistName: row.artist.name,
@@ -96,14 +97,7 @@ export class FeedRepository {
         coverUrl: row.coverUrl ?? null,
         spotifyUrl: row.spotifyUrl ?? undefined,
       }))
-      .filter((release) => {
-        const parsedReleaseDate = parseSpotifyDate(release.releaseDate);
-        return parsedReleaseDate ? parsedReleaseDate >= cutoff : false;
-      });
-
-    mapped.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
-
-    return mapped;
+      .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
   }
 
   async getArtists(): Promise<FollowedArtist[]> {
@@ -239,6 +233,34 @@ export class FeedRepository {
         });
       }),
     );
+  }
+
+  async evictStaleFeedCache(artistIds: string[], cutoffDays = 90): Promise<void> {
+    if (artistIds.length === 0) {
+      await this.prisma.$transaction([
+        this.prisma.followedArtistCache.deleteMany({}),
+        this.prisma.artistAlbumCache.deleteMany({}),
+        this.prisma.artistReleaseCache.deleteMany({}),
+      ]);
+      return;
+    }
+
+    const cutoff = new Date(Date.now() - cutoffDays * 24 * 60 * 60 * 1000);
+    await this.prisma.$transaction([
+      this.prisma.followedArtistCache.deleteMany({
+        where: { spotifyId: { notIn: artistIds } },
+      }),
+      this.prisma.artistAlbumCache.deleteMany({
+        where: {
+          OR: [{ syncedAt: { lt: cutoff } }, { spotifyArtistId: { notIn: artistIds } }],
+        },
+      }),
+      this.prisma.artistReleaseCache.deleteMany({
+        where: {
+          OR: [{ syncedAt: { lt: cutoff } }, { artistId: { notIn: artistIds } }],
+        },
+      }),
+    ]);
   }
 
   async getSyncState(): Promise<SyncStateRecord> {
