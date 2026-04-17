@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0] (2026-04-17)
+
+### ⚠️ Breaking Changes — Spotify API (February 2026)
+
+Spotify removed and restricted several API endpoints in February 2026. SpotiArr has been updated to comply with these changes. Some features have been removed or restricted as a result:
+
+- **Artist URL downloads removed:** Downloading via a Spotify artist URL (e.g. `https://open.spotify.com/artist/...`) is no longer supported. Spotify removed the `/artists/{id}/top-tracks` endpoint with no replacement. Use album or playlist URLs instead.
+- **Third-party playlist access restricted:** Spotify now requires user authentication to access playlist tracks, and only the **authenticated user's own playlists** are guaranteed to be accessible. Attempting to download a playlist owned by another user will return an error.
+- **Search results capped at 10 per type:** The Spotify Search API now enforces a maximum of 10 results per type per request. Search tabs in the UI reflect this limit.
+
+### Bug Fixes
+
+- Clamp `/artists/{id}/albums` requests to the new Spotify limit of 10 items per page with proper pagination loop.
+- Add `market` parameter to all artist album requests to ensure consistent regional results.
+- Remove stale `ArtistTopTrack` type and dead i18n keys left over from the artist page cleanup.
+
 ## [1.2.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.1.0...v1.2.0) (2026-02-27)
 
 ### Features

@@ -226,6 +226,17 @@ downloads/
 - **M3U playlists** auto-generated for easy import
 - **Cover art** saved as `cover.jpg` + embedded
 
+## ⚠️ Known Limitations
+
+> [!WARNING]
+> **Spotify API changes (February 2026)** introduced restrictions that affect the following features:
+
+| Feature                       | Status          | Notes                                                                                                       |
+| ----------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------- |
+| Download via artist URL       | ❌ Removed      | Spotify removed the top-tracks endpoint. Use album or playlist URLs instead.                                |
+| Third-party playlist download | ⚠️ Restricted   | Only your own playlists are guaranteed to be accessible. Other users' playlists may return an access error. |
+| Search results per type       | ℹ️ Capped at 10 | Spotify enforces a maximum of 10 results per type (tracks, albums, artists).                                |
+
 ## 🛠️ Development
 
 Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, and guidelines.
