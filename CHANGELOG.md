@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.0...v1.3.1) (2026-04-17)
+
+### Bug Fixes
+
+- **SSE**: Fix real-time download status updates never reaching the frontend. The SSE route maintained its own disconnected client list while all backend services emitted events through a separate `EventsController` instance — meaning no events (download progress, completion, errors) ever arrived in the browser without a manual page refresh. ([c6a88f9](https://github.com/mralexsaavedra/spotiarr/commit/c6a88f9))
+
 ## [1.3.0] (2026-04-17)
 
 ### ⚠️ Breaking Changes — Spotify API (February 2026)
