@@ -175,10 +175,7 @@
     "notFound": "Artista no encontrado.",
     "error": "Error al cargar detalles del artista.",
     "downloaded": "Artista Descargado",
-    "emptyTracksTitle": "No se encontraron canciones",
-    "emptyTracksDescription": "Este artista no tiene canciones populares disponibles.",
     "noDiscography": "Sin discografía disponible.",
-    "followers": "Seguidores",
     "type": "Artista",
     "discography": {
       "title": "Discografía",

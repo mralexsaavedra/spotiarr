@@ -188,21 +188,6 @@ export interface PlaylistPreview {
   }>;
 }
 
-export interface ArtistTopTrack {
-  name: string;
-  artist: string;
-  primaryArtist?: string;
-  primaryArtistImage: string | null;
-  artists: { name: string; url?: string }[];
-  trackUrl?: string;
-  album?: string;
-  albumCoverUrl?: string;
-  albumYear?: number;
-  trackNumber: number;
-  previewUrl?: string | null;
-  durationMs?: number;
-}
-
 export interface ArtistDetail {
   id: string;
   name: string;

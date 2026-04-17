@@ -175,10 +175,7 @@
     "notFound": "Artist not found.",
     "error": "Failed to load artist details.",
     "downloaded": "Artist Downloaded",
-    "emptyTracksTitle": "No tracks found",
-    "emptyTracksDescription": "This artist has no popular tracks available.",
     "noDiscography": "No discography available.",
-    "followers": "Followers",
     "type": "Artist",
     "discography": {
       "title": "Discography",
