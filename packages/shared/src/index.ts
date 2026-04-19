@@ -197,6 +197,7 @@ export interface ArtistDetail {
   genres?: string[];
   albums: ArtistRelease[];
   isFollowed: boolean;
+  albumsRateLimited?: boolean;
 }
 
 export interface SettingItem {

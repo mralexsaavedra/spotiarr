@@ -14,6 +14,7 @@ interface ArtistDetailResponse {
   genres: string[];
   albums: ArtistRelease[];
   isFollowed: boolean;
+  albumsRateLimited?: boolean;
 }
 
 const ACTIVE_DETAIL_REQUEST_TTL_MS = 30_000;
@@ -78,25 +79,62 @@ export class ArtistController {
 
       const cachedAlbums = await this.feedRepository.getArtistAlbums(id, effectiveLimit, 0);
 
-      const [details, albums] = await Promise.all([
-        cachedArtist
-          ? Promise.resolve({
-              name: cachedArtist.name,
-              image: cachedArtist.image,
-              spotifyUrl: cachedArtist.spotifyUrl,
+      // Resolve artist details — prefer BD, fallback to Spotify, fallback to unknown on 429
+      let details: {
+        name: string;
+        image: string | null;
+        spotifyUrl: string | null;
+        followers: number | null;
+        genres: string[];
+      };
+      if (cachedArtist) {
+        details = {
+          name: cachedArtist.name,
+          image: cachedArtist.image,
+          spotifyUrl: cachedArtist.spotifyUrl,
+          followers: null,
+          genres: [],
+        };
+      } else {
+        try {
+          details = await this.spotifyArtistClient.getArtistDetails(id);
+        } catch (err) {
+          if (err instanceof AppError && err.statusCode === 429) {
+            // Rate limited — return partial response with what we have in BD
+            return {
+              id,
+              name: "Unknown Artist",
+              image: null,
+              spotifyUrl: null,
               followers: null,
               genres: [],
-            })
-          : this.spotifyArtistClient.getArtistDetails(id),
-        cachedAlbums.length > 0
-          ? Promise.resolve(cachedAlbums)
-          : this.spotifyArtistClient
-              .getArtistAlbums(id, effectiveLimit)
-              .then(async (spotifyAlbums) => {
-                await this.feedRepository.upsertArtistAlbums(spotifyAlbums);
-                return spotifyAlbums;
-              }),
-      ]);
+              albums: cachedAlbums,
+              isFollowed,
+            };
+          }
+          throw err;
+        }
+      }
+
+      // Resolve albums — prefer BD, fallback to Spotify, fallback to empty on 429
+      let albums: ArtistRelease[];
+      let albumsRateLimited = false;
+      if (cachedAlbums.length > 0) {
+        albums = cachedAlbums;
+      } else {
+        try {
+          const spotifyAlbums = await this.spotifyArtistClient.getArtistAlbums(id, effectiveLimit);
+          await this.feedRepository.upsertArtistAlbums(spotifyAlbums);
+          albums = spotifyAlbums;
+        } catch (err) {
+          if (err instanceof AppError && err.statusCode === 429) {
+            albums = [];
+            albumsRateLimited = true;
+          } else {
+            throw err;
+          }
+        }
+      }
 
       return {
         id,
@@ -107,6 +145,7 @@ export class ArtistController {
         genres: details.genres,
         albums,
         isFollowed,
+        albumsRateLimited: albumsRateLimited || undefined,
       };
     })();
 

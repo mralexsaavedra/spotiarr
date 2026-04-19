@@ -21,6 +21,7 @@ export const useArtistDetailController = () => {
   // Use isFollowed from API response to determine initial limit
   // Backend enforces album cap: non-followed artists get max 5 albums
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, DETAIL_PAGE_SIZE);
+  const albumsRateLimited = artist?.albumsRateLimited ?? false;
   const createPlaylistMutation = useCreatePlaylistMutation();
 
   const isArtistDownloaded = usePlaylistDownloaded(artist?.spotifyUrl);
@@ -91,6 +92,7 @@ export const useArtistDetailController = () => {
     hasArtist,
     isArtistDownloaded,
     isFollowed,
+    albumsRateLimited,
     filter,
     setFilter,
     filteredAlbums,

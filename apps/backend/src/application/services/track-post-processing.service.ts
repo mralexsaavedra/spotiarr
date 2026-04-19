@@ -101,14 +101,13 @@ export class TrackPostProcessingService {
       }
     }
 
-    // Get Specific Track Cover from Spotify
+    // Get Specific Track Cover from Spotify — uses minimum API calls (no track fetching)
     let trackCoverUrl = "";
     const urlToUse = track.spotifyUrl || track.trackUrl;
 
     if (urlToUse) {
       try {
-        const details = await this.spotifyService.getPlaylistDetail(urlToUse);
-        trackCoverUrl = details.image;
+        trackCoverUrl = await this.spotifyService.getCoverImage(urlToUse);
       } catch (e) {
         console.warn(`Failed to fetch cover for track ${track.name}: ${getErrorMessage(e)}`);
       }

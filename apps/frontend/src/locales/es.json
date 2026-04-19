@@ -176,6 +176,7 @@
     "error": "Error al cargar detalles del artista.",
     "downloaded": "Artista Descargado",
     "noDiscography": "Sin discografía disponible.",
+    "rateLimited": "Discografía temporalmente no disponible. Spotify está limitando las peticiones — inténtalo de nuevo en unos minutos.",
     "type": "Artista",
     "discography": {
       "title": "Discografía",

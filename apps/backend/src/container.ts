@@ -92,6 +92,7 @@ const spotifyTrackClient = new SpotifyTrackClient(
   spotifyAuthService,
   settingsService,
   "interactive",
+  spotifyRequestCache,
 );
 const spotifyAlbumClient = new SpotifyAlbumClient(
   spotifyAuthService,
@@ -106,6 +107,17 @@ const spotifyPlaylistClient = new SpotifyPlaylistClient(
   spotifyAlbumClient,
   spotifyRequestCache,
   "interactive",
+);
+
+// Playlist client for background workers (downloads, sync) — uses sync limiter
+// to avoid competing with user-facing interactive requests
+const spotifyPlaylistClientSync = new SpotifyPlaylistClient(
+  spotifyAuthService,
+  settingsService,
+  spotifyTrackClient,
+  spotifyAlbumClient,
+  spotifyRequestCache,
+  "sync",
 );
 const spotifySearchClient = new SpotifySearchClient(
   spotifyAuthService,
@@ -123,6 +135,7 @@ const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
   spotifyAuthService,
   "sync",
 );
+// Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
 const spotifyService = new SpotifyService(
   spotifyArtistClient,
   spotifyTrackClient,
@@ -132,9 +145,20 @@ const spotifyService = new SpotifyService(
   spotifyUserLibraryService,
 );
 
-// Services (Post-Processing)
+// Sync SpotifyService — for background workers (create playlist, sync, post-processing)
+// Uses sync rate limiter for playlist fetches to avoid starving interactive requests
+const spotifyServiceSync = new SpotifyService(
+  spotifyArtistClient,
+  spotifyTrackClient,
+  spotifyAlbumClient,
+  spotifyPlaylistClientSync,
+  spotifySearchClient,
+  spotifyUserLibraryService,
+);
+
+// Services (Post-Processing) — uses sync service to avoid starving interactive requests
 const trackPostProcessingService = new TrackPostProcessingService(
-  spotifyService,
+  spotifyServiceSync,
   metadataService,
   playlistRepository,
   trackRepository,
@@ -202,9 +226,10 @@ const getPlaylistsUseCase = new GetPlaylistsUseCase(playlistRepository);
 const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
 const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
 
+// Background use cases — use sync service to avoid starving interactive requests
 const createPlaylistUseCase = new CreatePlaylistUseCase(
   playlistRepository,
-  spotifyService,
+  spotifyServiceSync,
   trackService,
   settingsService,
   eventBus,
@@ -212,7 +237,7 @@ const createPlaylistUseCase = new CreatePlaylistUseCase(
 
 const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
   playlistRepository,
-  spotifyService,
+  spotifyServiceSync,
   trackService,
   eventBus,
 );
@@ -279,6 +304,19 @@ const feedController = new FeedController(
 const authController = new AuthController(spotifyAuthService, settingsService);
 const healthController = new HealthController();
 const eventsController = new EventsController();
+
+// When SPOTIFY_MARKET changes, invalidate the in-memory market cache on all clients
+// so the next request picks up the new value from DB
+eventBus.on("settings:updated", ({ key }: { key: string }) => {
+  if (key === "SPOTIFY_MARKET") {
+    spotifyArtistClient.clearMarketCache();
+    spotifyAlbumClient.clearMarketCache();
+    spotifyTrackClient.clearMarketCache();
+    spotifyPlaylistClient.clearMarketCache();
+    spotifySearchClient.clearMarketCache();
+    spotifyPlaylistClientSync.clearMarketCache();
+  }
+});
 
 // Export container
 export const container = {

@@ -28,6 +28,8 @@ export class PromiseCache {
     const promise = fn();
     this.entries.set(key, createPromiseCacheEntry(promise, this.ttlMs));
 
+    let resolved = false;
+
     const cleanup = () => {
       const current = this.entries.get(key);
       if (current?.promise === promise) {
@@ -35,9 +37,16 @@ export class PromiseCache {
       }
     };
 
-    promise.then(cleanup, cleanup);
+    // On error: evict immediately so the next caller retries
+    promise.then(() => {
+      resolved = true;
+    }, cleanup);
 
-    const ttlTimer = setTimeout(cleanup, this.ttlMs);
+    // On TTL expiry: only evict if the promise already resolved.
+    // If still in-flight, leave it — evicting would cause a duplicate request.
+    const ttlTimer = setTimeout(() => {
+      if (resolved) cleanup();
+    }, this.ttlMs);
     ttlTimer.unref?.();
 
     return promise;

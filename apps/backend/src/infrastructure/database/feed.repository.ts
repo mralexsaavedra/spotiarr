@@ -182,6 +182,51 @@ export class FeedRepository {
     });
   }
 
+  /**
+   * Returns artistIds that have NO albums at all in the cache.
+   * These are prioritized in the sync — a user visiting them will always
+   * see "rate limited" until they are populated.
+   */
+  async getArtistIdsWithNoAlbums(): Promise<Set<string>> {
+    const allArtists = await this.prisma.followedArtistCache.findMany({
+      select: { spotifyId: true },
+    });
+    const artistsWithAlbums = await this.prisma.artistAlbumCache.findMany({
+      select: { spotifyArtistId: true },
+      distinct: ["spotifyArtistId"],
+    });
+    const withAlbumsSet = new Set(artistsWithAlbums.map((r) => r.spotifyArtistId));
+    return new Set(allArtists.map((r) => r.spotifyId).filter((id) => !withAlbumsSet.has(id)));
+  }
+
+  /**
+   * Returns the set of artistIds that already have fresh album data in the cache.
+   * "Fresh" means at least one album with syncedAt newer than cutoffDate.
+   * Used by the sync to skip artists that don't need a Spotify call.
+   */
+  async getArtistIdsWithFreshAlbums(cutoffDate: Date): Promise<Set<string>> {
+    const rows = await this.prisma.artistAlbumCache.findMany({
+      where: { syncedAt: { gte: cutoffDate } },
+      select: { spotifyArtistId: true },
+      distinct: ["spotifyArtistId"],
+    });
+    return new Set(rows.map((r) => r.spotifyArtistId));
+  }
+
+  /**
+   * Returns the set of artistIds that already have fresh release data in the cache.
+   * "Fresh" means at least one release with syncedAt newer than cutoffDate.
+   * Used by the sync to skip artists that don't need a Spotify call.
+   */
+  async getArtistIdsWithFreshReleases(cutoffDate: Date): Promise<Set<string>> {
+    const rows = await this.prisma.artistReleaseCache.findMany({
+      where: { syncedAt: { gte: cutoffDate } },
+      select: { artistId: true },
+      distinct: ["artistId"],
+    });
+    return new Set(rows.map((r) => r.artistId));
+  }
+
   async getArtistAlbums(
     spotifyArtistId: string,
     limit: number,

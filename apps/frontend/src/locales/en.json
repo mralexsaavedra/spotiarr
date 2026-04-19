@@ -176,6 +176,7 @@
     "error": "Failed to load artist details.",
     "downloaded": "Artist Downloaded",
     "noDiscography": "No discography available.",
+    "rateLimited": "Discography temporarily unavailable. Spotify is rate limiting requests — try again in a few minutes.",
     "type": "Artist",
     "discography": {
       "title": "Discography",

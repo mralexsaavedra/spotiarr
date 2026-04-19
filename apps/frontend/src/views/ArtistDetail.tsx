@@ -19,6 +19,7 @@ export const ArtistDetail: FC = () => {
     error,
     hasArtist,
     isArtistDownloaded,
+    albumsRateLimited,
     filter,
     setFilter,
     filteredAlbums,
@@ -111,6 +112,10 @@ export const ArtistDetail: FC = () => {
             albumTracks={albumTracks}
             isLoadingTracks={isLoadingTracks}
           />
+        ) : albumsRateLimited ? (
+          <div className="mt-10 rounded-lg bg-yellow-500/10 px-6 py-8 text-center">
+            <p className="text-sm font-medium text-yellow-400">{t("artist.rateLimited")}</p>
+          </div>
         ) : (
           <div className="text-text-secondary mt-10 text-center">
             <p>{t("artist.noDiscography")}</p>

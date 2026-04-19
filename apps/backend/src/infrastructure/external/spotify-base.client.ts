@@ -4,6 +4,8 @@ import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient, type SpotifyLimiterMode } from "./spotify-http.client";
 
 export abstract class SpotifyBaseClient extends SpotifyHttpClient {
+  private cachedMarket: string | null = null;
+
   constructor(
     authService: SpotifyAuthService,
     protected readonly settingsService: SettingsService,
@@ -14,11 +16,17 @@ export abstract class SpotifyBaseClient extends SpotifyHttpClient {
   }
 
   protected async getMarket(): Promise<string> {
+    if (this.cachedMarket) return this.cachedMarket;
     try {
-      return await this.settingsService.getString("SPOTIFY_MARKET");
+      this.cachedMarket = await this.settingsService.getString("SPOTIFY_MARKET");
+      return this.cachedMarket;
     } catch {
       return "ES"; // Fallback to ES if setting not found
     }
+  }
+
+  clearMarketCache(): void {
+    this.cachedMarket = null;
   }
 
   protected log(message: string, level: "debug" | "error" | "warn" = "debug") {

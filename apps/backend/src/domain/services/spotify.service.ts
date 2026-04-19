@@ -97,6 +97,40 @@ export class SpotifyService {
     }
   }
 
+  /**
+   * Returns only the cover image URL for a given Spotify URL.
+   * Uses the minimum number of API calls — never fetches tracks.
+   * - Track URL  → GET /tracks/{id}         (1 req, cached)
+   * - Album URL  → GET /albums/{id}         (1 req, cached)
+   * - Playlist URL → GET /playlists/{id}    (1 req, cached)
+   */
+  async getCoverImage(spotifyUrl: string): Promise<string> {
+    const urlType = SpotifyUrlHelper.getUrlType(spotifyUrl);
+
+    try {
+      if (urlType === SpotifyUrlType.Track) {
+        const trackId = SpotifyUrlHelper.extractId(spotifyUrl);
+        const track = await this.spotifyTrackClient.getTrackDetails(trackId);
+        return track.albumCoverUrl ?? "";
+      }
+
+      if (urlType === SpotifyUrlType.Album) {
+        const albumId = SpotifyUrlHelper.extractId(spotifyUrl);
+        const album = await this.spotifyAlbumClient.getAlbumDetails(albumId);
+        return album.images?.[0]?.url ?? "";
+      }
+
+      if (urlType === SpotifyUrlType.Playlist) {
+        const metadata = await this.spotifyPlaylistClient.getPlaylistMetadata(spotifyUrl);
+        return metadata.image ?? "";
+      }
+
+      return "";
+    } catch {
+      return "";
+    }
+  }
+
   async getPlaylistTracks(spotifyUrl: string): Promise<PlaylistTrack[]> {
     console.debug(`Get playlist ${spotifyUrl} on Spotify`);
     try {

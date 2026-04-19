@@ -22,7 +22,7 @@ export class SpotifyAlbumClient extends SpotifyBaseClient {
     this.requestCache = requestCache;
   }
 
-  private getAlbumDetails(albumId: string): Promise<SpotifyAlbum> {
+  getAlbumDetails(albumId: string): Promise<SpotifyAlbum> {
     return this.requestCache.getOrSet(`album-detail:${albumId}`, async () => {
       const albumResponse = await this.fetchWithAppToken(
         `https://api.spotify.com/v1/albums/${albumId}`,
@@ -44,42 +44,44 @@ export class SpotifyAlbumClient extends SpotifyBaseClient {
    * Get album details from Spotify API
    */
   async getAlbumTracks(albumId: string): Promise<NormalizedTrack[]> {
-    try {
-      const response = await this.fetchWithAppToken(
-        `https://api.spotify.com/v1/albums/${albumId}/tracks`,
-      );
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new AppError(404, "playlist_not_found", `Album not found: ${albumId}`);
-        }
-        if (response.status === 429) {
-          throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
-        }
-        throw new AppError(
-          response.status,
-          "internal_server_error",
-          `Failed to fetch album: ${response.status}`,
+    return this.requestCache.getOrSet(`album-tracks:${albumId}`, async () => {
+      try {
+        const response = await this.fetchWithAppToken(
+          `https://api.spotify.com/v1/albums/${albumId}/tracks`,
         );
-      }
 
-      const data = (await response.json()) as SpotifyAlbumTracksResponse;
-      const albumData = await this.getAlbumDetails(albumId);
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new AppError(404, "playlist_not_found", `Album not found: ${albumId}`);
+          }
+          if (response.status === 429) {
+            throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+          }
+          throw new AppError(
+            response.status,
+            "internal_server_error",
+            `Failed to fetch album: ${response.status}`,
+          );
+        }
 
-      return data.items.map((track: SpotifyTrack) => {
-        const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
-          album: albumData,
-          primaryArtistImage: null,
+        const data = (await response.json()) as SpotifyAlbumTracksResponse;
+        const albumData = await this.getAlbumDetails(albumId);
+
+        return data.items.map((track: SpotifyTrack) => {
+          const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
+            album: albumData,
+            primaryArtistImage: null,
+          });
+
+          return {
+            ...normalized,
+            album: normalized.album!, // We know album exists here
+          };
         });
-
-        return {
-          ...normalized,
-          album: normalized.album!, // We know album exists here
-        };
-      });
-    } catch (error) {
-      this.log(`Failed to get album tracks: ${getErrorMessage(error)}`);
-      throw error;
-    }
+      } catch (error) {
+        this.log(`Failed to get album tracks: ${getErrorMessage(error)}`);
+        throw error;
+      }
+    });
   }
 }

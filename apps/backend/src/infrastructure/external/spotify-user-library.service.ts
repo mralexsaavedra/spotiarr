@@ -195,7 +195,10 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     }
   }
 
-  async getFollowedArtistsRecentReleases(): Promise<ArtistRelease[]> {
+  async getFollowedArtistsRecentReleases(
+    skipArtistIds: Set<string> = new Set(),
+    maxArtistsPerCycle: number = Infinity,
+  ): Promise<ArtistRelease[]> {
     const cacheKey = this.getCacheKey("getFollowedArtistsRecentReleases");
     const cached = await this.getFromCache<ArtistRelease[]>(cacheKey);
     if (cached) {
@@ -209,33 +212,50 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
 
       const market = await this.getMarket();
 
-      const releasesPerArtist = await Promise.all(
-        artists.slice(0, maxArtists).map(async (artist) => {
-          const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single&limit=${SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT}&market=${market}`;
-          const albumsResponse = await this.fetchWithUserToken(albumsUrl);
+      // Sequential — not Promise.all — to respect the rate limiter and avoid
+      // bursting Spotify with N concurrent requests (one per followed artist)
+      const releasesPerArtist: ArtistRelease[][] = [];
+      let processedCount = 0;
+      for (const artist of artists.slice(0, maxArtists)) {
+        if (skipArtistIds.has(artist.id)) {
+          this.log(`Skipping artist ${artist.id} — releases already fresh in DB`);
+          continue;
+        }
+        if (processedCount >= maxArtistsPerCycle) {
+          this.log(
+            `Reached max artists per cycle (${maxArtistsPerCycle}) — deferring rest to next sync`,
+          );
+          break;
+        }
+        processedCount++;
+        const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single&limit=${SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT}&market=${market}`;
+        // App token is sufficient for /artists/{id}/albums — no user auth needed
+        const albumsResponse = await this.fetchWithAppToken(albumsUrl);
 
-          if (!albumsResponse.ok) {
-            const errorText = await albumsResponse.text();
+        if (!albumsResponse.ok) {
+          const errorText = await albumsResponse.text();
 
-            if (albumsResponse.status === 401) {
-              throw new AppError(
-                401,
-                "missing_user_access_token",
-                "Spotify user token expired or invalid",
-              );
-            }
-
-            this.log(
-              `Failed to fetch albums for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
-              "warn",
+          if (albumsResponse.status === 429) {
+            throw new AppError(
+              429,
+              "spotify_rate_limited",
+              "Rate limited by Spotify API while fetching recent releases.",
             );
-            return [] as const;
           }
 
-          const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
-          const albums = albumsData.items ?? [];
+          this.log(
+            `Failed to fetch albums for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
+            "warn",
+          );
+          releasesPerArtist.push([]);
+          continue;
+        }
 
-          return albums.map((album) => ({
+        const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
+        const albums = albumsData.items ?? [];
+
+        releasesPerArtist.push(
+          albums.map((album) => ({
             artistId: artist.id,
             artistName: artist.name,
             artistImageUrl: artist.images?.[0]?.url ?? null,
@@ -245,9 +265,9 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
             releaseDate: album.release_date,
             coverUrl: album.images?.[0]?.url ?? null,
             spotifyUrl: album.external_urls?.spotify,
-          }));
-        }),
-      );
+          })),
+        );
+      }
 
       const flat = releasesPerArtist.flat();
 
@@ -290,7 +310,12 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     }
   }
 
-  async getFollowedArtistsAlbumsSnapshot(limitPerArtist: number = 50): Promise<ArtistRelease[]> {
+  async getFollowedArtistsAlbumsSnapshot(
+    limitPerArtist: number = 50,
+    skipArtistIds: Set<string> = new Set(),
+    maxArtistsPerCycle: number = Infinity,
+    priorityArtistIds: Set<string> = new Set(),
+  ): Promise<ArtistRelease[]> {
     const safeLimit = Math.min(Math.max(limitPerArtist, 1), 50);
     const cacheKey = this.getCacheKey("getFollowedArtistsAlbumsSnapshot", safeLimit);
     const cached = await this.getFromCache<ArtistRelease[]>(cacheKey);
@@ -302,68 +327,85 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
 
     const maxArtists = await this.settingsService.getNumber(FOLLOWED_ARTISTS_MAX_KEY);
     const artists = await this.getFollowedArtistsSnapshot(maxArtists);
+    const market = await this.getMarket();
 
-    const albumsPerArtist = await Promise.all(
-      artists.slice(0, maxArtists).map(async (artist) => {
-        const albums: ArtistRelease[] = [];
-        let offset = 0;
-        const market = await this.getMarket();
+    // Priority order: artists with NO data first, then stale artists
+    const sliced = artists.slice(0, maxArtists);
+    const prioritized = [
+      ...sliced.filter((a) => priorityArtistIds.has(a.id) && !skipArtistIds.has(a.id)),
+      ...sliced.filter((a) => !priorityArtistIds.has(a.id) && !skipArtistIds.has(a.id)),
+    ];
 
-        while (albums.length < safeLimit) {
-          const pageLimit = Math.min(SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT, safeLimit - albums.length);
-          const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single,compilation&limit=${pageLimit}&offset=${offset}&market=${market}`;
-          const albumsResponse = await this.fetchWithUserToken(albumsUrl);
+    // Sequential — not Promise.all — to respect the rate limiter and avoid
+    // bursting Spotify with N*pages concurrent requests (one loop per followed artist)
+    const albumsPerArtist: ArtistRelease[][] = [];
+    let processedCount = 0;
+    for (const artist of prioritized) {
+      if (processedCount >= maxArtistsPerCycle) {
+        this.log(
+          `Reached max artists per cycle (${maxArtistsPerCycle}) — deferring rest to next sync`,
+        );
+        break;
+      }
+      processedCount++;
+      const albums: ArtistRelease[] = [];
+      let offset = 0;
 
-          if (!albumsResponse.ok) {
-            const errorText = await albumsResponse.text();
+      while (albums.length < safeLimit) {
+        const pageLimit = Math.min(SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT, safeLimit - albums.length);
+        const albumsUrl = `https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single,compilation&limit=${pageLimit}&offset=${offset}&market=${market}`;
+        // App token is sufficient for /artists/{id}/albums — no user auth needed
+        const albumsResponse = await this.fetchWithAppToken(albumsUrl);
 
-            if (albumsResponse.status === 401) {
-              throw new AppError(
-                401,
-                "missing_user_access_token",
-                "Spotify user token expired or invalid",
-              );
-            }
+        if (!albumsResponse.ok) {
+          const errorText = await albumsResponse.text();
 
-            this.log(
-              `Failed to fetch album snapshot for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
-              "warn",
+          if (albumsResponse.status === 429) {
+            throw new AppError(
+              429,
+              "spotify_rate_limited",
+              "Rate limited by Spotify API while fetching artist album snapshot.",
             );
-            break;
           }
 
-          const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
-          const pageAlbums = albumsData.items ?? [];
-
-          if (pageAlbums.length === 0) {
-            break;
-          }
-
-          albums.push(
-            ...pageAlbums.map((album) => ({
-              artistId: artist.id,
-              artistName: artist.name,
-              artistImageUrl: artist.images?.[0]?.url ?? null,
-              albumId: album.id as string,
-              albumName: album.name,
-              albumType: album.album_type as AlbumType,
-              releaseDate: album.release_date,
-              coverUrl: album.images?.[0]?.url ?? null,
-              spotifyUrl: album.external_urls?.spotify,
-              totalTracks: album.total_tracks,
-            })),
+          this.log(
+            `Failed to fetch album snapshot for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
+            "warn",
           );
-
-          if (pageAlbums.length < pageLimit) {
-            break;
-          }
-
-          offset += pageAlbums.length;
+          break;
         }
 
-        return albums;
-      }),
-    );
+        const albumsData = (await albumsResponse.json()) as SpotifyArtistAlbumsResponse;
+        const pageAlbums = albumsData.items ?? [];
+
+        if (pageAlbums.length === 0) {
+          break;
+        }
+
+        albums.push(
+          ...pageAlbums.map((album) => ({
+            artistId: artist.id,
+            artistName: artist.name,
+            artistImageUrl: artist.images?.[0]?.url ?? null,
+            albumId: album.id as string,
+            albumName: album.name,
+            albumType: album.album_type as AlbumType,
+            releaseDate: album.release_date,
+            coverUrl: album.images?.[0]?.url ?? null,
+            spotifyUrl: album.external_urls?.spotify,
+            totalTracks: album.total_tracks,
+          })),
+        );
+
+        if (pageAlbums.length < pageLimit) {
+          break;
+        }
+
+        offset += pageAlbums.length;
+      }
+
+      albumsPerArtist.push(albums);
+    }
 
     const flat = albumsPerArtist.flat();
     this.setCache(cacheKey, flat);

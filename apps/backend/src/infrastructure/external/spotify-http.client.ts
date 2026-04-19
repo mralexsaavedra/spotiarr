@@ -8,10 +8,10 @@ const DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS = 100;
 // Background sync limiter — more conservative to avoid starving user requests
 const DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY = 1;
 const DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS = 600_000;
-const DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS = 1_000;
-const DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY = 5;
+const DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS = 2_000;
+const DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY = 2;
 const DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS = 30_000;
-const DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS = 50;
+const DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS = 300;
 
 export const SPOTIFY_LIMITER_MODE = {
   USER: "user",
@@ -108,8 +108,8 @@ export class SpotifyHttpClient {
     options: { failFast?: boolean } = {},
   ): Promise<Response> {
     const isFailFast = options.failFast === true;
-    const MAX_RETRIES = isFailFast ? 1 : 5;
-    const RETRY_AFTER_CAP_SECONDS = isFailFast ? 10 : 60;
+    const MAX_RETRIES = isFailFast ? 0 : 5;
+    const RETRY_AFTER_CAP_SECONDS = isFailFast ? 0 : 60;
 
     try {
       const response = await fetch(input.toString(), init);
