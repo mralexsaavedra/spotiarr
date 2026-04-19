@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.1...v1.3.2) (2026-04-19)
+
+### Bug Fixes
+
+- **PromiseCache**: Fix cache clearing immediately on resolve — the shared in-flight cache was only deduplicating concurrent requests, not caching for the full 30-second TTL. Also fix race condition where TTL expiry could evict a still-in-flight promise causing duplicate requests.
+- **Sync**: Replace `Promise.all` with sequential `for...of` across all artist album fetches — previous implementation fired up to 400 concurrent Spotify requests per cycle, saturating the rate limit immediately.
+- **Sync**: Cap at 25 artists per cycle with 2-second intervals between requests. Artists with no cached data are prioritized over stale ones to minimize visible errors for users.
+- **Sync**: Skip artists synced within the last 24 hours — no redundant Spotify calls when data is already fresh.
+- **Sync**: Use app token for `/artists/{id}/albums` — was incorrectly using the user token for a fully public endpoint. Spotify rate-limits tokens per endpoint independently.
+- **Sync**: Reset `SyncState` from `running` to `idle` on worker startup and on BullMQ `failed` event — prevents permanently stuck sync after a process crash.
+- **Artist detail**: Return cached DB data with `albumsRateLimited` flag when Spotify returns 429, instead of silently showing empty discography.
+- **Artist detail UX**: Show contextual message when albums are rate-limited instead of misleading \"No discography available\".
+- **Post-processing**: Replace `getPlaylistDetail` (fetches all tracks) with new `getCoverImage` method (1 request per type) for cover art during track downloads.
+- **Interactive requests**: Set `failFast` to 0 retries — 429 on user-triggered requests now fails immediately instead of hanging the UI for up to 10 seconds.
+- **getMarket()**: Cache market setting in memory per client instance with invalidation on `settings:updated` event — eliminates redundant DB queries on every Spotify request.
+
 ## [1.3.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.0...v1.3.1) (2026-04-17)
 
 ### Bug Fixes
