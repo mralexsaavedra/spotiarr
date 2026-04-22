@@ -100,7 +100,7 @@ git push
 GHA auto-creates the release with a generic description. **Always replace it** with a proper one using:
 
 ```bash
-gh release edit vX.Y.Z --title "EMOJI SpotiArr vX.Y.Z — Short Subtitle" --notes "$(cat <<'EOF'
+gh release edit vX.Y.Z --notes "$(cat <<'EOF'
 # EMOJI SpotiArr vX.Y.Z — Short Subtitle
 
 One paragraph explaining the theme of this release and who should update.
@@ -130,7 +130,13 @@ EOF
 )"
 ```
 
-**Release title emoji guide**:
+**Important — title convention**:
+
+- Do NOT pass `--title` to `gh release edit` — the GitHub Release `name` field stays as the tag only (e.g. `v1.3.4`)
+- The descriptive title lives as the **H1 heading inside the body** (`# EMOJI SpotiArr vX.Y.Z — Short Subtitle`)
+- This matches the existing release style — check with `gh release view vPREV`
+
+**Body H1 emoji guide**:
 
 - 🚀 New features / minor or major release
 - 🛡️ Security / resilience / reliability fixes
@@ -174,5 +180,5 @@ gh release view vX.Y.Z
 - [ ] Tag created as `git tag -a vX.Y.Z -m "vX.Y.Z"` (NOT bare tag)
 - [ ] Pushed to main with `--tags`
 - [ ] GHA workflow triggered and completed
-- [ ] GitHub Release description updated via `gh release edit`
+- [ ] GitHub Release description updated via `gh release edit` (no `--title` — title lives as H1 in body)
 - [ ] `docs(changelog)` commit pushed if CHANGELOG was separate

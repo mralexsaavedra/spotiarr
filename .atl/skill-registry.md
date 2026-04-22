@@ -94,6 +94,8 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 - Commit as `chore(release): bump to vX.Y.Z`; tag as `vX.Y.Z` with `v` prefix
 - Push to main with `--tags` in same command; NEVER create GitHub Release manually (GHA handles it)
 - Suggest bump type from conventional commits: fix→patch, feat→minor, BREAKING CHANGE→major
+- `gh release edit vX.Y.Z --notes "..."` — NO `--title` flag; GitHub Release name = tag only
+- Descriptive title lives as H1 in the body: `# EMOJI SpotiArr vX.Y.Z — Short Subtitle`
 - Verify: `gh run list --workflow=release.yml --limit=1`
 
 ### spotiarr-compatibility
