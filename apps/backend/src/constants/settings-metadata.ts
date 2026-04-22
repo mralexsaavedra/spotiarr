@@ -13,7 +13,7 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
   },
   SPOTIFY_MARKET: {
     key: "SPOTIFY_MARKET",
-    defaultValue: "US",
+    defaultValue: "ES",
     type: "string",
     component: "select",
     section: "Spotify",
