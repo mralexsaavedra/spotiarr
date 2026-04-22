@@ -29,6 +29,9 @@ export class SpotifyAlbumClient extends SpotifyBaseClient {
       );
 
       if (!albumResponse.ok) {
+        if (albumResponse.status === 404) {
+          throw new AppError(404, "album_not_found", `Album not found: ${albumId}`);
+        }
         throw new AppError(
           albumResponse.status,
           "internal_server_error",
@@ -41,33 +44,39 @@ export class SpotifyAlbumClient extends SpotifyBaseClient {
   }
 
   /**
-   * Get album details from Spotify API
+   * Get album tracks from Spotify API with full pagination
    */
   async getAlbumTracks(albumId: string): Promise<NormalizedTrack[]> {
     return this.requestCache.getOrSet(`album-tracks:${albumId}`, async () => {
       try {
-        const response = await this.fetchWithAppToken(
-          `https://api.spotify.com/v1/albums/${albumId}/tracks`,
-        );
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new AppError(404, "playlist_not_found", `Album not found: ${albumId}`);
-          }
-          if (response.status === 429) {
-            throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
-          }
-          throw new AppError(
-            response.status,
-            "internal_server_error",
-            `Failed to fetch album: ${response.status}`,
-          );
-        }
-
-        const data = (await response.json()) as SpotifyAlbumTracksResponse;
         const albumData = await this.getAlbumDetails(albumId);
 
-        return data.items.map((track: SpotifyTrack) => {
+        // Paginate through all tracks (Spotify returns max 50 per page)
+        const allTracks: SpotifyTrack[] = [];
+        let url: string | null =
+          `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`;
+
+        while (url) {
+          const response = await this.fetchWithAppToken(url);
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new AppError(404, "album_not_found", `Album not found: ${albumId}`);
+            }
+            if (response.status === 429) {
+              throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+            }
+            throw new AppError(
+              response.status,
+              "internal_server_error",
+              `Failed to fetch album tracks: ${response.status}`,
+            );
+          }
+          const page = (await response.json()) as SpotifyAlbumTracksResponse;
+          allTracks.push(...page.items);
+          url = page.next;
+        }
+
+        return allTracks.map((track: SpotifyTrack) => {
           const normalized = SpotifyTrackMapper.toNormalizedTrack(track, {
             album: albumData,
             primaryArtistImage: null,
