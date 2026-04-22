@@ -67,6 +67,7 @@ export interface ITrack {
   id?: string;
   name: string;
   artist: string;
+  albumArtist?: string;
   album?: string;
   albumYear?: number;
   trackNumber?: number;

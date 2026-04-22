@@ -24,12 +24,17 @@ USER_NAME=$(getent passwd "$PUID" | cut -d: -f1)
 echo "🔧 Fixing permissions..."
 mkdir -p /spotiarr/config
 chown -R "$PUID:$PGID" /spotiarr/config
-# Note: /spotiarr code is already owned by node:node from build, 
-# but if PUID!=1000 we might need to adjust, though usually read-only is fine for code.
+# Prisma writes engine binaries into node_modules at startup; chown those dirs
+# so they're writable when PUID != 1000 (the uid used during the Docker build).
+find /spotiarr/node_modules/.pnpm -path "*/@prisma/engines" -type d \
+    -exec chown -R "$PUID:$PGID" {} + 2>/dev/null || true
 
 # Fix downloads root
 mkdir -p /downloads
 chown "$PUID:$PGID" /downloads 2>/dev/null || true
 
 echo "🚀 Starting application as $USER_NAME..."
+# Point corepack at the system-wide cache pre-populated during the Docker build
+# so pnpm doesn't try to download itself to the (root-owned) user home dir.
+export COREPACK_HOME=/usr/local/share/corepack
 exec su-exec "$PUID:$PGID" "$@"
