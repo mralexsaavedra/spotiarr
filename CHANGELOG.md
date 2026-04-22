@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.4](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.3...v1.3.4) (2026-04-22)
+
+### Bug Fixes
+
+- **Album artist**: Tracks from compilations and classical albums now group under the performing ensemble (e.g. "Berliner Philharmoniker") instead of scattering each track into a separate composer folder. Affects both the filesystem structure and the ID3 Album Artist (TPE2) tag read by Jellyfin and Plex. ([5de563b](https://github.com/mralexsaavedra/spotiarr/commit/5de563b))
+- **Docker**: Container failed to start when `PUID` was set to a value other than `1000`. Prisma engine binaries and the corepack cache are now made writable for the configured user at startup. ([bc320ab](https://github.com/mralexsaavedra/spotiarr/commit/bc320ab))
+- **YouTube search**: Replaced `--no-playlist` + `--ignore-errors` with `--flat-playlist` to skip format resolution during search, improving compatibility with recent yt-dlp versions. ([1def93d](https://github.com/mralexsaavedra/spotiarr/commit/1def93d))
+- **YouTube search**: Tracks with a YouTube URL already set (e.g. manually overridden) no longer trigger a redundant YouTube search — they are queued directly. ([610cf0d](https://github.com/mralexsaavedra/spotiarr/commit/610cf0d))
+
 ## [1.3.3](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.2...v1.3.3) (2026-04-22)
 
 ### Bug Fixes

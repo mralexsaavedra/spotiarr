@@ -1,6 +1,6 @@
 {
   "name": "spotiarr",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Self-hosted Spotify downloader with Jellyfin/Plex integration. Lidarr-inspired music automation.",
   "keywords": [
     "spotify",
