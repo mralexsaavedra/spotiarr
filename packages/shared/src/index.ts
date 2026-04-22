@@ -132,6 +132,7 @@ export type ApiErrorCode =
   | "playlist_not_found"
   | "playlist_already_exists"
   | "track_not_found"
+  | "album_not_found"
   | "internal_server_error"
   | "failed_to_fetch_artist_detail"
   | "failed_to_fetch_followed_artists"
