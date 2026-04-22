@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.3](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.2...v1.3.3) (2026-04-22)
+
+### Bug Fixes
+
+- **Album downloads**: Albums with more than 20 tracks were silently truncated — only the first 20 tracks would queue for download with no error or warning. Spotify's default page size is 20; now paginates until all tracks are collected. ([6d3ba4b](https://github.com/mralexsaavedra/spotiarr/commit/6d3ba4b))
+- **Album downloads**: Artist image lookup during album downloads was using the first track's artist instead of the album's primary artist — causing incorrect artwork on compilations and multi-artist sets. ([c32aac1](https://github.com/mralexsaavedra/spotiarr/commit/c32aac1))
+
 ## [1.3.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.1...v1.3.2) (2026-04-19)
 
 ### Bug Fixes
