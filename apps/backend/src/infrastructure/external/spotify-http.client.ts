@@ -1,4 +1,5 @@
 import { RateLimiter } from "./rate-limiter";
+import { CircuitBreaker } from "./circuit-breaker";
 import { SpotifyAuthService } from "./spotify-auth.service";
 
 const DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY = 5;
@@ -8,7 +9,7 @@ const DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS = 100;
 // Background sync limiter — more conservative to avoid starving user requests
 const DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY = 1;
 const DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS = 600_000;
-const DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS = 2_000;
+const DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS = 3_000;
 const DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY = 2;
 const DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS = 30_000;
 const DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS = 300;
@@ -73,6 +74,34 @@ const interactiveRateLimiter = new RateLimiter({
   ),
 });
 
+// Shared app-token limiter + circuit breaker to prevent 429 storms across workers
+const appTokenRateLimiter = new RateLimiter({
+  maxConcurrency: 2,
+  minIntervalMs: 500,
+  queueTimeoutMs: 120_000,
+});
+
+const appTokenCircuitBreaker = new CircuitBreaker();
+
+/**
+ * Configure the shared app-token circuit breaker with persistence callbacks.
+ * Call this once at startup (after the settings repository is ready) to:
+ * - Restore any persisted open-until timestamp (so restarts don't reset the breaker)
+ * - Register a callback to persist the state whenever the circuit opens
+ *
+ * @param initialOpenUntilMs - timestamp (ms) read from persistent storage
+ * @param onOpen             - called whenever the circuit opens; persist this value
+ */
+export function configureAppTokenCircuitBreaker(
+  initialOpenUntilMs: number,
+  onOpen: (openUntilMs: number) => void,
+): void {
+  if (initialOpenUntilMs > 0) {
+    appTokenCircuitBreaker.restore(initialOpenUntilMs);
+  }
+  appTokenCircuitBreaker.setOnOpenCallback(onOpen);
+}
+
 export class SpotifyHttpClient {
   private readonly limiter: RateLimiter;
   private readonly useFailFastRetry: boolean;
@@ -80,6 +109,7 @@ export class SpotifyHttpClient {
   constructor(
     private readonly authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
+    useFailFastRetryOverride?: boolean,
   ) {
     let resolvedLimiter = userRateLimiter;
     let useFailFastRetry = false;
@@ -94,7 +124,7 @@ export class SpotifyHttpClient {
     }
 
     this.limiter = resolvedLimiter;
-    this.useFailFastRetry = useFailFastRetry;
+    this.useFailFastRetry = useFailFastRetryOverride ?? useFailFastRetry;
   }
 
   private async sleep(ms: number): Promise<void> {
@@ -105,7 +135,7 @@ export class SpotifyHttpClient {
     input: string | URL,
     init?: RequestInit,
     retries = 0,
-    options: { failFast?: boolean } = {},
+    options: { failFast?: boolean; onRateLimit?: (retryAfterSeconds: number) => void } = {},
   ): Promise<Response> {
     const isFailFast = options.failFast === true;
     const MAX_RETRIES = isFailFast ? 0 : 5;
@@ -120,6 +150,8 @@ export class SpotifyHttpClient {
         const retryAfterSeconds = retryAfterHeader
           ? Math.min(parseInt(retryAfterHeader, 10), RETRY_AFTER_CAP_SECONDS)
           : Math.pow(2, retries);
+
+        options.onRateLimit?.(retryAfterSeconds);
 
         // Add 1s buffer to be safe
         const waitMs = (retryAfterSeconds + 1) * 1000;
@@ -164,15 +196,22 @@ export class SpotifyHttpClient {
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 
-    return this.limiter.queueRequest(() =>
-      this.fetchWithRateLimitRetry(
-        input,
-        {
-          ...init,
-          headers,
-        },
-        0,
-        { failFast: this.useFailFastRetry },
+    return appTokenCircuitBreaker.execute(() =>
+      appTokenRateLimiter.queueRequest(() =>
+        this.fetchWithRateLimitRetry(
+          input,
+          {
+            ...init,
+            headers,
+          },
+          0,
+          {
+            failFast: this.useFailFastRetry,
+            onRateLimit: (retryAfterSeconds) => {
+              appTokenCircuitBreaker.notifyRateLimit(retryAfterSeconds);
+            },
+          },
+        ),
       ),
     );
   }

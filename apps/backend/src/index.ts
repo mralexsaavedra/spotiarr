@@ -4,14 +4,18 @@ import * as http from "http";
 import { app } from "./app";
 import { container } from "./container";
 import { startScheduledJobs } from "./infrastructure/jobs";
+import { configureAppTokenCircuitBreaker } from "./infrastructure/external/spotify-http.client";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
+import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { initializeQueues } from "./infrastructure/setup/queues";
 import {
   getFeedSyncQueue,
   getTrackDownloadQueue,
   getTrackSearchQueue,
 } from "./infrastructure/setup/queues";
+
+const CIRCUIT_BREAKER_OPEN_UNTIL_KEY = "spotify_circuit_open_until";
 
 // Validate environment variables first
 validateEnvironment();
@@ -36,6 +40,19 @@ async function bootstrap() {
 
   // Initialize BullMQ queues
   initializeQueues();
+
+  // Restore circuit breaker state from SQLite so a process restart does NOT
+  // immediately hammer Spotify if the circuit was open before shutdown.
+  const settingsRepo = new PrismaSettingsRepository();
+  const savedOpenUntil = await settingsRepo.get(CIRCUIT_BREAKER_OPEN_UNTIL_KEY);
+  const initialOpenUntilMs = savedOpenUntil ? parseInt(savedOpenUntil, 10) : 0;
+  configureAppTokenCircuitBreaker(initialOpenUntilMs, async (openUntilMs) => {
+    await settingsRepo
+      .set(CIRCUIT_BREAKER_OPEN_UNTIL_KEY, openUntilMs.toString())
+      .catch((err) => {
+        console.error("[CircuitBreaker] Failed to persist open-until timestamp", err);
+      });
+  });
 
   // Initialize workers
   const { createTrackDownloadWorker } =
