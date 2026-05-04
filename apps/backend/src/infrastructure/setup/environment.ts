@@ -80,6 +80,12 @@ const envSchema = z
       .default("15")
       .transform(Number)
       .pipe(z.number().int().min(5).max(50)),
+    MAX_CATALOG_ARTISTS_PER_CYCLE: z
+      .string()
+      .regex(/^\d+$/, "MAX_CATALOG_ARTISTS_PER_CYCLE must be a number")
+      .default("5")
+      .transform(Number)
+      .pipe(z.number().int().min(1).max(20)),
     FOLLOWED_ARTISTS_MAX: z
       .string()
       .regex(/^\d+$/, "FOLLOWED_ARTISTS_MAX must be a number")

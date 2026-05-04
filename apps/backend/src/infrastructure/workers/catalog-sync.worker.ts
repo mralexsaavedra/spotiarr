@@ -4,7 +4,7 @@ import { SYNC_STATUS } from "../database/feed.repository";
 import { getEnv } from "../setup/environment";
 import { CATALOG_SYNC_QUEUE } from "../setup/queues";
 
-const { spotifyUserLibrarySyncService, feedRepository, eventBus } = container;
+const { spotifyUserLibrarySyncService, feedRepository, eventBus, settingsService } = container;
 
 const CATALOG_SYNC_TTL_DAYS = 7;
 
@@ -38,9 +38,14 @@ export function createCatalogSyncWorker(): Worker {
           Date.now() - CATALOG_SYNC_TTL_DAYS * 24 * 60 * 60 * 1000,
         );
 
+        const maxArtistsPerCycle = await settingsService.getNumber(
+          "MAX_CATALOG_ARTISTS_PER_CYCLE",
+          5,
+        );
+
         const artistIds = await feedRepository.getArtistIdsNeedingCatalogSync(
           cutoffDate,
-          10_000, // No artificial cap per spec REQ-7
+          maxArtistsPerCycle,
         );
 
         if (artistIds.length === 0) {
@@ -88,6 +93,17 @@ export function createCatalogSyncWorker(): Worker {
             successCount++;
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
+            // Circuit breaker open — abort cycle gracefully, don't hammer Spotify
+            if (
+              error instanceof Error &&
+              "errorCode" in error &&
+              (error as { errorCode: string }).errorCode === "circuit_open"
+            ) {
+              console.warn(
+                `[CatalogSyncWorker] Circuit breaker open — aborting cycle after ${successCount} artists`,
+              );
+              break;
+            }
             console.warn(`[CatalogSyncWorker] Failed to sync artist ${artist.id}:`, message);
             failedArtistIds.push(artist.id);
           }

@@ -81,6 +81,16 @@ export function createFeedSyncWorker(): Worker {
         await feedRepository.setSyncState(SYNC_STATUS.Idle);
         eventBus.emit("feed-updated", { artists: artists.length, releases: releases.length });
       } catch (error) {
+        // Circuit breaker open — abort gracefully, next cycle will retry
+        if (
+          error instanceof Error &&
+          "errorCode" in error &&
+          (error as { errorCode: string }).errorCode === "circuit_open"
+        ) {
+          console.warn("[FeedSyncWorker] Circuit breaker open — skipping cycle");
+          await feedRepository.setSyncState(SYNC_STATUS.Idle);
+          return;
+        }
         const message = error instanceof Error ? error.message : String(error);
         await feedRepository.setSyncState(SYNC_STATUS.Error, message);
         throw error;
