@@ -3,10 +3,12 @@ import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 
 export const FEED_SYNC_QUEUE = "feed-sync-queue";
+export const CATALOG_SYNC_QUEUE = "catalog-sync-queue";
 
 let trackDownloadQueue: Queue;
 let trackSearchQueue: Queue;
 let feedSyncQueue: Queue;
+let catalogSyncQueue: Queue;
 
 export function initializeQueues(): void {
   const env = getEnv();
@@ -36,6 +38,13 @@ export function initializeQueues(): void {
     },
   });
 
+  catalogSyncQueue = new Queue(CATALOG_SYNC_QUEUE, {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: true,
+    },
+  });
+
   console.log("✅ BullMQ queues initialized");
 }
 
@@ -58,4 +67,11 @@ export function getFeedSyncQueue(): Queue {
     throw new AppError(500, "internal_server_error", "Feed sync queue not initialized");
   }
   return feedSyncQueue;
+}
+
+export function getCatalogSyncQueue(): Queue {
+  if (!catalogSyncQueue) {
+    throw new AppError(500, "internal_server_error", "Catalog sync queue not initialized");
+  }
+  return catalogSyncQueue;
 }

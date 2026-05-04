@@ -10,6 +10,7 @@ import { prisma } from "./infrastructure/setup/prisma";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { initializeQueues } from "./infrastructure/setup/queues";
 import {
+  getCatalogSyncQueue,
   getFeedSyncQueue,
   getTrackDownloadQueue,
   getTrackSearchQueue,
@@ -27,6 +28,7 @@ const PORT = 3000;
 let downloadWorker: import("bullmq").Worker;
 let searchWorker: import("bullmq").Worker;
 let feedSyncWorker: import("bullmq").Worker;
+let catalogSyncWorker: import("bullmq").Worker;
 
 async function bootstrap() {
   console.log("🚀 Starting SpotiArr Backend...\n");
@@ -64,6 +66,11 @@ async function bootstrap() {
 
   const { createFeedSyncWorker } = await import("./infrastructure/workers/feed-sync.worker");
   feedSyncWorker = createFeedSyncWorker();
+
+  const { createCatalogSyncWorker } = await import(
+    "./infrastructure/workers/catalog-sync.worker"
+  );
+  catalogSyncWorker = createCatalogSyncWorker();
 
   // Listen for settings updates to hot-reload workers
   (container.eventBus as unknown as EventEmitter).on(
@@ -122,9 +129,11 @@ const gracefulShutdown = async (signal: string, server: http.Server) => {
       getTrackDownloadQueue().close(),
       getTrackSearchQueue().close(),
       getFeedSyncQueue().close(),
+      getCatalogSyncQueue().close(),
       downloadWorker?.close(),
       searchWorker?.close(),
       feedSyncWorker?.close(),
+      catalogSyncWorker?.close(),
     ]);
     console.log("✅ Queues and workers closed");
 

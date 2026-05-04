@@ -78,12 +78,14 @@ model DownloadHistory {
 }
 
 model FollowedArtistCache {
-  spotifyId String              @id
-  name      String
-  imageUrl  String?
-  spotifyUrl String?
-  syncedAt  DateTime
-  releases  ArtistReleaseCache[]
+  spotifyId          String              @id
+  name               String
+  imageUrl           String?
+  spotifyUrl         String?
+  syncedAt           DateTime
+  lastCatalogSyncAt  DateTime?
+  lastReleasesSyncAt DateTime?
+  releases           ArtistReleaseCache[]
 }
 
 model ArtistReleaseCache {

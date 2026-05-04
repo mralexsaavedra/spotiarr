@@ -4,7 +4,11 @@ import { SYNC_STATUS } from "../database/feed.repository";
 import { getEnv } from "../setup/environment";
 import { FEED_SYNC_QUEUE } from "../setup/queues";
 
-const { spotifyUserLibrarySyncService, feedRepository, eventBus } = container;
+const { spotifyUserLibrarySyncService, feedRepository, eventBus, settingsService } = container;
+
+const RELEASES_SYNC_TTL_HOURS = 24;
+const RELEASES_ACTIVITY_WINDOW_DAYS = 90;
+const MAX_RELEASES_ARTISTS_PER_CYCLE = 15;
 
 export function createFeedSyncWorker(): Worker {
   // If the process crashed mid-sync, the state is stuck in "running".
@@ -30,40 +34,47 @@ export function createFeedSyncWorker(): Worker {
         const artists = await spotifyUserLibrarySyncService.getFollowedArtists();
         await feedRepository.upsertArtists(artists);
 
-        // Skip artists whose data was synced in the last 24h — no need to
-        // re-fetch from Spotify if the data is already fresh in the DB.
-        const freshnessCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const [freshAlbumIds, freshReleaseIds, emptyArtistIds] = await Promise.all([
-          feedRepository.getArtistIdsWithFreshAlbums(freshnessCutoff),
-          feedRepository.getArtistIdsWithFreshReleases(freshnessCutoff),
-          feedRepository.getArtistIdsWithNoAlbums(),
-        ]);
-
-        const staleAlbumCount = artists.length - freshAlbumIds.size;
-        const staleReleaseCount = artists.length - freshReleaseIds.size;
-
-        // Cap Spotify calls per cycle to avoid rate limiting.
-        // Artists with NO data at all are prioritized — they are the ones
-        // causing "rate limited" messages when users visit them.
-        // Stale artists (have data but >24h old) are processed after empty ones.
-        const MAX_ARTISTS_PER_CYCLE = 25;
-        console.log(
-          `[FeedSyncWorker] Albums: ${freshAlbumIds.size}/${artists.length} fresh, ${emptyArtistIds.size} empty (priority), ${staleAlbumCount - emptyArtistIds.size} stale — processing up to ${MAX_ARTISTS_PER_CYCLE} this cycle`,
+        const releaseCutoff = new Date(
+          Date.now() - RELEASES_SYNC_TTL_HOURS * 60 * 60 * 1000,
+        );
+        const activityWindow = new Date(
+          Date.now() - RELEASES_ACTIVITY_WINDOW_DAYS * 24 * 60 * 60 * 1000,
         );
 
-        const artistAlbums = await spotifyUserLibrarySyncService.getFollowedArtistsAlbumsSnapshot(
-          50,
-          freshAlbumIds,
-          MAX_ARTISTS_PER_CYCLE,
-          emptyArtistIds,
-        );
-        await feedRepository.upsertArtistAlbums(artistAlbums);
+        const maxArtistsPerCycle =
+          (await settingsService.getNumber("MAX_ACTIVE_ARTISTS_PER_CYCLE", 15)) > 0
+            ? await settingsService.getNumber("MAX_ACTIVE_ARTISTS_PER_CYCLE", 15)
+            : MAX_RELEASES_ARTISTS_PER_CYCLE;
 
-        const releases = await spotifyUserLibrarySyncService.getFollowedArtistsRecentReleases(
-          freshReleaseIds,
-          MAX_ARTISTS_PER_CYCLE,
+        const artistIds = await feedRepository.getActiveArtistIdsForReleasesSync(
+          releaseCutoff,
+          activityWindow,
+          maxArtistsPerCycle,
         );
+
+        if (artistIds.length === 0) {
+          console.log("[FeedSyncWorker] No active artists need releases sync");
+          await feedRepository.setSyncState(SYNC_STATUS.Idle);
+          return;
+        }
+
+        console.log(`[FeedSyncWorker] Processing releases for ${artistIds.length} active artists`);
+
+        const artistMap = new Map(artists.map((a) => [a.id, a]));
+        const artistsToSync = artistIds
+          .map((id) => artistMap.get(id))
+          .filter((a): a is NonNullable<typeof a> => a !== undefined);
+
+        const releases = await spotifyUserLibrarySyncService.getActiveArtistReleases(
+          artistsToSync.map((a) => ({
+            id: a.id,
+            name: a.name,
+            imageUrl: a.image,
+          })),
+        );
+
         await feedRepository.upsertReleases(releases);
+        await feedRepository.updateArtistReleasesSyncedAt(artistIds);
 
         await feedRepository.evictStaleFeedCache(artists.map((a) => a.id));
 

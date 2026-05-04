@@ -9,8 +9,8 @@ let lastFeedSyncCheckTimestamp = 0;
 
 export const feedSyncJob = cron.schedule("* * * * *", async () => {
   try {
-    const intervalMinutes = await settingsService.getNumber("FEED_SYNC_INTERVAL_MINUTES", 30);
-    const safeIntervalMinutes = intervalMinutes > 0 ? intervalMinutes : 30;
+    const intervalMinutes = await settingsService.getNumber("RELEASES_SYNC_INTERVAL_MINUTES", 60);
+    const safeIntervalMinutes = intervalMinutes > 0 ? intervalMinutes : 60;
     const now = Date.now();
 
     if (now - lastFeedSyncCheckTimestamp < safeIntervalMinutes * 60_000) {

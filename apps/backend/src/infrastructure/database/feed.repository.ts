@@ -319,6 +319,90 @@ export class FeedRepository {
     ]);
   }
 
+  async getArtistIdsNeedingCatalogSync(cutoffDate: Date, limit: number): Promise<string[]> {
+    const rows = await this.prisma.followedArtistCache.findMany({
+      where: {
+        OR: [
+          { lastCatalogSyncAt: null },
+          { lastCatalogSyncAt: { lt: cutoffDate } },
+        ],
+      },
+      orderBy: { lastCatalogSyncAt: { sort: "asc", nulls: "first" } },
+      take: limit,
+      select: { spotifyId: true },
+    });
+    return rows.map((r) => r.spotifyId);
+  }
+
+  async getActiveArtistIdsForReleasesSync(
+    releaseCutoff: Date,
+    activityWindowDate: Date,
+    limit: number,
+  ): Promise<string[]> {
+    const activityWindowStr = activityWindowDate.toISOString().slice(0, 10);
+
+    const rows = await this.prisma.followedArtistCache.findMany({
+      where: {
+        OR: [
+          { lastReleasesSyncAt: null },
+          { lastReleasesSyncAt: { lt: releaseCutoff } },
+        ],
+        AND: [
+          {
+            OR: [
+              { lastCatalogSyncAt: null },
+              {
+                releases: {
+                  some: {
+                    releaseDate: { gte: activityWindowStr },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      orderBy: { lastReleasesSyncAt: { sort: "asc", nulls: "first" } },
+      take: limit,
+      select: { spotifyId: true },
+    });
+    return rows.map((r) => r.spotifyId);
+  }
+
+  async updateArtistCatalogSyncedAt(artistIds: string[]): Promise<void> {
+    if (artistIds.length === 0) {
+      return;
+    }
+
+    const now = new Date();
+
+    await this.prisma.$transaction(
+      artistIds.map((id) =>
+        this.prisma.followedArtistCache.update({
+          where: { spotifyId: id },
+          data: { lastCatalogSyncAt: now },
+        }),
+      ),
+    );
+  }
+
+  async updateArtistReleasesSyncedAt(artistIds: string[]): Promise<void> {
+    if (artistIds.length === 0) {
+      return;
+    }
+
+    const now = new Date();
+
+    await this.prisma.$transaction(
+      artistIds.map((id) =>
+        this.prisma.followedArtistCache.update({
+          where: { spotifyId: id },
+          data: { lastReleasesSyncAt: now },
+        }),
+      ),
+    );
+  }
+
   async getSyncState(): Promise<SyncStateRecord> {
     return this.prisma.syncState.upsert({
       where: { id: 1 },
@@ -340,6 +424,34 @@ export class FeedRepository {
       },
       create: {
         id: 1,
+        status,
+        error: error ?? null,
+        lastSyncAt: status === SYNC_STATUS.Running ? null : new Date(),
+      },
+    });
+  }
+
+  async getCatalogSyncState(): Promise<SyncStateRecord> {
+    return this.prisma.syncState.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
+        status: SYNC_STATUS.Idle,
+      },
+    });
+  }
+
+  async setCatalogSyncState(status: SyncStatus, error?: string): Promise<void> {
+    await this.prisma.syncState.upsert({
+      where: { id: 2 },
+      update: {
+        status,
+        error: error ?? null,
+        lastSyncAt: status === SYNC_STATUS.Running ? undefined : new Date(),
+      },
+      create: {
+        id: 2,
         status,
         error: error ?? null,
         lastSyncAt: status === SYNC_STATUS.Running ? null : new Date(),

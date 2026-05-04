@@ -56,6 +56,30 @@ const envSchema = z
       .default("30")
       .transform(Number)
       .pipe(z.number().int().min(1).max(1440)),
+    RELEASES_SYNC_INTERVAL_MINUTES: z
+      .string()
+      .regex(/^\d+$/, "RELEASES_SYNC_INTERVAL_MINUTES must be a number")
+      .default("60")
+      .transform(Number)
+      .pipe(z.number().int().min(1).max(1440)),
+    CATALOG_SYNC_INTERVAL_HOURS: z
+      .string()
+      .regex(/^\d+$/, "CATALOG_SYNC_INTERVAL_HOURS must be a number")
+      .default("6")
+      .transform(Number)
+      .pipe(z.number().int().min(1).max(48)),
+    CATALOG_LOOKBACK_DAYS: z
+      .string()
+      .regex(/^\d+$/, "CATALOG_LOOKBACK_DAYS must be a number")
+      .default("365")
+      .transform(Number)
+      .pipe(z.number().int().min(30).max(730)),
+    MAX_ACTIVE_ARTISTS_PER_CYCLE: z
+      .string()
+      .regex(/^\d+$/, "MAX_ACTIVE_ARTISTS_PER_CYCLE must be a number")
+      .default("15")
+      .transform(Number)
+      .pipe(z.number().int().min(5).max(50)),
     FOLLOWED_ARTISTS_MAX: z
       .string()
       .regex(/^\d+$/, "FOLLOWED_ARTISTS_MAX must be a number")
