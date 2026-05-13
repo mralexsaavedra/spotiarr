@@ -34,8 +34,8 @@ Use this skill when:
 
 ### Registry files
 
-- `.atl/skill-registry.md` — skill-name to path mapping for orchestrator-style agents
-- `skills-lock.json` — skill metadata tracking
+- `.atl/skill-registry.md` — generated locally per agent; not committed (`.atl/` is gitignored)
+- `skills-lock.json` — skill metadata tracking (committed)
 
 ### Maintenance rules
 

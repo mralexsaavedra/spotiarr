@@ -75,5 +75,4 @@ Thumbs.db
 
 # Local folders
 .netlify
-.atl/*
-!.atl/skill-registry.md
+.atl/
