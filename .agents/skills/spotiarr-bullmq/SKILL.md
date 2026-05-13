@@ -28,6 +28,17 @@ metadata:
 - Cron/scheduled jobs: `infrastructure/jobs/`
 - Job enqueuing entrypoint: `application/` layer via domain queue service interface
 
+**Real queue names** (from `infrastructure/setup/queues.ts`):
+
+```ts
+"track-download-processor"; // getTrackDownloadQueue()
+"track-search-processor"; // getTrackSearchQueue()
+"feed-sync-queue"; // getFeedSyncQueue()
+"catalog-sync-queue"; // getCatalogSyncQueue()
+```
+
+Singleton getters throw `AppError(500, ...)` if accessed before initialization.
+
 ### Pattern 2: Job configuration
 
 - Use custom job IDs for traceability: `${type}-${entityId}-${Date.now()}`
@@ -56,13 +67,53 @@ metadata:
 - Use `node-cron` for scheduling
 - No locking mechanism exists; prevent overlapping runs at implementation level
 
+### Pattern 6: Worker factory pattern
+
+Workers are created via factory functions, not classes. Real example:
+
+```ts
+// infrastructure/workers/catalog-sync.worker.ts
+export function createCatalogSyncWorker(): Worker {
+  const worker = new Worker(
+    CATALOG_SYNC_QUEUE,
+    async () => {
+      /* job handler */
+    },
+    {
+      connection: { host: getEnv().REDIS_HOST, port: getEnv().REDIS_PORT },
+      concurrency: 1,
+      lockDuration: 30 * 60_000,
+    },
+  );
+  worker.on("completed", (job) => {
+    /* log */
+  });
+  worker.on("failed", (job, err) => {
+    /* log + update status */
+  });
+  return worker;
+}
+```
+
+### Pattern 7: Enqueuing from application layer
+
+```ts
+// application use-case enqueues via domain interface, infrastructure implements:
+await getTrackSearchQueue().add("search-track", track, {
+  jobId: `id-${track.id}`,
+});
+await getTrackDownloadQueue().add("download-track", track, {
+  jobId: `download-${track.id}-${Date.now()}`,
+  attempts: 3,
+  backoff: { type: "exponential", delay: 5000 },
+  removeOnComplete: true,
+  removeOnFail: false,
+});
+```
+
 ### Gotchas
 
 - No dead-letter queue (DLQ): jobs are lost after max attempts
 - Workers may depend on settings not initialized yet
-- `job.data` is processed without explicit validation
-- Job ID collisions can occur if the same entity is enqueued rapidly
-
-## Commands
-
-No specific commands. Refer to `spotiarr-workflow` for backend development commands.
+- `job.data` arrives unvalidated — consider Zod parse at worker entry for safety
+- Job ID collisions can occur if the same entity is enqueued rapidly; use `Date.now()` suffix for download jobs

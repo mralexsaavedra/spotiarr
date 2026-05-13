@@ -26,6 +26,14 @@ metadata:
 
 ## Release Process
 
+### Step 0: Review previous release style
+
+```bash
+gh release view $(gh release list --limit 1 --json tagName -q '.[0].tagName')
+```
+
+Study tone, emoji, structure, and detail level — match it in the new release body.
+
 ### Step 1: Determine Current Version
 
 ```bash
@@ -86,16 +94,7 @@ git tag -a vX.Y.Z -m "vX.Y.Z"   # ALWAYS -a -m — never bare git tag (opens nvi
 git push origin main --tags
 ```
 
-### Step 6: Commit the CHANGELOG separately (after push)
-
-```bash
-# If CHANGELOG was not included in step 5 commit:
-git add CHANGELOG.md
-git commit -m "docs(changelog): add vX.Y.Z release notes"
-git push
-```
-
-### Step 7: Update the GitHub Release description
+### Step 6: Update the GitHub Release description
 
 GHA auto-creates the release with a generic description. **Always replace it** with a proper one using:
 
@@ -150,7 +149,7 @@ EOF
 gh release view vPREV
 ```
 
-### Step 8: Verify
+### Step 7: Verify
 
 ```bash
 gh run list --workflow=release.yml --limit=1
@@ -181,4 +180,3 @@ gh release view vX.Y.Z
 - [ ] Pushed to main with `--tags`
 - [ ] GHA workflow triggered and completed
 - [ ] GitHub Release description updated via `gh release edit` (no `--title` — title lives as H1 in body)
-- [ ] `docs(changelog)` commit pushed if CHANGELOG was separate

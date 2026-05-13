@@ -69,12 +69,22 @@ const { t } = useTranslation();
 - `i18next.d.ts` declares `CustomTypeOptions` based on `en.json`
 - This enables autocomplete/type-safe translation key usage
 
+### Pattern 7: Language sync with backend settings
+
+`useLanguageSync` (`apps/frontend/src/hooks/useLanguageSync.ts`) syncs the `UI_LANGUAGE` backend setting to i18next at runtime. It runs after settings are fetched and calls `i18n.changeLanguage()` when the backend value differs from the current language. This overrides the browser-detected language — do NOT fight it with manual `changeLanguage` calls elsewhere.
+
+```ts
+// What useLanguageSync does internally:
+const languageSetting = settings.find((s) => s.key === "UI_LANGUAGE");
+if (languageSetting?.value && languageSetting.value !== i18n.language) {
+  i18n.changeLanguage(languageSetting.value);
+}
+```
+
+Fallback chain: backend `UI_LANGUAGE` setting → browser detector → `en`.
+
 ### Gotchas
 
 - Add new keys to ALL language files to avoid missing translation drift
 - `escapeValue: false` is configured (HTML in translations is not escaped)
-- Language detector runs at init; user preference sync is handled by `useLanguageSync`
-
-## Commands
-
-No specific commands.
+- Language is ultimately controlled by `UI_LANGUAGE` setting, not just the browser detector

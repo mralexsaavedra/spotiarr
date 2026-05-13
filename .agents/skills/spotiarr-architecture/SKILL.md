@@ -96,10 +96,11 @@ Placement rules:
   - Functional components + hooks.
   - Use `cn()` for conditional classes.
   - Keep complex logic outside views.
+  - Global client state lives in `store/` (Zustand slices, one file per domain).
 - Backend conventions:
   - Input validation with Zod.
   - Centralized error handling via middleware.
-  - Dependency injection via `container.ts`.
+  - Dependency injection wired in `apps/backend/src/infrastructure/setup/container.ts` — all use-cases and services registered there.
 - Prefer explicit naming and consistency with existing structure.
 
 ---
@@ -147,18 +148,3 @@ Feature: "Live downloads dashboard"
 - Subscribe to real-time server events         -> useServerEvents
 - Shared API response contracts/types          -> packages/shared/
 ```
-
----
-
-## Commands
-
-```bash
-# No commands in this skill by design.
-# This skill is architecture-focused (boundaries, layering, placement).
-```
-
----
-
-## Resources
-
-- **Documentation**: Architecture and conventions sourced from `AGENTS.md` at repository root.

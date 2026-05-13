@@ -25,7 +25,9 @@ Use this skill when:
 ### Pattern 1: Canonical Schema Location
 
 - Prisma schema lives at: `apps/backend/prisma/schema.prisma`
-- This backend uses a **SQLite datasource**.
+- This backend uses a **SQLite datasource** — no driver adapter, standard `PrismaClient`.
+- Singleton instance: `apps/backend/src/infrastructure/setup/prisma.ts` → `export const prisma = new PrismaClient()`
+- Import in repositories: `import { prisma } from "../setup/prisma"`
 - Keep schema updates and generated client in sync.
 
 ### Pattern 2: Clean Architecture Boundary
@@ -77,19 +79,46 @@ Run generation after schema changes. Run deploy migrations in environments where
 - Map known Prisma errors to application-safe errors.
 - Handle common cases explicitly:
   - Unique constraint violation (e.g., duplicate value)
-  - Not found conditions
+  - Not found conditions (`P2025`)
   - Foreign key/relation constraint violations
 - Do not leak raw database internals to presentation responses.
+
+Real P2025 guard pattern (from `prisma-settings.repository.ts`):
+
+```ts
+const isPrismaNotFoundError = (error: unknown): error is { code: string } =>
+  error instanceof Error && "code" in error && error.code === "P2025";
+```
 
 ---
 
 ## Code Examples
 
-### Repository placement (good)
+### Repository skeleton
 
 ```ts
-// apps/backend/src/infrastructure/database/user.repository.ts
-// Prisma usage stays in infrastructure/database
+// apps/backend/src/infrastructure/database/settings.repository.ts
+import { prisma } from "../setup/prisma";
+
+export class PrismaSettingsRepository implements ISettingsRepository {
+  async findByKey(key: string) {
+    return prisma.setting.findUnique({ where: { key } });
+  }
+
+  async upsert(key: string, value: string) {
+    try {
+      return await prisma.setting.update({ where: { key }, data: { value } });
+    } catch (error) {
+      if (isPrismaNotFoundError(error)) {
+        return prisma.setting.create({ data: { key, value } });
+      }
+      throw error;
+    }
+  }
+}
+
+const isPrismaNotFoundError = (error: unknown): error is { code: string } =>
+  error instanceof Error && "code" in error && error.code === "P2025";
 ```
 
 ### Layer violation (avoid)
@@ -116,4 +145,3 @@ pnpm --filter backend run prisma:generate
 ## Resources
 
 - **Schema**: `apps/backend/prisma/schema.prisma`
-- **Architecture guide**: `AGENTS.md`

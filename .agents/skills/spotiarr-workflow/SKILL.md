@@ -31,7 +31,7 @@ Use this skill when:
 | Backend-only            | `pnpm --filter backend run lint`  | `pnpm --filter backend run build`  |
 | Shared or broad changes | `pnpm lint`                       | `pnpm build`                       |
 
-**Note**: CI validates `lint + build`. No repository-level automated test suite is configured yet.
+**Note**: CI runs a single `build-and-lint` job (`lint → build`) on both PRs and pushes to `main`. No automated test suite exists — human verification required for behaviour changes.
 
 ### Pattern 2: Branch and PR discipline
 
@@ -50,12 +50,13 @@ PR must include:
 3. PR body with **what changed**, **why**, and **verification steps**.
 4. Screenshots/GIFs for UI-facing changes.
 
-### Pattern 3: Secrets never enter git history
+### Pattern 3: Secrets and environment setup
 
 - Never commit `.env`, credentials, or tokens.
-- Use `.env.example` as the source of truth for required variables.
+- Use `.env.example` as the source of truth for required variables — copy it to `.env` to set up locally.
 - Document new config vars in `README.md` and/or `CONTRIBUTING.md`.
 - Do not log sensitive data.
+- External services required locally: **Redis**, **FFmpeg**, **yt-dlp**, **Python 3.11/3.12**.
 
 ---
 

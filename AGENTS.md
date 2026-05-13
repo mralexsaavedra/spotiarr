@@ -56,15 +56,14 @@ Load the relevant skill by reading the SKILL.md at the listed path. Multiple ski
 
 ### Spotiarr-Specific Skills
 
-| Skill                    | Trigger                                                  | Path                                                       |
-| ------------------------ | -------------------------------------------------------- | ---------------------------------------------------------- |
-| `spotiarr-architecture`  | Architectural decisions, layer placement, repo structure | [SKILL.md](.agents/skills/spotiarr-architecture/SKILL.md)  |
-| `spotiarr-workflow`      | Commands, validation, PR workflow, branches, secrets     | [SKILL.md](.agents/skills/spotiarr-workflow/SKILL.md)      |
-| `spotiarr-prisma`        | Prisma queries, migrations, schemas (SQLite backend)     | [SKILL.md](.agents/skills/spotiarr-prisma/SKILL.md)        |
-| `spotiarr-bullmq`        | BullMQ queues, workers, cron jobs                        | [SKILL.md](.agents/skills/spotiarr-bullmq/SKILL.md)        |
-| `spotiarr-i18n`          | i18n translations, i18next keys, adding a new language   | [SKILL.md](.agents/skills/spotiarr-i18n/SKILL.md)          |
-| `spotiarr-release`       | Version bump, CHANGELOG, git tag, GitHub Release         | [SKILL.md](.agents/skills/spotiarr-release/SKILL.md)       |
-| `spotiarr-compatibility` | Bridge files, compatibility symlinks, multi-agent setup  | [SKILL.md](.agents/skills/spotiarr-compatibility/SKILL.md) |
+| Skill                   | Trigger                                                  | Path                                                      |
+| ----------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
+| `spotiarr-architecture` | Architectural decisions, layer placement, repo structure | [SKILL.md](.agents/skills/spotiarr-architecture/SKILL.md) |
+| `spotiarr-workflow`     | Commands, validation, PR workflow, branches, secrets     | [SKILL.md](.agents/skills/spotiarr-workflow/SKILL.md)     |
+| `spotiarr-prisma`       | Prisma queries, migrations, schemas (SQLite backend)     | [SKILL.md](.agents/skills/spotiarr-prisma/SKILL.md)       |
+| `spotiarr-bullmq`       | BullMQ queues, workers, cron jobs                        | [SKILL.md](.agents/skills/spotiarr-bullmq/SKILL.md)       |
+| `spotiarr-i18n`         | i18n translations, i18next keys, adding a new language   | [SKILL.md](.agents/skills/spotiarr-i18n/SKILL.md)         |
+| `spotiarr-release`      | Version bump, CHANGELOG, git tag, GitHub Release         | [SKILL.md](.agents/skills/spotiarr-release/SKILL.md)      |
 
 ### Generic Skills
 
@@ -104,7 +103,6 @@ When performing these actions, load the corresponding skill FIRST:
 | Writing BullMQ workers, queue definitions, or cron jobs  | `spotiarr-bullmq`             |
 | Adding or modifying translation keys                     | `spotiarr-i18n`               |
 | Publishing a new version of Spotiarr                     | `spotiarr-release`            |
-| Managing bridge files or compatibility symlinks          | `spotiarr-compatibility`      |
 | Writing TypeScript types, interfaces, or generics        | `typescript-advanced-types`   |
 | Writing React components or hooks                        | `react-best-practices`        |
 | Optimizing React rendering or reducing bundle size       | `vercel-react-best-practices` |
