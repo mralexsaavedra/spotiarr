@@ -6,8 +6,7 @@ const CIRCUIT_BREAKER_STATE = {
   HALF_OPEN: "half-open",
 } as const;
 
-type CircuitBreakerState =
-  (typeof CIRCUIT_BREAKER_STATE)[keyof typeof CIRCUIT_BREAKER_STATE];
+type CircuitBreakerState = (typeof CIRCUIT_BREAKER_STATE)[keyof typeof CIRCUIT_BREAKER_STATE];
 
 interface Waiter {
   fn: () => Promise<Response>;
@@ -75,17 +74,13 @@ export class CircuitBreaker {
     }
   }
 
-  execute(fn: () => Promise<Response>): Promise<Response> {
+  execute(fn: () => Promise<Response>, options: { failFast?: boolean } = {}): Promise<Response> {
     if (this.state === CIRCUIT_BREAKER_STATE.OPEN) {
       if (Date.now() >= this.openUntil) {
         this.transitionTo(CIRCUIT_BREAKER_STATE.HALF_OPEN);
       } else {
-        if (this.waiters.length >= this.maxWaiters) {
-          throw new AppError(
-            503,
-            "circuit_open",
-            "Spotify rate limit circuit breaker is open",
-          );
+        if (options.failFast || this.waiters.length >= this.maxWaiters) {
+          throw new AppError(503, "circuit_open", "Spotify rate limit circuit breaker is open");
         }
         return new Promise<Response>((resolve, reject) => {
           this.waiters.push({ fn, resolve, reject });
@@ -95,12 +90,8 @@ export class CircuitBreaker {
 
     if (this.state === CIRCUIT_BREAKER_STATE.HALF_OPEN) {
       if (this.probeInFlight) {
-        if (this.waiters.length >= this.maxWaiters) {
-          throw new AppError(
-            503,
-            "circuit_open",
-            "Spotify rate limit circuit breaker is open",
-          );
+        if (options.failFast || this.waiters.length >= this.maxWaiters) {
+          throw new AppError(503, "circuit_open", "Spotify rate limit circuit breaker is open");
         }
         return new Promise<Response>((resolve, reject) => {
           this.waiters.push({ fn, resolve, reject });
@@ -128,10 +119,7 @@ export class CircuitBreaker {
     const retryAfterMs = effectiveSeconds * 1000;
     const newOpenUntil = Date.now() + retryAfterMs;
 
-    if (
-      this.state !== CIRCUIT_BREAKER_STATE.OPEN ||
-      newOpenUntil > this.openUntil
-    ) {
+    if (this.state !== CIRCUIT_BREAKER_STATE.OPEN || newOpenUntil > this.openUntil) {
       this.openUntil = newOpenUntil;
       this.consecutiveOpenCount++;
       this.transitionTo(CIRCUIT_BREAKER_STATE.OPEN);
@@ -145,16 +133,10 @@ export class CircuitBreaker {
 
       if (response.status === 429) {
         const retryAfterHeader = response.headers.get("Retry-After");
-        const retryAfterSeconds = retryAfterHeader
-          ? parseInt(retryAfterHeader, 10)
-          : 60;
+        const retryAfterSeconds = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
         // Use notifyRateLimit so exponential backoff multiplier is applied
         this.notifyRateLimit(retryAfterSeconds);
-        throw new AppError(
-          429,
-          "spotify_rate_limited",
-          "Rate limited by Spotify API.",
-        );
+        throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
       }
 
       if (this.state === CIRCUIT_BREAKER_STATE.HALF_OPEN) {
@@ -165,9 +147,7 @@ export class CircuitBreaker {
     } catch (error) {
       if (this.state === CIRCUIT_BREAKER_STATE.HALF_OPEN) {
         // Probe failed for a non-429 reason. Conservatively reopen for 30s.
-        const isRateLimit =
-          error instanceof AppError &&
-          error.errorCode === "spotify_rate_limited";
+        const isRateLimit = error instanceof AppError && error.errorCode === "spotify_rate_limited";
         if (!isRateLimit) {
           this.open(30_000);
         }
@@ -189,18 +169,12 @@ export class CircuitBreaker {
     if (newState === CIRCUIT_BREAKER_STATE.CLOSED) {
       this.consecutiveOpenCount = 0;
     }
-    console.warn(
-      "[CircuitBreaker]",
-      `State: ${oldState} -> ${newState}`,
-      {
-        retryAfterMs:
-          newState === CIRCUIT_BREAKER_STATE.OPEN
-            ? this.openUntil - Date.now()
-            : undefined,
-        consecutiveOpenCount: this.consecutiveOpenCount,
-        queueSize: this.waiters.length,
-      },
-    );
+    console.warn("[CircuitBreaker]", `State: ${oldState} -> ${newState}`, {
+      retryAfterMs:
+        newState === CIRCUIT_BREAKER_STATE.OPEN ? this.openUntil - Date.now() : undefined,
+      consecutiveOpenCount: this.consecutiveOpenCount,
+      queueSize: this.waiters.length,
+    });
     if (newState === CIRCUIT_BREAKER_STATE.CLOSED) {
       this.flushWaiters();
     }

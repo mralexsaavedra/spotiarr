@@ -1,5 +1,5 @@
-import { RateLimiter } from "./rate-limiter";
 import { CircuitBreaker } from "./circuit-breaker";
+import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
 
 const DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY = 5;
@@ -135,35 +135,14 @@ export class SpotifyHttpClient {
     input: string | URL,
     init?: RequestInit,
     retries = 0,
-    options: { failFast?: boolean; onRateLimit?: (retryAfterSeconds: number) => void } = {},
+    options: { failFast?: boolean } = {},
   ): Promise<Response> {
     const isFailFast = options.failFast === true;
     const MAX_RETRIES = isFailFast ? 0 : 5;
-    const RETRY_AFTER_CAP_SECONDS = isFailFast ? 0 : 60;
 
     try {
       const response = await fetch(input.toString(), init);
-
-      if (response.status === 429 && retries < MAX_RETRIES) {
-        const retryAfterHeader = response.headers.get("Retry-After");
-        // Cap wait to avoid absurd waits (Spotify sometimes returns huge values)
-        const retryAfterSeconds = retryAfterHeader
-          ? Math.min(parseInt(retryAfterHeader, 10), RETRY_AFTER_CAP_SECONDS)
-          : Math.pow(2, retries);
-
-        options.onRateLimit?.(retryAfterSeconds);
-
-        // Add 1s buffer to be safe
-        const waitMs = (retryAfterSeconds + 1) * 1000;
-
-        console.warn(
-          `[SpotifyHttpClient] Rate limited (429). Waiting ${waitMs}ms before retry ${retries + 1}/${MAX_RETRIES}`,
-        );
-
-        await this.sleep(waitMs);
-        return this.fetchWithRateLimitRetry(input, init, retries + 1, options);
-      }
-
+      // 429: return immediately — circuit breaker's runFn owns the backoff
       return response;
     } catch (err: unknown) {
       const error = err as { message?: string; cause?: { code?: string } };
@@ -196,23 +175,14 @@ export class SpotifyHttpClient {
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 
-    return appTokenCircuitBreaker.execute(() =>
-      appTokenRateLimiter.queueRequest(() =>
-        this.fetchWithRateLimitRetry(
-          input,
-          {
-            ...init,
-            headers,
-          },
-          0,
-          {
+    return appTokenCircuitBreaker.execute(
+      () =>
+        appTokenRateLimiter.queueRequest(() =>
+          this.fetchWithRateLimitRetry(input, { ...init, headers }, 0, {
             failFast: this.useFailFastRetry,
-            onRateLimit: (retryAfterSeconds) => {
-              appTokenCircuitBreaker.notifyRateLimit(retryAfterSeconds);
-            },
-          },
+          }),
         ),
-      ),
+      { failFast: this.useFailFastRetry },
     );
   }
 

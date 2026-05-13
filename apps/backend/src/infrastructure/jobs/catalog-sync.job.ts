@@ -18,8 +18,9 @@ export const catalogSyncJob = cron.schedule("* * * * *", async () => {
     }
 
     const syncState = await feedRepository.getCatalogSyncState();
+    const feedSyncState = await feedRepository.getSyncState();
 
-    if (syncState.status === SYNC_STATUS.Running) {
+    if (syncState.status === SYNC_STATUS.Running || feedSyncState.status === SYNC_STATUS.Running) {
       return;
     }
 
