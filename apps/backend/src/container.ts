@@ -32,6 +32,9 @@ import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playl
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { PromiseCache } from "./infrastructure/external/promise-cache";
+import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
+import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
+import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
 import { SpotifyArtistClient } from "./infrastructure/external/spotify-artist.client";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
@@ -135,6 +138,17 @@ const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
   spotifyAuthService,
   "sync",
 );
+
+// External catalog providers (Deezer primary, MusicBrainz fallback, Spotify last resort)
+const deezerClient = new DeezerClient();
+const musicBrainzClient = new MusicBrainzClient();
+const releaseFeedService = new ReleaseFeedService(
+  feedRepository,
+  deezerClient,
+  musicBrainzClient,
+  spotifyUserLibrarySyncService,
+);
+
 // Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
 const spotifyService = new SpotifyService(
   spotifyArtistClient,
@@ -342,6 +356,9 @@ export const container = {
   spotifyUserLibraryService,
   spotifyUserLibrarySyncService,
   spotifyAuthService,
+  deezerClient,
+  musicBrainzClient,
+  releaseFeedService,
 
   settingsService,
   getSettingsUseCase,

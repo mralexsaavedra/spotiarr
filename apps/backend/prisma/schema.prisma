@@ -82,10 +82,15 @@ model FollowedArtistCache {
   name               String
   imageUrl           String?
   spotifyUrl         String?
+  deezerId           String?
+  mbid               String?
   syncedAt           DateTime
   lastCatalogSyncAt  DateTime?
   lastReleasesSyncAt DateTime?
   releases           ArtistReleaseCache[]
+
+  @@index([deezerId])
+  @@index([mbid])
 }
 
 model ArtistReleaseCache {

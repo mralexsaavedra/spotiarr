@@ -4,7 +4,13 @@ import { SYNC_STATUS } from "../database/feed.repository";
 import { getEnv } from "../setup/environment";
 import { FEED_SYNC_QUEUE } from "../setup/queues";
 
-const { spotifyUserLibrarySyncService, feedRepository, eventBus, settingsService } = container;
+const {
+  spotifyUserLibrarySyncService,
+  releaseFeedService,
+  feedRepository,
+  eventBus,
+  settingsService,
+} = container;
 
 const RELEASES_SYNC_TTL_HOURS = 24;
 const RELEASES_ACTIVITY_WINDOW_DAYS = 90;
@@ -34,9 +40,7 @@ export function createFeedSyncWorker(): Worker {
         const artists = await spotifyUserLibrarySyncService.getFollowedArtists();
         await feedRepository.upsertArtists(artists);
 
-        const releaseCutoff = new Date(
-          Date.now() - RELEASES_SYNC_TTL_HOURS * 60 * 60 * 1000,
-        );
+        const releaseCutoff = new Date(Date.now() - RELEASES_SYNC_TTL_HOURS * 60 * 60 * 1000);
         const activityWindow = new Date(
           Date.now() - RELEASES_ACTIVITY_WINDOW_DAYS * 24 * 60 * 60 * 1000,
         );
@@ -65,7 +69,7 @@ export function createFeedSyncWorker(): Worker {
           .map((id) => artistMap.get(id))
           .filter((a): a is NonNullable<typeof a> => a !== undefined);
 
-        const releases = await spotifyUserLibrarySyncService.getActiveArtistReleases(
+        const { releases } = await releaseFeedService.getActiveArtistReleases(
           artistsToSync.map((a) => ({
             id: a.id,
             name: a.name,

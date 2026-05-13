@@ -1,6 +1,12 @@
 import type { PrismaClient } from "@prisma/client";
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 
+export interface CatalogIdentity {
+  spotifyId: string;
+  deezerId: string | null;
+  mbid: string | null;
+}
+
 export const SYNC_STATUS = {
   Idle: "idle",
   Running: "running",
@@ -76,6 +82,45 @@ export class FeedRepository {
       image: row.imageUrl ?? null,
       spotifyUrl: row.spotifyUrl ?? null,
     };
+  }
+
+  async getArtistCatalogIdentities(spotifyIds: string[]): Promise<CatalogIdentity[]> {
+    if (spotifyIds.length === 0) {
+      return [];
+    }
+
+    const rows = await this.prisma.followedArtistCache.findMany({
+      where: { spotifyId: { in: spotifyIds } },
+      select: { spotifyId: true, deezerId: true, mbid: true },
+    });
+
+    const rowMap = new Map(rows.map((r) => [r.spotifyId, r]));
+
+    return spotifyIds.map((id) => ({
+      spotifyId: id,
+      deezerId: rowMap.get(id)?.deezerId ?? null,
+      mbid: rowMap.get(id)?.mbid ?? null,
+    }));
+  }
+
+  async updateArtistCatalogIdentities(
+    identities: Array<{ spotifyId: string; deezerId?: string | null; mbid?: string | null }>,
+  ): Promise<void> {
+    if (identities.length === 0) {
+      return;
+    }
+
+    await this.prisma.$transaction(
+      identities.map(({ spotifyId, deezerId, mbid }) =>
+        this.prisma.followedArtistCache.update({
+          where: { spotifyId },
+          data: {
+            ...(deezerId !== undefined ? { deezerId } : {}),
+            ...(mbid !== undefined ? { mbid } : {}),
+          },
+        }),
+      ),
+    );
   }
 
   async getReleases(lookbackDays: number): Promise<ArtistRelease[]> {
@@ -322,10 +367,7 @@ export class FeedRepository {
   async getArtistIdsNeedingCatalogSync(cutoffDate: Date, limit: number): Promise<string[]> {
     const rows = await this.prisma.followedArtistCache.findMany({
       where: {
-        OR: [
-          { lastCatalogSyncAt: null },
-          { lastCatalogSyncAt: { lt: cutoffDate } },
-        ],
+        OR: [{ lastCatalogSyncAt: null }, { lastCatalogSyncAt: { lt: cutoffDate } }],
       },
       orderBy: { lastCatalogSyncAt: { sort: "asc", nulls: "first" } },
       take: limit,
@@ -343,10 +385,7 @@ export class FeedRepository {
 
     const rows = await this.prisma.followedArtistCache.findMany({
       where: {
-        OR: [
-          { lastReleasesSyncAt: null },
-          { lastReleasesSyncAt: { lt: releaseCutoff } },
-        ],
+        OR: [{ lastReleasesSyncAt: null }, { lastReleasesSyncAt: { lt: releaseCutoff } }],
         AND: [
           {
             OR: [

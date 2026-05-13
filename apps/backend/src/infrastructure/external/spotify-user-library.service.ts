@@ -473,8 +473,8 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
           if (oldestOnPage.releaseDate) {
             const parts = oldestOnPage.releaseDate.split("-");
             const year = Number(parts[0]);
-            let month = parts.length >= 2 ? Number(parts[1]) - 1 : 0;
-            let day = parts.length >= 3 ? Number(parts[2]) : 1;
+            const month = parts.length >= 2 ? Number(parts[1]) - 1 : 0;
+            const day = parts.length >= 3 ? Number(parts[2]) : 1;
             if (!Number.isNaN(year) && year > 0) {
               const oldestDate = new Date(year, month, day);
               if (oldestDate < earlyStopBeforeDate) {
