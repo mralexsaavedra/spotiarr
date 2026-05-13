@@ -76,3 +76,4 @@ Thumbs.db
 # Local folders
 .netlify
 .atl/
+.claude/settings.local.json

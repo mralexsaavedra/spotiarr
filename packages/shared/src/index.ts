@@ -138,7 +138,8 @@ export type ApiErrorCode =
   | "failed_to_fetch_artist_detail"
   | "failed_to_fetch_followed_artists"
   | "playlist_not_accessible"
-  | "rate_limiter_overflow";
+  | "rate_limiter_overflow"
+  | "circuit_open";
 
 export interface ApiErrorShape {
   error: ApiErrorCode;
