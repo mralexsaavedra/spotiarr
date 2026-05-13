@@ -4,333 +4,316 @@
 
 See `_shared/skill-resolver.md` for the full resolution protocol.
 
+---
+
 ## User Skills
 
-| Trigger                                                                                             | Skill                        | Path                                                  |
-| --------------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------- |
-| When making architectural decisions, writing code across layers, or understanding repo structure    | spotiarr-architecture        | ./.agents/skills/spotiarr-architecture/SKILL.md       |
-| When running commands, validating changes, creating PRs, managing branches, or handling secrets     | spotiarr-workflow            | ./.agents/skills/spotiarr-workflow/SKILL.md           |
-| When writing database queries, migrations, or Prisma schemas                                        | spotiarr-prisma              | ./.agents/skills/spotiarr-prisma/SKILL.md             |
-| When writing queue definitions, workers, job handlers, or cron jobs                                 | spotiarr-bullmq              | ./.agents/skills/spotiarr-bullmq/SKILL.md             |
-| When adding or modifying translations, working with i18n keys, or adding a new language             | spotiarr-i18n                | ./.agents/skills/spotiarr-i18n/SKILL.md               |
-| When user says "sube de version", "nueva release", "publish release", or asks to publish a version  | spotiarr-release             | ./.agents/skills/spotiarr-release/SKILL.md            |
-| When setting up coding assistant compatibility, adding bridge files, or managing multi-agent config | spotiarr-compatibility       | ./.agents/skills/spotiarr-compatibility/SKILL.md      |
-| When building polished, production-grade frontend UI                                                | frontend-design              | ./.agents/skills/frontend-design/SKILL.md             |
-| When reviewing React/Next.js code for performance — bundle optimization, data fetching, re-renders  | vercel-react-best-practices  | ./.agents/skills/vercel-react-best-practices/SKILL.md |
-| When auditing UI for Web Interface Guidelines and accessibility/UX quality                          | web-design-guidelines        | ./.agents/skills/web-design-guidelines/SKILL.md       |
-| When writing TypeScript code — types, interfaces, generics                                          | typescript                   | ~/.config/opencode/skills/typescript/SKILL.md         |
-| When writing React components — no useMemo/useCallback needed                                       | react-19                     | ~/.config/opencode/skills/react-19/SKILL.md           |
-| When styling with Tailwind — cn(), theme variables, no var() in className                           | tailwind-4                   | ~/.config/opencode/skills/tailwind-4/SKILL.md         |
-| When using Zod for validation — breaking changes from v3                                            | zod-4                        | ~/.config/opencode/skills/zod-4/SKILL.md              |
-| When managing React state with Zustand                                                              | zustand-5                    | ~/.config/opencode/skills/zustand-5/SKILL.md          |
-| When writing E2E tests — Page Objects, selectors, MCP workflow                                      | playwright                   | ~/.config/opencode/skills/playwright/SKILL.md         |
-| When working with Next.js — routing, Server Actions, data fetching                                  | nextjs-15                    | ~/.config/opencode/skills/nextjs-15/SKILL.md          |
-| When building AI chat features — breaking changes from v4                                           | ai-sdk-5                     | ~/.config/opencode/skills/ai-sdk-5/SKILL.md           |
-| When creating a pull request, opening a PR, or preparing changes for review                         | branch-pr                    | ~/.config/opencode/skills/branch-pr/SKILL.md          |
-| When creating a GitHub issue, reporting a bug, or requesting a feature                              | issue-creation               | ~/.config/opencode/skills/issue-creation/SKILL.md     |
-| When reviewing PRs/issues backlog with structured analysis                                          | pr-review                    | ~/.config/opencode/skills/pr-review/SKILL.md          |
-| When creating new AI agent skills                                                                   | skill-creator                | ~/.config/opencode/skills/skill-creator/SKILL.md      |
-| When user says "judgment day", "review adversarial", "dual review", "juzgar"                        | judgment-day                 | ~/.config/opencode/skills/judgment-day/SKILL.md       |
-| When reviewing technical exercises/candidate submissions                                            | technical-review             | ~/.config/opencode/skills/technical-review/SKILL.md   |
-| When building a presentation, slide deck, course material, or talk slides                           | stream-deck                  | ~/.config/opencode/skills/stream-deck/SKILL.md        |
-| When writing Go tests, using teatest, or adding test coverage                                       | go-testing                   | ~/.config/opencode/skills/go-testing/SKILL.md         |
-| When writing Python tests — fixtures, mocking, markers                                              | pytest                       | ~/.config/opencode/skills/pytest/SKILL.md             |
-| When building REST APIs with Django — ViewSets, Serializers, Filters                                | django-drf                   | ~/.config/opencode/skills/django-drf/SKILL.md         |
-| When writing C# code, .NET APIs, or Entity Framework models                                         | dotnet                       | ~/.config/opencode/skills/dotnet/SKILL.md             |
-| When writing Angular components, services, templates, or making architectural decisions             | scope-rule-architect-angular | ~/.config/opencode/skills/angular/SKILL.md            |
-| When user asks to release, bump version, update homebrew, or publish a new version                  | homebrew-release             | ~/.config/opencode/skills/homebrew-release/SKILL.md   |
-| When user asks to create an epic, large feature, or multi-task initiative                           | jira-epic                    | ~/.config/opencode/skills/jira-epic/SKILL.md          |
-| When user asks to create a Jira task, ticket, or issue                                              | jira-task                    | ~/.config/opencode/skills/jira-task/SKILL.md          |
-| When user asks "how do I do X", "find a skill for X", or wants to discover/install skills           | find-skills                  | ~/.agents/skills/find-skills/SKILL.md                 |
+| Trigger                                                                                  | Skill                       | Path                                                  |
+| ---------------------------------------------------------------------------------------- | --------------------------- | ----------------------------------------------------- |
+| a11y audit, WCAG compliance, screen reader, keyboard navigation, make accessible         | accessibility               | `.agents/skills/accessibility/SKILL.md`               |
+| robust shell scripts, CI/CD pipelines, system utilities, fault tolerance                 | bash-defensive-patterns     | `.agents/skills/bash-defensive-patterns/SKILL.md`     |
+| compound components, render props, boolean prop proliferation, component architecture    | vercel-composition-patterns | `.agents/skills/composition-patterns/SKILL.md`        |
+| build web components, pages, landing pages, dashboards, React components, UI design      | frontend-design             | `.agents/skills/frontend-design/SKILL.md`             |
+| Node.js backend services, Express/Fastify, REST APIs, microservices, middleware          | nodejs-backend-patterns     | `.agents/skills/nodejs-backend-patterns/SKILL.md`     |
+| Node.js architecture decisions, framework selection, async patterns, security            | nodejs-best-practices       | `.agents/skills/nodejs-best-practices/SKILL.md`       |
+| Express.js servers, REST APIs, middleware chains, authentication, server logic           | nodejs-express-server       | `.agents/skills/nodejs-express-server/SKILL.md`       |
+| prisma init, prisma generate, prisma migrate, prisma db, prisma studio, prisma mcp       | prisma-cli                  | `.agents/skills/prisma-cli/SKILL.md`                  |
+| prisma query, findMany, create, update, delete, $transaction                             | prisma-client-api           | `.agents/skills/prisma-client-api/SKILL.md`           |
+| configure postgres, connect to mysql, setup mongodb, sqlite setup                        | prisma-database-setup       | `.agents/skills/prisma-database-setup/SKILL.md`       |
+| Prisma Postgres databases, create-db, create-pg, prisma postgres link                    | prisma-postgres             | `.agents/skills/prisma-postgres/SKILL.md`             |
+| React components, Next.js pages, data fetching, bundle optimization, performance         | vercel-react-best-practices | `.agents/skills/react-best-practices/SKILL.md`        |
+| improve SEO, optimize for search, fix meta tags, add structured data, sitemap            | seo                         | `.agents/skills/seo/SKILL.md`                         |
+| architectural decisions, code across layers, adding features, repo structure in spotiarr | spotiarr-architecture       | `.agents/skills/spotiarr-architecture/SKILL.md`       |
+| queue definitions, BullMQ workers, job handlers, cron jobs in backend                    | spotiarr-bullmq             | `.agents/skills/spotiarr-bullmq/SKILL.md`             |
+| coding-assistant bridge files, compatibility symlinks, multi-agent configuration         | spotiarr-compatibility      | `.agents/skills/spotiarr-compatibility/SKILL.md`      |
+| translation strings, i18n keys, new language, react-i18next                              | spotiarr-i18n               | `.agents/skills/spotiarr-i18n/SKILL.md`               |
+| database queries, migrations, Prisma schemas in spotiarr                                 | spotiarr-prisma             | `.agents/skills/spotiarr-prisma/SKILL.md`             |
+| bump version, nueva release, publish release, create release                             | spotiarr-release            | `.agents/skills/spotiarr-release/SKILL.md`            |
+| running commands, validating changes, creating PRs, managing branches, secrets           | spotiarr-workflow           | `.agents/skills/spotiarr-workflow/SKILL.md`           |
+| Tailwind CSS, responsive layouts, design systems, dark mode, utility classes             | tailwind-css-patterns       | `.agents/skills/tailwind-css-patterns/SKILL.md`       |
+| TypeScript generics, conditional types, mapped types, template literals, utility types   | typescript-advanced-types   | `.agents/skills/typescript-advanced-types/SKILL.md`   |
+| React components, Next.js pages, bundle optimization, performance (vercel)               | vercel-react-best-practices | `.agents/skills/vercel-react-best-practices/SKILL.md` |
+| vite.config.ts, Vite plugins, building libraries, SSR apps with Vite                     | vite                        | `.agents/skills/vite/SKILL.md`                        |
+| review UI, check accessibility, audit design, review UX, check against best practices    | web-design-guidelines       | `.agents/skills/web-design-guidelines/SKILL.md`       |
+| z.object schemas, z.string validations, safeParse, z.infer, Zod validation               | zod                         | `.agents/skills/zod/SKILL.md`                         |
+
+---
 
 ## Compact Rules
 
 Pre-digested rules per skill. Delegators copy matching blocks into sub-agent prompts as `## Project Standards (auto-resolved)`.
 
-### spotiarr-architecture
+### accessibility
 
-- pnpm monorepo: `apps/backend`, `apps/frontend`, `packages/shared`
-- Backend Clean Architecture: domain/ (no external deps) → application/ (use cases) → infrastructure/ (adapters) → presentation/ (routes/controllers)
-- Dependencies point inward; `infrastructure` implements contracts for inner layers
-- Frontend: components/ (atoms→organisms), views/, hooks/ (queries/mutations), services/, store/
-- Keep view logic in hooks/, not rendering components; use `cn()` for conditional classes
-- Input validation with Zod; centralized error handling via middleware; DI via `container.ts`
+- Target WCAG 2.2 AA minimum: 4.5:1 normal text, 3:1 large text color contrast
+- All images need `alt`; decorative images use `alt=""` with `role="presentation"`
+- Icon buttons require `aria-label` or visually-hidden text span
+- Never remove focus outlines; use `:focus-visible` with visible outline instead
+- All functionality must handle keyboard: both `click` and `keydown` (Enter/Space)
+- Never convey information by color alone — pair with icon + text
+- Videos need `<track kind="captions">`; audio needs a transcript
+- Form errors: `aria-invalid="true"` + `aria-describedby` pointing to error element
 
-### spotiarr-workflow
+### bash-defensive-patterns
 
-- Run smallest valid command: frontend-only → `pnpm --filter frontend run lint && build`; backend-only → `pnpm --filter backend run lint && build`; broad → `pnpm lint && build`
-- Branch naming: `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`
-- PR must include: branch up to date with main, lint+build passing, body with what/why/verification, screenshots for UI changes
-- Never commit `.env`, credentials, or tokens; use `.env.example` as source of truth
-- PR creation: `gh pr create` with conventional title
+- Start every script with `set -Eeuo pipefail`
+- Always quote variables: `"$var"` not `$var`; use `[[ ]]` not `[ ]` for tests
+- Trap cleanup: `trap 'rm -rf "$TMPDIR"' EXIT`; `trap 'echo "Error line $LINENO"' ERR`
+- Temp dirs: `TMPDIR=$(mktemp -d)` then clean via EXIT trap
+- Required vars: `: "${VAR:?VAR is not set}"`
+- Array population: `mapfile -t arr < <(cmd)` not `arr=($(cmd))`
+- Script dir detection: `SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"`
+- Log errors to stderr (`>&2`); return 1 from functions on failure
 
-### spotiarr-prisma
+### vercel-composition-patterns
 
-- Schema at `apps/backend/prisma/schema.prisma`; SQLite datasource
-- Prisma calls ONLY in `apps/backend/src/infrastructure/database/` — never in domain/ or presentation/
-- Validate input at boundaries with Zod, pass typed parsed inputs to repositories
-- Migrations: `pnpm --filter backend run prisma:migrate:deploy`; generate: `pnpm --filter backend run prisma:generate`
-- Map known Prisma errors (unique constraint, not found, FK) to application-safe errors; never leak raw DB internals
-
-### spotiarr-bullmq
-
-- Queue init: `infrastructure/setup/queues.ts`; workers: `infrastructure/workers/`; cron: `infrastructure/jobs/`
-- Job IDs: `${type}-${entityId}-${Date.now()}`; downloads use exponential backoff (attempts: 3, delay 5000ms)
-- Redis connection centralized via `getEnv()` singleton; reuse across queues
-- Worker events: completed → log; drained → downstream actions; failed → update entity status + emit events
-- No DLQ — jobs lost after max attempts; no locking on cron — prevent overlapping at implementation level
-
-### spotiarr-i18n
-
-- Config: `apps/frontend/src/i18n.ts`; translations: `apps/frontend/src/locales/{lang}.json`
-- Fallback language: `en`; resources eagerly loaded; single namespace `translation`
-- Key naming: nested dot-notation (`common.loading`, `common.errors.pageNotFound`) + camelCase (`downloadAll`, `clearAll`)
-- Usage: `const { t } = useTranslation(); t("common.loading")` — interpolation: `t("key", { time: "14:30" })`
-- Add new keys to ALL language files; `escapeValue: false` configured (HTML not escaped)
-
-### spotiarr-release
-
-- ONLY edit root `package.json` version — workspace packages are `0.0.0` private, NEVER touch them
-- Commit as `chore(release): bump to vX.Y.Z`; tag as `vX.Y.Z` with `v` prefix
-- Push to main with `--tags` in same command; NEVER create GitHub Release manually (GHA handles it)
-- Suggest bump type from conventional commits: fix→patch, feat→minor, BREAKING CHANGE→major
-- `gh release edit vX.Y.Z --notes "..."` — NO `--title` flag; GitHub Release name = tag only
-- Descriptive title lives as H1 in the body: `# EMOJI SpotiArr vX.Y.Z — Short Subtitle`
-- Verify: `gh run list --workflow=release.yml --limit=1`
-
-### spotiarr-compatibility
-
-- `AGENTS.md` is the canonical source; symlinks: CLAUDE.md, CODEX.md, GEMINI.md, OPENCODE.md all → AGENTS.md
-- Dedicated bridge files: `.cursorrules` (Cursor), `.github/copilot-instructions.md` (Copilot)
-- Registry: `.atl/skill-registry.md`, `skills-lock.json`
-- If architecture/commands change: update AGENTS.md, refresh symlinks, update README/CONTRIBUTING
+- Avoid boolean props for behavior customization; use compound components instead
+- Provider is the sole owner of state implementation (decouple interface from impl)
+- Context interface shape: `{ state, actions, meta }` for dependency injection
+- Use `children` for composition, not `renderX` render props
+- Lift state into provider component so siblings can share it
+- React 19+: no `forwardRef`; access refs as regular props; use `use()` over `useContext()`
+- Prefer explicit variant components over boolean mode flags
 
 ### frontend-design
 
-- Commit to a BOLD aesthetic direction (brutalist, luxury, retro-futuristic, organic, etc.) — intentionality, not intensity
-- Typography: distinctive, characterful fonts — NEVER Inter, Roboto, Arial, system fonts
-- Color: cohesive palette with CSS variables; dominant colors with sharp accents
-- Motion: CSS-only animations preferred; staggered reveals on page load; scroll-triggered effects
-- NEVER use generic AI aesthetics: purple gradients on white, predictable layouts, cookie-cutter patterns
+- Commit to a bold, intentional aesthetic direction before writing any code
+- Never use generic fonts (Inter, Roboto, Arial, system fonts) — choose distinctive display fonts
+- Never use clichéd color schemes (purple gradients on white) — vary themes across designs
+- CSS variables for all colors; dominant color + sharp accent beats even distribution
+- Animations: CSS-only for HTML; Motion library for React; staggered reveals over scattered interactions
+- Spatial composition: asymmetry, overlap, diagonal flow, grid-breaking elements
+- Maximalist → elaborate animations/effects; minimalist → restraint, precision, spacing
+- Each design needs one unforgettable, context-specific differentiator
+
+### nodejs-backend-patterns
+
+- Layered architecture: controllers → services → repositories (inward deps only)
+- Controllers: HTTP handling only — validate input, call service, return response
+- Services: framework-agnostic business logic; no HTTP-specific types
+- Repositories: data access only; never called directly from controllers
+- All async controller methods: `try/catch` + call `next(error)` on failure
+- Always apply `helmet()`, `cors()`, `compression()` as early middleware
+- Validate input with Zod schemas at the route/controller boundary
+- Custom error classes for typed, predictable error handling across layers
+
+### nodejs-best-practices
+
+- Ask about deployment target before choosing framework (Edge → Hono, perf → Fastify)
+- New projects: ESM (`import/export`), not CommonJS
+- Sequential async → `async/await`; parallel independent → `Promise.all`
+- Never `console.log` in production; use structured logger (pino, winston)
+- Custom error classes per domain; catch and format at middleware level
+- Validate env vars at startup (Zod) — fail fast, don't discover missing vars in prod
+- Rate limit all public endpoints; authenticate before any business logic runs
+
+### nodejs-express-server
+
+- Middleware order matters: body parsing → auth → routes → error handler
+- Error middleware must have exactly 4 args: `(err, req, res, next)`
+- All async route handlers must `try/catch` and call `next(error)` on failure
+- Never expose stack traces or internals in production error responses
+- Apply `express-rate-limit` on public routes; enforce HTTPS in production
+- Keep route handlers thin; delegate logic to service layer
+- Validate user input before processing; never rely on client-side validation alone
+
+### prisma-cli
+
+- Dev migrations: `prisma migrate dev --name <name>` (creates + applies)
+- Production: `prisma migrate deploy` — never run `migrate dev` in production
+- Always run `prisma generate` after any schema change
+- Bun runtime: `bunx --bun prisma ...` (not bare `bunx prisma`)
+- Prisma 7 SQL: use `prisma.config.ts` for datasource config
+- `prisma db push` for prototyping only — generates no migration files
+- `prisma migrate reset` wipes the database — never run in production
+
+### prisma-client-api
+
+- Instantiate once with driver adapter: `new PrismaClient({ adapter })`
+- Use `findUniqueOrThrow()` / `findFirstOrThrow()` to skip null checks
+- Prefer `select` over `include` to limit fetched fields; never over-fetch
+- Array transactions: `prisma.$transaction([op1, op2])` for atomic operations
+- Raw SQL: `$queryRaw` with tagged templates only — never string concatenation
+- `createMany()` for bulk inserts; faster than looped `create()` calls
+- Filter operators: `contains`, `startsWith`, `in`, `not`, `lt/lte/gt/gte`, `mode`
+
+### prisma-database-setup
+
+- Node.js 20.19+ and TypeScript 5.4+ required
+- Bun: always `bunx --bun prisma ...` to use Bun runtime not Node.js
+- SQL providers use driver adapter; MongoDB must stay on Prisma 6.x
+- Generator block must specify explicit output: `output = "../generated"`
+- Re-run `prisma generate` after every schema change
+- PostgreSQL adapter: `@prisma/adapter-pg` with `pg` driver
+- MongoDB: do NOT use `prisma.config.ts` or SQL adapter pattern
+
+### prisma-postgres
+
+- Quick start: `npx create-db@latest` (aliases: `create-pg`, `create-postgres`)
+- Temporary databases auto-delete after ~24h unless claimed
+- Link existing project: `prisma postgres link`; CI: add `--api-key` + `--database` flags
+- Management API base URL: `https://api.prisma.io/v1`
+- Auth options: service token (server-to-server) or OAuth 2.0
+- SDK: `@prisma/management-api-sdk` for type-safe programmatic provisioning
+- Serverless/edge: `@prisma/adapter-ppg` with `@prisma/ppg` driver
 
 ### vercel-react-best-practices
 
-- CRITICAL: Eliminate waterfalls — use Promise.all() for independent ops, start promises early, await late
-- CRITICAL: Avoid barrel file imports — import directly from source; costs 200-800ms per import
-- Derive state during render, not in effects; don't store computed values in useState
-- Don't define components inside components (causes remount on every render)
-- Use functional setState (`set(prev => ...)`) for stable callbacks and to prevent stale closures
-- Use `toSorted()` instead of `sort()` for immutability; use `useDeferredValue` for expensive derived renders
-- Use `startTransition` for non-urgent updates; cache repeated function calls with module-level Map
+- `Promise.all()` for independent async operations to eliminate request waterfalls
+- Import directly from source; never from barrel/index files (bundle bloat)
+- `next/dynamic` for heavy components; load analytics/logging after hydration
+- `React.cache()` for per-request dedup in RSC; LRU cache for cross-request
+- Never define mutable module-level state in RSC/SSR contexts
+- Functional `setState(prev => ...)` for stable callbacks; avoid inline object props
+- Never define components inside other components (causes remount on every render)
+- `useTransition` / `startTransition` for non-urgent state updates
+
+### seo
+
+- Title tags: 50-60 chars, primary keyword near start, unique per page, brand at end
+- Meta descriptions: 150-160 chars, unique per page, include primary keyword + CTA
+- Single `<h1>` per page; logical heading hierarchy — never skip levels
+- Add `<link rel="canonical">` on every page to prevent duplicate content issues
+- URLs: lowercase, hyphens (not underscores), < 75 chars, HTTPS always
+- `robots.txt` must NOT block CSS/JS resources needed for rendering
+- Structured data (JSON-LD preferred) for rich results; validate with schema.org
+- Sitemap: max 50k URLs / 50MB; include only canonical, indexable URLs
+
+### spotiarr-architecture
+
+- Monorepo: pnpm workspaces — `apps/backend`, `apps/frontend`, `packages/shared`
+- Backend layers (inward deps only): `presentation → application → domain`
+- `infrastructure/` implements contracts for inner layers; domain never calls infra directly
+- Frontend: business/view logic in `hooks/`, not in rendering components
+- Server state: `hooks/queries` + `hooks/mutations`; real-time via `useServerEvents`
+- TypeScript `strict: true` everywhere; import order: third-party → `@/` aliases → relative
+- Backend: Zod validation at boundaries; DI via `container.ts`; centralized error middleware
+- Shared DTOs, enums, utilities only in `packages/shared/` — not duplicated per app
+
+### spotiarr-bullmq
+
+- Queues: singleton getter in `infrastructure/setup/queues.ts`
+- Workers: `infrastructure/workers/` (one file per worker); jobs: `infrastructure/jobs/`
+- Job IDs: `${type}-${entityId}-${Date.now()}` for traceability
+- Download jobs: `attempts: 3`, exponential backoff `5000ms`; search: `attempts: 1`, no retry
+- Worker events: `completed` → log; `drained` → downstream actions + SSE; `failed` → update status
+- Cron: `node-cron` in `infrastructure/jobs/`; prevent overlapping runs at impl level
+- No DLQ — jobs lost after max attempts; job ID collisions possible on rapid re-enqueue
+- Redis: singleton/shared connection via `getEnv()` for host/port
+
+### spotiarr-compatibility
+
+- `AGENTS.md` is the single canonical source for all agent instructions
+- Symlinks `CLAUDE.md`, `GEMINI.md`, `OPENCODE.md` must all point to `AGENTS.md`
+- Registry files: `.atl/skill-registry.md` + `skills-lock.json`
+- Any architecture/workflow change → update `AGENTS.md` first, then sync all compatibility files
+
+### spotiarr-i18n
+
+- Config: `apps/frontend/src/i18n.ts`; locales: `apps/frontend/src/locales/{lang}.json`
+- Languages: `en` (primary + fallback), `es`; single `translation` namespace
+- Key format: dot-notation camelCase — `common.loading`, `common.errors.pageNotFound`
+- Usage: `const { t } = useTranslation()` → `t("key")` or `t("key", { var: val })`
+- Add every new key to ALL language files — missing keys cause runtime fallback drift
+- Type declarations in `apps/frontend/src/types/i18next.d.ts` based on `en.json`
+- `escapeValue: false` is configured — HTML in translation strings is NOT escaped
+
+### spotiarr-prisma
+
+- Schema: `apps/backend/prisma/schema.prisma` — SQLite datasource
+- Prisma Client calls ONLY in `apps/backend/src/infrastructure/database/`
+- Never import Prisma in `domain/` or `presentation/` layers
+- Data flow: HTTP request → Zod parse → typed DTO → repository → Prisma Client
+- Migrations: `pnpm --filter backend run prisma:migrate:deploy`
+- Regenerate: `pnpm --filter backend run prisma:generate` after every schema change
+- Map Prisma errors to app-safe errors; never leak raw DB error messages to HTTP responses
+- Multi-step writes: pass transaction client through repository methods
+
+### spotiarr-release
+
+- Version lives ONLY in root `package.json`; workspace packages stay at `0.0.0`
+- Bump commit: `chore(release): bump to vX.Y.Z` (conventional commits enforced)
+- ALWAYS `git tag -a vX.Y.Z -m "vX.Y.Z"` — bare `git tag` opens nvim interactively
+- Push: `git push origin main --tags`
+- GHA creates release with generic body — ALWAYS replace: `gh release edit vX.Y.Z --notes "$(...)"`
+- Do NOT pass `--title` to `gh release edit` — descriptive title lives as H1 inside the body
+- CHANGELOG: human-readable descriptions, grouped by type; omit `chore:` and `docs:` commits
+- Bump type: `fix:` only → patch; `feat:` present → minor; `BREAKING CHANGE` → major
+
+### spotiarr-workflow
+
+- Frontend-only: `pnpm --filter frontend run lint` then `pnpm --filter frontend run build`
+- Backend-only: `pnpm --filter backend run lint` then `pnpm --filter backend run build`
+- Broad/shared changes: `pnpm lint` then `pnpm build`
+- Branch naming: `feat/`, `fix/`, `refactor/`, `docs/`, `chore/` prefix
+- PR body: what changed, why, verification steps; screenshots/GIFs for UI changes
+- Never commit `.env`, tokens, or credentials; `.env.example` is the source of truth
+- No automated test suite yet — CI validates lint + build only
+- PR creation: `gh pr create` with conventional commit title
+
+### tailwind-css-patterns
+
+- Mobile-first: base styles first, then `sm:`, `md:`, `lg:` for larger screens
+- Tailwind v4.1+: CSS-first config via `@theme` directive (not `tailwind.config.js`)
+- Use Tailwind spacing scale (4, 8, 12, 16...); stay within color system for consistency
+- Prefer utility classes over `@apply` for maintainability
+- `cn()` utility for conditional class composition in React
+- Dark mode: `dark:` prefix on every affected class; configure `darkMode` correctly
+- Include all template paths in content config or classes are purged in production
+- Focus styles required: `:focus-visible` with visible outline for keyboard nav
+
+### typescript-advanced-types
+
+- Enable `strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`
+- Use `z.infer<typeof schema>` over manual type declarations to avoid drift
+- Generics: constrain with `extends` — e.g. `<T extends HasLength>` prevents unsafe ops
+- Conditional types: `T extends U ? X : Y`; use `infer` to extract sub-types
+- Mapped types: `{ [K in keyof T]: ... }` for property-by-property transformation
+- Template literal types: `` `${A}${B}` `` for string-pattern types
+- Use `satisfies` operator to keep literal types while enforcing conformance
+- Utility types: `Partial`, `Required`, `Pick`, `Omit`, `ReturnType`, `Awaited`
+
+### vite
+
+- Always use `vite.config.ts` (TypeScript), not `.js`
+- ESM only — avoid CommonJS in Vite projects
+- Wrap config in `defineConfig()` for type safety
+- Aliases: `resolve: { alias: { '@': '/src' } }`
+- API proxy in dev: `server: { proxy: { '/api': 'http://localhost:8080' } }`
+- Vite 8: Rolldown bundler + Oxc transformer — check `references/rolldown-migration.md` for breaking changes
+- CLI: `vite` (dev), `vite build` (prod), `vite preview` (preview build)
 
 ### web-design-guidelines
 
-- Fetch fresh guidelines from `https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md` before each review
-- Read specified files, apply all rules, output findings in `file:line` format
-- If no files specified, ask the user which files to review
+- Fetch fresh guidelines from Vercel before each review via WebFetch
+- Read specified files then check against ALL rules from the fetched guidelines
+- Report findings in terse `file:line: [rule] description` format
+- If no files specified, ask user which files to review before proceeding
 
-### typescript
+### zod
 
-- ALWAYS: const object first, then extract type — `const STATUS = { ACTIVE: "active" } as const; type Status = (typeof STATUS)[keyof typeof STATUS]`
-- ALWAYS: flat interfaces — nested objects become dedicated interface, reference not inline
-- NEVER: use `any` — use `unknown` + type guards, or generics
-- Use utility types: Pick, Omit, Partial, Required, Record, Extract, Exclude, ReturnType
-- `import type { X }` for type-only imports
+- Use `z.unknown()` not `z.any()` for unknown external data
+- `safeParse()` for user/external input; `parse()` only for trusted internal data
+- Use `z.infer<typeof schema>` for types — never duplicate type definitions manually
+- Validate at system boundaries only (HTTP, external APIs, env vars)
+- `z.object().strict()` rejects unknown keys; `.strip()` silently drops them
+- `z.discriminatedUnion()` for tagged unions (not `z.union()`)
+- Cache schema instances at module level — never create schemas inside hot functions
+- `error.flatten()` for form-friendly field-keyed error maps
+- `z.coerce` for form data/query params arriving as strings
+- `extend()` for adding fields; `pick()`/`omit()` for schema variants
 
-### react-19
-
-- No useMemo/useCallback — React Compiler handles memoization automatically
-- ALWAYS: named imports from "react" — never `import React from "react"`
-- Server Components by default; add "use client" only for useState/useEffect/onClick/browser APIs
-- `use()` hook for promises and conditional context reading
-- ref is a regular prop — no forwardRef needed
-- Actions: `useActionState` for form mutations with pending state
-
-### tailwind-4
-
-- NEVER: `var()` in className — use Tailwind semantic classes (`bg-primary`, `text-slate-400`)
-- NEVER: hex colors in className — use Tailwind color classes
-- `cn()` for conditional classes and merging conflicts; NOT needed for static classes
-- Dynamic values → `style={{ width: \`${x}%\` }}`; charts/libraries → `var()` in constants only
-- Arbitrary values OK for one-offs: `w-[327px]` — but NOT for colors
-
-### zod-4
-
-- BREAKING: `z.email()`, `z.uuid()`, `z.url()` are now top-level (not `z.string().email()`)
-- BREAKING: error param is `error` not `message` — `z.email({ error: "Invalid" })`
-- `z.coerce.number()` for type conversion; `z.preprocess()` for trimming/sanitization
-- Use `safeParse()` for non-throwing validation; `.refine()` and `.superRefine()` for custom rules
-- Integration with react-hook-form via `zodResolver(schema)`
-
-### zustand-5
-
-- Select specific fields: `useStore((state) => state.name)` — avoid selecting entire store
-- Multiple fields: use `useShallow((state) => ({ name, email }))`
-- Persist: `create<Store>()(persist((set) => ({...}), { name: "key" }))`
-- Async actions: set loading/error states; use functional setState for stable callbacks
-- Slices pattern: compose multiple slices with spread; immer middleware for direct mutations
-
-### playwright
-
-- MCP first: navigate → snapshot → interact → screenshot → verify flow → then write tests
-- Selector priority: getByRole → getByLabel → getByText → getByTestId (last resort) — NEVER CSS selectors
-- Page Object Model: all pages extend BasePage; reuse existing page objects before creating new
-- File structure: `tests/{page}/{page}-page.ts` (POM) + `{page}.spec.ts` (all tests) + `{page}.md` (docs)
-- Tags: `@critical`, `@e2e`, `@feature`, `@TEST-ID-001`; one test() per request unless "comprehensive"
-- Common methods go to BasePage; test data generators go to helpers.ts
-
-### nextjs-15
-
-- Server Components by default — async, no directive; "use client" only for interactivity/hooks
-- Server Actions: `"use server"`, use `revalidatePath()` + `redirect()` after mutations
-- Parallel data fetch: `Promise.all()` in page; streaming with `<Suspense fallback>`
-- Route Handlers: `export async function GET/POST(request: NextRequest)` returning `NextResponse.json()`
-- Metadata: static `export const metadata` or dynamic `generateMetadata()`
-- `import "server-only"` to prevent client import of server modules
-
-### ai-sdk-5
-
-- BREAKING: import from `@ai-sdk/react` (not `"ai"`); use `DefaultChatTransport` for transport config
-- BREAKING: `message.content` → `message.parts` array; extract text: `.filter(p => p.type === "text").map(p => p.text).join("")`
-- Client: `const { messages, sendMessage, isLoading } = useChat({ transport })`; send: `sendMessage({ text: input })`
-- Server: `streamText({ model, messages })` → `result.toDataStreamResponse()`
-- Tools: `tool({ description, parameters: z.object({...}), execute })` inside streamText config
-- useCompletion: `useCompletion({ transport: new DefaultCompletionTransport({ api }) })`
-
-### branch-pr
-
-- Every PR MUST link an approved issue — `Closes #N` in body; no exceptions
-- Every PR MUST have exactly one `type:*` label (type:bug, type:feature, type:docs, etc.)
-- Branch naming: `^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)/[a-z0-9._-]+$`
-- Conventional commits: `type(scope): description` — enforced by regex
-- PR body: linked issue, type checkbox, summary bullets, changes table, test plan, contributor checklist
-
-### issue-creation
-
-- Blank issues disabled — MUST use template (bug_report.yml or feature_request.yml)
-- Every issue gets `status:needs-review` on creation; maintainer adds `status:approved` before PRs
-- Bug Report fields: description, steps to reproduce, expected/actual behavior, OS, agent, shell
-- Feature Request fields: problem description, proposed solution, affected area
-- Questions go to Discussions, NOT issues
-
-### pr-review
-
-- Gather: `gh issue list`, `gh pr list`, `gh pr view`, `gh pr diff` — read current codebase before reviewing
-- Red flags → DO NOT MERGE: debug files, unused vars, hardcoded secrets, syntax errors, breaking changes without migration
-- Yellow flags → Request Changes: too many commits (squash), missing validation, conflicts with other PRs
-- Green flags → MERGE: small focused changes, tests included, clean history, docs updated
-- Output: structured verdict table with file:line references for each finding
-
-### skill-creator
-
-- Create when: repeated patterns, project-specific conventions, complex workflows, decision trees
-- Structure: `skills/{name}/SKILL.md` + optional `assets/` (templates/schemas) + `references/` (docs links)
-- SKILL.md template: frontmatter (name, description with Trigger, license, metadata) + When to Use + Critical Patterns + Commands
-- Naming: generic → `{technology}`, project → `{project}-{component}`, workflow → `{action}-{target}`
-
-### judgment-day
-
-- Launch TWO blind sub-agents in parallel via `delegate(async)` — orchestrator coordinates only
-- Resolve skills from registry BEFORE launching judges; inject compact rules as `## Project Standards (auto-resolved)`
-- Verdict synthesis: Confirmed (both found) / Suspect (one found) / Contradiction (disagree)
-- WARNING classification: real (causes bug in production) vs theoretical (contrived scenario) — theoretical → INFO, don't fix
-- After 2 fix iterations with remaining confirmed CRITICALs → escalate to user; clean from both → APPROVED
-
-### technical-review
-
-- 6 evaluation factors: Styling, Technical expertise, Code Quality, Go beyond, Detailed explanations, Other comments
-- Score each 0-10 with specific evidence from code; output as Markdown table per candidate
-- Red flags: secrets in code, employer data exposed, no tests, copy-pasted code, missing README, SQL injection, giant functions (>50 lines)
-- Ask: "Would I trust this person to work without constant supervision?" for technical expertise score
-
-### stream-deck
-
-- Single-page HTML presentation — no frameworks, no build step, open index.html directly
-- Gentleman Kanagawa Blur palette: bg `#06080f`, surface `#1c212c`, fg `#f3f6f9`, accent `#e0c15a`
-- CRITICAL contrast: minimum 4:1 against `#1c212c`; muted text `#8394A3` not `#5c6170`
-- No vertical scroll — `100dvh` viewport; inline SVGs only (no image files)
-- Module system with sidebar rail; vim-mode theming (Normal, Command, Insert, Visual, Terminal, Replace)
-
-### go-testing
-
-- Table-driven tests: `tests := []struct{ name, input, expected string; wantErr bool }{...}; for _, tt := range tests { t.Run(tt.name, ...) }`
-- Bubbletea: test Model state transitions directly with `m.Update(tea.KeyMsg{...})`
-- Teatest: `teatest.NewTestModel(t, m)` → `tm.Send(msg)` → check output with `tm.FinalModel()`
-- Golden files: `testdata/` directory; `flag.Update` for updating golden files
-- Test file naming: `*_test.go` same package; use `t.Helper()` in helper functions
-
-### pytest
-
-- Class-based tests: `class TestUserService: def test_create_user_success(self):`
-- Fixtures: `@pytest.fixture` with `yield` for teardown; scopes: module, class, session
-- conftest.py for shared fixtures; `pytest.raises(ExceptionType, match="regex")` for exception testing
-- Mocking: `patch("module.path")` context manager; `MagicMock()` for complex objects
-- Markers: `@pytest.mark.skip`, `@pytest.mark.parametrize("input,expected", [...])`
-
-### django-drf
-
-- ViewSet: `ModelViewSet` with `queryset`, `serializer_class`, `filterset_class`, `permission_classes`
-- Separate serializers for read/create/update; `get_serializer_class()` returns based on `self.action`
-- Custom actions: `@action(detail=True, methods=["post"])` for non-CRUD endpoints
-- Filters: `django_filters.FilterSet` with `CharFilter(lookup_expr="icontains")`, `DateTimeFilter(lookup_expr="gte")`
-- Nested serializers via `SerializerMethodField`; `read_only_fields` in Meta
-
-### dotnet
-
-- Minimal APIs for new endpoints: `app.MapGet("/", ...)` with `TypedResults.Ok/NotFound/Created`
-- Primary constructors for DI: `public class OrderService(AppDbContext db, ILogger<OrderService> logger) : IOrderService`
-- Clean Architecture: Domain (entities/interfaces) → Application (commands/queries/DTOs) → Infrastructure (EF Core/services) → WebApi (endpoints)
-- EF Core: Fluent API configuration (`IEntityTypeConfiguration<T>`), NOT data annotations
-- Use `AsNoTracking()` for read queries; `HasPrecision(18, 2)` for decimal properties
-
-### scope-rule-architect-angular
-
-- ALL components standalone by default (Angular 20+); use `input()`/`output()` functions, not decorators
-- `ChangeDetectionStrategy.OnPush` for all; `inject()` instead of constructor injection; signals for state
-- Native control flow: `@if`, `@for`, `@switch`; `@defer` for lazy loading; no `ngClass`/`ngStyle`
-- Scope Rule: code used by 2+ features → shared/; 1 feature → local to that feature
-- Screaming Architecture: feature names describe business, not tech; no `.component`/`.service` suffixes
-
-### homebrew-release
-
-- GGA: tarball from source, tags `V{version}`; Gentleman.Dots: pre-built binaries, tags `v{version}`
-- Build cross-platform binaries with `GOOS/GOARCH` and `-ldflags="-s -w"`
-- Create GitHub Release with `gh release create` attaching binaries; get SHA256 with `shasum -a 256`
-- Update homebrew formula with version, URLs, and SHA256 hashes per platform
-- `brew audit --formula` before committing formula changes
-
-### jira-epic
-
-- Title format: `[EPIC] Feature Name`; sections: Feature Overview, Requirements (by area), Technical Considerations
-- Always include Performance, Data Integration, and UI Components subsections
-- Implementation Checklist as `- [ ]` items; add Mermaid diagrams for architecture/flow
-- Link Figma designs when available; be specific and testable in requirements
-
-### jira-task
-
-- Multi-component work → split into separate tasks per component (API, UI, SDK)
-- BUGS: create independent sibling tasks; FEATURES: create parent task (user story, acceptance criteria) + child tasks (technical details)
-- Parent task: user-facing description, user story, acceptance criteria from USER perspective, NO technical details
-- Child task: technical details, affected files, component-specific acceptance criteria
-- Title format: `[BUG]` or `[FEATURE]` + description + `(API)`/`(UI)` suffix for children
-
-### find-skills
-
-- Use `npx skills find [query]` to search for skills by keyword
-- Use `npx skills add <package>` to install a skill from GitHub or other sources
-- Browse skills at https://skills.sh/
-- Run `npx skills check` for updates, `npx skills update` to update all installed skills
-- Suggest skills when user asks "how do I do X" where X might have an existing skill
+---
 
 ## Project Conventions
 
-| File                    | Path                                                   | Notes                                                                        |
-| ----------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| AGENTS.md               | ./AGENTS.md                                            | Primary index — references skill routing table, agent checklist, quick start |
-| AGENTS.md               | ./.agents/skills/vercel-react-best-practices/AGENTS.md | Full Vercel React best practices guide (64 rules, 8 categories)              |
-| .nvmrc                  | ./.nvmrc                                               | Runtime version (Node 22)                                                    |
-| .env.example            | ./.env.example                                         | Env contract baseline                                                        |
-| .cursorrules            | ./.cursorrules                                         | Bridge file — defers to AGENTS.md                                            |
-| copilot-instructions.md | ./.github/copilot-instructions.md                      | Bridge file — defers to AGENTS.md                                            |
+| File              | Path                     | Notes                                                 |
+| ----------------- | ------------------------ | ----------------------------------------------------- |
+| AGENTS.md (index) | `AGENTS.md`              | Canonical agent instructions — single source of truth |
+| CLAUDE.md         | `CLAUDE.md`              | Symlink → `AGENTS.md` (Claude Code)                   |
+| GEMINI.md         | `GEMINI.md`              | Symlink → `AGENTS.md` (Gemini CLI)                    |
+| OPENCODE.md       | `OPENCODE.md`            | Symlink → `AGENTS.md` (OpenCode)                      |
+| Skill registry    | `.atl/skill-registry.md` | This file — skill-name to path mapping                |
+| Skills lock       | `skills-lock.json`       | Skill metadata tracking                               |
 
-Read the convention files listed above for project-specific patterns and rules. All referenced paths have been extracted — no need to read index files to discover more.
+All agent instruction files point to `AGENTS.md` as the single source of truth. Update `AGENTS.md` first when architecture, commands, or conventions change.

@@ -29,14 +29,8 @@ Use this skill when:
 ### Required symlinks (all -> `AGENTS.md`)
 
 - `CLAUDE.md` — Claude Code
-- `CODEX.md` — OpenAI Codex
 - `GEMINI.md` — Gemini CLI
 - `OPENCODE.md` — OpenCode
-
-### Dedicated bridge files
-
-- `.cursorrules` — Cursor
-- `.github/copilot-instructions.md` — GitHub Copilot / VSCode
 
 ### Registry files
 
@@ -54,8 +48,8 @@ Use this skill when:
 ## Commands
 
 ```bash
-ln -sf AGENTS.md CLAUDE.md && ln -sf AGENTS.md CODEX.md && ln -sf AGENTS.md GEMINI.md && ln -sf AGENTS.md OPENCODE.md  # Refresh compatibility symlinks
-ls -l CLAUDE.md CODEX.md GEMINI.md OPENCODE.md  # Verify symlink targets
+ln -sf AGENTS.md CLAUDE.md && ln -sf AGENTS.md GEMINI.md && ln -sf AGENTS.md OPENCODE.md  # Refresh compatibility symlinks
+ls -l CLAUDE.md GEMINI.md OPENCODE.md  # Verify symlink targets
 ```
 
 ---
