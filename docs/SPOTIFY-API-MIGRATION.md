@@ -244,6 +244,13 @@ dado que el bootstrap es background y Deezer tiene margen suficiente.
 - ✅ `getAlbumTracks` sigue usando Spotify (Phase 3)
 - ✅ Build y lint pasan
 
+**Warming UX (artist-catalog-warming-ux)**:
+
+- Cuando un artista no está cacheado y el refresh interactivo excede el timeout de 500ms (o recibe 429), el backend devuelve `catalogRefreshPending: true` junto con la lista vacía de álbumes.
+- El frontend detecta `catalogRefreshPending && albums.length === 0` y muestra "Actualizando discografía…" en lugar de "Sin discografía disponible".
+- El frontend hace refetch automático con límite de 2 intentos y delay de 1500ms, evitando polling infinito.
+- Una vez que los álbumes están en la DB, la siguiente visita (o refetch) muestra la discografía completa sin intervención del usuario.
+
 ---
 
 ### Fase 3: Vista de release sin Spotify

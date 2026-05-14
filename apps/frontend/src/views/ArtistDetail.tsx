@@ -19,7 +19,7 @@ export const ArtistDetail: FC = () => {
     error,
     hasArtist,
     isArtistDownloaded,
-    albumsRateLimited,
+    catalogRefreshPending,
     filter,
     setFilter,
     filteredAlbums,
@@ -112,9 +112,9 @@ export const ArtistDetail: FC = () => {
             albumTracks={albumTracks}
             isLoadingTracks={isLoadingTracks}
           />
-        ) : albumsRateLimited ? (
-          <div className="mt-10 rounded-lg bg-yellow-500/10 px-6 py-8 text-center">
-            <p className="text-sm font-medium text-yellow-400">{t("artist.rateLimited")}</p>
+        ) : catalogRefreshPending && artist?.albums.length === 0 ? (
+          <div className="mt-10 text-center">
+            <p className="text-text-secondary animate-pulse">{t("artist.updatingDiscography")}</p>
           </div>
         ) : (
           <div className="text-text-secondary mt-10 text-center">

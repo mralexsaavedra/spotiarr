@@ -205,7 +205,7 @@ describe("GetArtistDetailUseCase", () => {
   });
 
   describe("Scenario: 429 rate limit on provider refresh", () => {
-    it("returns DB albums and marks rateLimited when DB is empty", async () => {
+    it("returns DB albums and marks catalogRefreshPending when DB is empty", async () => {
       const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
@@ -223,10 +223,10 @@ describe("GetArtistDetailUseCase", () => {
       const result = await useCase.execute("sp-artist-1", 25);
 
       expect(result.albums).toEqual([]);
-      expect(result.albumsRateLimited).toBe(true);
+      expect(result.catalogRefreshPending).toBe(true);
     });
 
-    it("returns stale DB albums without rateLimited flag when DB has data", async () => {
+    it("returns stale DB albums without catalogRefreshPending flag when DB has data", async () => {
       const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
       const staleAlbums = [makeRelease({ albumId: "old-1" })];
 
@@ -245,7 +245,7 @@ describe("GetArtistDetailUseCase", () => {
       const result = await useCase.execute("sp-artist-1", 25);
 
       expect(result.albums).toEqual(staleAlbums);
-      expect(result.albumsRateLimited).toBeUndefined();
+      expect(result.catalogRefreshPending).toBeUndefined();
     });
   });
 
@@ -261,6 +261,59 @@ describe("GetArtistDetailUseCase", () => {
       expect(result.name).toBe("Unknown Artist");
       expect(result.isFollowed).toBe(false);
       expect(result.albums).toEqual([]);
+    });
+  });
+
+  describe("Scenario: 504 interactive timeout on provider refresh", () => {
+    it("sets catalogRefreshPending when DB is empty after timeout", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+        id: "sp-artist-1",
+        name: "Test Artist",
+        image: null,
+        spotifyUrl: null,
+      } as FollowedArtist);
+      vi.mocked(feedService.getArtistDiscography).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(repo.getArtistAlbums).mockResolvedValue([]);
+
+      const promise = useCase.execute("sp-artist-1", 25);
+      await vi.advanceTimersByTimeAsync(600);
+      const result = await promise;
+
+      expect(result.albums).toEqual([]);
+      expect(result.catalogRefreshPending).toBe(true);
+
+      vi.useRealTimers();
+    });
+
+    it("does not set catalogRefreshPending when DB has stale albums after timeout", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      const dbAlbums = [makeRelease({ albumId: "db-1" })];
+
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+        id: "sp-artist-1",
+        name: "Test Artist",
+        image: null,
+        spotifyUrl: null,
+      } as FollowedArtist);
+      vi.mocked(feedService.getArtistDiscography).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(repo.getArtistAlbums).mockResolvedValue(dbAlbums);
+
+      const promise = useCase.execute("sp-artist-1", 25);
+      await vi.advanceTimersByTimeAsync(600);
+      const result = await promise;
+
+      expect(result.albums).toEqual(dbAlbums);
+      expect(result.catalogRefreshPending).toBeUndefined();
+
+      vi.useRealTimers();
     });
   });
 
@@ -286,7 +339,7 @@ describe("GetArtistDetailUseCase", () => {
       const result = await promise;
 
       expect(result.albums).toEqual(dbAlbums);
-      expect(result.albumsRateLimited).toBeUndefined();
+      expect(result.catalogRefreshPending).toBeUndefined();
 
       vi.useRealTimers();
     });

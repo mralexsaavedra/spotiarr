@@ -64,7 +64,7 @@ export class GetArtistDetailUseCase {
 
     // Resolve albums with freshness check
     let albums: ArtistRelease[];
-    let albumsRateLimited = false;
+    let catalogRefreshPending = false;
 
     const freshness = await this.feedRepository.getArtistAlbumsFreshness(spotifyArtistId);
 
@@ -88,12 +88,12 @@ export class GetArtistDetailUseCase {
 
         albums = await this.feedRepository.getArtistAlbums(spotifyArtistId, effectiveLimit, 0);
       } catch (err) {
-        if (err instanceof AppError && err.statusCode === 429) {
-          // Rate limited during refresh — fall back to whatever is in DB
+        if (err instanceof AppError && (err.statusCode === 429 || err.statusCode === 504)) {
+          // Rate limited or interactive timeout during refresh — fall back to whatever is in DB
           albums = await this.feedRepository.getArtistAlbums(spotifyArtistId, effectiveLimit, 0);
-          albumsRateLimited = albums.length === 0;
+          catalogRefreshPending = albums.length === 0;
         } else {
-          // Other errors — fall back to DB but don't mark as rate limited
+          // Other errors — fall back to DB but don't mark as pending
           albums = await this.feedRepository.getArtistAlbums(spotifyArtistId, effectiveLimit, 0);
         }
       }
@@ -108,7 +108,7 @@ export class GetArtistDetailUseCase {
       genres: details.genres,
       albums,
       isFollowed,
-      albumsRateLimited: albumsRateLimited || undefined,
+      catalogRefreshPending: catalogRefreshPending || undefined,
     };
   }
 }
