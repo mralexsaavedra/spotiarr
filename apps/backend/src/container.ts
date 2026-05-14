@@ -3,6 +3,7 @@ import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
+import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
 import { GetArtistAlbumsUseCase } from "./application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "./application/use-cases/artists/get-artist-detail.use-case";
 import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
@@ -307,12 +308,19 @@ const getArtistDetailUseCase = new GetArtistDetailUseCase(
   spotifyArtistClient,
 );
 const getArtistAlbumsUseCase = new GetArtistAlbumsUseCase(feedRepository, releaseFeedService);
+const getAlbumTracksUseCase = new GetAlbumTracksUseCase(
+  feedRepository,
+  deezerClient,
+  musicBrainzClient,
+  spotifyAlbumClient,
+);
 
 const artistController = new ArtistController(
   spotifyArtistClient,
   spotifyAlbumClient,
   getArtistDetailUseCase,
   getArtistAlbumsUseCase,
+  getAlbumTracksUseCase,
 );
 const searchController = new SearchController(spotifyService);
 

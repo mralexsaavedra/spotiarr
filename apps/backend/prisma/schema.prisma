@@ -119,11 +119,15 @@ model ArtistAlbumCache {
   coverUrl        String?
   spotifyUrl      String?
   totalTracks     Int?
+  deezerAlbumId   String?
+  mbAlbumId       String?
   syncedAt        DateTime
 
   @@index([spotifyArtistId])
   @@index([releaseDate])
   @@index([spotifyArtistId, releaseDate])
+  @@index([deezerAlbumId])
+  @@index([mbAlbumId])
 }
 
 model SyncState {

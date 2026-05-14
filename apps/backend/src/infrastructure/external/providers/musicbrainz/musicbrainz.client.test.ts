@@ -75,6 +75,110 @@ describe("MusicBrainzClient", () => {
     });
   });
 
+  describe("getReleaseTracks", () => {
+    it("maps release-group → release → recordings to NormalizedTrack[]", async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            releases: [
+              { id: "release-1", title: "Album One" },
+              { id: "release-2", title: "Album One ( Deluxe )" },
+            ],
+          }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            id: "release-1",
+            title: "Album One",
+            media: [
+              {
+                position: 1,
+                tracks: [
+                  {
+                    position: 1,
+                    recording: {
+                      id: "rec-1",
+                      title: "Track One",
+                      length: 200000,
+                      "artist-credit": [{ name: "Artist A" }],
+                    },
+                  },
+                  {
+                    position: 2,
+                    recording: {
+                      id: "rec-2",
+                      title: "Track Two",
+                      length: 250000,
+                      "artist-credit": [{ name: "Artist A" }, { name: "Artist B" }],
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+        } as Response);
+
+      const tracks = await client.getReleaseTracks("rg-1");
+
+      expect(tracks).toHaveLength(2);
+      expect(tracks[0]).toMatchObject({
+        name: "Track One",
+        artist: "Artist A",
+        album: "Album One",
+        trackNumber: 1,
+        discNumber: 1,
+        durationMs: 200000,
+      });
+      expect(tracks[1]).toMatchObject({
+        name: "Track Two",
+        artist: "Artist A, Artist B",
+        album: "Album One",
+        trackNumber: 2,
+        discNumber: 1,
+        durationMs: 250000,
+      });
+
+      // Verify URLs contain the release/recording IDs
+      expect(tracks[0].trackUrl).toContain("recording/rec-1");
+      expect(tracks[0].albumUrl).toContain("release/release-1");
+    });
+
+    it("returns empty array when release-group has no releases", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ releases: [] }),
+      } as Response);
+
+      const tracks = await client.getReleaseTracks("rg-empty");
+      expect(tracks).toEqual([]);
+    });
+
+    it("returns empty array when release has no media", async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            releases: [{ id: "release-1", title: "Album One" }],
+          }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ id: "release-1", title: "Album One", media: [] }),
+        } as Response);
+
+      const tracks = await client.getReleaseTracks("rg-1");
+      expect(tracks).toEqual([]);
+    });
+
+    it("returns empty array on network error", async () => {
+      fetchSpy.mockRejectedValue(new Error("network failure"));
+      const tracks = await client.getReleaseTracks("rg-1");
+      expect(tracks).toEqual([]);
+    });
+  });
+
   describe("getArtistReleaseGroups", () => {
     it("maps release groups to ArtistRelease", async () => {
       fetchSpy.mockResolvedValue({

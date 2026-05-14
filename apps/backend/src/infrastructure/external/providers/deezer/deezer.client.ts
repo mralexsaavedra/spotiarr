@@ -1,4 +1,4 @@
-import type { AlbumType, ArtistRelease } from "@spotiarr/shared";
+import type { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
 import { namesMatch } from "../normalize-name";
 
 export interface DeezerArtist {
@@ -14,6 +14,22 @@ export interface DeezerAlbum {
   release_date?: string;
   type?: string;
   link?: string;
+}
+
+export interface DeezerTrack {
+  id: number;
+  title: string;
+  duration: number;
+  track_position: number;
+  disk_number: number;
+  artist: {
+    name: string;
+    id?: number;
+  };
+  album?: {
+    title: string;
+    cover?: string;
+  };
 }
 
 const DEEZER_API_BASE = "https://api.deezer.com";
@@ -118,6 +134,63 @@ export class DeezerClient {
         coverUrl: album.cover ?? null,
         spotifyUrl: undefined,
       }));
+  }
+
+  /**
+   * Search for an album by artist name + album name and return the first exact match.
+   */
+  async searchAlbum(artistName: string, albumName: string): Promise<DeezerAlbum | null> {
+    const encoded = encodeURIComponent(`${artistName} ${albumName}`);
+    const result = await this.fetchJson<{ data: DeezerAlbum[] }>(
+      `${DEEZER_API_BASE}/search/album?q=${encoded}`,
+    );
+
+    if (!result?.data?.length) {
+      return null;
+    }
+
+    const match = result.data.find((a) => namesMatch(a.title, albumName));
+    if (!match) {
+      return null;
+    }
+
+    return match;
+  }
+
+  /**
+   * Fetch tracks for a given Deezer album ID and normalize them.
+   * Follows Deezer pagination automatically.
+   */
+  async getAlbumTracks(deezerAlbumId: string | number): Promise<NormalizedTrack[]> {
+    const allTracks: DeezerTrack[] = [];
+    let url: string | null = `${DEEZER_API_BASE}/album/${deezerAlbumId}/tracks?limit=100`;
+
+    while (url) {
+      const result: {
+        data?: DeezerTrack[];
+        next?: string | null;
+      } | null = await this.fetchJson(url);
+
+      if (!result?.data) {
+        break;
+      }
+
+      allTracks.push(...result.data);
+      url = result.next ?? null;
+    }
+
+    return allTracks.map((track) => ({
+      name: track.title,
+      artist: track.artist?.name ?? "",
+      artists: track.artist?.name ? [{ name: track.artist.name, url: undefined }] : [],
+      album: track.album?.title ?? "",
+      trackNumber: track.track_position,
+      discNumber: track.disk_number,
+      durationMs: track.duration * 1000,
+      trackUrl: `${DEEZER_API_BASE}/track/${track.id}`,
+      albumUrl: `${DEEZER_API_BASE}/album/${deezerAlbumId}`,
+      albumCoverUrl: track.album?.cover,
+    }));
   }
 }
 

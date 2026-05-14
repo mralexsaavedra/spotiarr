@@ -221,6 +221,66 @@ export class FeedRepository {
     );
   }
 
+  async getArtistAlbumWithArtist(
+    spotifyArtistId: string,
+    albumId: string,
+  ): Promise<
+    | ({
+        id: string;
+        spotifyArtistId: string;
+        albumId: string;
+        albumName: string;
+        albumType: string | null;
+        releaseDate: string | null;
+        coverUrl: string | null;
+        spotifyUrl: string | null;
+        totalTracks: number | null;
+        deezerAlbumId: string | null;
+        mbAlbumId: string | null;
+      } & {
+        artistName: string;
+      })
+    | null
+  > {
+    const row = await this.prisma.artistAlbumCache.findUnique({
+      where: {
+        id: `${spotifyArtistId}:${albumId}`,
+      },
+    });
+
+    if (!row) {
+      return null;
+    }
+
+    const artistRow = await this.prisma.followedArtistCache.findUnique({
+      where: { spotifyId: spotifyArtistId },
+      select: { name: true },
+    });
+
+    return {
+      ...row,
+      artistName: artistRow?.name ?? "Unknown Artist",
+    };
+  }
+
+  async updateArtistAlbumIdentities(
+    id: string,
+    identities: {
+      deezerAlbumId?: string | null;
+      mbAlbumId?: string | null;
+    },
+  ): Promise<void> {
+    await this.prisma.artistAlbumCache.update({
+      where: { id },
+      data: {
+        ...(identities.deezerAlbumId !== undefined
+          ? { deezerAlbumId: identities.deezerAlbumId }
+          : {}),
+        ...(identities.mbAlbumId !== undefined ? { mbAlbumId: identities.mbAlbumId } : {}),
+      },
+    });
+  }
+
   async getArtistAlbumCount(spotifyArtistId: string): Promise<number> {
     return this.prisma.artistAlbumCache.count({
       where: { spotifyArtistId },

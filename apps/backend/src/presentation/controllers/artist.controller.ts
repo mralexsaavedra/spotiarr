@@ -1,5 +1,6 @@
 import { ArtistDetail, NormalizedTrack } from "@spotiarr/shared";
 import { Request, Response } from "express";
+import { GetAlbumTracksUseCase } from "@/application/use-cases/artists/get-album-tracks.use-case";
 import { GetArtistAlbumsUseCase } from "@/application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "@/application/use-cases/artists/get-artist-detail.use-case";
 import { AppError } from "@/domain/errors/app-error";
@@ -39,6 +40,7 @@ export class ArtistController {
     private readonly spotifyAlbumClient: SpotifyAlbumClient,
     private readonly getArtistDetailUseCase: GetArtistDetailUseCase,
     private readonly getArtistAlbumsUseCase: GetArtistAlbumsUseCase,
+    private readonly getAlbumTracksUseCase: GetAlbumTracksUseCase,
   ) {}
 
   getArtistDetail = async (req: Request, res: Response) => {
@@ -99,14 +101,14 @@ export class ArtistController {
     }
 
     try {
-      const tracks: NormalizedTrack[] = await this.spotifyAlbumClient.getAlbumTracks(albumId);
+      const tracks: NormalizedTrack[] = await this.getAlbumTracksUseCase.execute(id, albumId);
       return res.json(tracks);
     } catch (error) {
       if (error instanceof AppError && error.errorCode === "spotify_rate_limited") {
         return res.status(429).json({ error: "spotify_rate_limited" });
       }
-      if (error instanceof AppError && error.errorCode === "playlist_not_found") {
-        return res.status(404).json({ error: "playlist_not_found" });
+      if (error instanceof AppError && error.errorCode === "album_not_found") {
+        return res.status(404).json({ error: "album_not_found" });
       }
       return res.status(500).json({ error: "internal_server_error" });
     }
