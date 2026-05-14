@@ -237,6 +237,9 @@ downloads/
 | Third-party playlist download | ⚠️ Restricted   | Only your own playlists are guaranteed to be accessible. Other users' playlists may return an access error. |
 | Search results per type       | ℹ️ Capped at 10 | Spotify enforces a maximum of 10 results per type (tracks, albums, artists).                                |
 
+> [!NOTE]
+> **Catalog data mitigation**: Public catalog calls (artist discography, album tracks, release feed) are now served primarily via **Deezer** with **MusicBrainz** fallback, and **Spotify** as a terminal fallback. Spotify remains required for OAuth, user library data (followed artists, playlists), and search.
+
 ## 🛠️ Development
 
 Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, and guidelines.

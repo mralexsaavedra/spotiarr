@@ -96,7 +96,7 @@ GET /search/artist?q={name}&limit=1
 GET /artist/{deezerId}/albums
 
 # Tracks de un álbum
-GET /album/{deezerId}/tracks
+GET /album/{deezerAlbumId}/tracks
 ```
 
 ### MusicBrainz ⭐ Recomendado suplementario
@@ -241,7 +241,7 @@ dado que el bootstrap es background y Deezer tiene margen suficiente.
 
 - ✅ Tests de Vitest cubren: cache fresco, cache stale con refresh Deezer, resolución de deezerId, fallback a Spotify, preservación de 429, paginación de álbumes
 - ✅ `getActiveArtistReleases()` mantiene filtro de 30 días sin cambios de comportamiento
-- ✅ `getAlbumTracks` sigue usando Spotify (Phase 3)
+- ✅ `getAlbumTracks` migrado en Phase 3: Deezer primero, MusicBrainz fallback, Spotify solo como fallback terminal
 - ✅ Build y lint pasan
 
 **Warming UX (artist-catalog-warming-ux)**:
@@ -253,14 +253,14 @@ dado que el bootstrap es background y Deezer tiene margen suficiente.
 
 ---
 
-### Fase 3: Vista de release sin Spotify
+### Fase 3: Vista de release sin Spotify ✅ Completado
 
 **Objetivo**: Los tracks de un álbum vienen de Deezer.
 
-**Approach**:
+**Approach implementado**:
 
 1. Resolver Deezer album ID desde el Spotify album ID vía nombre + artista
-2. `GET /album/{deezerId}/tracks` → tracklist completo con duración, número de track
+2. `GET /album/{deezerAlbumId}/tracks` → tracklist completo con duración, número de track
 3. Fallback a MusicBrainz para artistas no encontrados en Deezer
 4. Fallback final a Spotify
 
@@ -269,7 +269,7 @@ dado que el bootstrap es background y Deezer tiene margen suficiente.
 - `apps/backend/src/infrastructure/external/providers/deezer/deezer.client.ts` → ampliar con album tracks
 - `apps/backend/src/infrastructure/external/music-catalog.service.ts` → método `getAlbumTracks()`
 - `apps/backend/src/presentation/controllers/artist.controller.ts` → `getAlbumTracks()`
-- `apps/backend/prisma/schema.prisma` → añadir `deezerId String?` a `Album`
+- `apps/backend/prisma/schema.prisma` → `ArtistAlbumCache` con `deezerAlbumId String?` y `mbAlbumId String?` para mapeo persistente de álbumes
 
 ---
 
@@ -290,7 +290,7 @@ Una sola call por artista, nunca se repite.
 GET https://api.deezer.com/search/album?q={artistName}+{albumName}&limit=5
 ```
 
-Comparar nombre + artista. Guardar `deezerId` en DB permanentemente.
+Comparar nombre + artista. Guardar `ArtistAlbumCache.deezerAlbumId` en DB permanentemente.
 
 ### Fallback: Spotify ID → MusicBrainz MBID (para artistas no en Deezer)
 
@@ -307,15 +307,16 @@ Guardar `mbid` en DB permanentemente. Solo se ejecuta si Deezer no encontró el 
 
 ## Caching recomendado
 
-| Dato                            | Dónde                              | TTL           | Justificación                                 |
-| ------------------------------- | ---------------------------------- | ------------- | --------------------------------------------- |
-| `deezerId` de artista           | SQLite (columna `Artist.deezerId`) | Permanente    | ID no cambia nunca                            |
-| `deezerId` de álbum             | SQLite (columna `Album.deezerId`)  | Permanente    | ID no cambia nunca                            |
-| `mbid` de artista (fallback)    | SQLite (columna `Artist.mbid`)     | Permanente    | ID no cambia nunca                            |
-| Discografía de artista          | SQLite (tabla `Album`)             | 24h (TTL col) | Lanzamientos no cambian por hora              |
-| Tracks de un álbum              | SQLite (tabla `Track`)             | 7 días        | Tracklist de álbum no cambia                  |
-| Lanzamientos recientes (feed)   | SQLite (feed cache)                | 1h            | Puede haber nuevas salidas                    |
-| Deezer/MB IDs (multi-instancia) | Redis (opcional)                   | 30 días       | Evita bootstrap duplicado entre Mac y homelab |
+| Dato                            | Dónde                                             | TTL           | Justificación                                 |
+| ------------------------------- | ------------------------------------------------- | ------------- | --------------------------------------------- |
+| `deezerId` de artista           | SQLite (columna `Artist.deezerId`)                | Permanente    | ID no cambia nunca                            |
+| `deezerAlbumId` de álbum        | SQLite (columna `ArtistAlbumCache.deezerAlbumId`) | Permanente    | ID no cambia nunca                            |
+| `mbAlbumId` de álbum (fallback) | SQLite (columna `ArtistAlbumCache.mbAlbumId`)     | Permanente    | ID no cambia nunca                            |
+| `mbid` de artista (fallback)    | SQLite (columna `Artist.mbid`)                    | Permanente    | ID no cambia nunca                            |
+| Discografía de artista          | SQLite (tabla `Album`)                            | 24h (TTL col) | Lanzamientos no cambian por hora              |
+| Tracks de un álbum              | SQLite (tabla `Track`)                            | 7 días        | Tracklist de álbum no cambia                  |
+| Lanzamientos recientes (feed)   | SQLite (feed cache)                               | 1h            | Puede haber nuevas salidas                    |
+| Deezer/MB IDs (multi-instancia) | Redis (opcional)                                  | 30 días       | Evita bootstrap duplicado entre Mac y homelab |
 
 ---
 
