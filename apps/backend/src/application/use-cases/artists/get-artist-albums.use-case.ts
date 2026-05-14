@@ -1,7 +1,11 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
-import { INTERACTIVE_CATALOG_TIMEOUT_MS, isArtistCacheFresh } from "./artist-catalog.constants";
+import {
+  INTERACTIVE_CATALOG_TIMEOUT_MS,
+  isArtistCacheFresh,
+  withTimeout,
+} from "./artist-catalog.constants";
 
 export class GetArtistAlbumsUseCase {
   constructor(
@@ -19,12 +23,12 @@ export class GetArtistAlbumsUseCase {
         const name = cachedArtist?.name ?? "Unknown Artist";
         const imageUrl = cachedArtist?.image ?? null;
 
-        const { albums: providerAlbums } = await this.releaseFeedService.getArtistDiscography(
-          {
+        const { albums: providerAlbums } = await withTimeout(
+          this.releaseFeedService.getArtistDiscography({
             id: spotifyArtistId,
             name,
             imageUrl,
-          },
+          }),
           INTERACTIVE_CATALOG_TIMEOUT_MS,
         );
 

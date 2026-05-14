@@ -45,17 +45,13 @@ export class ReleaseFeedService {
    * Does NOT apply the 30-day lookback filter — returns all albums found.
    * Newly learned identities are persisted immediately.
    */
-  async getArtistDiscography(
-    artist: CatalogArtist,
-    interactiveTimeoutMs?: number,
-  ): Promise<ArtistDiscographyResult> {
+  async getArtistDiscography(artist: CatalogArtist): Promise<ArtistDiscographyResult> {
     const identities = await this.feedRepository.getArtistCatalogIdentities([artist.id]);
     const identity = identities[0];
 
     const { albums, provider, newIdentity, learnedIdentity } = await this.resolveArtistAlbums(
       artist,
       identity,
-      interactiveTimeoutMs,
     );
 
     // Persist newly learned identity immediately for interactive path
@@ -197,46 +193,24 @@ export class ReleaseFeedService {
   private async resolveArtistAlbums(
     artist: CatalogArtist,
     identity: CatalogIdentity | undefined,
-    interactiveTimeoutMs?: number,
   ): Promise<{
     albums: ArtistRelease[];
     provider: ProviderDecision;
     newIdentity: boolean;
     learnedIdentity?: { spotifyId: string; deezerId?: string | null; mbid?: string | null };
   }> {
-    let result: Awaited<ReturnType<typeof this.resolveDeezerMusicBrainz>> = {
-      albums: [],
-      provider: "unresolved",
-      newIdentity: false,
-      learnedIdentity: undefined,
-    };
-
-    if (interactiveTimeoutMs && interactiveTimeoutMs > 0) {
-      const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("interactive_timeout")), interactiveTimeoutMs);
-      });
-      try {
-        result = await Promise.race([this.resolveDeezerMusicBrainz(artist, identity), timeout]);
-      } catch {
-        // On timeout or any error during Deezer/MusicBrainz, reset and let Spotify handle it
-        result = {
-          albums: [],
-          provider: "unresolved",
-          newIdentity: false,
-          learnedIdentity: undefined,
-        };
-      }
-    } else {
-      result = await this.resolveDeezerMusicBrainz(artist, identity);
-    }
+    let result = await this.resolveDeezerMusicBrainz(artist, identity);
 
     // 3. Spotify last resort
     if (result.albums.length === 0) {
       const spotifyReleases = await this.spotifyUserLibrarySyncService.getActiveArtistReleases([
         artist,
       ]);
-      result.albums = spotifyReleases;
-      result.provider = spotifyReleases.length > 0 ? "spotify" : "unresolved";
+      result = {
+        ...result,
+        albums: spotifyReleases,
+        provider: spotifyReleases.length > 0 ? "spotify" : "unresolved",
+      };
     }
 
     return result;

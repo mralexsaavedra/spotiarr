@@ -95,14 +95,11 @@ describe("GetArtistAlbumsUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 1, 0);
 
-      expect(feedService.getArtistDiscography).toHaveBeenCalledWith(
-        {
-          id: "sp-artist-1",
-          name: "Test Artist",
-          imageUrl: null,
-        },
-        500,
-      );
+      expect(feedService.getArtistDiscography).toHaveBeenCalledWith({
+        id: "sp-artist-1",
+        name: "Test Artist",
+        imageUrl: null,
+      });
       expect(repo.upsertArtistAlbums).toHaveBeenCalledWith(providerAlbums);
       expect(repo.getArtistAlbums).toHaveBeenCalledWith("sp-artist-1", 1, 0);
       expect(result).toEqual(dbAlbums);
@@ -148,15 +145,39 @@ describe("GetArtistAlbumsUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25, 0);
 
-      expect(feedService.getArtistDiscography).toHaveBeenCalledWith(
-        {
-          id: "sp-artist-1",
-          name: "Unknown Artist",
-          imageUrl: null,
-        },
-        500,
-      );
+      expect(feedService.getArtistDiscography).toHaveBeenCalledWith({
+        id: "sp-artist-1",
+        name: "Unknown Artist",
+        imageUrl: null,
+      });
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("Scenario: Provider chain times out", () => {
+    it("falls back to cached DB albums when discography never resolves", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      const dbAlbums = [makeRelease({ albumId: "db-1" })];
+
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+        id: "sp-artist-1",
+        name: "Test Artist",
+        image: null,
+        spotifyUrl: null,
+      } as FollowedArtist);
+      vi.mocked(feedService.getArtistDiscography).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(repo.getArtistAlbums).mockResolvedValue(dbAlbums);
+
+      const promise = useCase.execute("sp-artist-1", 25, 0);
+      await vi.advanceTimersByTimeAsync(600);
+      const result = await promise;
+
+      expect(result).toEqual(dbAlbums);
+
+      vi.useRealTimers();
     });
   });
 });

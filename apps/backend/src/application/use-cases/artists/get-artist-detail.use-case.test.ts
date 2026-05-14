@@ -117,14 +117,11 @@ describe("GetArtistDetailUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25);
 
-      expect(feedService.getArtistDiscography).toHaveBeenCalledWith(
-        {
-          id: "sp-artist-1",
-          name: "Test Artist",
-          imageUrl: null,
-        },
-        500,
-      );
+      expect(feedService.getArtistDiscography).toHaveBeenCalledWith({
+        id: "sp-artist-1",
+        name: "Test Artist",
+        imageUrl: null,
+      });
       expect(repo.upsertArtistAlbums).toHaveBeenCalledWith(deezerAlbums);
       expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
       expect(result.albums).toEqual(deezerAlbums);
@@ -149,46 +146,30 @@ describe("GetArtistDetailUseCase", () => {
       const result = await useCase.execute("sp-artist-1", 25);
 
       expect(spotifyArtist.getArtistDetails).toHaveBeenCalledWith("sp-artist-1");
-      expect(feedService.getArtistDiscography).toHaveBeenCalledWith(
-        {
-          id: "sp-artist-1",
-          name: "Spotify Artist",
-          imageUrl: null,
-        },
-        500,
-      );
+      expect(feedService.getArtistDiscography).toHaveBeenCalledWith({
+        id: "sp-artist-1",
+        name: "Spotify Artist",
+        imageUrl: null,
+      });
       expect(result.name).toBe("Spotify Artist");
     });
 
-    it("uses Spotify fallback albums and does not wait unbounded on Deezer/MusicBrainz", async () => {
+    it("returns partial Unknown Artist when Spotify details hang beyond interactive timeout", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
       vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(null);
-      const spotifyAlbums = [
-        makeRelease({ albumId: "sp-fb-1", albumName: "Spotify Fallback Album" }),
-      ];
-      vi.mocked(feedService.getArtistDiscography).mockResolvedValue({
-        albums: spotifyAlbums,
-        decision: {
-          spotifyId: "sp-artist-1",
-          provider: "spotify",
-          albumsFound: 1,
-          newIdentityPersisted: false,
-        },
-      });
-      vi.mocked(repo.getArtistAlbums).mockResolvedValue(spotifyAlbums);
+      vi.mocked(spotifyArtist.getArtistDetails).mockImplementation(() => new Promise(() => {}));
 
-      const result = await useCase.execute("sp-artist-1", 25);
+      const promise = useCase.execute("sp-artist-1", 25);
+      await vi.advanceTimersByTimeAsync(600);
+      const result = await promise;
 
-      expect(feedService.getArtistDiscography).toHaveBeenCalledWith(
-        {
-          id: "sp-artist-1",
-          name: "Spotify Artist",
-          imageUrl: null,
-        },
-        500,
-      );
-      expect(result.albums).toEqual(spotifyAlbums);
+      expect(result.name).toBe("Unknown Artist");
       expect(result.isFollowed).toBe(false);
+      expect(result.albums).toEqual([]);
+
+      vi.useRealTimers();
     });
   });
 
@@ -268,7 +249,7 @@ describe("GetArtistDetailUseCase", () => {
     });
   });
 
-  describe("Scenario: 429 on artist details resolution", () => {
+  describe("Scenario: 429 or timeout on artist details resolution", () => {
     it("returns partial response when Spotify details return 429 and no DB entry", async () => {
       vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
       vi.mocked(spotifyArtist.getArtistDetails).mockRejectedValue(
@@ -280,6 +261,34 @@ describe("GetArtistDetailUseCase", () => {
       expect(result.name).toBe("Unknown Artist");
       expect(result.isFollowed).toBe(false);
       expect(result.albums).toEqual([]);
+    });
+  });
+
+  describe("Scenario: Provider chain times out", () => {
+    it("falls back to cached DB albums when discography never resolves", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      const dbAlbums = [makeRelease({ albumId: "db-1" })];
+
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+        id: "sp-artist-1",
+        name: "Test Artist",
+        image: null,
+        spotifyUrl: null,
+      } as FollowedArtist);
+      vi.mocked(feedService.getArtistDiscography).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(repo.getArtistAlbums).mockResolvedValue(dbAlbums);
+
+      const promise = useCase.execute("sp-artist-1", 25);
+      await vi.advanceTimersByTimeAsync(600);
+      const result = await promise;
+
+      expect(result.albums).toEqual(dbAlbums);
+      expect(result.albumsRateLimited).toBeUndefined();
+
+      vi.useRealTimers();
     });
   });
 });

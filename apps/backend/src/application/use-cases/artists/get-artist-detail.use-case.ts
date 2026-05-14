@@ -3,7 +3,11 @@ import { AppError } from "@/domain/errors/app-error";
 import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
 import type { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
-import { INTERACTIVE_CATALOG_TIMEOUT_MS, isArtistCacheFresh } from "./artist-catalog.constants";
+import {
+  INTERACTIVE_CATALOG_TIMEOUT_MS,
+  isArtistCacheFresh,
+  withTimeout,
+} from "./artist-catalog.constants";
 
 export class GetArtistDetailUseCase {
   constructor(
@@ -36,10 +40,13 @@ export class GetArtistDetailUseCase {
       };
     } else {
       try {
-        details = await this.spotifyArtistClient.getArtistDetails(spotifyArtistId);
+        details = await withTimeout(
+          this.spotifyArtistClient.getArtistDetails(spotifyArtistId),
+          INTERACTIVE_CATALOG_TIMEOUT_MS,
+        );
       } catch (err) {
-        if (err instanceof AppError && err.statusCode === 429) {
-          // Rate limited — return partial response with what we have in DB
+        if (err instanceof AppError && (err.statusCode === 429 || err.statusCode === 504)) {
+          // Rate limited or interactive timeout — return partial response with what we have in DB
           return {
             id: spotifyArtistId,
             name: "Unknown Artist",
@@ -66,12 +73,12 @@ export class GetArtistDetailUseCase {
     } else {
       // Stale or missing cache — try provider refresh (Deezer → MusicBrainz → Spotify)
       try {
-        const { albums: providerAlbums } = await this.releaseFeedService.getArtistDiscography(
-          {
+        const { albums: providerAlbums } = await withTimeout(
+          this.releaseFeedService.getArtistDiscography({
             id: spotifyArtistId,
             name: details.name,
             imageUrl: details.image,
-          },
+          }),
           INTERACTIVE_CATALOG_TIMEOUT_MS,
         );
 

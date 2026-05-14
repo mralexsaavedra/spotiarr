@@ -387,7 +387,7 @@ describe("ReleaseFeedService", () => {
       ]);
       vi.mocked(deezer.getArtistAlbums).mockResolvedValue(deezerAlbums);
 
-      const { albums, decision } = await service.getArtistDiscography(artist, 500);
+      const { albums, decision } = await service.getArtistDiscography(artist);
 
       expect(deezer.searchArtist).not.toHaveBeenCalled();
       expect(deezer.getArtistAlbums).toHaveBeenCalledWith("stored-dz-id");
@@ -396,52 +396,20 @@ describe("ReleaseFeedService", () => {
       expect(decision.provider).toBe("deezer");
     });
 
-    it("falls back to Spotify when Deezer exceeds interactive timeout", async () => {
-      const artist = makeArtist();
-      const spotifyAlbums = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
-
-      vi.mocked(deezer.searchArtist).mockImplementation(() => new Promise(() => {}));
-      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue(spotifyAlbums);
-
-      const { albums, decision } = await service.getArtistDiscography(artist, 1);
-
-      expect(albums).toHaveLength(1);
-      expect(albums[0].albumId).toBe("sp-1");
-      expect(albums[0].artistId).toBe(artist.id);
-      expect(decision.provider).toBe("spotify");
-      expect(spotify.getActiveArtistReleases).toHaveBeenCalledWith([artist]);
-    });
-
-    it("returns Deezer albums when resolved within interactive timeout", async () => {
+    it("returns Deezer albums and skips Spotify", async () => {
       const artist = makeArtist();
       const deezerAlbums = [makeRelease({ albumId: "dz-1" })];
 
       vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 123, name: artist.name });
       vi.mocked(deezer.getArtistAlbums).mockResolvedValue(deezerAlbums);
 
-      const { albums, decision } = await service.getArtistDiscography(artist, 500);
+      const { albums, decision } = await service.getArtistDiscography(artist);
 
       expect(albums).toHaveLength(1);
       expect(albums[0].albumId).toBe("dz-1");
       expect(albums[0].artistId).toBe(artist.id);
       expect(decision.provider).toBe("deezer");
       expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
-    });
-
-    it("falls back to Spotify when MusicBrainz exceeds interactive timeout", async () => {
-      const artist = makeArtist();
-      const spotifyAlbums = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
-
-      vi.mocked(deezer.searchArtist).mockResolvedValue(null);
-      vi.mocked(musicBrainz.searchArtist).mockImplementation(() => new Promise(() => {}));
-      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue(spotifyAlbums);
-
-      const { albums, decision } = await service.getArtistDiscography(artist, 1);
-
-      expect(albums).toHaveLength(1);
-      expect(albums[0].albumId).toBe("sp-1");
-      expect(albums[0].artistId).toBe(artist.id);
-      expect(decision.provider).toBe("spotify");
     });
   });
 });
