@@ -3,6 +3,8 @@ import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
+import { GetArtistAlbumsUseCase } from "./application/use-cases/artists/get-artist-albums.use-case";
+import { GetArtistDetailUseCase } from "./application/use-cases/artists/get-artist-detail.use-case";
 import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
 import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
@@ -298,10 +300,19 @@ const scanLibraryUseCase = new ScanLibraryUseCase(
 const libraryService = new LibraryService(scanLibraryUseCase);
 
 const libraryController = new LibraryController(libraryService);
+
+const getArtistDetailUseCase = new GetArtistDetailUseCase(
+  feedRepository,
+  releaseFeedService,
+  spotifyArtistClient,
+);
+const getArtistAlbumsUseCase = new GetArtistAlbumsUseCase(feedRepository, releaseFeedService);
+
 const artistController = new ArtistController(
   spotifyArtistClient,
-  feedRepository,
   spotifyAlbumClient,
+  getArtistDetailUseCase,
+  getArtistAlbumsUseCase,
 );
 const searchController = new SearchController(spotifyService);
 

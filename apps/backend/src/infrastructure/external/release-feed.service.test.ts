@@ -290,4 +290,158 @@ describe("ReleaseFeedService", () => {
       consoleSpy.mockRestore();
     });
   });
+
+  describe("getArtistDiscography", () => {
+    it("returns unfiltered albums for a single artist", async () => {
+      const artist = makeArtist();
+      const oldAlbum = makeRelease({
+        albumId: "old-1",
+        albumName: "Old Album",
+        releaseDate: "2020-01-01",
+      });
+      const recentAlbum = makeRelease({
+        albumId: "recent-1",
+        albumName: "Recent Album",
+        releaseDate: new Date().toISOString().slice(0, 10),
+      });
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 123, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue([oldAlbum, recentAlbum]);
+
+      const { albums, decision } = await service.getArtistDiscography(artist);
+
+      expect(albums).toHaveLength(2);
+      expect(albums[0].artistId).toBe(artist.id);
+      expect(albums[1].artistId).toBe(artist.id);
+      expect(decision.provider).toBe("deezer");
+      expect(decision.albumsFound).toBe(2);
+    });
+
+    it("does NOT apply 30-day lookback filter", async () => {
+      const artist = makeArtist();
+      const veryOldAlbum = makeRelease({
+        albumId: "very-old-1",
+        albumName: "Very Old Album",
+        releaseDate: "2010-01-01",
+      });
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 123, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue([veryOldAlbum]);
+
+      const { albums } = await service.getArtistDiscography(artist);
+
+      expect(albums).toHaveLength(1);
+      expect(albums[0].albumId).toBe("very-old-1");
+    });
+
+    it("normalizes artistId back to Spotify id", async () => {
+      const artist = makeArtist({ id: "sp-id-42" });
+      const deezerAlbums = [makeRelease({ albumId: "dz-1", artistId: "deezer-id-99" })];
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 123, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue(deezerAlbums);
+
+      const { albums } = await service.getArtistDiscography(artist);
+
+      expect(albums[0].artistId).toBe("sp-id-42");
+      expect(albums[0].artistName).toBe("Test Artist");
+    });
+
+    it("falls back to Spotify when Deezer and MusicBrainz miss", async () => {
+      const artist = makeArtist();
+      const spotifyAlbums = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue(null);
+      vi.mocked(musicBrainz.searchArtist).mockResolvedValue(null);
+      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue(spotifyAlbums);
+
+      const { albums, decision } = await service.getArtistDiscography(artist);
+
+      expect(albums).toHaveLength(1);
+      expect(decision.provider).toBe("spotify");
+    });
+
+    it("persists newly learned identity immediately", async () => {
+      const artist = makeArtist();
+      const deezerAlbums = [makeRelease({ albumId: "dz-1" })];
+
+      vi.mocked(repo.getArtistCatalogIdentities).mockResolvedValue([
+        { spotifyId: artist.id, deezerId: null, mbid: null },
+      ]);
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 789, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue(deezerAlbums);
+
+      await service.getArtistDiscography(artist);
+
+      expect(repo.updateArtistCatalogIdentities).toHaveBeenCalledWith([
+        { spotifyId: artist.id, deezerId: "789" },
+      ]);
+    });
+
+    it("uses stored deezerId directly and skips Spotify in getArtistDiscography", async () => {
+      const artist = makeArtist();
+      const deezerAlbums = [makeRelease({ albumId: "dz-2", albumName: "Stored Deezer Album" })];
+
+      vi.mocked(repo.getArtistCatalogIdentities).mockResolvedValue([
+        { spotifyId: artist.id, deezerId: "stored-dz-id", mbid: null },
+      ]);
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue(deezerAlbums);
+
+      const { albums, decision } = await service.getArtistDiscography(artist, 500);
+
+      expect(deezer.searchArtist).not.toHaveBeenCalled();
+      expect(deezer.getArtistAlbums).toHaveBeenCalledWith("stored-dz-id");
+      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
+      expect(albums.length).toBeGreaterThan(0);
+      expect(decision.provider).toBe("deezer");
+    });
+
+    it("falls back to Spotify when Deezer exceeds interactive timeout", async () => {
+      const artist = makeArtist();
+      const spotifyAlbums = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
+
+      vi.mocked(deezer.searchArtist).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue(spotifyAlbums);
+
+      const { albums, decision } = await service.getArtistDiscography(artist, 1);
+
+      expect(albums).toHaveLength(1);
+      expect(albums[0].albumId).toBe("sp-1");
+      expect(albums[0].artistId).toBe(artist.id);
+      expect(decision.provider).toBe("spotify");
+      expect(spotify.getActiveArtistReleases).toHaveBeenCalledWith([artist]);
+    });
+
+    it("returns Deezer albums when resolved within interactive timeout", async () => {
+      const artist = makeArtist();
+      const deezerAlbums = [makeRelease({ albumId: "dz-1" })];
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 123, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue(deezerAlbums);
+
+      const { albums, decision } = await service.getArtistDiscography(artist, 500);
+
+      expect(albums).toHaveLength(1);
+      expect(albums[0].albumId).toBe("dz-1");
+      expect(albums[0].artistId).toBe(artist.id);
+      expect(decision.provider).toBe("deezer");
+      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
+    });
+
+    it("falls back to Spotify when MusicBrainz exceeds interactive timeout", async () => {
+      const artist = makeArtist();
+      const spotifyAlbums = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue(null);
+      vi.mocked(musicBrainz.searchArtist).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue(spotifyAlbums);
+
+      const { albums, decision } = await service.getArtistDiscography(artist, 1);
+
+      expect(albums).toHaveLength(1);
+      expect(albums[0].albumId).toBe("sp-1");
+      expect(albums[0].artistId).toBe(artist.id);
+      expect(decision.provider).toBe("spotify");
+    });
+  });
 });

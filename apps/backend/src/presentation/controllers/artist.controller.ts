@@ -1,26 +1,15 @@
-import { ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
+import { ArtistDetail, NormalizedTrack } from "@spotiarr/shared";
 import { Request, Response } from "express";
+import { GetArtistAlbumsUseCase } from "@/application/use-cases/artists/get-artist-albums.use-case";
+import { GetArtistDetailUseCase } from "@/application/use-cases/artists/get-artist-detail.use-case";
 import { AppError } from "@/domain/errors/app-error";
-import { FeedRepository } from "@/infrastructure/database/feed.repository";
 import { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.client";
 import { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
-
-interface ArtistDetailResponse {
-  id: string;
-  name: string;
-  image: string | null;
-  spotifyUrl: string | null;
-  followers: number | null;
-  genres: string[];
-  albums: ArtistRelease[];
-  isFollowed: boolean;
-  albumsRateLimited?: boolean;
-}
 
 const ACTIVE_DETAIL_REQUEST_TTL_MS = 30_000;
 const MAX_ACTIVE_DETAIL_REQUESTS = 200;
 
-const activeDetailRequests = new Map<string, Promise<ArtistDetailResponse>>();
+const activeDetailRequests = new Map<string, Promise<ArtistDetail>>();
 const activeDetailRequestTimestamps = new Map<string, number>();
 
 function pruneActiveDetailRequests(): void {
@@ -47,8 +36,9 @@ function pruneActiveDetailRequests(): void {
 export class ArtistController {
   constructor(
     private readonly spotifyArtistClient: SpotifyArtistClient,
-    private readonly feedRepository: FeedRepository,
     private readonly spotifyAlbumClient: SpotifyAlbumClient,
+    private readonly getArtistDetailUseCase: GetArtistDetailUseCase,
+    private readonly getArtistAlbumsUseCase: GetArtistAlbumsUseCase,
   ) {}
 
   getArtistDetail = async (req: Request, res: Response) => {
@@ -72,82 +62,7 @@ export class ArtistController {
 
     pruneActiveDetailRequests();
 
-    const requestPromise = (async (): Promise<ArtistDetailResponse> => {
-      const cachedArtist = await this.feedRepository.getArtistBySpotifyId(id);
-      const isFollowed = cachedArtist !== null;
-      const effectiveLimit = isFollowed ? limit : Math.min(limit, 5);
-
-      const cachedAlbums = await this.feedRepository.getArtistAlbums(id, effectiveLimit, 0);
-
-      // Resolve artist details — prefer BD, fallback to Spotify, fallback to unknown on 429
-      let details: {
-        name: string;
-        image: string | null;
-        spotifyUrl: string | null;
-        followers: number | null;
-        genres: string[];
-      };
-      if (cachedArtist) {
-        details = {
-          name: cachedArtist.name,
-          image: cachedArtist.image,
-          spotifyUrl: cachedArtist.spotifyUrl,
-          followers: null,
-          genres: [],
-        };
-      } else {
-        try {
-          details = await this.spotifyArtistClient.getArtistDetails(id);
-        } catch (err) {
-          if (err instanceof AppError && err.statusCode === 429) {
-            // Rate limited — return partial response with what we have in BD
-            return {
-              id,
-              name: "Unknown Artist",
-              image: null,
-              spotifyUrl: null,
-              followers: null,
-              genres: [],
-              albums: cachedAlbums,
-              isFollowed,
-            };
-          }
-          throw err;
-        }
-      }
-
-      // Resolve albums — prefer BD, fallback to Spotify, fallback to empty on 429
-      let albums: ArtistRelease[];
-      let albumsRateLimited = false;
-      if (cachedAlbums.length > 0) {
-        albums = cachedAlbums;
-      } else {
-        try {
-          const spotifyAlbums = await this.spotifyArtistClient.getArtistAlbums(id, effectiveLimit);
-          await this.feedRepository.upsertArtistAlbums(spotifyAlbums);
-          albums = spotifyAlbums;
-        } catch (err) {
-          if (err instanceof AppError && err.statusCode === 429) {
-            albums = [];
-            albumsRateLimited = true;
-          } else {
-            throw err;
-          }
-        }
-      }
-
-      return {
-        id,
-        name: details.name,
-        image: details.image,
-        spotifyUrl: details.spotifyUrl,
-        followers: details.followers,
-        genres: details.genres,
-        albums,
-        isFollowed,
-        albumsRateLimited: albumsRateLimited || undefined,
-      };
-    })();
+    const requestPromise = this.getArtistDetailUseCase.execute(id, limit);
 
     activeDetailRequests.set(requestKey, requestPromise);
     activeDetailRequestTimestamps.set(requestKey, Date.now());
@@ -172,16 +87,7 @@ export class ArtistController {
       return res.status(400).json({ error: "missing_artist_id" });
     }
 
-    const cachedCount = await this.feedRepository.getArtistAlbumCount(id);
-
-    if (cachedCount > offset) {
-      const cachedAlbums = await this.feedRepository.getArtistAlbums(id, limit, offset);
-      return res.json(cachedAlbums);
-    }
-
-    const albums = await this.spotifyArtistClient.getArtistAlbumsPaginated(id, limit, offset);
-    await this.feedRepository.upsertArtistAlbums(albums);
-
+    const albums = await this.getArtistAlbumsUseCase.execute(id, limit, offset);
     return res.json(albums);
   };
 

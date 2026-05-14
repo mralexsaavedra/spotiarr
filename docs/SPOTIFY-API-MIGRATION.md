@@ -217,11 +217,11 @@ dado que el bootstrap es background y Deezer tiene margen suficiente.
 
 ---
 
-### Fase 2: Vista de artista sin Spotify
+### Fase 2: Vista de artista sin Spotify ✅ Completado
 
 **Objetivo**: La discografía en la vista de artista no consume quota de Spotify.
 
-**Approach**:
+**Approach implementado**:
 
 1. Si `deezerId` conocido: `GET /artist/{deezerId}/albums` → devuelve discografía completa con cover art
 2. Spotify solo como fallback interactivo cuando el artista no está en DB aún
@@ -229,9 +229,20 @@ dado que el bootstrap es background y Deezer tiene margen suficiente.
 
 **Archivos afectados**:
 
-- `apps/backend/src/infrastructure/external/music-catalog.service.ts` → nuevo
-- `apps/backend/src/infrastructure/external/spotify-artist.client.ts` → degradado a fallback interactivo
-- `apps/backend/src/application/use-cases/` → use case de artist detail
+- `apps/backend/src/infrastructure/database/feed.repository.ts` → añadido `getArtistAlbumsFreshness()`
+- `apps/backend/src/infrastructure/external/release-feed.service.ts` → añadido `getArtistDiscography()` sin filtro de 30 días
+- `apps/backend/src/infrastructure/external/providers/deezer/deezer.client.ts` → paginación automática de álbumes
+- `apps/backend/src/application/use-cases/artists/get-artist-detail.use-case.ts` → nuevo
+- `apps/backend/src/application/use-cases/artists/get-artist-albums.use-case.ts` → nuevo
+- `apps/backend/src/presentation/controllers/artist.controller.ts` → delega a use cases
+- `apps/backend/src/container.ts` → wiring de use cases
+
+**Verificación**:
+
+- ✅ Tests de Vitest cubren: cache fresco, cache stale con refresh Deezer, resolución de deezerId, fallback a Spotify, preservación de 429, paginación de álbumes
+- ✅ `getActiveArtistReleases()` mantiene filtro de 30 días sin cambios de comportamiento
+- ✅ `getAlbumTracks` sigue usando Spotify (Phase 3)
+- ✅ Build y lint pasan
 
 ---
 

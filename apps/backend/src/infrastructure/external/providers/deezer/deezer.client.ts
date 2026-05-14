@@ -81,17 +81,28 @@ export class DeezerClient {
    * Fetch albums for a given Deezer artist ID.
    * Deezer returns albums, singles, and compilations under the same endpoint.
    * We map album + single types to ArtistRelease.
+   *
+   * Follows Deezer pagination automatically to return the full discography.
    */
   async getArtistAlbums(deezerId: string | number): Promise<ArtistRelease[]> {
-    const result = await this.fetchJson<{ data: DeezerAlbum[] }>(
-      `${DEEZER_API_BASE}/artist/${deezerId}/albums`,
-    );
+    const allAlbums: DeezerAlbum[] = [];
+    let url: string | null = `${DEEZER_API_BASE}/artist/${deezerId}/albums?limit=100`;
 
-    if (!result?.data) {
-      return [];
+    while (url) {
+      const result: {
+        data?: DeezerAlbum[];
+        next?: string | null;
+      } | null = await this.fetchJson(url);
+
+      if (!result?.data) {
+        break;
+      }
+
+      allAlbums.push(...result.data);
+      url = result.next ?? null;
     }
 
-    return result.data
+    return allAlbums
       .filter((album) => {
         const t = album.type?.toLowerCase();
         return t === "album" || t === "single" || t === "ep";

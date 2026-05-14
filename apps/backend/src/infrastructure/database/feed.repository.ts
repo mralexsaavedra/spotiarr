@@ -228,6 +228,19 @@ export class FeedRepository {
   }
 
   /**
+   * Returns the most recent `syncedAt` for an artist's albums, or null
+   * if the artist has no cached albums.
+   */
+  async getArtistAlbumsFreshness(spotifyArtistId: string): Promise<Date | null> {
+    const row = await this.prisma.artistAlbumCache.findFirst({
+      where: { spotifyArtistId },
+      orderBy: { syncedAt: "desc" },
+      select: { syncedAt: true },
+    });
+    return row?.syncedAt ?? null;
+  }
+
+  /**
    * Returns artistIds that have NO albums at all in the cache.
    * These are prioritized in the sync — a user visiting them will always
    * see "rate limited" until they are populated.

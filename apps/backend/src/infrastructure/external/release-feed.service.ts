@@ -1,5 +1,5 @@
 import type { ArtistRelease } from "@spotiarr/shared";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
+import type { CatalogIdentity, FeedRepository } from "@/infrastructure/database/feed.repository";
 import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
 import type { SpotifyUserLibraryService } from "./spotify-user-library.service";
@@ -19,6 +19,11 @@ export interface FeedSyncDecision {
   newIdentityPersisted: boolean;
 }
 
+export interface ArtistDiscographyResult {
+  albums: ArtistRelease[];
+  decision: FeedSyncDecision;
+}
+
 /**
  * Orchestrates catalog release lookups through the provider fallback chain:
  * Deezer (primary) → MusicBrainz (secondary) → Spotify (last resort).
@@ -34,6 +39,48 @@ export class ReleaseFeedService {
     private readonly musicBrainzClient: MusicBrainzClient,
     private readonly spotifyUserLibrarySyncService: SpotifyUserLibraryService,
   ) {}
+
+  /**
+   * Fetch the full discography for a single artist through the provider chain.
+   * Does NOT apply the 30-day lookback filter — returns all albums found.
+   * Newly learned identities are persisted immediately.
+   */
+  async getArtistDiscography(
+    artist: CatalogArtist,
+    interactiveTimeoutMs?: number,
+  ): Promise<ArtistDiscographyResult> {
+    const identities = await this.feedRepository.getArtistCatalogIdentities([artist.id]);
+    const identity = identities[0];
+
+    const { albums, provider, newIdentity, learnedIdentity } = await this.resolveArtistAlbums(
+      artist,
+      identity,
+      interactiveTimeoutMs,
+    );
+
+    // Persist newly learned identity immediately for interactive path
+    if (learnedIdentity) {
+      await this.feedRepository.updateArtistCatalogIdentities([learnedIdentity]);
+    }
+
+    // Normalize artist metadata to preserve downstream cache/UI contracts
+    const normalized = albums.map((album) => ({
+      ...album,
+      artistId: artist.id,
+      artistName: artist.name,
+      artistImageUrl: artist.imageUrl ?? null,
+    }));
+
+    return {
+      albums: normalized,
+      decision: {
+        spotifyId: artist.id,
+        provider,
+        albumsFound: normalized.length,
+        newIdentityPersisted: newIdentity,
+      },
+    };
+  }
 
   async getActiveArtistReleases(
     artists: CatalogArtist[],
@@ -52,48 +99,10 @@ export class ReleaseFeedService {
 
     for (const artist of artists) {
       const identity = identityMap.get(artist.id);
-      let provider: ProviderDecision = "unresolved";
-      let albums: ArtistRelease[] = [];
-      let newIdentity = false;
-
-      // 1. Deezer primary
-      if (identity?.deezerId) {
-        albums = await this.deezerClient.getArtistAlbums(identity.deezerId);
-        provider = "deezer";
-      } else {
-        const deezerArtist = await this.deezerClient.searchArtist(artist.name);
-        if (deezerArtist) {
-          albums = await this.deezerClient.getArtistAlbums(deezerArtist.id);
-          provider = "deezer";
-          identitiesToPersist.push({ spotifyId: artist.id, deezerId: String(deezerArtist.id) });
-          newIdentity = true;
-        }
-      }
-
-      // 2. MusicBrainz fallback
-      if (albums.length === 0) {
-        if (identity?.mbid) {
-          albums = await this.musicBrainzClient.getArtistReleaseGroups(identity.mbid);
-          provider = "musicbrainz";
-        } else {
-          const mbArtist = await this.musicBrainzClient.searchArtist(artist.name);
-          if (mbArtist) {
-            albums = await this.musicBrainzClient.getArtistReleaseGroups(mbArtist.id);
-            provider = "musicbrainz";
-            identitiesToPersist.push({ spotifyId: artist.id, mbid: mbArtist.id });
-            newIdentity = true;
-          }
-        }
-      }
-
-      // 3. Spotify last resort
-      if (albums.length === 0) {
-        const spotifyReleases = await this.spotifyUserLibrarySyncService.getActiveArtistReleases([
-          artist,
-        ]);
-        albums = spotifyReleases;
-        provider = spotifyReleases.length > 0 ? "spotify" : "unresolved";
-      }
+      const { albums, provider, newIdentity, learnedIdentity } = await this.resolveArtistAlbums(
+        artist,
+        identity,
+      );
 
       // Normalize artist metadata to preserve downstream cache/UI contracts
       releasesPerArtist.push(
@@ -111,6 +120,10 @@ export class ReleaseFeedService {
         albumsFound: albums.length,
         newIdentityPersisted: newIdentity,
       });
+
+      if (learnedIdentity) {
+        identitiesToPersist.push(learnedIdentity);
+      }
     }
 
     // Persist newly learned identities in bulk
@@ -130,6 +143,103 @@ export class ReleaseFeedService {
     this.logDecisions(decisions);
 
     return { releases: recent, decisions };
+  }
+
+  private async resolveDeezerMusicBrainz(
+    artist: CatalogArtist,
+    identity: CatalogIdentity | undefined,
+  ): Promise<{
+    albums: ArtistRelease[];
+    provider: ProviderDecision;
+    newIdentity: boolean;
+    learnedIdentity?: { spotifyId: string; deezerId?: string | null; mbid?: string | null };
+  }> {
+    let provider: ProviderDecision = "unresolved";
+    let albums: ArtistRelease[] = [];
+    let newIdentity = false;
+    let learnedIdentity:
+      | { spotifyId: string; deezerId?: string | null; mbid?: string | null }
+      | undefined;
+
+    // 1. Deezer primary
+    if (identity?.deezerId) {
+      albums = await this.deezerClient.getArtistAlbums(identity.deezerId);
+      provider = "deezer";
+    } else {
+      const deezerArtist = await this.deezerClient.searchArtist(artist.name);
+      if (deezerArtist) {
+        albums = await this.deezerClient.getArtistAlbums(deezerArtist.id);
+        provider = "deezer";
+        learnedIdentity = { spotifyId: artist.id, deezerId: String(deezerArtist.id) };
+        newIdentity = true;
+      }
+    }
+
+    // 2. MusicBrainz fallback
+    if (albums.length === 0) {
+      if (identity?.mbid) {
+        albums = await this.musicBrainzClient.getArtistReleaseGroups(identity.mbid);
+        provider = "musicbrainz";
+      } else {
+        const mbArtist = await this.musicBrainzClient.searchArtist(artist.name);
+        if (mbArtist) {
+          albums = await this.musicBrainzClient.getArtistReleaseGroups(mbArtist.id);
+          provider = "musicbrainz";
+          learnedIdentity = { spotifyId: artist.id, mbid: mbArtist.id };
+          newIdentity = true;
+        }
+      }
+    }
+
+    return { albums, provider, newIdentity, learnedIdentity };
+  }
+
+  private async resolveArtistAlbums(
+    artist: CatalogArtist,
+    identity: CatalogIdentity | undefined,
+    interactiveTimeoutMs?: number,
+  ): Promise<{
+    albums: ArtistRelease[];
+    provider: ProviderDecision;
+    newIdentity: boolean;
+    learnedIdentity?: { spotifyId: string; deezerId?: string | null; mbid?: string | null };
+  }> {
+    let result: Awaited<ReturnType<typeof this.resolveDeezerMusicBrainz>> = {
+      albums: [],
+      provider: "unresolved",
+      newIdentity: false,
+      learnedIdentity: undefined,
+    };
+
+    if (interactiveTimeoutMs && interactiveTimeoutMs > 0) {
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("interactive_timeout")), interactiveTimeoutMs);
+      });
+      try {
+        result = await Promise.race([this.resolveDeezerMusicBrainz(artist, identity), timeout]);
+      } catch {
+        // On timeout or any error during Deezer/MusicBrainz, reset and let Spotify handle it
+        result = {
+          albums: [],
+          provider: "unresolved",
+          newIdentity: false,
+          learnedIdentity: undefined,
+        };
+      }
+    } else {
+      result = await this.resolveDeezerMusicBrainz(artist, identity);
+    }
+
+    // 3. Spotify last resort
+    if (result.albums.length === 0) {
+      const spotifyReleases = await this.spotifyUserLibrarySyncService.getActiveArtistReleases([
+        artist,
+      ]);
+      result.albums = spotifyReleases;
+      result.provider = spotifyReleases.length > 0 ? "spotify" : "unresolved";
+    }
+
+    return result;
   }
 
   private filterByLookback(releases: ArtistRelease[]): ArtistRelease[] {
