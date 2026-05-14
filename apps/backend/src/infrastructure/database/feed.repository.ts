@@ -15,21 +15,6 @@ export const SYNC_STATUS = {
 
 export type SyncStatus = (typeof SYNC_STATUS)[keyof typeof SYNC_STATUS];
 
-const parseSpotifyDate = (value?: string | null): Date | null => {
-  if (!value) return null;
-
-  const parts = value.split("-");
-  const year = Number(parts[0]);
-  let month = parts.length >= 2 ? Number(parts[1]) - 1 : 0;
-  let day = parts.length >= 3 ? Number(parts[2]) : 1;
-
-  if (Number.isNaN(year) || year <= 0) return null;
-  if (Number.isNaN(month) || month < 0 || month > 11) month = 0;
-  if (Number.isNaN(day) || day <= 0 || day > 31) day = 1;
-
-  return new Date(year, month, day);
-};
-
 interface SyncStateRecord {
   id: number;
   lastSyncAt: Date | null;
