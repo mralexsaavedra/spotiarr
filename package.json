@@ -26,7 +26,8 @@
   },
   "packageManager": "pnpm@10.20.0",
   "scripts": {
-    "dev": "concurrently \"pnpm start:be\" \"pnpm start:fe\"",
+    "dev": "pnpm --filter @spotiarr/shared run build && concurrently \"pnpm start:shared\" \"pnpm start:be\" \"pnpm start:fe\"",
+    "start:shared": "pnpm --filter @spotiarr/shared run dev",
     "start:be": "pnpm --filter backend run dev",
     "start:fe": "pnpm --filter frontend run dev",
     "build": "pnpm -r run build",

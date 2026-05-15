@@ -146,6 +146,9 @@ importers:
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
+      uuid:
+        specifier: ^14.0.0
+        version: 14.0.0
       zustand:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.1)(use-sync-external-store@1.6.0(react@19.2.1))
@@ -4742,6 +4745,13 @@ packages:
       }
     hasBin: true
 
+  uuid@14.0.0:
+    resolution:
+      {
+        integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==,
+      }
+    hasBin: true
+
   vary@1.1.2:
     resolution:
       {
@@ -7817,6 +7827,8 @@ snapshots:
       react: 19.2.1
 
   uuid@11.1.0: {}
+
+  uuid@14.0.0: {}
 
   vary@1.1.2: {}
 
