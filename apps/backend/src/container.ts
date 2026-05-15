@@ -6,6 +6,7 @@ import { TrackService } from "./application/services/track.service";
 import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
 import { GetArtistAlbumsUseCase } from "./application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "./application/use-cases/artists/get-artist-detail.use-case";
+import { MaterializeAlbumSpotifyUrlUseCase } from "./application/use-cases/artists/materialize-album-spotify-url.use-case";
 import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
 import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
@@ -142,7 +143,7 @@ const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
   "sync",
 );
 
-// External catalog providers (Deezer primary, MusicBrainz fallback, Spotify last resort)
+// External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
 const deezerClient = new DeezerClient();
 const musicBrainzClient = new MusicBrainzClient();
 const releaseFeedService = new ReleaseFeedService(
@@ -314,6 +315,10 @@ const getAlbumTracksUseCase = new GetAlbumTracksUseCase(
   musicBrainzClient,
   spotifyAlbumClient,
 );
+const materializeAlbumSpotifyUrlUseCase = new MaterializeAlbumSpotifyUrlUseCase(
+  feedRepository,
+  spotifySearchClient,
+);
 
 const artistController = new ArtistController(
   spotifyArtistClient,
@@ -321,6 +326,7 @@ const artistController = new ArtistController(
   getArtistDetailUseCase,
   getArtistAlbumsUseCase,
   getAlbumTracksUseCase,
+  materializeAlbumSpotifyUrlUseCase,
 );
 const searchController = new SearchController(spotifyService);
 

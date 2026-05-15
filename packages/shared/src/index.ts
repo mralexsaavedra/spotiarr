@@ -119,6 +119,15 @@ export interface ArtistRelease {
   totalTracks?: number;
 }
 
+export interface MaterializeAlbumSpotifyUrlRequest {
+  artistName: string;
+  albumName: string;
+}
+
+export interface MaterializeAlbumSpotifyUrlResponse {
+  spotifyUrl: string;
+}
+
 export type ApiErrorCode =
   | "missing_user_access_token"
   | "spotify_rate_limited"
@@ -134,6 +143,7 @@ export type ApiErrorCode =
   | "playlist_already_exists"
   | "track_not_found"
   | "album_not_found"
+  | "spotify_album_url_not_found"
   | "internal_server_error"
   | "failed_to_fetch_artist_detail"
   | "failed_to_fetch_followed_artists"

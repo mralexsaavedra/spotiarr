@@ -5,6 +5,7 @@ import { usePlaylistDownloaded } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../queries/useArtistDetailQuery";
+import { useAlbumPreviewNavigation } from "../useAlbumPreviewNavigation";
 import { useGridColumns } from "../useGridColumns";
 import { useArtistDiscographyController } from "./useArtistDiscographyController";
 
@@ -23,6 +24,7 @@ export const useArtistDetailController = () => {
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, DETAIL_PAGE_SIZE);
   const catalogRefreshPending = artist?.catalogRefreshPending ?? false;
   const createPlaylistMutation = useCreatePlaylistMutation();
+  const { navigateToAlbumPreview, isResolvingAlbum } = useAlbumPreviewNavigation();
 
   const isArtistDownloaded = usePlaylistDownloaded(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
@@ -69,10 +71,10 @@ export const useArtistDetailController = () => {
   }, [handleDownload, artist?.spotifyUrl]);
 
   const handleNavigate = useCallback(
-    (url: string) => {
-      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(url)}`);
+    (album: ArtistRelease) => {
+      void navigateToAlbumPreview(album);
     },
-    [navigate],
+    [navigateToAlbumPreview],
   );
 
   const handleArtistClick = useCallback(
@@ -103,6 +105,7 @@ export const useArtistDetailController = () => {
     handleArtistDownload,
     handleDownload,
     handleNavigate,
+    isResolvingAlbum,
     handleArtistClick,
     handleAlbumExpand,
     handleAlbumExpandClose,

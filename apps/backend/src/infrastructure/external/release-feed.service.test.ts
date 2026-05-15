@@ -111,35 +111,18 @@ describe("ReleaseFeedService", () => {
     });
   });
 
-  describe("Scenario: Spotify fallback only after Deezer and MusicBrainz miss", () => {
-    it("SHALL call Spotify only when both Deezer and MusicBrainz return no albums", async () => {
+  describe("Scenario: Deezer and MusicBrainz miss", () => {
+    it("SHALL stay unresolved and not call Spotify during catalog sync", async () => {
       const artist = makeArtist();
-      const spotifyReleases = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
 
       vi.mocked(deezer.searchArtist).mockResolvedValue(null);
       vi.mocked(musicBrainz.searchArtist).mockResolvedValue(null);
-      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue(spotifyReleases);
 
       const { releases, decisions } = await service.getActiveArtistReleases([artist]);
 
       expect(deezer.searchArtist).toHaveBeenCalledWith(artist.name);
       expect(musicBrainz.searchArtist).toHaveBeenCalledWith(artist.name);
-      expect(spotify.getActiveArtistReleases).toHaveBeenCalledWith([artist]);
-      expect(releases.length).toBeGreaterThan(0);
-      expect(decisions[0].provider).toBe("spotify");
-      expect(decisions[0].albumsFound).toBe(1);
-    });
-
-    it("SHALL record unresolved when Spotify also returns no releases", async () => {
-      const artist = makeArtist();
-
-      vi.mocked(deezer.searchArtist).mockResolvedValue(null);
-      vi.mocked(musicBrainz.searchArtist).mockResolvedValue(null);
-      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue([]);
-
-      const { releases, decisions } = await service.getActiveArtistReleases([artist]);
-
-      expect(spotify.getActiveArtistReleases).toHaveBeenCalledWith([artist]);
+      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
       expect(releases).toHaveLength(0);
       expect(decisions[0].provider).toBe("unresolved");
       expect(decisions[0].albumsFound).toBe(0);
@@ -227,7 +210,7 @@ describe("ReleaseFeedService", () => {
       expect(releases[0].artistName).toBe("Mapped Artist");
     });
 
-    it("SHALL never call Spotify catalog as primary source — only as last resort", async () => {
+    it("SHALL never call Spotify catalog in release feed sync", async () => {
       const artist = makeArtist();
       const deezerAlbums = [makeRelease({ albumId: "dz-1" })];
 
@@ -241,20 +224,15 @@ describe("ReleaseFeedService", () => {
   });
 
   describe("Scenario: User follow-source preservation", () => {
-    it("SHALL only use Spotify service for catalog fallback, not for followed-artists list", async () => {
+    it("SHALL not use Spotify service for release lookup", async () => {
       const artist = makeArtist();
 
       vi.mocked(deezer.searchArtist).mockResolvedValue(null);
       vi.mocked(musicBrainz.searchArtist).mockResolvedValue(null);
-      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue([makeRelease()]);
 
       await service.getActiveArtistReleases([artist]);
 
-      // The service delegates release lookups and may use Spotify as last resort,
-      // but it never attempts to fetch the followed-artists list — that is the
-      // worker's responsibility via spotifyUserLibrarySyncService.getFollowedArtists().
-      expect(spotify.getActiveArtistReleases).toHaveBeenCalledTimes(1);
-      expect(spotify.getActiveArtistReleases).toHaveBeenCalledWith([artist]);
+      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
     });
   });
 
@@ -347,18 +325,17 @@ describe("ReleaseFeedService", () => {
       expect(albums[0].artistName).toBe("Test Artist");
     });
 
-    it("falls back to Spotify when Deezer and MusicBrainz miss", async () => {
+    it("stays unresolved when Deezer and MusicBrainz miss", async () => {
       const artist = makeArtist();
-      const spotifyAlbums = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
 
       vi.mocked(deezer.searchArtist).mockResolvedValue(null);
       vi.mocked(musicBrainz.searchArtist).mockResolvedValue(null);
-      vi.mocked(spotify.getActiveArtistReleases).mockResolvedValue(spotifyAlbums);
 
       const { albums, decision } = await service.getArtistDiscography(artist);
 
-      expect(albums).toHaveLength(1);
-      expect(decision.provider).toBe("spotify");
+      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
+      expect(albums).toHaveLength(0);
+      expect(decision.provider).toBe("unresolved");
     });
 
     it("persists newly learned identity immediately", async () => {

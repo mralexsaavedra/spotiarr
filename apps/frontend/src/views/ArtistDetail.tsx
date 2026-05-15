@@ -30,6 +30,7 @@ export const ArtistDetail: FC = () => {
     handleArtistDownload,
     handleDownload,
     handleNavigate,
+    isResolvingAlbum,
     handleArtistClick,
     handleAlbumExpand,
     handleAlbumExpandClose,
@@ -105,6 +106,7 @@ export const ArtistDetail: FC = () => {
             canShowMore={canShowMore}
             onDownload={handleDownload}
             onDiscographyItemClick={handleNavigate}
+            isResolvingAlbum={isResolvingAlbum}
             onArtistClick={handleArtistClick}
             onAlbumExpand={handleAlbumExpand}
             onAlbumExpandClose={handleAlbumExpandClose}

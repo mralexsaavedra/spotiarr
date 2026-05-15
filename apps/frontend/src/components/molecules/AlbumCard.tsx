@@ -21,6 +21,7 @@ interface AlbumCardProps {
   spotifyUrl?: string | null;
   isDownloaded?: boolean;
   isDownloading?: boolean;
+  isResolvingUrl?: boolean;
   albumType?: string;
   onCardClick: () => void;
   onDownloadClick: (e: MouseEvent<HTMLButtonElement>) => void;
@@ -39,6 +40,7 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
     spotifyUrl,
     isDownloaded = false,
     isDownloading = false,
+    isResolvingUrl = false,
     albumType,
     onCardClick,
     onDownloadClick,
@@ -75,11 +77,19 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
       ? formatRelativeDate(new Date(releaseDate).getTime(), false)
       : "";
 
+    const handleCardClick = () => {
+      if (!isResolvingUrl) {
+        onCardClick();
+      }
+    };
+
     return (
       <article
         key={`${albumId}-${artistId}`}
-        className="group bg-background-elevated hover:bg-background-hover cursor-pointer rounded-md p-4 transition-all"
-        onClick={onCardClick}
+        className={`group bg-background-elevated hover:bg-background-hover rounded-md p-4 transition-all ${
+          isResolvingUrl ? "cursor-wait" : "cursor-pointer"
+        }`}
+        onClick={handleCardClick}
       >
         <div className="bg-background-hover relative mb-4 aspect-square overflow-hidden rounded-md shadow-lg">
           <Image
@@ -92,9 +102,14 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
 
           <div
             className={`absolute inset-0 flex items-center justify-center gap-3 bg-black/40 transition-opacity ${
-              isDownloading ? "opacity-100" : "md:opacity-0 md:group-hover:opacity-100"
+              isDownloading || isResolvingUrl
+                ? "opacity-100"
+                : "md:opacity-0 md:group-hover:opacity-100"
             }`}
           >
+            {isResolvingUrl && (
+              <FontAwesomeIcon icon={faSpinner} spin className="text-primary text-xl" />
+            )}
             {onExpandClick && (
               <button
                 onClick={handleExpandClick}

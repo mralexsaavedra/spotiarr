@@ -179,6 +179,9 @@
     "updatingDiscography": "Updating discography…",
     "rateLimited": "Discography temporarily unavailable. Spotify is rate limiting requests — try again in a few minutes.",
     "type": "Artist",
+    "errors": {
+      "materializeSpotifyUrl": "Could not find this album on Spotify. Please try again."
+    },
     "discography": {
       "title": "Discography",
       "emptyFiltered": "No releases found for this category.",

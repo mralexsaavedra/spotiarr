@@ -8,13 +8,22 @@ interface ReleaseItemProps {
   release: ArtistRelease;
   isDownloaded: boolean;
   isDownloading: boolean;
-  onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
+  isResolvingUrl: boolean;
+  onReleaseClick: (release: ArtistRelease) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
   onArtistClick: (artistId: string) => void;
 }
 
 const ReleaseItem: FC<ReleaseItemProps> = memo(
-  ({ release, isDownloaded, isDownloading, onReleaseClick, onDownloadRelease, onArtistClick }) => {
+  ({
+    release,
+    isDownloaded,
+    isDownloading,
+    isResolvingUrl,
+    onReleaseClick,
+    onDownloadRelease,
+    onArtistClick,
+  }) => {
     const handleCardClick = useCallback(() => {
       onReleaseClick(release);
     }, [onReleaseClick, release]);
@@ -39,6 +48,7 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
         spotifyUrl={release.spotifyUrl}
         isDownloaded={isDownloaded}
         isDownloading={isDownloading}
+        isResolvingUrl={isResolvingUrl}
         albumType={release.albumType}
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}
@@ -50,9 +60,10 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
 
 interface ReleasesListProps {
   releases: ArtistRelease[];
-  onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
+  onReleaseClick: (release: ArtistRelease) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
   onArtistClick: (artistId: string) => void;
+  isResolvingAlbum: (release: ArtistRelease) => boolean;
 }
 
 export const ReleasesList: FC<ReleasesListProps> = ({
@@ -60,6 +71,7 @@ export const ReleasesList: FC<ReleasesListProps> = ({
   onReleaseClick,
   onDownloadRelease,
   onArtistClick,
+  isResolvingAlbum,
 }) => {
   const releaseStatusItems = useMemo(
     () =>
@@ -86,13 +98,14 @@ export const ReleasesList: FC<ReleasesListProps> = ({
           release={release}
           isDownloaded={isDownloaded}
           isDownloading={isDownloading}
+          isResolvingUrl={isResolvingAlbum(release)}
           onReleaseClick={onReleaseClick}
           onDownloadRelease={onDownloadRelease}
           onArtistClick={onArtistClick}
         />
       );
     },
-    [downloadStatesMap, onReleaseClick, onDownloadRelease, onArtistClick],
+    [downloadStatesMap, isResolvingAlbum, onReleaseClick, onDownloadRelease, onArtistClick],
   );
 
   return (

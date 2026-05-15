@@ -1,8 +1,13 @@
-import { ArtistDetail, NormalizedTrack } from "@spotiarr/shared";
+import type {
+  ArtistDetail,
+  MaterializeAlbumSpotifyUrlRequest,
+  NormalizedTrack,
+} from "@spotiarr/shared";
 import { Request, Response } from "express";
 import { GetAlbumTracksUseCase } from "@/application/use-cases/artists/get-album-tracks.use-case";
 import { GetArtistAlbumsUseCase } from "@/application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "@/application/use-cases/artists/get-artist-detail.use-case";
+import { MaterializeAlbumSpotifyUrlUseCase } from "@/application/use-cases/artists/materialize-album-spotify-url.use-case";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.client";
 import { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
@@ -41,6 +46,7 @@ export class ArtistController {
     private readonly getArtistDetailUseCase: GetArtistDetailUseCase,
     private readonly getArtistAlbumsUseCase: GetArtistAlbumsUseCase,
     private readonly getAlbumTracksUseCase: GetAlbumTracksUseCase,
+    private readonly materializeAlbumSpotifyUrlUseCase: MaterializeAlbumSpotifyUrlUseCase,
   ) {}
 
   getArtistDetail = async (req: Request, res: Response) => {
@@ -109,6 +115,30 @@ export class ArtistController {
       }
       if (error instanceof AppError && error.errorCode === "album_not_found") {
         return res.status(404).json({ error: "album_not_found" });
+      }
+      return res.status(500).json({ error: "internal_server_error" });
+    }
+  };
+
+  materializeAlbumSpotifyUrl = async (req: Request, res: Response) => {
+    const { id, albumId } = req.params;
+    const body = req.body as Partial<MaterializeAlbumSpotifyUrlRequest>;
+
+    if (!id || !albumId || !body.artistName || !body.albumName) {
+      return res.status(400).json({ error: "missing_album_identity" });
+    }
+
+    try {
+      const result = await this.materializeAlbumSpotifyUrlUseCase.execute({
+        artistId: id,
+        albumId,
+        artistName: body.artistName,
+        albumName: body.albumName,
+      });
+      return res.json(result);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({ error: error.errorCode });
       }
       return res.status(500).json({ error: "internal_server_error" });
     }

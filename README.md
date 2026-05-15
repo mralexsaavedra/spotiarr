@@ -157,8 +157,8 @@ cp apps/backend/.env.example apps/backend/.env
 # Edit .env → add Spotify credentials + set REDIS_HOST=localhost
 # Note: Downloads are saved to './downloads' by default
 
-# 4. Migrate Database
-pnpm --filter backend run prisma:migrate:deploy
+# 4. Prepare local dev database and generated packages
+pnpm setup:dev
 
 # 5. Run
 pnpm dev
@@ -247,7 +247,8 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflo
 **Quick commands:**
 
 ```bash
-pnpm dev       # Backend + frontend
+pnpm dev       # Setup dev, shared watcher, backend + frontend
+pnpm setup:dev # Build shared package + apply DB migrations + generate Prisma client
 pnpm lint      # ESLint + Prettier
 pnpm build     # Production build
 ```

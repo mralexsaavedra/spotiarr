@@ -1,4 +1,4 @@
-import { AlbumType, SpotifySearchResults } from "@spotiarr/shared";
+import type { AlbumType, ArtistRelease, SpotifySearchResults } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
@@ -185,5 +185,25 @@ export class SpotifySearchClient extends SpotifyBaseClient {
       this.log(`Failed to search catalog: ${getErrorMessage(error)}`);
       throw error;
     }
+  }
+
+  async searchAlbumByName(artistName: string, albumName: string): Promise<ArtistRelease | null> {
+    const query = `artist:"${artistName}" album:"${albumName}"`;
+    const results = await this.searchCatalog(query, ["album"], { album: 5 });
+    const normalizedArtistName = this.normalizeForMatch(artistName);
+    const normalizedAlbumName = this.normalizeForMatch(albumName);
+
+    return (
+      results.albums.find(
+        (album) =>
+          this.normalizeForMatch(album.albumName) === normalizedAlbumName &&
+          this.normalizeForMatch(album.artistName) === normalizedArtistName &&
+          Boolean(album.spotifyUrl),
+      ) ?? null
+    );
+  }
+
+  private normalizeForMatch(value: string): string {
+    return value.trim().toLocaleLowerCase();
   }
 }

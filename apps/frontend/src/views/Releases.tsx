@@ -17,6 +17,7 @@ export const Releases: FC = () => {
     handleReleaseClick,
     handleDownloadRelease,
     handleArtistClick,
+    isResolvingAlbum,
   } = useReleasesController();
 
   if (error) {
@@ -46,6 +47,7 @@ export const Releases: FC = () => {
             onReleaseClick={handleReleaseClick}
             onDownloadRelease={handleDownloadRelease}
             onArtistClick={handleArtistClick}
+            isResolvingAlbum={isResolvingAlbum}
           />
         )}
       </div>

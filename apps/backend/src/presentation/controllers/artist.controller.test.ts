@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { GetAlbumTracksUseCase } from "@/application/use-cases/artists/get-album-tracks.use-case";
 import type { GetArtistAlbumsUseCase } from "@/application/use-cases/artists/get-artist-albums.use-case";
 import type { GetArtistDetailUseCase } from "@/application/use-cases/artists/get-artist-detail.use-case";
+import type { MaterializeAlbumSpotifyUrlUseCase } from "@/application/use-cases/artists/materialize-album-spotify-url.use-case";
 import type { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.client";
 import type { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
 import { ArtistController } from "./artist.controller";
@@ -20,6 +21,7 @@ function mockRes(): Response {
 function makeController(
   partial: {
     getAlbumTracksUseCase?: Partial<GetAlbumTracksUseCase>;
+    materializeAlbumSpotifyUrlUseCase?: Partial<MaterializeAlbumSpotifyUrlUseCase>;
   } = {},
 ): ArtistController {
   return new ArtistController(
@@ -31,6 +33,10 @@ function makeController(
       execute: vi.fn().mockResolvedValue([]),
       ...partial.getAlbumTracksUseCase,
     } as unknown as GetAlbumTracksUseCase,
+    {
+      execute: vi.fn().mockResolvedValue({ spotifyUrl: "https://open.spotify.com/album/abc" }),
+      ...partial.materializeAlbumSpotifyUrlUseCase,
+    } as unknown as MaterializeAlbumSpotifyUrlUseCase,
   );
 }
 
@@ -65,5 +71,38 @@ describe("ArtistController.getAlbumTracks", () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: "missing_params" });
     });
+  });
+});
+
+describe("ArtistController.materializeAlbumSpotifyUrl", () => {
+  it("returns materialized Spotify URL", async () => {
+    const execute = vi.fn().mockResolvedValue({ spotifyUrl: "https://open.spotify.com/album/abc" });
+    const controller = makeController({ materializeAlbumSpotifyUrlUseCase: { execute } });
+    const req = {
+      params: { id: "artist-1", albumId: "album-1" },
+      body: { artistName: "Artist", albumName: "Album" },
+    } as unknown as Request;
+    const res = mockRes();
+
+    await controller.materializeAlbumSpotifyUrl(req, res);
+
+    expect(execute).toHaveBeenCalledWith({
+      artistId: "artist-1",
+      albumId: "album-1",
+      artistName: "Artist",
+      albumName: "Album",
+    });
+    expect(res.json).toHaveBeenCalledWith({ spotifyUrl: "https://open.spotify.com/album/abc" });
+  });
+
+  it("returns 400 when identity is missing", async () => {
+    const controller = makeController();
+    const req = { params: { id: "artist-1", albumId: "album-1" }, body: {} } as unknown as Request;
+    const res = mockRes();
+
+    await controller.materializeAlbumSpotifyUrl(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "missing_album_identity" });
   });
 });

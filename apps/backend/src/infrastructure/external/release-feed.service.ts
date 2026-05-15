@@ -26,7 +26,7 @@ export interface ArtistDiscographyResult {
 
 /**
  * Orchestrates catalog release lookups through the provider fallback chain:
- * Deezer (primary) → MusicBrainz (secondary) → Spotify (last resort).
+ * Deezer (primary) → MusicBrainz (secondary).
  *
  * All returned ArtistRelease items use the original Spotify artist id as
  * artistId so that downstream caches (ArtistReleaseCache) and UI contracts
@@ -37,7 +37,7 @@ export class ReleaseFeedService {
     private readonly feedRepository: FeedRepository,
     private readonly deezerClient: DeezerClient,
     private readonly musicBrainzClient: MusicBrainzClient,
-    private readonly spotifyUserLibrarySyncService: SpotifyUserLibraryService,
+    private readonly _spotifyUserLibrarySyncService: SpotifyUserLibraryService,
   ) {}
 
   /**
@@ -199,21 +199,7 @@ export class ReleaseFeedService {
     newIdentity: boolean;
     learnedIdentity?: { spotifyId: string; deezerId?: string | null; mbid?: string | null };
   }> {
-    let result = await this.resolveDeezerMusicBrainz(artist, identity);
-
-    // 3. Spotify last resort
-    if (result.albums.length === 0) {
-      const spotifyReleases = await this.spotifyUserLibrarySyncService.getActiveArtistReleases([
-        artist,
-      ]);
-      result = {
-        ...result,
-        albums: spotifyReleases,
-        provider: spotifyReleases.length > 0 ? "spotify" : "unresolved",
-      };
-    }
-
-    return result;
+    return this.resolveDeezerMusicBrainz(artist, identity);
   }
 
   private filterByLookback(releases: ArtistRelease[]): ArtistRelease[] {

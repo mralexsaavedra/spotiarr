@@ -248,6 +248,92 @@ export class FeedRepository {
     };
   }
 
+  async getArtistReleaseWithArtist(
+    artistId: string,
+    albumId: string,
+  ): Promise<{
+    id: string;
+    artistId: string;
+    albumId: string;
+    albumName: string;
+    albumType: string | null;
+    releaseDate: string | null;
+    coverUrl: string | null;
+    spotifyUrl: string | null;
+    artistName: string;
+  } | null> {
+    const row = await this.prisma.artistReleaseCache.findUnique({
+      where: { id: `${artistId}:${albumId}` },
+      include: { artist: true },
+    });
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: row.id,
+      artistId: row.artistId,
+      albumId: row.albumId,
+      albumName: row.albumName,
+      albumType: row.albumType,
+      releaseDate: row.releaseDate,
+      coverUrl: row.coverUrl,
+      spotifyUrl: row.spotifyUrl,
+      artistName: row.artist.name,
+    };
+  }
+
+  async upsertArtistAlbumSpotifyUrl(input: {
+    artistId: string;
+    albumId: string;
+    albumName: string;
+    albumType?: string | null;
+    releaseDate?: string | null;
+    coverUrl?: string | null;
+    spotifyUrl: string;
+    totalTracks?: number | null;
+  }): Promise<void> {
+    const now = new Date();
+    const id = `${input.artistId}:${input.albumId}`;
+
+    await this.prisma.artistAlbumCache.upsert({
+      where: { id },
+      update: {
+        spotifyUrl: input.spotifyUrl,
+        albumName: input.albumName,
+        albumType: input.albumType,
+        releaseDate: input.releaseDate,
+        coverUrl: input.coverUrl,
+        totalTracks: input.totalTracks ?? undefined,
+        syncedAt: now,
+      },
+      create: {
+        id,
+        spotifyArtistId: input.artistId,
+        albumId: input.albumId,
+        albumName: input.albumName,
+        albumType: input.albumType,
+        releaseDate: input.releaseDate,
+        coverUrl: input.coverUrl,
+        spotifyUrl: input.spotifyUrl,
+        totalTracks: input.totalTracks ?? null,
+        syncedAt: now,
+      },
+    });
+  }
+
+  async updateArtistReleaseSpotifyUrl(
+    artistId: string,
+    albumId: string,
+    spotifyUrl: string,
+  ): Promise<void> {
+    await this.prisma.artistReleaseCache.updateMany({
+      where: { id: `${artistId}:${albumId}` },
+      data: { spotifyUrl, syncedAt: new Date() },
+    });
+  }
+
   async updateArtistAlbumIdentities(
     id: string,
     identities: {

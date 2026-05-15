@@ -19,7 +19,8 @@ interface ArtistDiscographyProps {
   onShowMore: () => void;
   canShowMore: boolean;
   onDownload: (url: string) => void;
-  onDiscographyItemClick: (url: string) => void;
+  onDiscographyItemClick: (album: ArtistRelease) => void;
+  isResolvingAlbum: (album: ArtistRelease) => boolean;
   onArtistClick: (artistId: string) => void;
   onAlbumExpand: (album: ArtistRelease) => void;
   onAlbumExpandClose: () => void;
@@ -32,7 +33,8 @@ interface DiscographyItemProps {
   album: ArtistRelease;
   isDownloaded: boolean;
   isDownloading: boolean;
-  onDiscographyItemClick: (url: string) => void;
+  isResolvingUrl: boolean;
+  onDiscographyItemClick: (album: ArtistRelease) => void;
   onDownload: (url: string) => void;
   onArtistClick: (artistId: string) => void;
   onExpandClick: (album: ArtistRelease) => void;
@@ -43,16 +45,15 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
     album,
     isDownloaded,
     isDownloading,
+    isResolvingUrl,
     onDiscographyItemClick,
     onDownload,
     onArtistClick,
     onExpandClick,
   }) => {
     const handleCardClick = useCallback(() => {
-      if (album.spotifyUrl) {
-        onDiscographyItemClick(album.spotifyUrl);
-      }
-    }, [album.spotifyUrl, onDiscographyItemClick]);
+      onDiscographyItemClick(album);
+    }, [album, onDiscographyItemClick]);
 
     const handleDownloadClick = useCallback(
       (e: MouseEvent) => {
@@ -83,6 +84,7 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
         spotifyUrl={album.spotifyUrl}
         isDownloaded={isDownloaded}
         isDownloading={isDownloading}
+        isResolvingUrl={isResolvingUrl}
         albumType={album.albumType}
         onCardClick={handleCardClick}
         onDownloadClick={handleDownloadClick}
@@ -103,6 +105,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
   canShowMore,
   onDownload,
   onDiscographyItemClick,
+  isResolvingAlbum,
   onArtistClick,
   onAlbumExpand,
   onAlbumExpandClose,
@@ -141,6 +144,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
           album={album}
           isDownloaded={isDownloaded}
           isDownloading={isDownloading}
+          isResolvingUrl={isResolvingAlbum(album)}
           onDiscographyItemClick={onDiscographyItemClick}
           onDownload={onDownload}
           onArtistClick={onArtistClick}
@@ -148,7 +152,14 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
         />
       );
     },
-    [downloadStatesMap, onDiscographyItemClick, onDownload, onArtistClick, onAlbumExpand],
+    [
+      downloadStatesMap,
+      isResolvingAlbum,
+      onDiscographyItemClick,
+      onDownload,
+      onArtistClick,
+      onAlbumExpand,
+    ],
   );
 
   return (
