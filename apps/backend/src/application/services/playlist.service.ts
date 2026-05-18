@@ -1,4 +1,5 @@
 import {
+  CreatePlaylistRequest,
   DownloadStatusResponse,
   PlaylistPreview,
   SpotifyPlaylist,
@@ -65,8 +66,8 @@ export class PlaylistService {
     return this.deletePlaylistUseCase.removeCompleted();
   }
 
-  async create(playlist: IPlaylist): Promise<IPlaylist> {
-    return this.createPlaylistUseCase.execute(playlist);
+  async create(input: CreatePlaylistRequest): Promise<IPlaylist> {
+    return this.createPlaylistUseCase.execute(input);
   }
 
   async save(playlist: IPlaylist): Promise<IPlaylist> {

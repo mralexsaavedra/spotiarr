@@ -1,3 +1,4 @@
+import { CreatePlaylistRequest } from "@spotiarr/shared";
 import { Request, Response } from "express";
 import { CreatePlaylistUseCase } from "@/application/use-cases/playlists/create-playlist.use-case";
 import { DeletePlaylistUseCase } from "@/application/use-cases/playlists/delete-playlist.use-case";
@@ -63,7 +64,7 @@ export class PlaylistController {
   };
 
   create = async (req: Request, res: Response) => {
-    const playlist = await this.createPlaylistUseCase.execute(req.body);
+    const playlist = await this.createPlaylistUseCase.execute(req.body as CreatePlaylistRequest);
     res.status(201).json(playlist);
   };
 

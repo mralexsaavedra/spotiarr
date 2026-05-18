@@ -11,7 +11,7 @@ export const useReleasesController = () => {
 
   const { releases, isLoading, error } = useReleasesQuery();
   const createPlaylist = useCreatePlaylistMutation();
-  const { navigateToAlbumPreview, isResolvingAlbum } = useAlbumPreviewNavigation();
+  const { navigateToAlbumPreview } = useAlbumPreviewNavigation();
 
   const handleReleaseClick = useCallback(
     (release: ArtistRelease) => {
@@ -23,7 +23,7 @@ export const useReleasesController = () => {
   const handleDownloadRelease = useCallback(
     (e: MouseEvent, spotifyUrl: string) => {
       e.stopPropagation();
-      createPlaylist.mutate(spotifyUrl);
+      createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl });
     },
     [createPlaylist],
   );
@@ -42,6 +42,5 @@ export const useReleasesController = () => {
     handleReleaseClick,
     handleDownloadRelease,
     handleArtistClick,
-    isResolvingAlbum,
   };
 };

@@ -11,9 +11,4 @@ router.get("/:id/albums", asyncHandler(artistController.getArtistAlbums));
 
 router.get("/:id/albums/:albumId/tracks", asyncHandler(artistController.getAlbumTracks));
 
-router.post(
-  "/:id/albums/:albumId/spotify-url",
-  asyncHandler(artistController.materializeAlbumSpotifyUrl),
-);
-
 export default router;

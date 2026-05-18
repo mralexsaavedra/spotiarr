@@ -179,9 +179,6 @@
     "updatingDiscography": "Actualizando discografía…",
     "rateLimited": "Discografía temporalmente no disponible. Spotify está limitando las peticiones — inténtalo de nuevo en unos minutos.",
     "type": "Artista",
-    "errors": {
-      "materializeSpotifyUrl": "No se pudo encontrar este álbum en Spotify. Inténtalo de nuevo."
-    },
     "discography": {
       "title": "Discografía",
       "emptyFiltered": "No se encontraron lanzamientos para esta categoría.",
@@ -305,5 +302,10 @@
     "artists": "Artistas",
     "emptyState": "Escribe algo en la barra de búsqueda para encontrar canciones, álbumes o artistas",
     "noResults": "No se encontraron resultados"
+  },
+  "album": {
+    "detail": {
+      "title": "Álbum"
+    }
   }
 }

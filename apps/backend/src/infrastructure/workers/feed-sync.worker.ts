@@ -76,12 +76,15 @@ export async function runFeedSyncJob(deps: FeedSyncJobDependencies): Promise<voi
       .map((id) => artistMap.get(id))
       .filter((a): a is NonNullable<typeof a> => a !== undefined);
 
+    const lookbackDays = await settingsService.getNumber("RELEASES_LOOKBACK_DAYS", 30);
+
     const { releases } = await releaseFeedService.getActiveArtistReleases(
       artistsToSync.map((a) => ({
         id: a.id,
         name: a.name,
         imageUrl: a.image,
       })),
+      { lookbackDays },
     );
 
     await feedRepository.upsertReleases(releases);

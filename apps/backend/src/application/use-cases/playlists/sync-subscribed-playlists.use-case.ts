@@ -17,9 +17,15 @@ export class SyncSubscribedPlaylistsUseCase {
     const subscribedPlaylists = await this.playlistRepository.findAll(false, { subscribed: true });
 
     for (const playlist of subscribedPlaylists) {
+      // Skip synthetic playlists (album-by-id downloads) — they don't have a Spotify URL to sync
+      if (!playlist.spotifyUrl || playlist.spotifyUrl.startsWith("spotiarr://")) {
+        continue;
+      }
+
       let tracks: PlaylistTrack[] = [];
+      const spotifyUrl = playlist.spotifyUrl;
       try {
-        const details = await this.spotifyService.getPlaylistDetail(playlist.spotifyUrl);
+        const details = await this.spotifyService.getPlaylistDetail(spotifyUrl);
         tracks = details.tracks;
 
         playlist.updateDetails(
@@ -37,7 +43,7 @@ export class SyncSubscribedPlaylistsUseCase {
         continue;
       }
 
-      const urlType = SpotifyUrlHelper.getUrlType(playlist.spotifyUrl);
+      const urlType = SpotifyUrlHelper.getUrlType(spotifyUrl);
       const isTrack = urlType === SpotifyUrlType.Track;
       const isAlbum = urlType === SpotifyUrlType.Album;
 

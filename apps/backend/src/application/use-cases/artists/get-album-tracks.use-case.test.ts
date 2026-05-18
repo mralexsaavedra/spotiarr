@@ -1,5 +1,6 @@
 import type { NormalizedTrack } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { AlbumTracksCachePort } from "@/application/ports/album-tracks-cache.port";
 import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import type { DeezerClient } from "@/infrastructure/external/providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "@/infrastructure/external/providers/musicbrainz/musicbrainz.client";
@@ -47,6 +48,14 @@ function mockSpotifyAlbumClient(partial: Partial<SpotifyAlbumClient> = {}): Spot
     getAlbumTracks: vi.fn().mockResolvedValue([]),
     ...partial,
   } as unknown as SpotifyAlbumClient;
+}
+
+function mockAlbumTracksCache(partial: Partial<AlbumTracksCachePort> = {}): AlbumTracksCachePort {
+  return {
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue(undefined),
+    ...partial,
+  } as unknown as AlbumTracksCachePort;
 }
 
 describe("GetAlbumTracksUseCase", () => {
@@ -345,6 +354,117 @@ describe("GetAlbumTracksUseCase", () => {
       const result = await useCase.execute("sp-artist-1", "album-1");
 
       expect(result).toEqual([]);
+    });
+  });
+});
+
+describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
+  let repo: FeedRepository;
+  let deezerClient: DeezerClient;
+  let musicBrainzClient: MusicBrainzClient;
+  let spotifyAlbumClient: SpotifyAlbumClient;
+  let cache: AlbumTracksCachePort;
+
+  beforeEach(() => {
+    repo = mockRepo();
+    deezerClient = mockDeezerClient();
+    musicBrainzClient = mockMusicBrainzClient();
+    spotifyAlbumClient = mockSpotifyAlbumClient();
+    cache = mockAlbumTracksCache();
+  });
+
+  describe("Scenario: Cache hit returns tracks directly", () => {
+    it("returns cached tracks without calling any provider", async () => {
+      const cachedTracks = [makeNormalizedTrack({ name: "Cached Track" })];
+      vi.mocked(cache.get).mockResolvedValue(cachedTracks);
+
+      const useCaseWithCache = new GetAlbumTracksUseCase(
+        repo,
+        deezerClient,
+        musicBrainzClient,
+        spotifyAlbumClient,
+        cache,
+      );
+
+      const result = await useCaseWithCache.execute("sp-artist-1", "album-1");
+
+      expect(result).toEqual(cachedTracks);
+      expect(cache.get).toHaveBeenCalledWith("sp-artist-1", "album-1");
+      expect(repo.getArtistAlbumWithArtist).not.toHaveBeenCalled();
+      expect(deezerClient.searchAlbum).not.toHaveBeenCalled();
+      expect(deezerClient.getAlbumTracks).not.toHaveBeenCalled();
+      expect(musicBrainzClient.getReleaseTracks).not.toHaveBeenCalled();
+      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Scenario: Cache miss falls through to cascade and populates cache", () => {
+    it("runs cascade on cache miss and calls cache.set with the result", async () => {
+      const deezerTracks = [makeNormalizedTrack({ name: "Deezer Track" })];
+      vi.mocked(cache.get).mockResolvedValue(null);
+      vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
+        id: "sp-artist-1:album-1",
+        spotifyArtistId: "sp-artist-1",
+        albumId: "album-1",
+        albumName: "Album One",
+        albumType: "album",
+        releaseDate: "2024-01-01",
+        coverUrl: null,
+        spotifyUrl: null,
+        totalTracks: 10,
+        deezerAlbumId: "dz-123",
+        mbAlbumId: null,
+        artistName: "Test Artist",
+      });
+      vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue(deezerTracks);
+
+      const useCaseWithCache = new GetAlbumTracksUseCase(
+        repo,
+        deezerClient,
+        musicBrainzClient,
+        spotifyAlbumClient,
+        cache,
+      );
+
+      const result = await useCaseWithCache.execute("sp-artist-1", "album-1");
+
+      expect(result).toEqual(deezerTracks);
+      expect(cache.get).toHaveBeenCalledWith("sp-artist-1", "album-1");
+      expect(cache.set).toHaveBeenCalledWith("sp-artist-1", "album-1", deezerTracks);
+      expect(deezerClient.getAlbumTracks).toHaveBeenCalledWith("dz-123");
+    });
+  });
+
+  describe("Scenario: Cache port is optional (backward compat — Noop by default)", () => {
+    it("works without providing a cache port (no error thrown)", async () => {
+      const deezerTracks = [makeNormalizedTrack()];
+      vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
+        id: "sp-artist-1:album-1",
+        spotifyArtistId: "sp-artist-1",
+        albumId: "album-1",
+        albumName: "Album One",
+        albumType: "album",
+        releaseDate: "2024-01-01",
+        coverUrl: null,
+        spotifyUrl: null,
+        totalTracks: 10,
+        deezerAlbumId: "dz-999",
+        mbAlbumId: null,
+        artistName: "Test Artist",
+      });
+      vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue(deezerTracks);
+
+      // Instantiate without cache port — default NOOP should be used
+      const useCaseNoCache = new GetAlbumTracksUseCase(
+        repo,
+        deezerClient,
+        musicBrainzClient,
+        spotifyAlbumClient,
+      );
+
+      const result = await useCaseNoCache.execute("sp-artist-1", "album-1");
+
+      expect(result).toEqual(deezerTracks);
     });
   });
 });

@@ -8,7 +8,7 @@ import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
 
 interface PlaylistActionsProps {
-  spotifyUrl: string;
+  spotifyUrl?: string;
   isSubscribed: boolean;
   hasFailed: boolean;
   isRetrying: boolean;

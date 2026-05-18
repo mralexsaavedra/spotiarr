@@ -273,6 +273,127 @@ dado que el bootstrap es background y Deezer tiene margen suficiente.
 
 ---
 
+### Fase 4: Preview de álbum sin Spotify (pendiente)
+
+**Problema detectado**: Click en álbum de discografía → frontend llama
+`materializeAlbumSpotifyUrl` (apps/backend/src/application/use-cases/artists/materialize-album-spotify-url.use-case.ts)
+porque ruta `PLAYLIST_PREVIEW` requiere URL Spotify. Ese use case pega directo a Spotify
+(`findArtistAlbumByName` + `searchAlbumByName`) sin fallback Deezer/MB → `circuit_open`
+cuando quota Spotify agotada.
+
+**Causa raíz**: Álbumes vienen de Deezer (Fase 2), no traen `spotifyUrl`. Navegación a
+preview asume URL Spotify como identificador único — contrato acoplado al proveedor.
+
+**Insight clave**: Tracks NO necesitan `spotifyUrl` para descargarse. `yt-dlp` busca en
+YouTube por `(artist, name)` (apps/backend/src/infrastructure/external/youtube-search.service.ts:126).
+URL Spotify hoy solo es clave de navegación, no insumo de descarga.
+
+**Approach propuesto**:
+
+1. **Backend resuelve fuente**. Endpoint único `GET /api/albums/:artistId/:albumId`
+   (o reutilizar `/artists/:id/albums/:albumId/tracks` ampliado):
+   - DB hit (Track + AlbumCache fresco) → devuelve tracks cacheados directo
+   - Miss → `GetAlbumTracksUseCase` (Deezer → MB → Spotify last resort) → persiste → devuelve
+   - Mismo shape de respuesta siempre. Frontend ignora la fuente.
+2. **Una sola vista** `Playlist`. Eliminar duplicado `PlaylistPreview` vs `PlaylistDetail`.
+   Hook controller único consume endpoint backend; no rama por fuente.
+3. Ruta nueva `/album/:artistId/:albumId` para álbumes internos. Mantener
+   `PLAYLIST_PREVIEW?url=` solo para "user pega URL Spotify ajena" (input legítimo).
+4. `useAlbumPreviewNavigation` skip `materializeAlbumSpotifyUrl`; navega directo a ruta
+   interna.
+5. Eliminar `materializeAlbumSpotifyUrl` use case + endpoint + ruta frontend.
+
+**Por qué backend-resuelve y no frontend-ramifica**:
+
+- Frontend desacoplado del proveedor — no sabe si datos vienen de DB, Deezer, MB o Spotify.
+- Un solo contrato HTTP → menos branches, menos tests duplicados.
+- Backend ya tiene `GetAlbumTracksUseCase` con cascada — extender con DB-first es trivial.
+- Cache invalidation, TTL, warming UX se centralizan en una capa.
+
+**Archivos afectados (estimado)**:
+
+- `apps/backend/src/application/use-cases/artists/get-album-tracks.use-case.ts` → DB-first lookup
+- `apps/backend/src/application/use-cases/artists/materialize-album-spotify-url.use-case.ts` → eliminar
+- `apps/backend/src/presentation/controllers/artist.controller.ts` → quitar endpoint materialize
+- `apps/backend/src/presentation/routes/artist.routes.ts` → quitar ruta
+- `apps/frontend/src/routes/routes.ts` → ruta `ALBUM_DETAIL` (interna)
+- `apps/frontend/src/routes/Routing.tsx` → wiring
+- `apps/frontend/src/views/PlaylistPreview.tsx` → fusionar en `Playlist.tsx`
+- `apps/frontend/src/views/PlaylistDetail.tsx` → fusionar en `Playlist.tsx`
+- `apps/frontend/src/hooks/controllers/usePlaylistPreviewController.ts` → unificar con detail
+- `apps/frontend/src/hooks/useAlbumPreviewNavigation.ts` → skip materialize, navega a ruta interna
+- `apps/frontend/src/services/artist.service.ts` → quitar `materializeAlbumSpotifyUrl`
+
+**Beneficio esperado**: 0 calls a Spotify al abrir preview de álbum desde discografía.
+Cierra último path interactivo que genera `circuit_open` en operación normal.
+
+---
+
+### Fase 4.5: Eliminar N+1 residual en feed.controller fallback (pendiente)
+
+**Problema detectado**: `feed.controller.getRecentReleases` y `feed.controller.getArtists`
+(apps/backend/src/presentation/controllers/feed.controller.ts:18,28) usan fallback directo
+a `SpotifyUserLibraryService.getFollowedArtistsRecentReleases` cuando la DB está vacía.
+Ese método sigue siendo el patrón N+1 original — una call por cada artista seguido
+(apps/backend/src/infrastructure/external/spotify-user-library.service.ts:198-260).
+
+**Cuándo se dispara**: Bootstrap inicial, primer arranque tras `prisma migrate reset`, o
+purga manual de cache. Bajo en frecuencia, alto en impacto cuando ocurre (50+ calls
+secuenciales a Spotify).
+
+**Approach propuesto**:
+
+1. Reemplazar fallback en `feed.controller.getRecentReleases` por `ReleaseFeedService`
+   (Deezer-first, ya disponible desde Fase 1).
+2. `getFollowedArtists` puede mantenerse — devuelve solo la lista de seguidos (1 call
+   paginada, no N+1) y requiere user token de Spotify (no migrable).
+3. Una vez sin consumidores, eliminar `getFollowedArtistsRecentReleases` y método
+   `fetchWithAppToken` para `/v1/artists/{id}/albums` dentro de `SpotifyUserLibraryService`.
+
+**Archivos afectados**:
+
+- `apps/backend/src/presentation/controllers/feed.controller.ts` → cambiar fallback a `ReleaseFeedService`
+- `apps/backend/src/infrastructure/external/spotify-user-library.service.ts` → eliminar `getFollowedArtistsRecentReleases`
+- `apps/backend/src/container.ts` → wiring si cambian dependencias
+
+**Beneficio esperado**: 0 calls Spotify en bootstrap inicial. Cierra el último N+1 vivo.
+
+---
+
+## Cleanup post-implementación (Fase 4 + 4.5)
+
+Una vez completadas Fase 4 y 4.5, eliminar código muerto:
+
+### Backend
+
+| Item                                                           | Razón                        |
+| -------------------------------------------------------------- | ---------------------------- |
+| `MaterializeAlbumSpotifyUrlUseCase`                            | Sin consumidores tras Fase 4 |
+| `GET /:id/albums/:albumId/spotify-url` ruta                    | Sin uso                      |
+| `SpotifyArtistClient.findArtistAlbumByName`                    | Solo lo usaba materialize    |
+| `SpotifySearchClient.searchAlbumByName`                        | Solo lo usaba materialize    |
+| `SpotifyUserLibraryService.getFollowedArtistsRecentReleases`   | Eliminado en Fase 4.5        |
+| `SpotifyService.getPlaylistDetail` rama `Album` (líneas 58-67) | Path álbum interno migrado   |
+| Tests asociados a los anteriores                               | Limpieza                     |
+
+### Frontend
+
+| Item                                                      | Razón                         |
+| --------------------------------------------------------- | ----------------------------- |
+| `artistService.materializeAlbumSpotifyUrl`                | Sin consumidores              |
+| `PlaylistPreview` o `PlaylistDetail` (uno fusionado)      | Decisión Fase 4               |
+| `usePlaylistPreviewController` (si se unifica con detail) | Fusión                        |
+| Ruta `PLAYLIST_PREVIEW` para álbumes internos             | Sustituida por `ALBUM_DETAIL` |
+| i18n key `artist.errors.materializeSpotifyUrl`            | Sin referencia                |
+
+### Verificación de dead code
+
+- `pnpm --filter backend run lint` con `noUnusedLocals` activo
+- `rg -n "<symbol>" apps/` por cada item antes de borrar
+- Tests de regresión para flujos críticos (sync, vista artista, descarga)
+
+---
+
 ## Estrategia de matching: Spotify ID → Deezer ID
 
 ### Para artistas (primaria)

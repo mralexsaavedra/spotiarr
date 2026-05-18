@@ -110,7 +110,11 @@ export const Playlist: FC<PlaylistProps> = ({
             onRetryFailed={onRetryFailed}
             onDelete={handleDelete}
             onDownload={onDownload}
-            spotifyUrl={playlist?.spotifyUrl || ""}
+            spotifyUrl={
+              playlist?.spotifyUrl && !playlist.spotifyUrl.startsWith("spotiarr://")
+                ? playlist.spotifyUrl
+                : undefined
+            }
           />
         </div>
 

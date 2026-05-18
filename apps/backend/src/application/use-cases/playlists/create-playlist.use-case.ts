@@ -1,12 +1,19 @@
-import { NormalizedTrack, PlaylistTypeEnum, type IPlaylist } from "@spotiarr/shared";
+import {
+  CreatePlaylistRequest,
+  NormalizedTrack,
+  PlaylistTypeEnum,
+  type IPlaylist,
+} from "@spotiarr/shared";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import { AppError } from "@/domain/errors/app-error";
 import { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { SpotifyService } from "@/domain/services/spotify.service";
+import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import { SettingsService } from "../../services/settings.service";
 import { TrackService } from "../../services/track.service";
+import type { GetAlbumTracksUseCase } from "../artists/get-album-tracks.use-case";
 
 interface PlaylistDetail {
   tracks: NormalizedTrack[];
@@ -24,22 +31,29 @@ export class CreatePlaylistUseCase {
     private readonly trackService: TrackService,
     private readonly settingsService: SettingsService,
     private readonly eventBus: EventBus,
+    private readonly getAlbumTracksUseCase?: GetAlbumTracksUseCase,
+    private readonly feedRepository?: FeedRepository,
   ) {}
 
-  async execute(playlistData: IPlaylist): Promise<IPlaylist> {
-    const existing = await this.playlistRepository.findAll(false, {
-      spotifyUrl: playlistData.spotifyUrl,
-    });
+  async execute(input: CreatePlaylistRequest): Promise<IPlaylist> {
+    if (input.kind === "album") {
+      return this.executeAlbumRef(input.artistId, input.albumId);
+    }
+    return this.executeSpotifyUrl(input.spotifyUrl);
+  }
+
+  private async executeSpotifyUrl(spotifyUrl: string): Promise<IPlaylist> {
+    const existing = await this.playlistRepository.findAll(false, { spotifyUrl });
     if (existing.length > 0) {
       throw new AppError(409, "playlist_already_exists");
     }
 
     let detail: PlaylistDetail | undefined;
 
-    const playlist = new Playlist(playlistData);
+    const playlist = new Playlist({ id: crypto.randomUUID(), spotifyUrl });
 
     try {
-      detail = await this.spotifyService.getPlaylistDetail(playlist.spotifyUrl);
+      detail = await this.spotifyService.getPlaylistDetail(spotifyUrl);
       console.debug(`Playlist detail retrieved with ${detail.tracks?.length || 0} tracks`);
 
       let displayName = detail.name;
@@ -74,7 +88,7 @@ export class CreatePlaylistUseCase {
       }
     } catch (error) {
       console.error(
-        `Error getting playlist details: ${playlist.spotifyUrl}`,
+        `Error getting playlist details: ${spotifyUrl}`,
         error instanceof Error ? error.stack : String(error),
       );
       playlist.markAsError(error instanceof Error ? error.message : String(error));
@@ -84,7 +98,9 @@ export class CreatePlaylistUseCase {
     const savedPlaylist = savedPlaylistEntity.toPrimitive();
 
     if (detail?.tracks && detail.tracks.length > 0) {
-      await this.processTracks(savedPlaylist, detail.tracks);
+      const urlType = SpotifyUrlHelper.getUrlType(spotifyUrl);
+      const playlistType = this.urlTypeToPlaylistType(urlType);
+      await this.processTracks(savedPlaylist, detail.tracks, playlistType);
     } else {
       console.warn(`No tracks found for playlist ${savedPlaylist.name}`);
     }
@@ -93,18 +109,89 @@ export class CreatePlaylistUseCase {
     return savedPlaylist;
   }
 
-  private async processTracks(playlist: IPlaylist, tracks: NormalizedTrack[]): Promise<void> {
+  private urlTypeToPlaylistType(urlType: SpotifyUrlType): PlaylistTypeEnum {
+    switch (urlType) {
+      case SpotifyUrlType.Album:
+        return PlaylistTypeEnum.Album;
+      case SpotifyUrlType.Track:
+        return PlaylistTypeEnum.Track;
+      case SpotifyUrlType.Artist:
+        return PlaylistTypeEnum.Artist;
+      default:
+        return PlaylistTypeEnum.Playlist;
+    }
+  }
+
+  private async executeAlbumRef(artistId: string, albumId: string): Promise<IPlaylist> {
+    if (!this.getAlbumTracksUseCase || !this.feedRepository) {
+      throw new AppError(
+        500,
+        "internal_server_error",
+        "Album download dependencies not configured",
+      );
+    }
+
+    const syntheticUrl = `spotiarr://album/${artistId}/${albumId}`;
+
+    const existing = await this.playlistRepository.findAll(false, { spotifyUrl: syntheticUrl });
+    if (existing.length > 0) {
+      throw new AppError(409, "playlist_already_exists");
+    }
+
+    // Resolve tracks via existing Deezer-first cascade
+    const tracks = await this.getAlbumTracksUseCase.execute(artistId, albumId);
+
+    // Resolve album metadata from feed cache
+    const albumCache = await this.feedRepository.getArtistAlbumWithArtist(artistId, albumId);
+    const albumName = albumCache?.albumName ?? "Unknown Album";
+    const artistName = albumCache?.artistName ?? "Unknown Artist";
+    const coverUrl = albumCache?.coverUrl ?? undefined;
+
+    const playlist = new Playlist({
+      id: crypto.randomUUID(),
+      spotifyUrl: syntheticUrl,
+      type: PlaylistTypeEnum.Album,
+    });
+    playlist.updateDetails(
+      `${artistName} - ${albumName}`,
+      PlaylistTypeEnum.Album,
+      coverUrl,
+      undefined,
+      artistName,
+      undefined,
+    );
+
+    const autoSubscribe = await this.settingsService.getBoolean("AUTO_SUBSCRIBE_NEW_PLAYLISTS");
+    if (autoSubscribe) playlist.markAsSubscribed();
+
+    const savedPlaylistEntity = await this.playlistRepository.save(playlist);
+    const savedPlaylist = savedPlaylistEntity.toPrimitive();
+
+    if (tracks.length > 0) {
+      await this.processTracks(savedPlaylist, tracks, PlaylistTypeEnum.Album);
+    } else {
+      console.warn(`No tracks found for album ${albumName}`);
+    }
+
+    this.eventBus.emit("playlists-updated");
+    return savedPlaylist;
+  }
+
+  private async processTracks(
+    playlist: IPlaylist,
+    tracks: NormalizedTrack[],
+    type: PlaylistTypeEnum,
+  ): Promise<void> {
     console.debug(`Starting to process ${tracks.length} tracks for playlist ${playlist.name}`);
 
     let processedCount = 0;
     let skippedCount = 0;
     let errorCount = 0;
 
-    const urlType = SpotifyUrlHelper.getUrlType(playlist.spotifyUrl);
     const context = {
-      isTrack: urlType === SpotifyUrlType.Track,
-      isAlbum: urlType === SpotifyUrlType.Album,
-      isArtist: urlType === SpotifyUrlType.Artist,
+      isTrack: type === PlaylistTypeEnum.Track,
+      isAlbum: type === PlaylistTypeEnum.Album,
+      isArtist: type === PlaylistTypeEnum.Artist,
       playlistId: playlist.id,
       playlistName: playlist.name ?? "Unknown Playlist",
     };

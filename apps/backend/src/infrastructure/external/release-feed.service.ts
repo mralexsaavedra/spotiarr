@@ -80,6 +80,7 @@ export class ReleaseFeedService {
 
   async getActiveArtistReleases(
     artists: CatalogArtist[],
+    options?: { lookbackDays?: number },
   ): Promise<{ releases: ArtistRelease[]; decisions: FeedSyncDecision[] }> {
     const spotifyIds = artists.map((a) => a.id);
     const identities = await this.feedRepository.getArtistCatalogIdentities(spotifyIds);
@@ -129,7 +130,8 @@ export class ReleaseFeedService {
 
     const flat = releasesPerArtist.flat();
 
-    const recent = this.filterByLookback(flat);
+    const lookbackDays = options?.lookbackDays ?? 30;
+    const recent = this.filterByLookback(flat, lookbackDays);
     recent.sort((a, b) => {
       const da = a.releaseDate ?? "";
       const db = b.releaseDate ?? "";
@@ -202,9 +204,8 @@ export class ReleaseFeedService {
     return this.resolveDeezerMusicBrainz(artist, identity);
   }
 
-  private filterByLookback(releases: ArtistRelease[]): ArtistRelease[] {
-    // Default to 30 days when settings are unavailable; do not block sync
-    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  private filterByLookback(releases: ArtistRelease[], lookbackDays: number): ArtistRelease[] {
+    const cutoff = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
 
     return releases.filter((item) => {
       if (!item.releaseDate) return false;

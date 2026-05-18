@@ -269,6 +269,70 @@ describe("ReleaseFeedService", () => {
     });
   });
 
+  describe("filterByLookback — lookbackDays parameter", () => {
+    it("SHALL exclude releases older than the configured lookbackDays window (7d)", async () => {
+      const artist = makeArtist();
+      const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 1, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue([
+        makeRelease({ albumId: "old", releaseDate: eightDaysAgo }),
+        makeRelease({ albumId: "new", releaseDate: twoDaysAgo }),
+      ]);
+
+      const { releases } = await service.getActiveArtistReleases([artist], { lookbackDays: 7 });
+
+      expect(releases).toHaveLength(1);
+      expect(releases[0].albumId).toBe("new");
+    });
+
+    it("SHALL include releases up to the configured lookbackDays window (90d)", async () => {
+      const artist = makeArtist();
+      const eightyNineDaysAgo = new Date(Date.now() - 89 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+      const ninetyOneDaysAgo = new Date(Date.now() - 91 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 1, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue([
+        makeRelease({ albumId: "in-window", releaseDate: eightyNineDaysAgo }),
+        makeRelease({ albumId: "out-of-window", releaseDate: ninetyOneDaysAgo }),
+      ]);
+
+      const { releases } = await service.getActiveArtistReleases([artist], { lookbackDays: 90 });
+
+      expect(releases).toHaveLength(1);
+      expect(releases[0].albumId).toBe("in-window");
+    });
+
+    it("SHALL default to 30-day window when options are omitted", async () => {
+      const artist = makeArtist();
+      const twentyNineDaysAgo = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+      const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+
+      vi.mocked(deezer.searchArtist).mockResolvedValue({ id: 1, name: artist.name });
+      vi.mocked(deezer.getArtistAlbums).mockResolvedValue([
+        makeRelease({ albumId: "in-window", releaseDate: twentyNineDaysAgo }),
+        makeRelease({ albumId: "out-of-window", releaseDate: thirtyOneDaysAgo }),
+      ]);
+
+      // No options passed — default should be 30
+      const { releases } = await service.getActiveArtistReleases([artist]);
+
+      expect(releases).toHaveLength(1);
+      expect(releases[0].albumId).toBe("in-window");
+    });
+  });
+
   describe("getArtistDiscography", () => {
     it("returns unfiltered albums for a single artist", async () => {
       const artist = makeArtist();

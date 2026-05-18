@@ -39,7 +39,7 @@ export const useSearchController = () => {
 
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
-      if (track.trackUrl) createPlaylist.mutate(track.trackUrl);
+      if (track.trackUrl) createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl });
     },
     [createPlaylist],
   );
@@ -53,7 +53,7 @@ export const useSearchController = () => {
 
   const handleDownloadAlbum = useCallback(
     (url: string) => {
-      createPlaylist.mutate(url);
+      createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: url });
     },
     [createPlaylist],
   );

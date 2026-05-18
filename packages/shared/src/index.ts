@@ -91,7 +91,7 @@ export interface IPlaylist {
   id: string;
   name?: string;
   type?: PlaylistTypeEnum;
-  spotifyUrl: string;
+  spotifyUrl?: string;
   error?: string;
   subscribed?: boolean;
   createdAt?: number;
@@ -119,14 +119,9 @@ export interface ArtistRelease {
   totalTracks?: number;
 }
 
-export interface MaterializeAlbumSpotifyUrlRequest {
-  artistName: string;
-  albumName: string;
-}
-
-export interface MaterializeAlbumSpotifyUrlResponse {
-  spotifyUrl: string;
-}
+export type CreatePlaylistRequest =
+  | { kind: "spotifyUrl"; spotifyUrl: string }
+  | { kind: "album"; artistId: string; albumId: string };
 
 export type ApiErrorCode =
   | "missing_user_access_token"

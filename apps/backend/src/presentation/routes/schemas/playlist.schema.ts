@@ -1,13 +1,21 @@
 import { z } from "zod";
 
-// Schema for creating a playlist
-export const createPlaylistSchema = z.object({
-  body: z.object({
-    spotifyUrl: z.string().min(1, "spotifyUrl is required"),
-    name: z.string().optional(),
-    type: z.string().optional(),
-    subscribed: z.boolean().optional(),
+// Schema for creating a playlist — accepts discriminated union or legacy { spotifyUrl } body
+const discriminatedBody = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("spotifyUrl"), spotifyUrl: z.string().min(1) }),
+  z.object({
+    kind: z.literal("album"),
+    artistId: z.string().min(1),
+    albumId: z.string().min(1),
   }),
+]);
+
+const legacyBody = z
+  .object({ spotifyUrl: z.string().min(1, "spotifyUrl is required") })
+  .transform((b) => ({ kind: "spotifyUrl" as const, spotifyUrl: b.spotifyUrl }));
+
+export const createPlaylistSchema = z.object({
+  body: z.union([discriminatedBody, legacyBody]),
 });
 
 // Schema for updating a playlist

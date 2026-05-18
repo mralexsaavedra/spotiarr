@@ -102,9 +102,10 @@ describe("FeedSyncWorker — runFeedSyncJob", () => {
 
       await runFeedSyncJob(deps);
 
-      expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledWith([
-        { id: "artist-1", name: "Artist One", imageUrl: "https://image.test/1.jpg" },
-      ]);
+      expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledWith(
+        [{ id: "artist-1", name: "Artist One", imageUrl: "https://image.test/1.jpg" }],
+        { lookbackDays: 15 },
+      );
       expect(deps.spotifyUserLibrarySyncService.getActiveArtistReleases).not.toHaveBeenCalled();
     });
 
@@ -121,10 +122,27 @@ describe("FeedSyncWorker — runFeedSyncJob", () => {
 
       await runFeedSyncJob(deps);
 
-      expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledWith([
-        { id: "a2", name: "Beta", imageUrl: "img-b" },
-        { id: "a1", name: "Alpha", imageUrl: "img-a" },
-      ]);
+      expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledWith(
+        [
+          { id: "a2", name: "Beta", imageUrl: "img-b" },
+          { id: "a1", name: "Alpha", imageUrl: "img-a" },
+        ],
+        { lookbackDays: 15 },
+      );
+    });
+
+    it("SHALL forward RELEASES_LOOKBACK_DAYS from settings to ReleaseFeedService", async () => {
+      vi.mocked(deps.settingsService.getNumber).mockImplementation(async (key: string) => {
+        if (key === "RELEASES_LOOKBACK_DAYS") return 7;
+        return 15;
+      });
+
+      await runFeedSyncJob(deps);
+
+      expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledWith(
+        expect.any(Array),
+        { lookbackDays: 7 },
+      );
     });
 
     it("SHALL persist releases returned by ReleaseFeedService", async () => {
@@ -251,9 +269,10 @@ describe("FeedSyncWorker — runFeedSyncJob", () => {
       await runFeedSyncJob(deps);
 
       // Only a1 is passed to releaseFeedService because a2 is not in the followed artists list
-      expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledWith([
-        { id: "a1", name: "Test Artist", imageUrl: "https://image.test/1.jpg" },
-      ]);
+      expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledWith(
+        [{ id: "a1", name: "Test Artist", imageUrl: "https://image.test/1.jpg" }],
+        { lookbackDays: 15 },
+      );
     });
   });
 });

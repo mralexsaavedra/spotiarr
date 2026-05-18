@@ -41,7 +41,7 @@ export const usePlaylistController = ({
 
   const handleDownload = useCallback(() => {
     if (!spotifyUrl) return;
-    createPlaylist.mutate(spotifyUrl);
+    createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl });
   }, [spotifyUrl, createPlaylist]);
 
   const handleToggleSubscription = useCallback(() => {
@@ -51,14 +51,17 @@ export const usePlaylistController = ({
         data: { subscribed: !playlist.subscribed },
       });
     } else if (spotifyUrl) {
-      createPlaylist.mutate(spotifyUrl, {
-        onSuccess: (newPlaylist) => {
-          updatePlaylist.mutate({
-            id: newPlaylist.id,
-            data: { subscribed: true },
-          });
+      createPlaylist.mutate(
+        { kind: "spotifyUrl", spotifyUrl },
+        {
+          onSuccess: (newPlaylist) => {
+            updatePlaylist.mutate({
+              id: newPlaylist.id,
+              data: { subscribed: true },
+            });
+          },
         },
-      });
+      );
     }
   }, [playlist, id, spotifyUrl, updatePlaylist, createPlaylist]);
 
@@ -76,7 +79,7 @@ export const usePlaylistController = ({
 
     tracks.forEach((track) => {
       if (track.status === TrackStatusEnum.Error && track.trackUrl) {
-        createPlaylist.mutate(track.trackUrl);
+        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl });
       }
     });
   }, [id, hasFailed, tracks, retryFailedTracks, createPlaylist]);
@@ -86,7 +89,7 @@ export const usePlaylistController = ({
       if (track.id && !track.id.startsWith("preview-") && !track.id.startsWith("top-")) {
         retryTrack(track.id);
       } else if (track.trackUrl) {
-        createPlaylist.mutate(track.trackUrl);
+        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl });
       }
     },
     [retryTrack, createPlaylist],

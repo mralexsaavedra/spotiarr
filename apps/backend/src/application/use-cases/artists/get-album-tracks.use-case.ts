@@ -1,4 +1,6 @@
 import type { NormalizedTrack } from "@spotiarr/shared";
+import type { AlbumTracksCachePort } from "@/application/ports/album-tracks-cache.port";
+import { NoopAlbumTracksCache } from "@/infrastructure/cache/noop-album-tracks-cache";
 import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import { DeezerClient } from "@/infrastructure/external/providers/deezer/deezer.client";
 import { MusicBrainzClient } from "@/infrastructure/external/providers/musicbrainz/musicbrainz.client";
@@ -10,16 +12,47 @@ import { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.clie
  *
  * Persisted album identities (deezerAlbumId, mbAlbumId) are stored in
  * ArtistAlbumCache to avoid repeated discovery searches.
+ *
+ * An optional `albumTracksCache` port (default: NoopAlbumTracksCache) can be
+ * wired to short-circuit the provider cascade for repeat requests (e.g. Redis TTL 300s).
  */
 export class GetAlbumTracksUseCase {
+  private readonly albumTracksCache: AlbumTracksCachePort;
+
   constructor(
     private readonly feedRepository: FeedRepository,
     private readonly deezerClient: DeezerClient,
     private readonly musicBrainzClient: MusicBrainzClient,
     private readonly spotifyAlbumClient: SpotifyAlbumClient,
-  ) {}
+    albumTracksCache: AlbumTracksCachePort = new NoopAlbumTracksCache(),
+  ) {
+    this.albumTracksCache = albumTracksCache;
+  }
 
   async execute(spotifyArtistId: string, albumId: string): Promise<NormalizedTrack[]> {
+    // 0. Optional short-circuit cache (e.g. Redis TTL 300s; default is NOOP)
+    const cached = await this.albumTracksCache.get(spotifyArtistId, albumId);
+    if (cached !== null) {
+      return cached;
+    }
+
+    const tracks = await this.resolveViaCascade(spotifyArtistId, albumId);
+
+    // Store result in cache so repeat requests skip the cascade entirely.
+    // NoopAlbumTracksCache makes this a no-op by default.
+    await this.albumTracksCache.set(spotifyArtistId, albumId, tracks);
+
+    return tracks;
+  }
+
+  /**
+   * Runs the full provider cascade: Deezer → MusicBrainz → Spotify.
+   * Persists discovered identities (deezerAlbumId, mbAlbumId) for future fast loads.
+   */
+  private async resolveViaCascade(
+    spotifyArtistId: string,
+    albumId: string,
+  ): Promise<NormalizedTrack[]> {
     // 1. Read cached album + artist name
     const albumCache = await this.feedRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId);
 

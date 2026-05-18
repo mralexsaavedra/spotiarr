@@ -2,8 +2,6 @@ import type {
   ArtistDetail,
   ArtistRelease,
   FollowedArtist,
-  MaterializeAlbumSpotifyUrlRequest,
-  MaterializeAlbumSpotifyUrlResponse,
   NormalizedTrack,
 } from "@spotiarr/shared";
 import { ApiRoutes } from "@spotiarr/shared";
@@ -41,17 +39,6 @@ export const artistService = {
   getAlbumTracks: async (artistId: string, albumId: string): Promise<NormalizedTrack[]> => {
     return httpClient.get<NormalizedTrack[]>(
       `${ApiRoutes.ARTIST}/${artistId}/albums/${albumId}/tracks`,
-    );
-  },
-
-  materializeAlbumSpotifyUrl: async (
-    artistId: string,
-    albumId: string,
-    payload: MaterializeAlbumSpotifyUrlRequest,
-  ): Promise<MaterializeAlbumSpotifyUrlResponse> => {
-    return httpClient.post<MaterializeAlbumSpotifyUrlResponse>(
-      `${ApiRoutes.ARTIST}/${artistId}/albums/${albumId}/spotify-url`,
-      payload,
     );
   },
 };
