@@ -30,19 +30,26 @@ export class GetAlbumTracksUseCase {
   }
 
   async execute(spotifyArtistId: string, albumId: string): Promise<NormalizedTrack[]> {
-    // 0. Optional short-circuit cache (e.g. Redis TTL 300s; default is NOOP)
     const cached = await this.albumTracksCache.get(spotifyArtistId, albumId);
     if (cached !== null) {
       return cached;
     }
 
-    const tracks = await this.resolveViaCascade(spotifyArtistId, albumId);
+    const albumCache = await this.feedRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId);
+    const albumName = albumCache?.albumName ?? "";
 
-    // Store result in cache so repeat requests skip the cascade entirely.
-    // NoopAlbumTracksCache makes this a no-op by default.
-    await this.albumTracksCache.set(spotifyArtistId, albumId, tracks);
+    const tracks = await this.resolveViaCascade(spotifyArtistId, albumId, albumCache);
 
-    return tracks;
+    // Providers may omit the album title on track-list responses (Deezer /album/:id/tracks
+    // does not return nested album info). Backfill from the persisted album metadata so
+    // downstream views show the album name instead of "Unknown Album".
+    const tracksWithAlbum = albumName
+      ? tracks.map((t) => ({ ...t, album: t.album?.trim() ? t.album : albumName }))
+      : tracks;
+
+    await this.albumTracksCache.set(spotifyArtistId, albumId, tracksWithAlbum);
+
+    return tracksWithAlbum;
   }
 
   /**
@@ -52,10 +59,8 @@ export class GetAlbumTracksUseCase {
   private async resolveViaCascade(
     spotifyArtistId: string,
     albumId: string,
+    albumCache: Awaited<ReturnType<FeedRepository["getArtistAlbumWithArtist"]>>,
   ): Promise<NormalizedTrack[]> {
-    // 1. Read cached album + artist name
-    const albumCache = await this.feedRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId);
-
     const artistName = albumCache?.artistName ?? "Unknown Artist";
     const albumName = albumCache?.albumName ?? "";
 

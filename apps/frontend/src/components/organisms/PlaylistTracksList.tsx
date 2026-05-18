@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { Track } from "@/types";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { ArtistLinks } from "../molecules/ArtistLinks";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 import { VirtualList } from "../molecules/VirtualList";
@@ -64,9 +65,9 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         {/* Title & Artist */}
         <div className="flex min-w-0 flex-col">
           <div className="text-text-primary truncate font-medium">
-            {track.trackUrl ? (
+            {isSpotifyUrl(track.trackUrl) ? (
               <Link
-                to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
+                to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl!)}`}
                 className="hover:underline"
                 onClick={stopPropagation}
               >
@@ -86,9 +87,9 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
 
         {/* Album */}
         <div className="text-text-secondary hidden truncate text-sm md:block">
-          {track.albumUrl ? (
+          {isSpotifyUrl(track.albumUrl) ? (
             <Link
-              to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.albumUrl)}`}
+              to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.albumUrl!)}`}
               className="hover:text-text-primary transition-colors hover:underline"
               onClick={stopPropagation}
             >

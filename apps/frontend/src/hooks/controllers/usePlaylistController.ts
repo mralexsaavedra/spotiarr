@@ -5,6 +5,7 @@ import { usePlaylistDownloaded, usePlaylistDownloading } from "@/contexts/Downlo
 import { Playlist, PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
 import { formatPlaylistTitle } from "@/utils/playlist";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useDeletePlaylistMutation } from "../mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../mutations/useRetryFailedTracksMutation";
@@ -86,10 +87,21 @@ export const usePlaylistController = ({
 
   const handleRetryTrack = useCallback(
     (track: Track) => {
-      if (track.id && !track.id.startsWith("preview-") && !track.id.startsWith("top-")) {
+      const isSynthetic =
+        !track.id ||
+        track.id.startsWith("preview-") ||
+        track.id.startsWith("top-") ||
+        track.id.startsWith("album-");
+
+      if (!isSynthetic) {
         retryTrack(track.id);
-      } else if (track.trackUrl) {
-        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl });
+        return;
+      }
+
+      // Synthetic ids have no DB row yet. Only Spotify trackUrls can be
+      // resolved via createPlaylist; Deezer/MB urls have no single-track path.
+      if (isSpotifyUrl(track.trackUrl)) {
+        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
       }
     },
     [retryTrack, createPlaylist],

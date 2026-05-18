@@ -24,8 +24,8 @@ interface PlaylistProps {
   completedCount: number;
   hasMoreTracks?: boolean;
   isLoadingMoreTracks?: boolean;
-  onRetryTrack: (trackId: string) => void;
-  onDownloadTrack: (track: Track) => void;
+  onRetryTrack?: (trackId: string) => void;
+  onDownloadTrack?: (track: Track) => void;
   onLoadMoreTracks?: () => void;
   onConfirmDelete: (() => void) | undefined;
   onRetryFailed: () => void;
