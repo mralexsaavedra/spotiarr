@@ -100,6 +100,78 @@ function makeUseCase(stubs: ReturnType<typeof makeStubs>) {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+describe("CreatePlaylistUseCase — albumTrack branch", () => {
+  let stubs: ReturnType<typeof makeStubs>;
+
+  beforeEach(() => {
+    stubs = makeStubs();
+    // Provide two tracks so index 1 is in range
+    stubs.getAlbumTracksUseCase.execute.mockResolvedValue([
+      {
+        name: "Track 1",
+        artist: "Artist",
+        artists: [{ name: "Artist", url: undefined }],
+        album: "Album",
+        trackNumber: 1,
+        durationMs: 200000,
+      },
+      {
+        name: "Track 2",
+        artist: "Artist",
+        artists: [{ name: "Artist", url: undefined }],
+        album: "Album",
+        trackNumber: 2,
+        durationMs: 220000,
+      },
+    ]);
+  });
+
+  it("creates a playlist for a single album track via albumTrack branch", async () => {
+    const useCase = makeUseCase(stubs);
+
+    const result = await useCase.execute({
+      kind: "albumTrack",
+      artistId: "artist-1",
+      albumId: "album-1",
+      trackIndex: 1,
+    });
+
+    expect(stubs.playlistRepository.findAll).toHaveBeenCalledWith(false, {
+      spotifyUrl: "spotiarr://album/artist-1/album-1/track/1",
+    });
+    expect(stubs.getAlbumTracksUseCase.execute).toHaveBeenCalledWith("artist-1", "album-1");
+    expect(stubs.playlistRepository.save).toHaveBeenCalled();
+    expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
+    expect(result).toBeDefined();
+  });
+
+  it("throws 404 when trackIndex is out of range", async () => {
+    const useCase = makeUseCase(stubs);
+
+    const thrown = await useCase
+      .execute({ kind: "albumTrack", artistId: "artist-1", albumId: "album-1", trackIndex: 99 })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).statusCode).toBe(404);
+    expect((thrown as AppError).errorCode).toBe("track_not_found");
+  });
+
+  it("dedupes albumTrack playlists by synthetic URL (throws 409 on repeat)", async () => {
+    const existingEntity = makePlaylistEntity();
+    stubs.playlistRepository.findAll.mockResolvedValue([existingEntity]);
+
+    const useCase = makeUseCase(stubs);
+
+    const thrown = await useCase
+      .execute({ kind: "albumTrack", artistId: "artist-1", albumId: "album-1", trackIndex: 0 })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).errorCode).toBe("playlist_already_exists");
+  });
+});
+
 describe("CreatePlaylistUseCase — album branch", () => {
   let stubs: ReturnType<typeof makeStubs>;
 

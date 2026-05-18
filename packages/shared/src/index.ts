@@ -121,7 +121,8 @@ export interface ArtistRelease {
 
 export type CreatePlaylistRequest =
   | { kind: "spotifyUrl"; spotifyUrl: string }
-  | { kind: "album"; artistId: string; albumId: string };
+  | { kind: "album"; artistId: string; albumId: string }
+  | { kind: "albumTrack"; artistId: string; albumId: string; trackIndex: number };
 
 export type ApiErrorCode =
   | "missing_user_access_token"

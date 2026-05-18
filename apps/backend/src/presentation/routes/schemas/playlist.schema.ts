@@ -8,6 +8,12 @@ const discriminatedBody = z.discriminatedUnion("kind", [
     artistId: z.string().min(1),
     albumId: z.string().min(1),
   }),
+  z.object({
+    kind: z.literal("albumTrack"),
+    artistId: z.string().min(1),
+    albumId: z.string().min(1),
+    trackIndex: z.number().int().min(0),
+  }),
 ]);
 
 const legacyBody = z

@@ -39,6 +39,9 @@ export class CreatePlaylistUseCase {
     if (input.kind === "album") {
       return this.executeAlbumRef(input.artistId, input.albumId);
     }
+    if (input.kind === "albumTrack") {
+      return this.executeAlbumTrackRef(input.artistId, input.albumId, input.trackIndex);
+    }
     return this.executeSpotifyUrl(input.spotifyUrl);
   }
 
@@ -172,6 +175,66 @@ export class CreatePlaylistUseCase {
     } else {
       console.warn(`No tracks found for album ${albumName}`);
     }
+
+    this.eventBus.emit("playlists-updated");
+    return savedPlaylist;
+  }
+
+  private async executeAlbumTrackRef(
+    artistId: string,
+    albumId: string,
+    trackIndex: number,
+  ): Promise<IPlaylist> {
+    if (!this.getAlbumTracksUseCase || !this.feedRepository) {
+      throw new AppError(
+        500,
+        "internal_server_error",
+        "Album download dependencies not configured",
+      );
+    }
+
+    const syntheticUrl = `spotiarr://album/${artistId}/${albumId}/track/${trackIndex}`;
+
+    const existing = await this.playlistRepository.findAll(false, { spotifyUrl: syntheticUrl });
+    if (existing.length > 0) {
+      throw new AppError(409, "playlist_already_exists");
+    }
+
+    const tracks = await this.getAlbumTracksUseCase.execute(artistId, albumId);
+
+    if (trackIndex < 0 || trackIndex >= tracks.length) {
+      throw new AppError(404, "track_not_found", "Track index out of range");
+    }
+
+    const pickedTrack = tracks[trackIndex];
+
+    const albumCache = await this.feedRepository.getArtistAlbumWithArtist(artistId, albumId);
+    const artistName = albumCache?.artistName ?? "Unknown Artist";
+    const coverUrl = albumCache?.coverUrl ?? undefined;
+
+    const trackName = pickedTrack.name ?? "Unknown Track";
+
+    const playlist = new Playlist({
+      id: crypto.randomUUID(),
+      spotifyUrl: syntheticUrl,
+      type: PlaylistTypeEnum.Track,
+    });
+    playlist.updateDetails(
+      `${artistName} - ${trackName}`,
+      PlaylistTypeEnum.Track,
+      coverUrl,
+      undefined,
+      artistName,
+      undefined,
+    );
+
+    const autoSubscribe = await this.settingsService.getBoolean("AUTO_SUBSCRIBE_NEW_PLAYLISTS");
+    if (autoSubscribe) playlist.markAsSubscribed();
+
+    const savedPlaylistEntity = await this.playlistRepository.save(playlist);
+    const savedPlaylist = savedPlaylistEntity.toPrimitive();
+
+    await this.processTracks(savedPlaylist, [pickedTrack], PlaylistTypeEnum.Track);
 
     this.eventBus.emit("playlists-updated");
     return savedPlaylist;

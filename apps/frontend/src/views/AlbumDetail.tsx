@@ -20,6 +20,7 @@ export const AlbumDetail: FC = () => {
     completedCount,
     displayTitle,
     handleDownload,
+    handleDownloadTrack,
     handleToggleSubscription,
     handleDelete,
     handleRetryFailed,
@@ -54,6 +55,11 @@ export const AlbumDetail: FC = () => {
       hasMoreTracks={hasMoreTracks}
       isLoadingMoreTracks={isLoadingMoreTracks}
       onDownload={handleDownload}
+      onDownloadTrack={handleDownloadTrack}
+      onRetryTrack={(trackId) => {
+        const track = tracks.find((t) => t.id === trackId);
+        if (track) handleDownloadTrack(track);
+      }}
       onLoadMoreTracks={onLoadMoreTracks}
       onConfirmDelete={handleDelete}
       onRetryFailed={handleRetryFailed}
