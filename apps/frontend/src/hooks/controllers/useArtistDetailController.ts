@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlaylistDownloaded } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../queries/useArtistDetailQuery";
 import { useAlbumPreviewNavigation } from "../useAlbumPreviewNavigation";
@@ -57,11 +58,11 @@ export const useArtistDetailController = () => {
 
   const handleDownload = useCallback(
     (url?: string) => {
-      if (!url) {
+      if (!isSpotifyUrl(url)) {
         return;
       }
 
-      createPlaylistMutation.mutate({ kind: "spotifyUrl", spotifyUrl: url });
+      createPlaylistMutation.mutate({ kind: "spotifyUrl", spotifyUrl: url! });
     },
     [createPlaylistMutation],
   );

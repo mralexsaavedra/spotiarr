@@ -2,6 +2,7 @@ import type { ArtistRelease } from "@spotiarr/shared";
 import { MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "@/routes/routes";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useReleasesQuery } from "../queries/useReleasesQuery";
 import { useAlbumPreviewNavigation } from "../useAlbumPreviewNavigation";
@@ -23,6 +24,7 @@ export const useReleasesController = () => {
   const handleDownloadRelease = useCallback(
     (e: MouseEvent, spotifyUrl: string) => {
       e.stopPropagation();
+      if (!isSpotifyUrl(spotifyUrl)) return;
       createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl });
     },
     [createPlaylist],

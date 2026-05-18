@@ -94,6 +94,12 @@ export const useAlbumDetailController = () => {
     };
   }, [album, albumId, tracks.length]);
 
+  const trackingUrl = useMemo(() => {
+    if (album?.spotifyUrl) return album.spotifyUrl;
+    if (artistId && albumId) return `spotiarr://album/${artistId}/${albumId}`;
+    return null;
+  }, [album?.spotifyUrl, artistId, albumId]);
+
   const {
     isDownloading,
     isDownloaded,
@@ -108,7 +114,7 @@ export const useAlbumDetailController = () => {
   } = usePlaylistController({
     playlist,
     tracks,
-    spotifyUrl: album?.spotifyUrl ?? null,
+    spotifyUrl: trackingUrl,
     id: undefined,
   });
 

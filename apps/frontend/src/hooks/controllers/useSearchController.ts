@@ -6,6 +6,7 @@ import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
 import { useCreatePlaylistMutation } from "@/hooks/mutations/useCreatePlaylistMutation";
 import { useSearchQuery } from "@/hooks/queries/useSearchQuery";
 import { Path } from "@/routes/routes";
+import { isSpotifyUrl } from "@/utils/spotify";
 
 export type FilterTab = "all" | "tracks" | "albums" | "artists";
 
@@ -39,7 +40,8 @@ export const useSearchController = () => {
 
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
-      if (track.trackUrl) createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl });
+      if (!isSpotifyUrl(track.trackUrl)) return;
+      createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
     },
     [createPlaylist],
   );
@@ -53,6 +55,7 @@ export const useSearchController = () => {
 
   const handleDownloadAlbum = useCallback(
     (url: string) => {
+      if (!isSpotifyUrl(url)) return;
       createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: url });
     },
     [createPlaylist],
