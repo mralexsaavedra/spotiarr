@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
+import { upgradeDeezerCoverUrl } from "@/infrastructure/external/providers/deezer/cover-url";
 
 export interface CatalogIdentity {
   spotifyId: string;
@@ -46,7 +47,7 @@ export class FeedRepository {
       albumName: row.albumName,
       albumType: row.albumType as ArtistRelease["albumType"],
       releaseDate: row.releaseDate ?? undefined,
-      coverUrl: row.coverUrl,
+      coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
       spotifyUrl: row.spotifyUrl ?? undefined,
       totalTracks: row.totalTracks ?? undefined,
     };
@@ -127,7 +128,7 @@ export class FeedRepository {
         albumName: row.albumName,
         albumType: row.albumType as ArtistRelease["albumType"],
         releaseDate: row.releaseDate ?? undefined,
-        coverUrl: row.coverUrl ?? null,
+        coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
         spotifyUrl: row.spotifyUrl ?? undefined,
       }))
       .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
@@ -244,6 +245,7 @@ export class FeedRepository {
 
     return {
       ...row,
+      coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
       artistName: artistRow?.name ?? "Unknown Artist",
     };
   }
@@ -278,7 +280,7 @@ export class FeedRepository {
       albumName: row.albumName,
       albumType: row.albumType,
       releaseDate: row.releaseDate,
-      coverUrl: row.coverUrl,
+      coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
       spotifyUrl: row.spotifyUrl,
       artistName: row.artist.name,
     };
