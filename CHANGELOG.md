@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.4...v1.4.0) (2026-05-19)
+
+### Features
+
+- **Release tracking via Deezer**: New release discovery now uses Deezer data for tracked artists, restoring release coverage after Spotify endpoint restrictions. ([3195a18](https://github.com/mralexsaavedra/spotiarr/commit/3195a18))
+- **Independent sync lanes**: Catalog sync and release sync now run on separate paths, so core catalog updates continue even if release fetches degrade. ([519b202](https://github.com/mralexsaavedra/spotiarr/commit/519b202))
+
+### Bug Fixes
+
+- **Circuit breaker recovery**: Spotify circuit breaker state now persists across restarts, preventing repeated hot-loop failures after reboot/redeploy. ([92ce32d](https://github.com/mralexsaavedra/spotiarr/commit/92ce32d))
+- **Sync backpressure**: Release/cycle processing now caps catalog work to 5 artists per cycle and aborts when the circuit is open, reducing pointless retries under rate-limit pressure. ([249a7ab](https://github.com/mralexsaavedra/spotiarr/commit/249a7ab))
+- **Error contract parity**: Shared `ApiErrorCode` now includes `circuit_open`, allowing frontend/backend handling to stay type-safe during degraded Spotify states. ([85f56d0](https://github.com/mralexsaavedra/spotiarr/commit/85f56d0))
+
 ## [1.3.4](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.3...v1.3.4) (2026-04-22)
 
 ### Bug Fixes
