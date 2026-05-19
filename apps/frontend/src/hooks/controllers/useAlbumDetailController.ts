@@ -24,7 +24,7 @@ export const useAlbumDetailController = () => {
   } = useAlbumTracksQuery({ artistId, albumId, enabled: !!artistId && !!albumId });
 
   // Fetch artist albums for header metadata (name, cover, artistName)
-  const { data: artistAlbums, isLoading: isAlbumsLoading } = useArtistAlbumsQuery({
+  const { data: artistAlbums } = useArtistAlbumsQuery({
     artistId,
     limit: ARTIST_ALBUMS_LIMIT,
     offset: ARTIST_ALBUMS_OFFSET,
@@ -65,18 +65,27 @@ export const useAlbumDetailController = () => {
   }, [rawTracks, albumId, trackStatusesMap]);
 
   const playlist: PlaylistWithStats | undefined = useMemo(() => {
-    if (!album) return undefined;
+    const firstTrack = rawTracks?.[0];
+    const hasAlbum = !!album;
+    const hasTracks = !!firstTrack;
+
+    if (!hasAlbum && !hasTracks) return undefined;
+
+    const name = album?.albumName ?? firstTrack?.album ?? "";
+    const coverUrl = album?.coverUrl ?? firstTrack?.albumCoverUrl ?? undefined;
+    const spotifyUrl = album?.spotifyUrl ?? firstTrack?.albumUrl ?? undefined;
+    const owner = album?.artistName ?? firstTrack?.primaryArtist ?? firstTrack?.artist ?? "";
 
     return {
       id: albumId,
-      name: album.albumName,
+      name,
       description: undefined,
-      coverUrl: album.coverUrl ?? undefined,
+      coverUrl,
       type: PlaylistTypeEnum.Album,
-      spotifyUrl: album.spotifyUrl,
+      spotifyUrl,
       subscribed: false,
       createdAt: Date.now(),
-      owner: album.artistName,
+      owner,
       ownerUrl: undefined,
       stats: {
         completedCount: 0,
@@ -92,7 +101,7 @@ export const useAlbumDetailController = () => {
         isCompleted: false,
       },
     };
-  }, [album, albumId, tracks.length]);
+  }, [album, albumId, rawTracks, tracks.length]);
 
   const trackingUrl = useMemo(() => {
     if (album?.spotifyUrl) return album.spotifyUrl;
@@ -154,7 +163,7 @@ export const useAlbumDetailController = () => {
     playlist,
     tracks,
     album,
-    isLoading: isTracksLoading || isAlbumsLoading,
+    isLoading: isTracksLoading,
     error: tracksError,
     isButtonLoading,
     hasMoreTracks: false as const,

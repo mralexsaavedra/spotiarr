@@ -35,7 +35,33 @@ export class GetAlbumTracksUseCase {
       return cached;
     }
 
-    const albumCache = await this.feedRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId);
+    let albumCache = await this.feedRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId);
+
+    // Fallback: album may live in the recent-releases cache without a matching
+    // entry in the discography cache (feed-sync populates them independently).
+    if (!albumCache) {
+      const releaseCache = await this.feedRepository.getArtistReleaseWithArtist(
+        spotifyArtistId,
+        albumId,
+      );
+      if (releaseCache) {
+        albumCache = {
+          id: releaseCache.id,
+          spotifyArtistId,
+          albumId: releaseCache.albumId,
+          albumName: releaseCache.albumName,
+          albumType: releaseCache.albumType,
+          releaseDate: releaseCache.releaseDate,
+          coverUrl: releaseCache.coverUrl,
+          spotifyUrl: releaseCache.spotifyUrl,
+          totalTracks: null,
+          deezerAlbumId: this.isDeezerAlbumId(albumId) ? albumId : null,
+          mbAlbumId: this.isMusicBrainzId(albumId) ? albumId : null,
+          artistName: releaseCache.artistName,
+        };
+      }
+    }
+
     const albumName = albumCache?.albumName ?? "";
 
     const tracks = await this.resolveViaCascade(spotifyArtistId, albumId, albumCache);
@@ -65,8 +91,10 @@ export class GetAlbumTracksUseCase {
     const albumName = albumCache?.albumName ?? "";
 
     // 2. Deezer primary path
-    if (albumCache?.deezerAlbumId) {
-      const tracks = await this.deezerClient.getAlbumTracks(albumCache.deezerAlbumId);
+    const deezerDirectId =
+      albumCache?.deezerAlbumId ?? (this.isDeezerAlbumId(albumId) ? albumId : null);
+    if (deezerDirectId) {
+      const tracks = await this.deezerClient.getAlbumTracks(deezerDirectId);
       if (tracks.length > 0) {
         return tracks;
       }
@@ -118,6 +146,13 @@ export class GetAlbumTracksUseCase {
    */
   private isSpotifyAlbumId(id: string): boolean {
     return /^[a-zA-Z0-9]{22}$/.test(id);
+  }
+
+  /**
+   * Deezer album IDs are purely numeric.
+   */
+  private isDeezerAlbumId(id: string): boolean {
+    return /^\d+$/.test(id);
   }
 
   /**
