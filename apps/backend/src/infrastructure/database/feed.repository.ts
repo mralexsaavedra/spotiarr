@@ -112,9 +112,10 @@ export class FeedRepository {
   async getReleases(lookbackDays: number): Promise<ArtistRelease[]> {
     const safeDays = Number.isFinite(lookbackDays) && lookbackDays > 0 ? lookbackDays : 30;
     const cutoff = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
 
     const rows = await this.prisma.artistReleaseCache.findMany({
-      where: { releaseDate: { not: null, gte: cutoff } },
+      where: { releaseDate: { not: null, gte: cutoff, lte: today } },
       include: { artist: true },
       orderBy: { releaseDate: "desc" },
     });
