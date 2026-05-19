@@ -43,7 +43,11 @@
       "yesterdayAt": "Ayer a las {{time}}",
       "daysAgo": "Hace {{count}} días",
       "daysAgo_one": "Hace {{count}} día",
-      "daysAgo_other": "Hace {{count}} días"
+      "daysAgo_other": "Hace {{count}} días",
+      "tomorrow": "Mañana",
+      "inDays": "En {{count}} días",
+      "inDays_one": "En {{count}} día",
+      "inDays_other": "En {{count}} días"
     },
     "cards": {
       "albumTypes": {
