@@ -11,6 +11,10 @@ export interface DeezerAlbum {
   id: number;
   title: string;
   cover?: string;
+  cover_small?: string;
+  cover_medium?: string;
+  cover_big?: string;
+  cover_xl?: string;
   release_date?: string;
   type?: string;
   link?: string;
@@ -29,7 +33,19 @@ export interface DeezerTrack {
   album?: {
     title: string;
     cover?: string;
+    cover_xl?: string;
+    cover_big?: string;
+    cover_medium?: string;
   };
+}
+
+function pickBestCover(album: {
+  cover_xl?: string;
+  cover_big?: string;
+  cover_medium?: string;
+  cover?: string;
+}): string | undefined {
+  return album.cover_xl || album.cover_big || album.cover_medium || album.cover || undefined;
 }
 
 const DEEZER_API_BASE = "https://api.deezer.com";
@@ -131,7 +147,7 @@ export class DeezerClient {
         albumName: album.title,
         albumType: mapDeezerType(album.type),
         releaseDate: album.release_date,
-        coverUrl: album.cover ?? null,
+        coverUrl: pickBestCover(album) ?? null,
         spotifyUrl: undefined,
       }));
   }
@@ -160,8 +176,17 @@ export class DeezerClient {
   /**
    * Fetch tracks for a given Deezer album ID and normalize them.
    * Follows Deezer pagination automatically.
+   *
+   * Also fetches /album/:id once to backfill the album title and the
+   * highest-resolution cover, since /album/:id/tracks omits this metadata.
    */
   async getAlbumTracks(deezerAlbumId: string | number): Promise<NormalizedTrack[]> {
+    const albumMeta = await this.fetchJson<DeezerAlbum>(
+      `${DEEZER_API_BASE}/album/${deezerAlbumId}`,
+    );
+    const albumTitle = albumMeta?.title ?? "";
+    const albumCover = albumMeta ? pickBestCover(albumMeta) : undefined;
+
     const allTracks: DeezerTrack[] = [];
     let url: string | null = `${DEEZER_API_BASE}/album/${deezerAlbumId}/tracks?limit=100`;
 
@@ -183,13 +208,13 @@ export class DeezerClient {
       name: track.title,
       artist: track.artist?.name ?? "",
       artists: track.artist?.name ? [{ name: track.artist.name, url: undefined }] : [],
-      album: track.album?.title ?? "",
+      album: track.album?.title ?? albumTitle,
       trackNumber: track.track_position,
       discNumber: track.disk_number,
       durationMs: track.duration * 1000,
       trackUrl: `${DEEZER_API_BASE}/track/${track.id}`,
       albumUrl: `${DEEZER_API_BASE}/album/${deezerAlbumId}`,
-      albumCoverUrl: track.album?.cover,
+      albumCoverUrl: (track.album && pickBestCover(track.album)) ?? albumCover,
     }));
   }
 }

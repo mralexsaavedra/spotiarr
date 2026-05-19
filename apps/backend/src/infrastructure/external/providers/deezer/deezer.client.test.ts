@@ -148,31 +148,40 @@ describe("DeezerClient", () => {
 
   describe("getAlbumTracks", () => {
     it("maps Deezer tracks to NormalizedTrack", async () => {
-      fetchSpy.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [
-            {
-              id: 101,
-              title: "Track One",
-              duration: 180,
-              track_position: 1,
-              disk_number: 1,
-              artist: { name: "Test Artist" },
-              album: { title: "Test Album", cover: "http://cover.jpg" },
-            },
-            {
-              id: 102,
-              title: "Track Two",
-              duration: 240,
-              track_position: 2,
-              disk_number: 1,
-              artist: { name: "Test Artist" },
-              album: { title: "Test Album", cover: "http://cover.jpg" },
-            },
-          ],
-        }),
-      } as Response);
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            id: 12345,
+            title: "Test Album",
+            cover_xl: "http://cover_xl.jpg",
+          }),
+        } as Response)
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            data: [
+              {
+                id: 101,
+                title: "Track One",
+                duration: 180,
+                track_position: 1,
+                disk_number: 1,
+                artist: { name: "Test Artist" },
+                album: { title: "Test Album", cover: "http://cover.jpg" },
+              },
+              {
+                id: 102,
+                title: "Track Two",
+                duration: 240,
+                track_position: 2,
+                disk_number: 1,
+                artist: { name: "Test Artist" },
+                album: { title: "Test Album", cover: "http://cover.jpg" },
+              },
+            ],
+          }),
+        } as Response);
 
       const tracks = await client.getAlbumTracks(12345);
       expect(tracks).toHaveLength(2);
@@ -193,6 +202,10 @@ describe("DeezerClient", () => {
 
     it("follows pagination", async () => {
       fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ id: 123, title: "Album", cover_xl: "http://cover.jpg" }),
+        } as Response)
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({

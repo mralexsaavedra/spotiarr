@@ -23,6 +23,7 @@ function makeNormalizedTrack(overrides: Partial<NormalizedTrack> = {}): Normaliz
 function mockRepo(partial: Partial<FeedRepository> = {}): FeedRepository {
   return {
     getArtistAlbumWithArtist: vi.fn().mockResolvedValue(null),
+    getArtistReleaseWithArtist: vi.fn().mockResolvedValue(null),
     updateArtistAlbumIdentities: vi.fn().mockResolvedValue(undefined),
     ...partial,
   } as unknown as FeedRepository;
