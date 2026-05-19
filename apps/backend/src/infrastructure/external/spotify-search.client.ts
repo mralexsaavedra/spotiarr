@@ -1,4 +1,4 @@
-import { AlbumType, SpotifySearchResults } from "@spotiarr/shared";
+import type { AlbumType, SpotifySearchResults } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
@@ -73,14 +73,16 @@ export class SpotifySearchClient extends SpotifyBaseClient {
     query: string,
     types: string[] = ["track", "album", "artist"],
     limits: { track?: number; album?: number; artist?: number } = {},
+    options: { includeMarket?: boolean } = {},
   ): Promise<SpotifySearchResults> {
     try {
       if (!query || query.trim() === "") {
         return { tracks: [], albums: [], artists: [] };
       }
 
-      const market = await this.getMarket();
-      const cacheKey = `search:${query}:${types.join(",")}:${JSON.stringify(limits)}:${market}`;
+      const includeMarket = options.includeMarket ?? true;
+      const market = includeMarket ? await this.getMarket() : null;
+      const cacheKey = `search:${query}:${types.join(",")}:${JSON.stringify(limits)}:${market ?? "all"}`;
 
       return this.requestCache.getOrSet(cacheKey, async () => {
         this.log(`Searching catalog for query "${query}"`);
@@ -107,7 +109,8 @@ export class SpotifySearchClient extends SpotifyBaseClient {
         await Promise.all(
           Object.entries(groups).map(async ([limitStr, groupTypes]) => {
             const lim = Number(limitStr);
-            const url = `https://api.spotify.com/v1/search?q=${encodedQuery}&type=${groupTypes.join(",")}&limit=${lim}&market=${market}`;
+            const marketParam = market ? `&market=${market}` : "";
+            const url = `https://api.spotify.com/v1/search?q=${encodedQuery}&type=${groupTypes.join(",")}&limit=${lim}${marketParam}`;
             const response = await this.fetchWithAppToken(url);
 
             if (!response.ok) {

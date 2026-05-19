@@ -1,3 +1,4 @@
+import { CreatePlaylistRequest } from "@spotiarr/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/contexts/ToastContext";
@@ -10,7 +11,7 @@ export const useCreatePlaylistMutation = () => {
   const toast = useToast();
 
   return useMutation({
-    mutationFn: (spotifyUrl: string) => playlistService.createPlaylist(spotifyUrl),
+    mutationFn: (input: CreatePlaylistRequest) => playlistService.createPlaylist(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
     },

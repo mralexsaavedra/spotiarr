@@ -31,5 +31,14 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Build shared package
+        run: pnpm --filter @spotiarr/shared run build
+
+      - name: Generate Prisma client
+        run: pnpm --filter backend run prisma:generate
+
+      - name: Test backend
+        run: pnpm --filter backend run test:run
+
       - name: Build
         run: pnpm build

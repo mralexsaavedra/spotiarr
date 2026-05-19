@@ -1,5 +1,6 @@
 import {
   ApiRoutes,
+  CreatePlaylistRequest,
   DownloadStatusResponse,
   PlaylistPreview,
   SpotifyPlaylist,
@@ -49,9 +50,9 @@ export const playlistService = {
     );
   },
 
-  createPlaylist: async (spotifyUrl: string): Promise<Playlist> => {
+  createPlaylist: async (input: CreatePlaylistRequest): Promise<Playlist> => {
     try {
-      return await httpClient.post<Playlist>(ApiRoutes.PLAYLIST, { spotifyUrl });
+      return await httpClient.post<Playlist>(ApiRoutes.PLAYLIST, input);
     } catch (error) {
       if (error instanceof ApiError && error.code === "invalid_playlist_payload") {
         throw new ApiError("invalid_playlist_payload", "invalid_playlist_payload");

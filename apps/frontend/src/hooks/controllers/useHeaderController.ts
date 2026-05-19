@@ -70,7 +70,7 @@ export const useHeaderController = () => {
 
   const handleSubmit = useCallback(() => {
     if (normalizedUrl) {
-      createPlaylist.mutate(normalizedUrl);
+      createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: normalizedUrl });
       setUrl("");
     } else if (url.trim()) {
       const isAlreadyInSearch = location.pathname === Path.SEARCH;

@@ -8,7 +8,7 @@ interface ReleaseItemProps {
   release: ArtistRelease;
   isDownloaded: boolean;
   isDownloading: boolean;
-  onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
+  onReleaseClick: (release: ArtistRelease) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
   onArtistClick: (artistId: string) => void;
 }
@@ -50,7 +50,7 @@ const ReleaseItem: FC<ReleaseItemProps> = memo(
 
 interface ReleasesListProps {
   releases: ArtistRelease[];
-  onReleaseClick: (release: { spotifyUrl?: string | null; albumId: string }) => void;
+  onReleaseClick: (release: ArtistRelease) => void;
   onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
   onArtistClick: (artistId: string) => void;
 }

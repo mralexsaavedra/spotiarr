@@ -5,6 +5,7 @@ import { usePlaylistDownloaded, usePlaylistDownloading } from "@/contexts/Downlo
 import { Playlist, PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
 import { formatPlaylistTitle } from "@/utils/playlist";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useDeletePlaylistMutation } from "../mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../mutations/useRetryFailedTracksMutation";
@@ -40,8 +41,8 @@ export const usePlaylistController = ({
   }, [tracks]);
 
   const handleDownload = useCallback(() => {
-    if (!spotifyUrl) return;
-    createPlaylist.mutate(spotifyUrl);
+    if (!isSpotifyUrl(spotifyUrl)) return;
+    createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: spotifyUrl! });
   }, [spotifyUrl, createPlaylist]);
 
   const handleToggleSubscription = useCallback(() => {
@@ -50,15 +51,18 @@ export const usePlaylistController = ({
         id,
         data: { subscribed: !playlist.subscribed },
       });
-    } else if (spotifyUrl) {
-      createPlaylist.mutate(spotifyUrl, {
-        onSuccess: (newPlaylist) => {
-          updatePlaylist.mutate({
-            id: newPlaylist.id,
-            data: { subscribed: true },
-          });
+    } else if (isSpotifyUrl(spotifyUrl)) {
+      createPlaylist.mutate(
+        { kind: "spotifyUrl", spotifyUrl: spotifyUrl! },
+        {
+          onSuccess: (newPlaylist) => {
+            updatePlaylist.mutate({
+              id: newPlaylist.id,
+              data: { subscribed: true },
+            });
+          },
         },
-      });
+      );
     }
   }, [playlist, id, spotifyUrl, updatePlaylist, createPlaylist]);
 
@@ -75,18 +79,29 @@ export const usePlaylistController = ({
     }
 
     tracks.forEach((track) => {
-      if (track.status === TrackStatusEnum.Error && track.trackUrl) {
-        createPlaylist.mutate(track.trackUrl);
+      if (track.status === TrackStatusEnum.Error && isSpotifyUrl(track.trackUrl)) {
+        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
       }
     });
   }, [id, hasFailed, tracks, retryFailedTracks, createPlaylist]);
 
   const handleRetryTrack = useCallback(
     (track: Track) => {
-      if (track.id && !track.id.startsWith("preview-") && !track.id.startsWith("top-")) {
+      const isSynthetic =
+        !track.id ||
+        track.id.startsWith("preview-") ||
+        track.id.startsWith("top-") ||
+        track.id.startsWith("album-");
+
+      if (!isSynthetic) {
         retryTrack(track.id);
-      } else if (track.trackUrl) {
-        createPlaylist.mutate(track.trackUrl);
+        return;
+      }
+
+      // Synthetic ids have no DB row yet. Only Spotify trackUrls can be
+      // resolved via createPlaylist; Deezer/MB urls have no single-track path.
+      if (isSpotifyUrl(track.trackUrl)) {
+        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
       }
     },
     [retryTrack, createPlaylist],

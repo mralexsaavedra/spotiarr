@@ -24,8 +24,8 @@ interface PlaylistProps {
   completedCount: number;
   hasMoreTracks?: boolean;
   isLoadingMoreTracks?: boolean;
-  onRetryTrack: (trackId: string) => void;
-  onDownloadTrack: (track: Track) => void;
+  onRetryTrack?: (trackId: string) => void;
+  onDownloadTrack?: (track: Track) => void;
   onLoadMoreTracks?: () => void;
   onConfirmDelete: (() => void) | undefined;
   onRetryFailed: () => void;
@@ -110,7 +110,11 @@ export const Playlist: FC<PlaylistProps> = ({
             onRetryFailed={onRetryFailed}
             onDelete={handleDelete}
             onDownload={onDownload}
-            spotifyUrl={playlist?.spotifyUrl || ""}
+            spotifyUrl={
+              playlist?.spotifyUrl && !playlist.spotifyUrl.startsWith("spotiarr://")
+                ? playlist.spotifyUrl
+                : undefined
+            }
           />
         </div>
 

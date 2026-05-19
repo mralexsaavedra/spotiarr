@@ -1,34 +1,31 @@
+import type { ArtistRelease } from "@spotiarr/shared";
 import { MouseEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "@/routes/routes";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
-import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useReleasesQuery } from "../queries/useReleasesQuery";
+import { useAlbumPreviewNavigation } from "../useAlbumPreviewNavigation";
 
 export const useReleasesController = () => {
   const navigate = useNavigate();
 
   const { releases, isLoading, error } = useReleasesQuery();
-  const { data: playlists = [] } = usePlaylistsQuery();
   const createPlaylist = useCreatePlaylistMutation();
+  const { navigateToAlbumPreview } = useAlbumPreviewNavigation();
 
   const handleReleaseClick = useCallback(
-    (release: { spotifyUrl?: string | null; albumId: string }) => {
-      const existingPlaylist = playlists.find((p) => p.spotifyUrl === release.spotifyUrl);
-
-      if (existingPlaylist) {
-        navigate(`${Path.PLAYLIST_DETAIL.replace(":id", existingPlaylist.id)}`);
-      } else if (release.spotifyUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(release.spotifyUrl)}`);
-      }
+    (release: ArtistRelease) => {
+      void navigateToAlbumPreview(release);
     },
-    [playlists, navigate],
+    [navigateToAlbumPreview],
   );
 
   const handleDownloadRelease = useCallback(
     (e: MouseEvent, spotifyUrl: string) => {
       e.stopPropagation();
-      createPlaylist.mutate(spotifyUrl);
+      if (!isSpotifyUrl(spotifyUrl)) return;
+      createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl });
     },
     [createPlaylist],
   );

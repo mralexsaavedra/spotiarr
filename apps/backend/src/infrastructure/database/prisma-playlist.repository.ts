@@ -30,7 +30,7 @@ export class PrismaPlaylistRepository implements PlaylistRepository {
         id: data.id,
         name: data.name,
         type: data.type,
-        spotifyUrl: data.spotifyUrl,
+        spotifyUrl: data.spotifyUrl ?? "",
         error: data.error,
         subscribed: data.subscribed ?? false,
         createdAt: data.createdAt ? BigInt(data.createdAt) : BigInt(Date.now()),

@@ -6,7 +6,8 @@ export const useRecreatePlaylistMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (spotifyUrl: string) => playlistService.createPlaylist(spotifyUrl),
+    mutationFn: (spotifyUrl: string) =>
+      playlistService.createPlaylist({ kind: "spotifyUrl", spotifyUrl }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
     },

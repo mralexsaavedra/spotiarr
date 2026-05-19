@@ -5,11 +5,14 @@ export const validate =
   <T extends z.ZodTypeAny>(schema: T) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse({
+      const parsed = schema.parse({
         body: req.body,
         query: req.query,
         params: req.params,
       });
+      if (parsed && typeof parsed === "object") {
+        if ("body" in parsed && parsed.body !== undefined) req.body = parsed.body;
+      }
       next();
     } catch (error) {
       if (error instanceof ZodError) {

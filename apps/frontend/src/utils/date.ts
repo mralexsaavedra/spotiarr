@@ -20,7 +20,15 @@ export const formatRelativeDate = (timestamp: number, includeTime = true): strin
     return i18n.t("common.dates.yesterdayAt", { time });
   }
 
-  if (diffDays < 7) {
+  if (diffDays === -1) {
+    return i18n.t("common.dates.tomorrow");
+  }
+
+  if (diffDays < 0 && diffDays > -7) {
+    return i18n.t("common.dates.inDays", { count: Math.abs(diffDays) });
+  }
+
+  if (diffDays > 0 && diffDays < 7) {
     return i18n.t("common.dates.daysAgo", { count: diffDays });
   }
 

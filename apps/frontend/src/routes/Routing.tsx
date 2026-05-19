@@ -40,6 +40,9 @@ const NotFound = lazy(() =>
   import("../views/NotFound").then((module) => ({ default: module.NotFound })),
 );
 const Search = lazy(() => import("../views/Search").then((module) => ({ default: module.Search })));
+const AlbumDetail = lazy(() =>
+  import("../views/AlbumDetail").then((module) => ({ default: module.AlbumDetail })),
+);
 
 interface RoutingProps {
   pathname: Path;
@@ -70,6 +73,7 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
         <Route path={Path.MY_PLAYLISTS} element={<MyPlaylists />} />
         <Route path={Path.SETTINGS} element={<Settings />} />
         <Route path={Path.SEARCH} element={<Search />} />
+        <Route path={Path.ALBUM_DETAIL} element={<AlbumDetail />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Route>

@@ -91,7 +91,7 @@ export interface IPlaylist {
   id: string;
   name?: string;
   type?: PlaylistTypeEnum;
-  spotifyUrl: string;
+  spotifyUrl?: string;
   error?: string;
   subscribed?: boolean;
   createdAt?: number;
@@ -119,6 +119,11 @@ export interface ArtistRelease {
   totalTracks?: number;
 }
 
+export type CreatePlaylistRequest =
+  | { kind: "spotifyUrl"; spotifyUrl: string }
+  | { kind: "album"; artistId: string; albumId: string }
+  | { kind: "albumTrack"; artistId: string; albumId: string; trackIndex: number };
+
 export type ApiErrorCode =
   | "missing_user_access_token"
   | "spotify_rate_limited"
@@ -134,12 +139,14 @@ export type ApiErrorCode =
   | "playlist_already_exists"
   | "track_not_found"
   | "album_not_found"
+  | "spotify_album_url_not_found"
   | "internal_server_error"
   | "failed_to_fetch_artist_detail"
   | "failed_to_fetch_followed_artists"
   | "playlist_not_accessible"
   | "rate_limiter_overflow"
-  | "circuit_open";
+  | "circuit_open"
+  | "interactive_timeout";
 
 export interface ApiErrorShape {
   error: ApiErrorCode;
@@ -200,7 +207,7 @@ export interface ArtistDetail {
   genres?: string[];
   albums: ArtistRelease[];
   isFollowed: boolean;
-  albumsRateLimited?: boolean;
+  catalogRefreshPending?: boolean;
 }
 
 export interface SettingItem {

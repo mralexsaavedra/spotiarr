@@ -43,7 +43,11 @@
       "yesterdayAt": "Yesterday at {{time}}",
       "daysAgo": "{{count}} days ago",
       "daysAgo_one": "{{count}} day ago",
-      "daysAgo_other": "{{count}} days ago"
+      "daysAgo_other": "{{count}} days ago",
+      "tomorrow": "Tomorrow",
+      "inDays": "In {{count}} days",
+      "inDays_one": "In {{count}} day",
+      "inDays_other": "In {{count}} days"
     },
     "cards": {
       "albumTypes": {
@@ -176,6 +180,7 @@
     "error": "Failed to load artist details.",
     "downloaded": "Artist Downloaded",
     "noDiscography": "No discography available.",
+    "updatingDiscography": "Updating discography…",
     "rateLimited": "Discography temporarily unavailable. Spotify is rate limiting requests — try again in a few minutes.",
     "type": "Artist",
     "discography": {
@@ -301,5 +306,10 @@
     "artists": "Artists",
     "emptyState": "Type something in the search bar to find tracks, albums, or artists",
     "noResults": "No results found"
+  },
+  "album": {
+    "detail": {
+      "title": "Album"
+    }
   }
 }

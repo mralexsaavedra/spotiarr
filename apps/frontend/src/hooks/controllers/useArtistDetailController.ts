@@ -3,8 +3,10 @@ import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlaylistDownloaded } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useArtistDetailQuery } from "../queries/useArtistDetailQuery";
+import { useAlbumPreviewNavigation } from "../useAlbumPreviewNavigation";
 import { useGridColumns } from "../useGridColumns";
 import { useArtistDiscographyController } from "./useArtistDiscographyController";
 
@@ -21,8 +23,9 @@ export const useArtistDetailController = () => {
   // Use isFollowed from API response to determine initial limit
   // Backend enforces album cap: non-followed artists get max 5 albums
   const { artist, isLoading, error } = useArtistDetailQuery(id || null, DETAIL_PAGE_SIZE);
-  const albumsRateLimited = artist?.albumsRateLimited ?? false;
+  const catalogRefreshPending = artist?.catalogRefreshPending ?? false;
   const createPlaylistMutation = useCreatePlaylistMutation();
+  const { navigateToAlbumPreview } = useAlbumPreviewNavigation();
 
   const isArtistDownloaded = usePlaylistDownloaded(artist?.spotifyUrl);
   const hasArtist = !!artist && !!id && !error;
@@ -55,11 +58,11 @@ export const useArtistDetailController = () => {
 
   const handleDownload = useCallback(
     (url?: string) => {
-      if (!url) {
+      if (!isSpotifyUrl(url)) {
         return;
       }
 
-      createPlaylistMutation.mutate(url);
+      createPlaylistMutation.mutate({ kind: "spotifyUrl", spotifyUrl: url! });
     },
     [createPlaylistMutation],
   );
@@ -69,10 +72,10 @@ export const useArtistDetailController = () => {
   }, [handleDownload, artist?.spotifyUrl]);
 
   const handleNavigate = useCallback(
-    (url: string) => {
-      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(url)}`);
+    (album: ArtistRelease) => {
+      void navigateToAlbumPreview(album);
     },
-    [navigate],
+    [navigateToAlbumPreview],
   );
 
   const handleArtistClick = useCallback(
@@ -92,7 +95,7 @@ export const useArtistDetailController = () => {
     hasArtist,
     isArtistDownloaded,
     isFollowed,
-    albumsRateLimited,
+    catalogRefreshPending,
     filter,
     setFilter,
     filteredAlbums,

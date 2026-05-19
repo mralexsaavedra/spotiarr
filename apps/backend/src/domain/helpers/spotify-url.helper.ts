@@ -21,6 +21,10 @@ export class SpotifyUrlHelper {
       throw new AppError(400, "invalid_spotify_url", "Invalid Spotify URL: URL is empty");
     }
 
+    if (!SpotifyUrlHelper.isSpotifyUrl(url)) {
+      throw new AppError(400, "invalid_spotify_url", `Not a Spotify URL: ${url}`);
+    }
+
     if (url.includes("/playlist/")) {
       return SpotifyUrlType.Playlist;
     }
@@ -38,6 +42,15 @@ export class SpotifyUrlHelper {
     }
 
     throw new AppError(400, "invalid_spotify_url", `Unknown Spotify URL type: ${url}`);
+  }
+
+  static isSpotifyUrl(url: string): boolean {
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      return host === "open.spotify.com" || host === "spotify.com" || host === "spoti.fi";
+    } catch {
+      return false;
+    }
   }
 
   /**

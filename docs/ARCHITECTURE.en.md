@@ -135,6 +135,7 @@ Handles OAuth2 complexity transparently:
 
 - **Dual Token Strategy:** Uses _Client Credentials_ for public searches and _Authorization Code_ for user data.
 - **Auto-Refresh:** Stores `refresh_token` in encrypted database and renews token automatically before expiry, ensuring nightly Cron Jobs never fail due to auth.
+- **Catalog provider strategy:** Spotify remains the source of truth for **auth and user data** (followed artists, playlists, library). For **public catalog data** (discography, tracks, releases), the backend prioritizes **Deezer** as primary, **MusicBrainz** as secondary fallback, and **Spotify** as terminal fallback. This mitigates Spotify quota restrictions without losing functionality.
 
 ### 5.3. Download Engine (`YoutubeDownloadService`)
 

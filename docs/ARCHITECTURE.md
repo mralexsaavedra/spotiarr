@@ -135,6 +135,7 @@ Maneja la complejidad de OAuth2 de forma transparente:
 
 - **Dual Token Strategy:** Usa _Client Credentials_ para búsquedas públicas y _Authorization Code_ para datos de usuario.
 - **Auto-Refresh:** Almacena el `refresh_token` en base de datos cifrada y renueva el token automáticamente antes de que expire, garantizando que los Cron Jobs nocturnos nunca fallen por auth.
+- **Estrategia de proveedores de catálogo:** Spotify sigue siendo la fuente de verdad para **auth y datos de usuario** (artistas seguidos, playlists, librería). Para **datos públicos de catálogo** (discografía, tracks, lanzamientos), el backend prioriza **Deezer** como primario, **MusicBrainz** como fallback secundario, y **Spotify** como fallback terminal. Esto mitiga las restricciones de quota de Spotify sin perder funcionalidad.
 
 ### 5.3. Motor de Descarga (`YoutubeDownloadService`)
 

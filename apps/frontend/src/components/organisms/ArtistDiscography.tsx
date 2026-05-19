@@ -19,7 +19,7 @@ interface ArtistDiscographyProps {
   onShowMore: () => void;
   canShowMore: boolean;
   onDownload: (url: string) => void;
-  onDiscographyItemClick: (url: string) => void;
+  onDiscographyItemClick: (album: ArtistRelease) => void;
   onArtistClick: (artistId: string) => void;
   onAlbumExpand: (album: ArtistRelease) => void;
   onAlbumExpandClose: () => void;
@@ -32,7 +32,7 @@ interface DiscographyItemProps {
   album: ArtistRelease;
   isDownloaded: boolean;
   isDownloading: boolean;
-  onDiscographyItemClick: (url: string) => void;
+  onDiscographyItemClick: (album: ArtistRelease) => void;
   onDownload: (url: string) => void;
   onArtistClick: (artistId: string) => void;
   onExpandClick: (album: ArtistRelease) => void;
@@ -49,10 +49,8 @@ const DiscographyItem: FC<DiscographyItemProps> = memo(
     onExpandClick,
   }) => {
     const handleCardClick = useCallback(() => {
-      if (album.spotifyUrl) {
-        onDiscographyItemClick(album.spotifyUrl);
-      }
-    }, [album.spotifyUrl, onDiscographyItemClick]);
+      onDiscographyItemClick(album);
+    }, [album, onDiscographyItemClick]);
 
     const handleDownloadClick = useCallback(
       (e: MouseEvent) => {

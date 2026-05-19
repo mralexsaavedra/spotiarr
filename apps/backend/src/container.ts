@@ -3,6 +3,9 @@ import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
+import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
+import { GetArtistAlbumsUseCase } from "./application/use-cases/artists/get-artist-albums.use-case";
+import { GetArtistDetailUseCase } from "./application/use-cases/artists/get-artist-detail.use-case";
 import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
 import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
@@ -26,12 +29,16 @@ import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.use-case";
 import { SpotifyService } from "./domain/services/spotify.service";
+import { NoopAlbumTracksCache } from "./infrastructure/cache/noop-album-tracks-cache";
 import { FeedRepository } from "./infrastructure/database/feed.repository";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { PromiseCache } from "./infrastructure/external/promise-cache";
+import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
+import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
+import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
 import { SpotifyArtistClient } from "./infrastructure/external/spotify-artist.client";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
@@ -135,6 +142,17 @@ const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
   spotifyAuthService,
   "sync",
 );
+
+// External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
+const deezerClient = new DeezerClient();
+const musicBrainzClient = new MusicBrainzClient();
+const releaseFeedService = new ReleaseFeedService(
+  feedRepository,
+  deezerClient,
+  musicBrainzClient,
+  spotifyUserLibrarySyncService,
+);
+
 // Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
 const spotifyService = new SpotifyService(
   spotifyArtistClient,
@@ -226,15 +244,6 @@ const getPlaylistsUseCase = new GetPlaylistsUseCase(playlistRepository);
 const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
 const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
 
-// Background use cases — use sync service to avoid starving interactive requests
-const createPlaylistUseCase = new CreatePlaylistUseCase(
-  playlistRepository,
-  spotifyServiceSync,
-  trackService,
-  settingsService,
-  eventBus,
-);
-
 const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
   playlistRepository,
   spotifyServiceSync,
@@ -248,6 +257,43 @@ const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
 );
 
 const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService);
+
+// Library Services
+const fileSystemScannerService = new FileSystemScannerService();
+const scanLibraryUseCase = new ScanLibraryUseCase(
+  fileSystemScannerService,
+  trackFileHelper,
+  trackRepository,
+);
+const libraryService = new LibraryService(scanLibraryUseCase);
+
+const libraryController = new LibraryController(libraryService);
+
+const getArtistDetailUseCase = new GetArtistDetailUseCase(
+  feedRepository,
+  releaseFeedService,
+  spotifyArtistClient,
+);
+const getArtistAlbumsUseCase = new GetArtistAlbumsUseCase(feedRepository, releaseFeedService);
+const noopAlbumTracksCache = new NoopAlbumTracksCache();
+const getAlbumTracksUseCase = new GetAlbumTracksUseCase(
+  feedRepository,
+  deezerClient,
+  musicBrainzClient,
+  spotifyAlbumClient,
+  noopAlbumTracksCache,
+);
+// Background use cases — use sync service to avoid starving interactive requests
+// getAlbumTracksUseCase must be declared before this
+const createPlaylistUseCase = new CreatePlaylistUseCase(
+  playlistRepository,
+  spotifyServiceSync,
+  trackService,
+  settingsService,
+  eventBus,
+  getAlbumTracksUseCase,
+  feedRepository,
+);
 
 // Domain Services (Playlist)
 const playlistService = new PlaylistService({
@@ -274,20 +320,12 @@ const playlistController = new PlaylistController(
   updatePlaylistUseCase,
 );
 
-// Library Services
-const fileSystemScannerService = new FileSystemScannerService();
-const scanLibraryUseCase = new ScanLibraryUseCase(
-  fileSystemScannerService,
-  trackFileHelper,
-  trackRepository,
-);
-const libraryService = new LibraryService(scanLibraryUseCase);
-
-const libraryController = new LibraryController(libraryService);
 const artistController = new ArtistController(
   spotifyArtistClient,
-  feedRepository,
   spotifyAlbumClient,
+  getArtistDetailUseCase,
+  getArtistAlbumsUseCase,
+  getAlbumTracksUseCase,
 );
 const searchController = new SearchController(spotifyService);
 
@@ -300,6 +338,7 @@ const feedController = new FeedController(
   spotifyUserLibraryService,
   feedRepository,
   settingsService,
+  releaseFeedService,
 );
 const authController = new AuthController(spotifyAuthService, settingsService);
 const healthController = new HealthController();
@@ -342,6 +381,9 @@ export const container = {
   spotifyUserLibraryService,
   spotifyUserLibrarySyncService,
   spotifyAuthService,
+  deezerClient,
+  musicBrainzClient,
+  releaseFeedService,
 
   settingsService,
   getSettingsUseCase,

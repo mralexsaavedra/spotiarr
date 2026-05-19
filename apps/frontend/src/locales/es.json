@@ -43,7 +43,11 @@
       "yesterdayAt": "Ayer a las {{time}}",
       "daysAgo": "Hace {{count}} días",
       "daysAgo_one": "Hace {{count}} día",
-      "daysAgo_other": "Hace {{count}} días"
+      "daysAgo_other": "Hace {{count}} días",
+      "tomorrow": "Mañana",
+      "inDays": "En {{count}} días",
+      "inDays_one": "En {{count}} día",
+      "inDays_other": "En {{count}} días"
     },
     "cards": {
       "albumTypes": {
@@ -176,6 +180,7 @@
     "error": "Error al cargar detalles del artista.",
     "downloaded": "Artista Descargado",
     "noDiscography": "Sin discografía disponible.",
+    "updatingDiscography": "Actualizando discografía…",
     "rateLimited": "Discografía temporalmente no disponible. Spotify está limitando las peticiones — inténtalo de nuevo en unos minutos.",
     "type": "Artista",
     "discography": {
@@ -301,5 +306,10 @@
     "artists": "Artistas",
     "emptyState": "Escribe algo en la barra de búsqueda para encontrar canciones, álbumes o artistas",
     "noResults": "No se encontraron resultados"
+  },
+  "album": {
+    "detail": {
+      "title": "Álbum"
+    }
   }
 }

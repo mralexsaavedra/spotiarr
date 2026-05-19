@@ -11,7 +11,8 @@ Thank you for considering contributing to SpotiArr! This document explains how t
 3. `pnpm install`
 4. `cp .env.example .env` → add Spotify credentials + set `REDIS_HOST=localhost`
 5. Ensure Redis is running locally (service, Docker, or Brew)
-6. `pnpm dev` (runs backend + frontend together)
+6. `pnpm setup:dev` (builds shared package, applies DB migrations, generates Prisma client)
+7. `pnpm dev` (runs shared watcher + backend + frontend together)
 
 Need more detail? Keep reading 👇
 
@@ -62,7 +63,7 @@ cp .env.example .env
 # A symlink is automatically used by the backend to read this file
 ```
 
-5. **Setup Database**
+5. **Setup Database and generated packages**
 
    Configure the local development database:
 
@@ -70,8 +71,8 @@ cp .env.example .env
    # 1. Create backend env file
    cp apps/backend/.env.example apps/backend/.env
 
-   # 2. Run migrations (creates apps/backend/prisma/dev.db)
-   pnpm --filter backend run prisma:migrate:deploy
+   # 2. Build shared package, run migrations, and generate Prisma client
+   pnpm setup:dev
    ```
 
 6. **Install services**
@@ -98,11 +99,13 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 
 ### Running the Development Environment
 
-| Command         | What it does                             | Ports       |
-| --------------- | ---------------------------------------- | ----------- |
-| `pnpm dev`      | Backend + frontend concurrently          | 3000 / 5173 |
-| `pnpm start:be` | Backend only (API + SSE)                 | 3000        |
-| `pnpm start:fe` | Frontend only (Vite dev server with HMR) | 5173        |
+| Command           | What it does                                               | Ports       |
+| ----------------- | ---------------------------------------------------------- | ----------- |
+| `pnpm setup:dev`  | Build shared package, apply DB migrations, generate Prisma | -           |
+| `pnpm dev`        | Setup dev, then run shared watcher + backend + frontend    | 3000 / 5173 |
+| `pnpm dev:shared` | Shared package watcher (`@spotiarr/shared` → `dist/`)      | -           |
+| `pnpm start:be`   | Backend only (API + SSE)                                   | 3000        |
+| `pnpm start:fe`   | Frontend only (Vite dev server with HMR)                   | 5173        |
 
 ### Environment Variables
 

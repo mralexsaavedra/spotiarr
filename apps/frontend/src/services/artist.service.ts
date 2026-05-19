@@ -1,10 +1,10 @@
-import {
-  ApiRoutes,
+import type {
   ArtistDetail,
   ArtistRelease,
   FollowedArtist,
   NormalizedTrack,
 } from "@spotiarr/shared";
+import { ApiRoutes } from "@spotiarr/shared";
 import { httpClient } from "./httpClient";
 
 export const artistService = {

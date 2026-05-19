@@ -46,6 +46,16 @@ export const mapSpotifyError = (error: unknown, fallback: ApiErrorCode): ApiErro
   return fallback;
 };
 
+export const isSpotifyUrl = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "open.spotify.com" || host === "spotify.com" || host === "spoti.fi";
+  } catch {
+    return false;
+  }
+};
+
 export const getSpotifyIdFromUrl = (url: string): string | null => {
   try {
     const urlObj = new URL(url);
