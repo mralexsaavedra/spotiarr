@@ -96,7 +96,6 @@ export const useAlbumDetailController = () => {
   }, [album?.spotifyUrl, artistId, albumId]);
 
   const {
-    isDownloading,
     isDownloaded,
     isButtonLoading,
     hasFailed,

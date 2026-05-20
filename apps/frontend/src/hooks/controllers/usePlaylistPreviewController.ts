@@ -160,7 +160,6 @@ export const usePlaylistPreviewController = () => {
   }, [accumulatedPreviewTracks, trackStatusesMap]);
 
   const {
-    isDownloading,
     isDownloaded,
     isButtonLoading,
     hasFailed,

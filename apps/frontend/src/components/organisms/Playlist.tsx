@@ -30,7 +30,7 @@ interface PlaylistProps {
   onConfirmDelete: (() => void) | undefined;
   onRetryFailed: () => void;
   onToggleSubscription: () => void;
-  onDownload: () => void;
+  onDownloadOrRetry: () => void;
 }
 
 export const Playlist: FC<PlaylistProps> = ({
@@ -51,7 +51,7 @@ export const Playlist: FC<PlaylistProps> = ({
   onConfirmDelete,
   onRetryFailed,
   onToggleSubscription,
-  onDownload,
+  onDownloadOrRetry,
 }) => {
   const { t } = useTranslation();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -109,7 +109,7 @@ export const Playlist: FC<PlaylistProps> = ({
             onToggleSubscription={onToggleSubscription}
             onRetryFailed={onRetryFailed}
             onDelete={handleDelete}
-            onDownload={onDownload}
+            onDownload={onDownloadOrRetry}
             spotifyUrl={
               playlist?.spotifyUrl && !playlist.spotifyUrl.startsWith("spotiarr://")
                 ? playlist.spotifyUrl
