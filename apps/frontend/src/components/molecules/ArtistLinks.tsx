@@ -1,7 +1,7 @@
 import { FC, memo, MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { Path } from "@/routes/routes";
-import { getSpotifyIdFromUrl } from "@/utils/spotify";
+import { getSpotifyIdFromUrl, isSpotifyUrl } from "@/utils/spotify";
 
 interface Artist {
   name: string;
@@ -23,7 +23,11 @@ interface ArtistLinkProps {
 }
 
 const ArtistLink: FC<ArtistLinkProps> = memo(({ artist, linkClassName, onLinkClick, isLast }) => {
-  const artistId = artist.url ? getSpotifyIdFromUrl(artist.url) : null;
+  const artistId = artist.url
+    ? isSpotifyUrl(artist.url)
+      ? getSpotifyIdFromUrl(artist.url)
+      : (artist.url.split("/").filter(Boolean).pop() ?? null)
+    : null;
 
   const handleClick = (e: MouseEvent) => {
     if (onLinkClick) onLinkClick(e);
