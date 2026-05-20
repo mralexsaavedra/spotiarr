@@ -1,0 +1,68 @@
+---
+name: spotiarr-docker
+description: "Trigger: Docker, docker-compose, deploy, container, volume, DOWNLOADS_DIR, PUID, PGID, update, self-hosted. spotiarr Docker setup: services, volumes, env vars, update flow."
+license: Apache-2.0
+metadata:
+  author: gentleman-programming
+  version: "1.0"
+---
+
+## Activation Contract
+
+Load when working with docker-compose, deployments, volumes, or self-hosted configuration.
+
+## Hard Rules
+
+- `./config/` is a Docker volume mount (`./config:/spotiarr/config`) — the SQLite database lives there. It is gitignored. Never commit it.
+- `docker-compose.override.yml` is gitignored — use it for local port/env overrides, never commit it.
+- `spotiarr` service waits for `redis` healthcheck before starting (`depends_on: condition: service_healthy`).
+- Traefik is optional — strip it from `docker-compose.override.yml` for direct port-3000 access.
+
+## Services
+
+| Service    | Image                                 | Ports              | Purpose                  |
+| ---------- | ------------------------------------- | ------------------ | ------------------------ |
+| `spotiarr` | `mralexandersaavedra/spotiarr:latest` | `3000:3000`        | App (frontend + backend) |
+| `redis`    | `redis:7-alpine`                      | `6379:6379`        | BullMQ job queues        |
+| `traefik`  | `traefik:v3.2`                        | `80:80`, `443:443` | Reverse proxy (optional) |
+
+## Volumes
+
+| Mount                | Container path     | Contents                          |
+| -------------------- | ------------------ | --------------------------------- |
+| `./config/`          | `/spotiarr/config` | SQLite DB + app data (persistent) |
+| `${DOWNLOADS_DIR}`   | `/downloads`       | Downloaded music files            |
+| `redis-data` (named) | `/data`            | Redis persistence                 |
+
+## Required Environment Variables
+
+```bash
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+SPOTIFY_REDIRECT_URI=http://localhost:3000/api/auth/callback
+
+DOWNLOADS_DIR=/absolute/host/path/to/downloads   # must be absolute
+```
+
+## Optional Environment Variables
+
+```bash
+PUID=1000          # file ownership UID (default: 1000)
+PGID=1000          # file ownership GID (default: 1000)
+REDIS_HOST=redis   # default: "redis" (service name)
+REDIS_PORT=6379    # default: 6379
+```
+
+## Update Flow
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+## References
+
+- Compose file: `docker-compose.yml`
+- Env template: `.env.example`
+- Entrypoint: `docker-entrypoint.sh`
+- Data volume: `./config/` (gitignored)

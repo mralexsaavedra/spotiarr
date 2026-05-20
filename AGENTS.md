@@ -72,6 +72,7 @@ Load the relevant skill by reading the `SKILL.md` at the listed path. Multiple s
 | `spotiarr-prisma`       | Prisma queries, migrations, schemas (SQLite backend)     | [SKILL.md](skills/spotiarr-prisma/SKILL.md)       |
 | `spotiarr-bullmq`       | BullMQ queues, workers, cron jobs                        | [SKILL.md](skills/spotiarr-bullmq/SKILL.md)       |
 | `spotiarr-sse`          | SSE events, real-time updates, useServerEvents           | [SKILL.md](skills/spotiarr-sse/SKILL.md)          |
+| `spotiarr-docker`       | Docker, docker-compose, deploy, volumes, self-hosted     | [SKILL.md](skills/spotiarr-docker/SKILL.md)       |
 | `spotiarr-i18n`         | i18n translations, i18next keys, adding a new language   | [SKILL.md](skills/spotiarr-i18n/SKILL.md)         |
 | `spotiarr-release`      | Version bump, CHANGELOG, git tag, GitHub Release         | [SKILL.md](skills/spotiarr-release/SKILL.md)      |
 

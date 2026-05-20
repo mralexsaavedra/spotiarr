@@ -19,6 +19,7 @@ Load when deciding where new code belongs across backend, frontend, or shared.
 - Server state in frontend → TanStack Query (`hooks/queries`, `hooks/mutations`). Client state → Zustand slices under `store/` (one file per domain).
 - Real-time SSE sync → `useServerEvents` hook. Do not add manual SSE subscriptions elsewhere.
 - Shared DTOs, enums, utilities → `packages/shared/`. Never duplicate in apps.
+- All Spotify HTTP calls must go through `CircuitBreaker.execute()` (`infrastructure/external/circuit-breaker.ts`). Never add a raw Spotify HTTP call without wrapping it. The circuit persists open state via `onOpen` callback → settings → restored on restart.
 
 ## Decision Gates
 
@@ -41,5 +42,5 @@ Cross-cutting types / utils?         → packages/shared/
 
 ## References
 
-- DI container: `apps/backend/src/infrastructure/setup/container.ts`
+- DI container: `apps/backend/src/container.ts`
 - Store pattern: `apps/frontend/src/store/`
