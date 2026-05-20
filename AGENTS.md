@@ -73,32 +73,29 @@ Load the relevant skill by reading the `SKILL.md` at the listed path. Multiple s
 | `spotiarr-bullmq`       | BullMQ queues, workers, cron jobs                        | [SKILL.md](skills/spotiarr-bullmq/SKILL.md)       |
 | `spotiarr-sse`          | SSE events, real-time updates, useServerEvents           | [SKILL.md](skills/spotiarr-sse/SKILL.md)          |
 | `spotiarr-docker`       | Docker, docker-compose, deploy, volumes, self-hosted     | [SKILL.md](skills/spotiarr-docker/SKILL.md)       |
+| `spotiarr-zustand`      | Zustand stores, client state, download status, prefs     | [SKILL.md](skills/spotiarr-zustand/SKILL.md)      |
 | `spotiarr-i18n`         | i18n translations, i18next keys, adding a new language   | [SKILL.md](skills/spotiarr-i18n/SKILL.md)         |
 | `spotiarr-release`      | Version bump, CHANGELOG, git tag, GitHub Release         | [SKILL.md](skills/spotiarr-release/SKILL.md)      |
 
 ### Generic Skills
 
-| Skill                         | Trigger                                                     | Path                                                    |
-| ----------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
-| `typescript-advanced-types`   | TypeScript types, interfaces, generics, utility types       | [SKILL.md](skills/typescript-advanced-types/SKILL.md)   |
-| `react-best-practices`        | React 19 components, hooks, patterns, performance           | [SKILL.md](skills/react-best-practices/SKILL.md)        |
-| `vercel-react-best-practices` | React rendering optimization, bundle size, waterfalls       | [SKILL.md](skills/vercel-react-best-practices/SKILL.md) |
-| `composition-patterns`        | Compound components, context, boolean prop refactoring      | [SKILL.md](skills/composition-patterns/SKILL.md)        |
-| `tailwind-css-patterns`       | Tailwind v4 styling, responsive layouts, dark mode          | [SKILL.md](skills/tailwind-css-patterns/SKILL.md)       |
-| `zod`                         | Schema validation with Zod (API boundaries, env vars)       | [SKILL.md](skills/zod/SKILL.md)                         |
-| `frontend-design`             | High-quality UI construction, distinctive aesthetics        | [SKILL.md](skills/frontend-design/SKILL.md)             |
-| `web-design-guidelines`       | UX/visual accessibility audits, design review               | [SKILL.md](skills/web-design-guidelines/SKILL.md)       |
-| `accessibility`               | WCAG 2.2 audits, a11y improvements, keyboard nav            | [SKILL.md](skills/accessibility/SKILL.md)               |
-| `vite`                        | Vite config, plugins, SSR, Rolldown migration               | [SKILL.md](skills/vite/SKILL.md)                        |
-| `nodejs-backend-patterns`     | Node.js backend services, Express/Fastify, REST APIs        | [SKILL.md](skills/nodejs-backend-patterns/SKILL.md)     |
-| `nodejs-best-practices`       | Node.js architecture, framework selection, async patterns   | [SKILL.md](skills/nodejs-best-practices/SKILL.md)       |
-| `nodejs-express-server`       | Express middleware, authentication, routing                 | [SKILL.md](skills/nodejs-express-server/SKILL.md)       |
-| `prisma-cli`                  | Prisma CLI commands, migrate, generate, studio              | [SKILL.md](skills/prisma-cli/SKILL.md)                  |
-| `prisma-client-api`           | Prisma Client CRUD, filters, relations, transactions        | [SKILL.md](skills/prisma-client-api/SKILL.md)           |
-| `prisma-database-setup`       | Prisma provider configuration, driver adapters              | [SKILL.md](skills/prisma-database-setup/SKILL.md)       |
-| `prisma-postgres`             | Prisma Postgres managed database, create-db, Management API | [SKILL.md](skills/prisma-postgres/SKILL.md)             |
-| `seo`                         | Meta tags, structured data, sitemap, crawlability           | [SKILL.md](skills/seo/SKILL.md)                         |
-| `bash-defensive-patterns`     | Defensive Bash scripts, CI/CD pipelines, error handling     | [SKILL.md](skills/bash-defensive-patterns/SKILL.md)     |
+| Skill                         | Trigger                                                         | Path                                                    |
+| ----------------------------- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| `typescript-advanced-types`   | TypeScript types, interfaces, generics, utility types           | [SKILL.md](skills/typescript-advanced-types/SKILL.md)   |
+| `vercel-react-best-practices` | React 19 components, hooks, rendering optimization, bundle size | [SKILL.md](skills/vercel-react-best-practices/SKILL.md) |
+| `composition-patterns`        | Compound components, context, boolean prop refactoring          | [SKILL.md](skills/composition-patterns/SKILL.md)        |
+| `tailwind-css-patterns`       | Tailwind v4 styling, responsive layouts, dark mode              | [SKILL.md](skills/tailwind-css-patterns/SKILL.md)       |
+| `zod`                         | Schema validation with Zod (API boundaries, env vars)           | [SKILL.md](skills/zod/SKILL.md)                         |
+| `frontend-design`             | High-quality UI construction, distinctive aesthetics            | [SKILL.md](skills/frontend-design/SKILL.md)             |
+| `web-design-guidelines`       | UX/visual accessibility audits, design review                   | [SKILL.md](skills/web-design-guidelines/SKILL.md)       |
+| `accessibility`               | WCAG 2.2 audits, a11y improvements, keyboard nav                | [SKILL.md](skills/accessibility/SKILL.md)               |
+| `vite`                        | Vite config, plugins, SSR, Rolldown migration                   | [SKILL.md](skills/vite/SKILL.md)                        |
+| `nodejs-backend-patterns`     | Node.js backend services, Express/Fastify, REST APIs            | [SKILL.md](skills/nodejs-backend-patterns/SKILL.md)     |
+| `nodejs-express-server`       | Express middleware, authentication, routing                     | [SKILL.md](skills/nodejs-express-server/SKILL.md)       |
+| `prisma-cli`                  | Prisma CLI commands, migrate, generate, studio                  | [SKILL.md](skills/prisma-cli/SKILL.md)                  |
+| `prisma-client-api`           | Prisma Client CRUD, filters, relations, transactions            | [SKILL.md](skills/prisma-client-api/SKILL.md)           |
+| `prisma-database-setup`       | Prisma provider configuration, driver adapters                  | [SKILL.md](skills/prisma-database-setup/SKILL.md)       |
+| `bash-defensive-patterns`     | Defensive Bash scripts, CI/CD pipelines, error handling         | [SKILL.md](skills/bash-defensive-patterns/SKILL.md)     |
 
 ---
 
@@ -106,30 +103,30 @@ Load the relevant skill by reading the `SKILL.md` at the listed path. Multiple s
 
 When performing these actions, load the corresponding skill FIRST:
 
-| Action                                                   | Skill                         |
-| -------------------------------------------------------- | ----------------------------- |
-| Deciding where new code belongs across layers            | `spotiarr-architecture`       |
-| Running commands, validating changes, opening a PR       | `spotiarr-workflow`           |
-| Writing Prisma queries, migrations, or schema changes    | `spotiarr-prisma`             |
-| Writing BullMQ workers, queue definitions, or cron jobs  | `spotiarr-bullmq`             |
-| Adding or modifying translation keys                     | `spotiarr-i18n`               |
-| Publishing a new version of Spotiarr                     | `spotiarr-release`            |
-| Writing TypeScript types, interfaces, or generics        | `typescript-advanced-types`   |
-| Writing React components or hooks                        | `react-best-practices`        |
-| Optimizing React rendering or reducing bundle size       | `vercel-react-best-practices` |
-| Refactoring components with boolean prop proliferation   | `composition-patterns`        |
-| Styling with Tailwind CSS                                | `tailwind-css-patterns`       |
-| Writing or reviewing Zod schemas                         | `zod`                         |
-| Building a UI component or page                          | `frontend-design`             |
-| Reviewing UI for design quality or guidelines compliance | `web-design-guidelines`       |
-| Auditing or improving accessibility                      | `accessibility`               |
-| Working with Vite config or plugins                      | `vite`                        |
-| Building backend services or REST APIs                   | `nodejs-backend-patterns`     |
-| Working with Express middleware or authentication        | `nodejs-express-server`       |
-| Adding or consuming SSE / real-time events               | `spotiarr-sse`                |
-| Running Prisma CLI commands                              | `prisma-cli`                  |
-| Improving SEO or adding structured data                  | `seo`                         |
-| Writing shell scripts or CI pipeline scripts             | `bash-defensive-patterns`     |
+| Action                                                     | Skill                         |
+| ---------------------------------------------------------- | ----------------------------- |
+| Deciding where new code belongs across layers              | `spotiarr-architecture`       |
+| Running commands, validating changes, opening a PR         | `spotiarr-workflow`           |
+| Writing Prisma queries, migrations, or schema changes      | `spotiarr-prisma`             |
+| Writing BullMQ workers, queue definitions, or cron jobs    | `spotiarr-bullmq`             |
+| Adding or modifying translation keys                       | `spotiarr-i18n`               |
+| Publishing a new version of Spotiarr                       | `spotiarr-release`            |
+| Deploying, configuring docker-compose, or managing volumes | `spotiarr-docker`             |
+| Adding or modifying Zustand stores or client-side state    | `spotiarr-zustand`            |
+| Writing TypeScript types, interfaces, or generics          | `typescript-advanced-types`   |
+| Writing React components, hooks, or optimizing rendering   | `vercel-react-best-practices` |
+| Refactoring components with boolean prop proliferation     | `composition-patterns`        |
+| Styling with Tailwind CSS                                  | `tailwind-css-patterns`       |
+| Writing or reviewing Zod schemas                           | `zod`                         |
+| Building a UI component or page                            | `frontend-design`             |
+| Reviewing UI for design quality or guidelines compliance   | `web-design-guidelines`       |
+| Auditing or improving accessibility                        | `accessibility`               |
+| Working with Vite config or plugins                        | `vite`                        |
+| Building backend services or REST APIs                     | `nodejs-backend-patterns`     |
+| Working with Express middleware or authentication          | `nodejs-express-server`       |
+| Adding or consuming SSE / real-time events                 | `spotiarr-sse`                |
+| Running Prisma CLI commands                                | `prisma-cli`                  |
+| Writing shell scripts or CI pipeline scripts               | `bash-defensive-patterns`     |
 
 ---
 
