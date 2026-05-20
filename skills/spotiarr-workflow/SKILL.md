@@ -1,109 +1,50 @@
 ---
 name: spotiarr-workflow
-description: >
-  Operational workflow for running commands, validating changes, creating PRs,
-  managing branches, and handling secrets in the Spotiarr monorepo.
-  Trigger: When running commands, validating changes, creating PRs, managing branches, or handling secrets in this repo.
+description: "Trigger: command, validate, PR, branch, run lint, run build, secrets. Correct pnpm commands, branch naming, PR checklist, and secrets rules for spotiarr."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "2.0"
 ---
 
-## When to Use
+## Activation Contract
 
-Use this skill when:
+Load when running commands, validating changes, creating PRs, managing branches, or checking secrets.
 
-- You need the correct `pnpm` command for root, backend, frontend, or shared workspaces.
-- You are validating changes before commit/PR.
-- You are preparing branches and PRs using this repo's naming/checklist conventions.
-- You need a quick security checklist to avoid leaking secrets.
+## Hard Rules
 
----
-
-## Critical Patterns
-
-### Pattern 1: Run the smallest valid command set first
-
-| Change Scope            | Run First                         | Then Run                           |
-| ----------------------- | --------------------------------- | ---------------------------------- |
-| Frontend-only           | `pnpm --filter frontend run lint` | `pnpm --filter frontend run build` |
-| Backend-only            | `pnpm --filter backend run lint`  | `pnpm --filter backend run build`  |
-| Shared or broad changes | `pnpm lint`                       | `pnpm build`                       |
-
-**Note**: CI runs a single `build-and-lint` job (`lint → build`) on both PRs and pushes to `main`. No automated test suite exists — human verification required for behaviour changes.
-
-### Pattern 2: Branch and PR discipline
-
-| Intent   | Branch Prefix | Example                      |
-| -------- | ------------- | ---------------------------- |
-| Feature  | `feat/`       | `feat/add-playback-retry`    |
-| Fix      | `fix/`        | `fix/sse-reconnect-loop`     |
-| Refactor | `refactor/`   | `refactor/backend-di-wiring` |
-| Docs     | `docs/`       | `docs/update-env-guide`      |
-| Chore    | `chore/`      | `chore/bump-deps`            |
-
-PR must include:
-
-1. Branch up to date with `main`.
-2. Lint + build passing for affected scope.
-3. PR body with **what changed**, **why**, and **verification steps**.
-4. Screenshots/GIFs for UI-facing changes.
-
-### Pattern 3: Secrets and environment setup
-
-- Never commit `.env`, credentials, or tokens.
-- Use `.env.example` as the source of truth for required variables — copy it to `.env` to set up locally.
-- Document new config vars in `README.md` and/or `CONTRIBUTING.md`.
-- Do not log sensitive data.
+- No automated test suite — CI runs lint + build only. Human verification required for behaviour changes.
+- Never commit `.env`, tokens, or credentials. Use `.env.example` as source of truth.
+- Never bypass pre-commit hooks (`--no-verify` is forbidden).
 - External services required locally: **Redis**, **FFmpeg**, **yt-dlp**, **Python 3.11/3.12**.
 
----
+## Decision Gates
 
-## Decision Tree
+| Scope                     | Validate with                                                          |
+| ------------------------- | ---------------------------------------------------------------------- |
+| Frontend only             | `pnpm --filter frontend run lint` → `pnpm --filter frontend run build` |
+| Backend only              | `pnpm --filter backend run lint` → `pnpm --filter backend run build`   |
+| Shared or cross-workspace | `pnpm lint` → `pnpm build`                                             |
 
-| Question                                               | Action                                                                                         |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| Only frontend files changed?                           | Run frontend lint + build.                                                                     |
-| Only backend files changed?                            | Run backend lint + build.                                                                      |
-| Shared package touched or multiple workspaces touched? | Run repo-wide `pnpm lint` + `pnpm build`.                                                      |
-| Need to open a PR?                                     | Ensure branch naming convention, verify checks, create with `gh pr create` conventional title. |
-| Unsure about config/secrets safety?                    | Treat as sensitive, compare against `.env.example`, avoid committing/logging secrets.          |
+## Execution Steps
 
----
+**Branch naming:**
 
-## Commands
+| Type     | Prefix      | Example                      |
+| -------- | ----------- | ---------------------------- |
+| Feature  | `feat/`     | `feat/add-playback-retry`    |
+| Fix      | `fix/`      | `fix/sse-reconnect-loop`     |
+| Refactor | `refactor/` | `refactor/backend-di-wiring` |
+| Docs     | `docs/`     | `docs/update-env-guide`      |
+| Chore    | `chore/`    | `chore/bump-deps`            |
+
+**PR checklist:** branch up to date with `main` · lint + build passing · PR body has what/why/verification · screenshots for UI changes.
+
+**Key commands:**
 
 ```bash
-# Root
-pnpm dev
-pnpm build
-pnpm lint
-pnpm format
-pnpm clean
-
-# Backend
-pnpm --filter backend run dev
-pnpm --filter backend run build
-pnpm --filter backend run lint
+pnpm dev                                    # full dev stack
+pnpm lint && pnpm build                     # broad validation
 pnpm --filter backend run prisma:migrate:deploy
-
-# Frontend
-pnpm --filter frontend run dev
-pnpm --filter frontend run build
-pnpm --filter frontend run lint
-pnpm --filter frontend run preview
-
-# Shared
-pnpm --filter @spotiarr/shared run build
-pnpm --filter @spotiarr/shared run lint
-
-# PR creation (title should be conventional, e.g. feat:, fix:)
-gh pr create
+gh pr create                                # title must follow Conventional Commits
 ```
-
----
-
-## Resources
-
-- **Documentation**: `AGENTS.md` (single source of workflow conventions for this repo)

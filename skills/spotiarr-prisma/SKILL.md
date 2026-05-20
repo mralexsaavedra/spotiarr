@@ -1,147 +1,48 @@
 ---
 name: spotiarr-prisma
-description: >
-  Prisma ORM patterns for Spotiarr's SQLite-backed backend.
-  Trigger: When writing database queries, migrations, or Prisma schemas.
+description: "Trigger: Prisma, database, migration, schema, repository, query. SQLite Prisma patterns for spotiarr: boundaries, error handling, commands."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "2.0"
 ---
 
-## When to Use
+## Activation Contract
 
-Use this skill when:
+Load when editing Prisma schema, writing repository code, running migrations, or handling DB errors.
 
-- Editing Prisma schema or model relations.
-- Writing repository/database adapter code with Prisma Client.
-- Running migrations or regenerating Prisma Client.
-- Handling DB-layer errors (unique constraint, not found, foreign key, etc.).
+## Hard Rules
 
----
+- Prisma calls belong in `apps/backend/src/infrastructure/database/` **only**. Never in `domain/` or `presentation/`.
+- Singleton: `apps/backend/src/infrastructure/setup/prisma.ts` → import from there, never instantiate `PrismaClient` elsewhere.
+- Always validate input with Zod before passing to Prisma. Flow: `HTTP request → Zod parse → typed DTO → repository → Prisma`.
+- Map Prisma errors to application errors — never let raw DB errors reach the presentation layer.
+- Use transactions when multiple writes must succeed/fail atomically. Keep transaction scope tight.
 
-## Critical Patterns
+## Decision Gates
 
-### Pattern 1: Canonical Schema Location
+| Error                 | Handling                                              |
+| --------------------- | ----------------------------------------------------- |
+| `P2025` (not found)   | Guard with `isPrismaNotFoundError`, handle gracefully |
+| Unique constraint     | Catch and map to domain conflict error                |
+| Foreign key violation | Map to application-level validation error             |
 
-- Prisma schema lives at: `apps/backend/prisma/schema.prisma`
-- This backend uses a **SQLite datasource** — no driver adapter, standard `PrismaClient`.
-- Singleton instance: `apps/backend/src/infrastructure/setup/prisma.ts` → `export const prisma = new PrismaClient()`
-- Import in repositories: `import { prisma } from "../setup/prisma"`
-- Keep schema updates and generated client in sync.
-
-### Pattern 2: Clean Architecture Boundary
-
-- Prisma calls belong in backend infrastructure database adapters only.
-- Place Prisma access under: `apps/backend/src/infrastructure/database/`
-- Never call Prisma directly from:
-  - `domain/`
-  - `presentation/`
-
-Dependency intent:
-
-```text
-presentation -> application -> domain
-infrastructure/database (Prisma) implements persistence contracts
+```ts
+const isPrismaNotFoundError = (e: unknown): e is { code: string } =>
+  e instanceof Error && "code" in e && e.code === "P2025";
 ```
 
-### Pattern 3: Typed Inputs from Zod
+## Execution Steps
 
-- Validate input at boundaries with Zod.
-- Pass **typed parsed inputs** to repository methods and Prisma calls.
-- Avoid raw/unvalidated request payloads reaching Prisma.
-
-Example flow:
-
-```text
-HTTP request -> Zod parse -> typed DTO/input -> repository -> Prisma Client
-```
-
-### Pattern 4: Migrations and Client Generation
-
-Use these project commands:
+After schema changes:
 
 ```bash
-pnpm --filter backend run prisma:migrate:deploy
-pnpm --filter backend run prisma:generate
+pnpm --filter backend run prisma:generate          # regenerate client
+pnpm --filter backend run prisma:migrate:deploy    # apply migrations
 ```
 
-Run generation after schema changes. Run deploy migrations in environments where migration artifacts are already authored.
+## References
 
-### Pattern 5: Transactions (When Needed)
-
-- Use Prisma transactions when multiple writes must succeed/fail atomically.
-- Prefer passing a transaction client through repository methods for multi-step workflows.
-- Keep transaction scope tight and avoid long-running logic inside transaction blocks.
-
-### Pattern 6: Error Handling
-
-- Map known Prisma errors to application-safe errors.
-- Handle common cases explicitly:
-  - Unique constraint violation (e.g., duplicate value)
-  - Not found conditions (`P2025`)
-  - Foreign key/relation constraint violations
-- Do not leak raw database internals to presentation responses.
-
-Real P2025 guard pattern (from `prisma-settings.repository.ts`):
-
-```ts
-const isPrismaNotFoundError = (error: unknown): error is { code: string } =>
-  error instanceof Error && "code" in error && error.code === "P2025";
-```
-
----
-
-## Code Examples
-
-### Repository skeleton
-
-```ts
-// apps/backend/src/infrastructure/database/settings.repository.ts
-import { prisma } from "../setup/prisma";
-
-export class PrismaSettingsRepository implements ISettingsRepository {
-  async findByKey(key: string) {
-    return prisma.setting.findUnique({ where: { key } });
-  }
-
-  async upsert(key: string, value: string) {
-    try {
-      return await prisma.setting.update({ where: { key }, data: { value } });
-    } catch (error) {
-      if (isPrismaNotFoundError(error)) {
-        return prisma.setting.create({ data: { key, value } });
-      }
-      throw error;
-    }
-  }
-}
-
-const isPrismaNotFoundError = (error: unknown): error is { code: string } =>
-  error instanceof Error && "code" in error && error.code === "P2025";
-```
-
-### Layer violation (avoid)
-
-```ts
-// apps/backend/src/domain/...            ❌ no Prisma imports
-// apps/backend/src/presentation/...      ❌ no direct Prisma calls
-```
-
----
-
-## Commands
-
-```bash
-# Apply already-authored migrations
-pnpm --filter backend run prisma:migrate:deploy
-
-# Regenerate Prisma client after schema changes
-pnpm --filter backend run prisma:generate
-```
-
----
-
-## Resources
-
-- **Schema**: `apps/backend/prisma/schema.prisma`
+- Schema: `apps/backend/prisma/schema.prisma`
+- Singleton: `apps/backend/src/infrastructure/setup/prisma.ts`
+- Repository example: `apps/backend/src/infrastructure/database/`

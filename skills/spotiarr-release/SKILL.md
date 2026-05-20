@@ -1,182 +1,59 @@
 ---
 name: spotiarr-release
-description: >
-  Release workflow for Spotiarr — bumps version in package.json, writes CHANGELOG,
-  commits, tags, pushes, and updates the GitHub Release description.
-  Trigger: When user says "sube de version", "nueva release", "publish release", "bump version", "create release", or asks to publish a new version.
+description: "Trigger: release, version bump, nueva release, publish, tag, changelog. spotiarr release: bump root package.json, CHANGELOG, git tag -a, gh release edit."
 license: Apache-2.0
 metadata:
-  author: mralexsaavedra
-  version: "1.1"
+  author: gentleman-programming
+  version: "2.0"
 ---
 
-## When to Use
+## Activation Contract
 
-- User says "sube de version", "nueva release", "publish release"
-- User asks to "bump version" or "create release"
-- User mentions releasing a new version of Spotiarr
+Load when bumping version, writing CHANGELOG, tagging, or publishing a GitHub Release.
 
-## Context
+## Hard Rules
 
-- Spotiarr is a pnpm monorepo. **Only the root `package.json` has the real version.** Workspace packages (`apps/backend`, `apps/frontend`, `packages/shared`) are all `0.0.0` and private — do NOT touch them.
-- Version lives in root `package.json` field `"version"`.
-- GitHub Actions workflow at `.github/workflows/release.yml` triggers on `v*.*.*` tags and auto-creates a GitHub Release — but with a **generic description**. The real description must be written manually (Step 5).
-- Conventional commits are enforced (husky + commitlint).
-- **`git tag` without `-m` opens nvim interactively — ALWAYS use `git tag -a vX.Y.Z -m "vX.Y.Z"`.**
+- **Only root `package.json` has the real version.** Workspace packages are `0.0.0` private — never touch them.
+- **`git tag` without `-a -m` opens nvim interactively** — ALWAYS use `git tag -a vX.Y.Z -m "vX.Y.Z"`.
+- **Never pass `--title` to `gh release edit`** — the release `name` field stays as the tag. The descriptive title lives as the H1 heading inside the release body.
+- GHA auto-creates the release with a generic description — always replace it with a proper one.
 
-## Release Process
-
-### Step 0: Review previous release style
+## Execution Steps
 
 ```bash
-gh release view $(gh release list --limit 1 --json tagName -q '.[0].tagName')
-```
-
-Study tone, emoji, structure, and detail level — match it in the new release body.
-
-### Step 1: Determine Current Version
-
-```bash
+# 1. Check current version
 node -e "console.log(require('./package.json').version)"
-```
 
-### Step 2: Determine Next Version
+# 2. Update CHANGELOG.md (see references/changelog-format.md)
 
-Ask the user or calculate from the bump type:
+# 3. Bump version in root package.json only
 
-| Bump    | Example       | When                       |
-| ------- | ------------- | -------------------------- |
-| `patch` | 1.2.0 → 1.2.1 | Bug fixes, small changes   |
-| `minor` | 1.2.0 → 1.3.0 | New features, non-breaking |
-| `major` | 1.2.0 → 2.0.0 | Breaking changes           |
-
-If user doesn't specify, suggest based on recent conventional commits:
-
-- `fix:` only → patch
-- `feat:` present → minor
-- `BREAKING CHANGE` or `!:` → major
-
-### Step 3: Update CHANGELOG.md
-
-Add an entry at the top of `CHANGELOG.md` (below the header, above the previous release).
-
-**Format**:
-
-```markdown
-## [X.Y.Z](https://github.com/mralexsaavedra/spotiarr/compare/vPREV...vX.Y.Z) (YYYY-MM-DD)
-
-### Bug Fixes
-
-- **Scope**: Human-readable description of what was wrong and what was fixed. ([commitsha](https://github.com/mralexsaavedra/spotiarr/commit/commitsha))
-
-### Features
-
-- **Scope**: Description. ([commitsha](https://github.com/mralexsaavedra/spotiarr/commit/commitsha))
-```
-
-Rules:
-
-- Write **human-readable descriptions** — not raw commit messages
-- Focus on **what was wrong** and **what the user experiences differently**
-- Group by type: Bug Fixes, Features, Breaking Changes, Performance
-- Omit `chore:` and `docs:` commits — they are not user-facing
-
-### Step 4: Update version in package.json
-
-Update ONLY the root `package.json` version field. Do NOT touch workspace packages.
-
-### Step 5: Commit, Tag and Push
-
-```bash
+# 4. Commit, tag, push
 git add package.json CHANGELOG.md
 git commit -m "chore(release): bump to vX.Y.Z"
-git tag -a vX.Y.Z -m "vX.Y.Z"   # ALWAYS -a -m — never bare git tag (opens nvim)
+git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin main --tags
-```
 
-### Step 6: Update the GitHub Release description
+# 5. Update GitHub Release body (no --title flag)
+gh release edit vX.Y.Z --notes "$(cat skills/spotiarr-release/assets/release-body-template.md)"
 
-GHA auto-creates the release with a generic description. **Always replace it** with a proper one using:
-
-```bash
-gh release edit vX.Y.Z --notes "$(cat <<'EOF'
-# EMOJI SpotiArr vX.Y.Z — Short Subtitle
-
-One paragraph explaining the theme of this release and who should update.
-
----
-
-## 🔴 The Problem(s)
-
-Explain what was broken or missing from the user's perspective.
-No need to mention file names or internal details — focus on symptoms.
-
----
-
-## ✅ The Fix(es)
-
-Explain what changed and what the user experiences differently.
-
----
-
-## 📦 Updating
-
-\`\`\`bash
-docker compose pull
-docker compose up -d
-\`\`\`
-EOF
-)"
-```
-
-**Important — title convention**:
-
-- Do NOT pass `--title` to `gh release edit` — the GitHub Release `name` field stays as the tag only (e.g. `v1.3.4`)
-- The descriptive title lives as the **H1 heading inside the body** (`# EMOJI SpotiArr vX.Y.Z — Short Subtitle`)
-- This matches the existing release style — check with `gh release view vPREV`
-
-**Body H1 emoji guide**:
-
-- 🚀 New features / minor or major release
-- 🛡️ Security / resilience / reliability fixes
-- 🐛 Bug fix patch release
-- ⚡ Performance improvements
-- 🔧 Configuration / maintenance
-
-**Look at previous releases for tone and style reference**:
-
-```bash
-gh release view vPREV
-```
-
-### Step 7: Verify
-
-```bash
-gh run list --workflow=release.yml --limit=1
+# 6. Verify
 gh release view vX.Y.Z
+gh run list --workflow=release.yml --limit=1
 ```
 
----
+## Decision Gates
 
-## Rules
+| Commits since last release    | Bump type |
+| ----------------------------- | --------- |
+| `fix:` only                   | patch     |
+| `feat:` present               | minor     |
+| `BREAKING CHANGE` or `feat!:` | major     |
 
-- **NEVER** edit version in workspace packages — they are `0.0.0` private packages.
-- **ALWAYS** commit version bump as `chore(release): bump to vX.Y.Z`.
-- **ALWAYS** use `git tag -a vX.Y.Z -m "vX.Y.Z"` — bare `git tag` opens nvim interactively.
-- **ALWAYS** write a proper GitHub Release description — the GHA-generated one is generic and not user-friendly.
-- **ALWAYS** update CHANGELOG.md with human-readable entries before or after the release commit.
-- **NEVER** push `--force` to main.
+**Release body H1 emoji:** 🚀 features · 🐛 bug fix · ⚡ performance · 🛡️ reliability · 🔧 maintenance
 
----
+## References
 
-## Checklist
-
-- [ ] Current version read from root `package.json`
-- [ ] Next version determined (patch/minor/major)
-- [ ] `CHANGELOG.md` updated with human-readable entries
-- [ ] Root `package.json` version updated (NOT workspace packages)
-- [ ] Committed as `chore(release): bump to vX.Y.Z`
-- [ ] Tag created as `git tag -a vX.Y.Z -m "vX.Y.Z"` (NOT bare tag)
-- [ ] Pushed to main with `--tags`
-- [ ] GHA workflow triggered and completed
-- [ ] GitHub Release description updated via `gh release edit` (no `--title` — title lives as H1 in body)
+- Release body template: `skills/spotiarr-release/assets/release-body-template.md`
+- CHANGELOG format: `skills/spotiarr-release/assets/changelog-format.md`
+- Previous release style: `gh release view $(gh release list --limit 1 --json tagName -q '.[0].tagName')`

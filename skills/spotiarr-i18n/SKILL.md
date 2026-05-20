@@ -1,90 +1,39 @@
 ---
 name: spotiarr-i18n
-description: >
-  i18n patterns for Spotiarr's React frontend using i18next and react-i18next.
-  Trigger: When adding or modifying translations, working with i18n keys, or adding a new language.
+description: "Trigger: i18n, translation, i18next, language, locale, new language, translate. spotiarr frontend i18n: key conventions, useLanguageSync override, adding languages."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "2.0"
 ---
 
-## When to Use
+## Activation Contract
 
-- Adding or modifying translation strings
-- Working with i18n keys in React components/hooks
-- Adding a new frontend language
-- Updating typed key support for translations
+Load when adding/modifying translations, working with i18n keys, or adding a new frontend language.
 
-## Critical Patterns
+## Hard Rules
 
-### Pattern 1: Setup
+- Language is controlled by `UI_LANGUAGE` backend setting via `useLanguageSync` — it overrides browser detection. Never call `i18n.changeLanguage()` manually elsewhere.
+- `escapeValue: false` is configured — HTML in translation strings is NOT escaped. Never put untrusted content in translation values.
+- Add new keys to ALL language files simultaneously — missing keys silently fall back to key name.
 
-- Config file: `apps/frontend/src/i18n.ts`
-- Uses `i18next-browser-languagedetector` for language auto-detection
-- Fallback language: `en`
+## Key Conventions
+
+- Nested dot-notation: `common.loading`, `common.errors.pageNotFound`, `common.trackStatus.error`
+- Interpolation keys: `common.dates.todayAt` → `t("common.dates.todayAt", { time: "14:30" })`
+- camelCase key names: `downloadAll`, `clearAll`, `openInSpotify`
+
+## Decision Gates
+
+| Action           | Steps                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| Add keys         | Edit `src/locales/en.json` + `src/locales/es.json` simultaneously                                 |
+| Add new language | Copy `en.json` → `{lang}.json` · import in `i18n.ts` · add to `resources` · update `i18next.d.ts` |
+| Use in component | `const { t } = useTranslation()` → `t("key.path")`                                                |
+
+## References
+
+- Config: `apps/frontend/src/i18n.ts`
+- Locales: `apps/frontend/src/locales/`
 - Type declarations: `apps/frontend/src/types/i18next.d.ts`
-
-### Pattern 2: Translation files
-
-- Location: `apps/frontend/src/locales/{lang}.json`
-- Current languages:
-  - `en` (English)
-  - `es` (Spanish)
-- Single namespace: `translation` (default)
-- Resources are eagerly loaded (not lazy-loaded)
-
-### Pattern 3: Key naming convention
-
-- Nested dot-notation groups:
-  - `common.loading`, `common.cancel`, `common.search`
-  - `common.errors.pageNotFound`
-  - `common.trackStatus.error`
-  - `common.dates.todayAt` (interpolation)
-- Use camelCase key names, for example:
-  - `downloadAll`
-  - `clearAll`
-  - `openInSpotify`
-
-### Pattern 4: Usage in components
-
-```tsx
-import { useTranslation } from "react-i18next";
-
-const { t } = useTranslation();
-// Simple: t("common.loading")
-// Interpolation: t("common.dates.todayAt", { time: "14:30" })
-// In hook: t("library.empty")
-```
-
-### Pattern 5: Adding a new language
-
-1. Create `apps/frontend/src/locales/{new-lang}.json` (copy from `en.json`)
-2. Import it in `apps/frontend/src/i18n.ts`
-3. Add it to the `resources` object
-4. Update `i18next.d.ts` declarations if needed
-
-### Pattern 6: Type safety
-
-- `i18next.d.ts` declares `CustomTypeOptions` based on `en.json`
-- This enables autocomplete/type-safe translation key usage
-
-### Pattern 7: Language sync with backend settings
-
-`useLanguageSync` (`apps/frontend/src/hooks/useLanguageSync.ts`) syncs the `UI_LANGUAGE` backend setting to i18next at runtime. It runs after settings are fetched and calls `i18n.changeLanguage()` when the backend value differs from the current language. This overrides the browser-detected language — do NOT fight it with manual `changeLanguage` calls elsewhere.
-
-```ts
-// What useLanguageSync does internally:
-const languageSetting = settings.find((s) => s.key === "UI_LANGUAGE");
-if (languageSetting?.value && languageSetting.value !== i18n.language) {
-  i18n.changeLanguage(languageSetting.value);
-}
-```
-
-Fallback chain: backend `UI_LANGUAGE` setting → browser detector → `en`.
-
-### Gotchas
-
-- Add new keys to ALL language files to avoid missing translation drift
-- `escapeValue: false` is configured (HTML in translations is not escaped)
-- Language is ultimately controlled by `UI_LANGUAGE` setting, not just the browser detector
+- Language sync hook: `apps/frontend/src/hooks/useLanguageSync.ts`
