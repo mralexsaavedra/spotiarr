@@ -6,6 +6,7 @@ import { Path } from "@/routes/routes";
 import { playlistService } from "@/services/playlist.service";
 import { PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
+import { buildZeroStats } from "@/utils/playlist";
 import { usePlaylistPreviewQuery } from "../queries/usePlaylistPreviewQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { usePlaylistController } from "./usePlaylistController";
@@ -133,19 +134,7 @@ export const usePlaylistPreviewController = () => {
       createdAt: Date.now(),
       owner: previewData.owner,
       ownerUrl: previewData.ownerUrl,
-      stats: {
-        completedCount: 0,
-        downloadingCount: 0,
-        searchingCount: 0,
-        queuedCount: 0,
-        activeCount: 0,
-        errorCount: 0,
-        totalCount: accumulatedPreviewTracks.length,
-        progress: 0,
-        isDownloading: false,
-        hasErrors: false,
-        isCompleted: false,
-      },
+      stats: buildZeroStats(accumulatedPreviewTracks.length),
     };
   }, [accumulatedPreviewTracks.length, previewData, spotifyUrl, savedPlaylist?.subscribed]);
 

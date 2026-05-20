@@ -5,6 +5,7 @@ import { APP_CONFIG } from "@/config/app";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { PlaylistWithStats, Track } from "@/types";
+import { buildZeroStats } from "@/utils/playlist";
 import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
 import { usePlaylistController } from "./usePlaylistController";
@@ -84,19 +85,7 @@ export const useAlbumDetailController = () => {
       createdAt: Date.now(),
       owner,
       ownerUrl: undefined,
-      stats: {
-        completedCount: 0,
-        downloadingCount: 0,
-        searchingCount: 0,
-        queuedCount: 0,
-        activeCount: 0,
-        errorCount: 0,
-        totalCount: tracks.length,
-        progress: 0,
-        isDownloading: false,
-        hasErrors: false,
-        isCompleted: false,
-      },
+      stats: buildZeroStats(tracks.length),
     };
   }, [album, albumId, rawTracks, tracks.length]);
 
