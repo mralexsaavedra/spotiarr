@@ -27,7 +27,9 @@ export const useServerEvents = () => {
       // Invalidate specifically the active artist view if they are viewing one
       queryClient.invalidateQueries({
         predicate: (query) =>
-          Array.isArray(query.queryKey) && query.queryKey[0] === "libraryArtist",
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "library" &&
+          query.queryKey[1] === "artist",
       });
     });
 
