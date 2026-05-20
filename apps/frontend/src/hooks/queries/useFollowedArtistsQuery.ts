@@ -1,17 +1,10 @@
-import { ApiErrorCode } from "@spotiarr/shared";
+import { ApiErrorCode, FollowedArtist } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { artistService } from "@/services/artist.service";
 import { getSettingsCacheTimings } from "@/utils/cache";
 import { mapApiError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 import { useSettingsQuery } from "./useSettingsQuery";
-
-interface FollowedArtist {
-  id: string;
-  name: string;
-  image: string | null;
-  spotifyUrl: string | null;
-}
 
 interface UseFollowedArtistsState {
   artists: FollowedArtist[] | null;
