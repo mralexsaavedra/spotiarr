@@ -102,15 +102,6 @@ export const useArtistDiscographyController = ({
     }
   }, [pageSize, hasFetchedAll, hasMore, visibleItems, allAlbums.length]);
 
-  const handleEndReached = useCallback(() => {
-    if (hasFetchedAll || !hasMore || shouldFetchMoreRef.current) {
-      return;
-    }
-
-    shouldFetchMoreRef.current = true;
-    setOffset((prev) => prev + pageSize);
-  }, [hasFetchedAll, hasMore, pageSize]);
-
   const handleAlbumExpand = useCallback((album: ArtistRelease) => {
     setExpandedAlbum(album);
   }, []);
@@ -130,7 +121,6 @@ export const useArtistDiscographyController = ({
     visibleItems,
     isLoadingMore,
     handleShowMore,
-    handleEndReached,
     handleAlbumExpand,
     handleAlbumExpandClose,
     canShowMore,
