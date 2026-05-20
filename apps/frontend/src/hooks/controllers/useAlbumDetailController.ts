@@ -1,15 +1,13 @@
 import { NormalizedTrack, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useMemo, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { APP_CONFIG } from "@/config/app";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { PlaylistWithStats, Track } from "@/types";
 import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
 import { usePlaylistController } from "./usePlaylistController";
-
-const ARTIST_ALBUMS_LIMIT = 50;
-const ARTIST_ALBUMS_OFFSET = 0;
 
 export const useAlbumDetailController = () => {
   const { artistId = "", albumId = "" } = useParams<{ artistId: string; albumId: string }>();
@@ -25,8 +23,8 @@ export const useAlbumDetailController = () => {
   // Fetch artist albums for header metadata (name, cover, artistName)
   const { data: artistAlbums } = useArtistAlbumsQuery({
     artistId,
-    limit: ARTIST_ALBUMS_LIMIT,
-    offset: ARTIST_ALBUMS_OFFSET,
+    limit: APP_CONFIG.PAGINATION.ARTIST_ALBUMS_LIMIT,
+    offset: 0,
     enabled: !!artistId,
   });
 
