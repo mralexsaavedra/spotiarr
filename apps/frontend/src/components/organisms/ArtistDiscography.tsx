@@ -1,7 +1,7 @@
 import { ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
+import { useAlbumListDownloadStates } from "@/hooks/useAlbumListDownloadStates";
 import { Button } from "../atoms/Button";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { ArtistDiscographyFilters, DiscographyFilter } from "../molecules/ArtistDiscographyFilters";
@@ -115,16 +115,7 @@ export const ArtistDiscography: FC<ArtistDiscographyProps> = ({
     [filteredAlbums, visibleItems],
   );
 
-  const albumStatusItems = useMemo(
-    () =>
-      displayedItems.map((album) => ({
-        url: album.spotifyUrl,
-        totalTracks: album.totalTracks,
-      })),
-    [displayedItems],
-  );
-
-  const downloadStatesMap = useBulkPlaylistStatus(albumStatusItems);
+  const downloadStatesMap = useAlbumListDownloadStates(displayedItems);
 
   const renderDiscographyItem = useCallback(
     (album: ArtistRelease) => {
