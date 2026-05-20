@@ -2,7 +2,7 @@ import type { ApiErrorCode, ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { artistService } from "@/services/artist.service";
-import { mapSpotifyError } from "@/utils/spotify";
+import { mapApiError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 
 const MAX_CATALOG_REFRESH_REFETCHES = 2;
@@ -62,7 +62,7 @@ export const useArtistDetailQuery = (
     };
   }, [artistId, data, refetch]);
 
-  const mappedError = mapSpotifyError(error, "failed_to_fetch_artist_detail");
+  const mappedError = mapApiError(error, "failed_to_fetch_artist_detail");
 
   return {
     artist: data ?? null,

@@ -29,7 +29,7 @@ export const normalizeSpotifyUrl = (value: string): string | null => {
   }
 };
 
-export const mapSpotifyError = (error: unknown, fallback: ApiErrorCode): ApiErrorCode | null => {
+export const mapApiError = (error: unknown, fallback: ApiErrorCode): ApiErrorCode | null => {
   if (!(error instanceof Error)) return null;
 
   const code = (error as { code?: string }).code;

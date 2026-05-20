@@ -6,7 +6,7 @@ import { cn } from "@/utils/cn";
 import { ConnectSpotifyPrompt } from "./ConnectSpotifyPrompt";
 import { RateLimitedMessage } from "./RateLimitedMessage";
 
-interface SpotifyErrorStateProps {
+interface ApiErrorStateProps {
   error: ApiErrorCode | null;
   message?: string;
   className?: string;
@@ -32,7 +32,7 @@ const ERROR_RENDERERS: Partial<Record<ApiErrorCode, FC<ErrorRendererProps>>> = {
   ),
 };
 
-export const SpotifyErrorState: FC<SpotifyErrorStateProps> = ({
+export const ApiErrorState: FC<ApiErrorStateProps> = ({
   error,
   message = "Failed to load data.",
   className = "",

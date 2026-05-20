@@ -2,7 +2,7 @@ import { ApiErrorCode } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { artistService } from "@/services/artist.service";
 import { getSettingsCacheTimings } from "@/utils/cache";
-import { mapSpotifyError } from "@/utils/spotify";
+import { mapApiError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 import { useSettingsQuery } from "./useSettingsQuery";
 
@@ -31,7 +31,7 @@ export const useFollowedArtistsQuery = (): UseFollowedArtistsState => {
     refetchOnWindowFocus: false,
   });
 
-  const mappedError = mapSpotifyError(error, "failed_to_fetch_followed_artists");
+  const mappedError = mapApiError(error, "failed_to_fetch_followed_artists");
 
   return {
     artists: data ?? null,
