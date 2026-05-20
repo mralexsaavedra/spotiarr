@@ -86,6 +86,10 @@
       "source": "local",
       "sourceType": "local"
     },
+    "spotiarr-sse": {
+      "source": "local",
+      "sourceType": "local"
+    },
     "spotiarr-workflow": {
       "source": "local",
       "sourceType": "local"

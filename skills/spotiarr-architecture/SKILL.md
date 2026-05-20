@@ -15,7 +15,7 @@ Load when deciding where new code belongs across backend, frontend, or shared.
 
 - Dependencies point inward: `presentation → application → domain`; `infrastructure` implements inner-layer contracts — never the reverse.
 - Prisma, Redis, yt-dlp, external HTTP → `infrastructure/` only. Never in `domain/` or `presentation/`.
-- All use-cases and services register at: `apps/backend/src/infrastructure/setup/container.ts`.
+- All use-cases and services register at: `apps/backend/src/container.ts` (NOT in `infrastructure/` — it's at `src/` root).
 - Server state in frontend → TanStack Query (`hooks/queries`, `hooks/mutations`). Client state → Zustand slices under `store/` (one file per domain).
 - Real-time SSE sync → `useServerEvents` hook. Do not add manual SSE subscriptions elsewhere.
 - Shared DTOs, enums, utilities → `packages/shared/`. Never duplicate in apps.
