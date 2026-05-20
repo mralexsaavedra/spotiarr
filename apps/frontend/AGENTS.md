@@ -24,7 +24,7 @@ pnpm --filter frontend run build
 - `src/` — application source
 - `src/components/` — UI components
 - `src/hooks/` — custom hooks
-- `src/pages/` — page-level components
+- `src/views/` — page-level route screens
 
 ## Skills (frontend-specific)
 

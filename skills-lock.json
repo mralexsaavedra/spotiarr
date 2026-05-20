@@ -74,15 +74,15 @@
       "source": "local",
       "sourceType": "local"
     },
-    "spotiarr-compatibility": {
-      "source": "local",
-      "sourceType": "local"
-    },
     "spotiarr-i18n": {
       "source": "local",
       "sourceType": "local"
     },
     "spotiarr-prisma": {
+      "source": "local",
+      "sourceType": "local"
+    },
+    "spotiarr-release": {
       "source": "local",
       "sourceType": "local"
     },

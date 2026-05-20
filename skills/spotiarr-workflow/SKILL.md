@@ -32,7 +32,7 @@ Load when running commands, validating changes, creating PRs, managing branches,
 
 | Type     | Prefix      | Example                      |
 | -------- | ----------- | ---------------------------- |
-| Feature  | `feat/`     | `feat/add-playback-retry`    |
+| Feature  | `feature/`  | `feature/add-playback-retry` |
 | Fix      | `fix/`      | `fix/sse-reconnect-loop`     |
 | Refactor | `refactor/` | `refactor/backend-di-wiring` |
 | Docs     | `docs/`     | `docs/update-env-guide`      |
