@@ -1,5 +1,10 @@
 import type { NormalizedTrack } from "@spotiarr/shared";
 import type { AlbumTracksCachePort } from "@/application/ports/album-tracks-cache.port";
+import {
+  isDeezerAlbumId,
+  isMusicBrainzId,
+  isSpotifyAlbumId,
+} from "@/application/utils/album-id.utils";
 import { NoopAlbumTracksCache } from "@/infrastructure/cache/noop-album-tracks-cache";
 import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import { DeezerClient } from "@/infrastructure/external/providers/deezer/deezer.client";
@@ -55,8 +60,8 @@ export class GetAlbumTracksUseCase {
           coverUrl: releaseCache.coverUrl,
           spotifyUrl: releaseCache.spotifyUrl,
           totalTracks: null,
-          deezerAlbumId: this.isDeezerAlbumId(albumId) ? albumId : null,
-          mbAlbumId: this.isMusicBrainzId(albumId) ? albumId : null,
+          deezerAlbumId: isDeezerAlbumId(albumId) ? albumId : null,
+          mbAlbumId: isMusicBrainzId(albumId) ? albumId : null,
           artistName: releaseCache.artistName,
         };
       }
@@ -91,8 +96,7 @@ export class GetAlbumTracksUseCase {
     const albumName = albumCache?.albumName ?? "";
 
     // 2. Deezer primary path
-    const deezerDirectId =
-      albumCache?.deezerAlbumId ?? (this.isDeezerAlbumId(albumId) ? albumId : null);
+    const deezerDirectId = albumCache?.deezerAlbumId ?? (isDeezerAlbumId(albumId) ? albumId : null);
     if (deezerDirectId) {
       const tracks = await this.deezerClient.getAlbumTracks(deezerDirectId);
       if (tracks.length > 0) {
@@ -117,7 +121,7 @@ export class GetAlbumTracksUseCase {
 
     // 3. MusicBrainz fallback
     // Use persisted mbAlbumId, or fall back to the raw albumId if it looks like a MB UUID.
-    const mbIdentity = albumCache?.mbAlbumId ?? (this.isMusicBrainzId(albumId) ? albumId : null);
+    const mbIdentity = albumCache?.mbAlbumId ?? (isMusicBrainzId(albumId) ? albumId : null);
     if (mbIdentity) {
       const tracks = await this.musicBrainzClient.getReleaseTracks(mbIdentity);
       if (tracks.length > 0) {
@@ -133,32 +137,10 @@ export class GetAlbumTracksUseCase {
 
     // 4. Spotify terminal fallback — only when the albumId looks like a Spotify ID
     // to avoid passing Deezer numeric / MB UUID IDs to Spotify.
-    if (this.isSpotifyAlbumId(albumId)) {
+    if (isSpotifyAlbumId(albumId)) {
       return this.spotifyAlbumClient.getAlbumTracks(albumId);
     }
 
     return [];
-  }
-
-  /**
-   * Spotify album IDs are 22-character alphanumeric strings.
-   * Deezer IDs are numeric; MusicBrainz IDs are UUIDs.
-   */
-  private isSpotifyAlbumId(id: string): boolean {
-    return /^[a-zA-Z0-9]{22}$/.test(id);
-  }
-
-  /**
-   * Deezer album IDs are purely numeric.
-   */
-  private isDeezerAlbumId(id: string): boolean {
-    return /^\d+$/.test(id);
-  }
-
-  /**
-   * MusicBrainz release-group IDs are standard UUIDs.
-   */
-  private isMusicBrainzId(id: string): boolean {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   }
 }

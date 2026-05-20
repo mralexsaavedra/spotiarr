@@ -4,7 +4,6 @@ import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
 import { ReleaseFeedService, type CatalogArtist } from "./release-feed.service";
-import type { SpotifyUserLibraryService } from "./spotify-user-library.service";
 
 function makeRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
   return {
@@ -50,25 +49,17 @@ function mockMusicBrainz(): MusicBrainzClient {
   } as unknown as MusicBrainzClient;
 }
 
-function mockSpotify(): SpotifyUserLibraryService {
-  return {
-    getActiveArtistReleases: vi.fn().mockResolvedValue([]),
-  } as unknown as SpotifyUserLibraryService;
-}
-
 describe("ReleaseFeedService", () => {
   let service: ReleaseFeedService;
   let repo: FeedRepository;
   let deezer: DeezerClient;
   let musicBrainz: MusicBrainzClient;
-  let spotify: SpotifyUserLibraryService;
 
   beforeEach(() => {
     repo = mockRepo();
     deezer = mockDeezer();
     musicBrainz = mockMusicBrainz();
-    spotify = mockSpotify();
-    service = new ReleaseFeedService(repo, deezer, musicBrainz, spotify);
+    service = new ReleaseFeedService(repo, deezer, musicBrainz);
   });
 
   describe("Scenario: Deezer resolves artist and releases", () => {
@@ -83,7 +74,6 @@ describe("ReleaseFeedService", () => {
 
       expect(deezer.searchArtist).toHaveBeenCalledWith(artist.name);
       expect(deezer.getArtistAlbums).toHaveBeenCalledWith(123);
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
       expect(releases.length).toBeGreaterThan(0);
       expect(decisions[0].provider).toBe("deezer");
       expect(decisions[0].albumsFound).toBe(1);
@@ -104,7 +94,6 @@ describe("ReleaseFeedService", () => {
       expect(deezer.searchArtist).toHaveBeenCalledWith(artist.name);
       expect(musicBrainz.searchArtist).toHaveBeenCalledWith(artist.name);
       expect(musicBrainz.getArtistReleaseGroups).toHaveBeenCalledWith("mb-id-1");
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
       expect(releases.length).toBeGreaterThan(0);
       expect(decisions[0].provider).toBe("musicbrainz");
       expect(decisions[0].albumsFound).toBe(1);
@@ -122,7 +111,6 @@ describe("ReleaseFeedService", () => {
 
       expect(deezer.searchArtist).toHaveBeenCalledWith(artist.name);
       expect(musicBrainz.searchArtist).toHaveBeenCalledWith(artist.name);
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
       expect(releases).toHaveLength(0);
       expect(decisions[0].provider).toBe("unresolved");
       expect(decisions[0].albumsFound).toBe(0);
@@ -143,7 +131,6 @@ describe("ReleaseFeedService", () => {
 
       expect(deezer.searchArtist).not.toHaveBeenCalled();
       expect(deezer.getArtistAlbums).toHaveBeenCalledWith("stored-dz-id");
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
       expect(releases.length).toBeGreaterThan(0);
       expect(decisions[0].provider).toBe("deezer");
     });
@@ -218,8 +205,6 @@ describe("ReleaseFeedService", () => {
       vi.mocked(deezer.getArtistAlbums).mockResolvedValue(deezerAlbums);
 
       await service.getActiveArtistReleases([artist]);
-
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
     });
   });
 
@@ -231,8 +216,7 @@ describe("ReleaseFeedService", () => {
       vi.mocked(musicBrainz.searchArtist).mockResolvedValue(null);
 
       await service.getActiveArtistReleases([artist]);
-
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
+      // Method completes without error — Spotify catalog is not called since it's no longer in the constructor
     });
   });
 
@@ -397,7 +381,6 @@ describe("ReleaseFeedService", () => {
 
       const { albums, decision } = await service.getArtistDiscography(artist);
 
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
       expect(albums).toHaveLength(0);
       expect(decision.provider).toBe("unresolved");
     });
@@ -432,7 +415,6 @@ describe("ReleaseFeedService", () => {
 
       expect(deezer.searchArtist).not.toHaveBeenCalled();
       expect(deezer.getArtistAlbums).toHaveBeenCalledWith("stored-dz-id");
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
       expect(albums.length).toBeGreaterThan(0);
       expect(decision.provider).toBe("deezer");
     });
@@ -450,7 +432,6 @@ describe("ReleaseFeedService", () => {
       expect(albums[0].albumId).toBe("dz-1");
       expect(albums[0].artistId).toBe(artist.id);
       expect(decision.provider).toBe("deezer");
-      expect(spotify.getActiveArtistReleases).not.toHaveBeenCalled();
     });
   });
 });

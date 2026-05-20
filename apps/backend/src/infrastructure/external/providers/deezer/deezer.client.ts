@@ -1,5 +1,6 @@
 import type { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
 import { namesMatch } from "../normalize-name";
+import { pickBestCover } from "./cover-url";
 
 export interface DeezerArtist {
   id: number;
@@ -37,15 +38,6 @@ export interface DeezerTrack {
     cover_big?: string;
     cover_medium?: string;
   };
-}
-
-function pickBestCover(album: {
-  cover_xl?: string;
-  cover_big?: string;
-  cover_medium?: string;
-  cover?: string;
-}): string | undefined {
-  return album.cover_xl || album.cover_big || album.cover_medium || album.cover || undefined;
 }
 
 const DEEZER_API_BASE = "https://api.deezer.com";

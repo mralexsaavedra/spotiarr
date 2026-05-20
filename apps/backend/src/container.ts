@@ -146,12 +146,7 @@ const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
 // External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
 const deezerClient = new DeezerClient();
 const musicBrainzClient = new MusicBrainzClient();
-const releaseFeedService = new ReleaseFeedService(
-  feedRepository,
-  deezerClient,
-  musicBrainzClient,
-  spotifyUserLibrarySyncService,
-);
+const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
 
 // Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
 const spotifyService = new SpotifyService(
@@ -321,8 +316,6 @@ const playlistController = new PlaylistController(
 );
 
 const artistController = new ArtistController(
-  spotifyArtistClient,
-  spotifyAlbumClient,
   getArtistDetailUseCase,
   getArtistAlbumsUseCase,
   getAlbumTracksUseCase,
