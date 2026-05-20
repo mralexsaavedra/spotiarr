@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { PlaylistWithStats, Track } from "@/types";
-import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
 import { usePlaylistController } from "./usePlaylistController";
@@ -127,8 +126,6 @@ export const useAlbumDetailController = () => {
     id: undefined,
   });
 
-  const createPlaylistMutation = useCreatePlaylistMutation();
-
   const handleDownload = useCallback(() => {
     if (!artistId || !albumId) return;
     createPlaylist.mutate({ kind: "album", artistId, albumId });
@@ -139,9 +136,9 @@ export const useAlbumDetailController = () => {
       const parts = track.id.split("-");
       const i = parseInt(parts[parts.length - 1]!, 10);
       if (isNaN(i) || i < 0) return;
-      createPlaylistMutation.mutate({ kind: "albumTrack", artistId, albumId, trackIndex: i });
+      createPlaylist.mutate({ kind: "albumTrack", artistId, albumId, trackIndex: i });
     },
-    [artistId, albumId, createPlaylistMutation],
+    [artistId, albumId, createPlaylist],
   );
 
   const isButtonLoading =
