@@ -77,3 +77,6 @@ Thumbs.db
 .netlify
 .atl/
 .claude/settings.local.json
+
+# AI Coding Assistants - Codegraph
+.codegraph/
