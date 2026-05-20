@@ -1,14 +1,14 @@
 import { PlaylistPreview, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
-import { Path } from "@/routes/routes";
 import { playlistService } from "@/services/playlist.service";
 import { PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
 import { buildZeroStats } from "@/utils/playlist";
 import { usePlaylistPreviewQuery } from "../queries/usePlaylistPreviewQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
+import { useNavigationHelpers } from "../useNavigationHelpers";
 import { usePlaylistController } from "./usePlaylistController";
 
 const PLAYLIST_PREVIEW_PAGE_SIZE = 100;
@@ -34,7 +34,7 @@ const mergeUniquePreviewTracks = (tracks: PlaylistPreviewTrack[]): PlaylistPrevi
 };
 
 export const usePlaylistPreviewController = () => {
-  const navigate = useNavigate();
+  const { handleGoBack, handleGoHome } = useNavigationHelpers();
   const [searchParams] = useSearchParams();
   const spotifyUrl = searchParams.get("url");
 
@@ -179,14 +179,6 @@ export const usePlaylistPreviewController = () => {
   });
 
   const isSaved = !!savedPlaylistId || tracks.some((t) => t.status === TrackStatusEnum.Completed);
-
-  const handleGoBack = () => {
-    navigate(-1);
-  };
-
-  const handleGoHome = useCallback(() => {
-    navigate(Path.HOME);
-  }, [navigate]);
 
   return {
     playlist,

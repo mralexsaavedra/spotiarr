@@ -1,18 +1,18 @@
 import { NormalizedTrack, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useMemo, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { APP_CONFIG } from "@/config/app";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
-import { Path } from "@/routes/routes";
 import { PlaylistWithStats, Track } from "@/types";
 import { buildZeroStats } from "@/utils/playlist";
 import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
+import { useNavigationHelpers } from "../useNavigationHelpers";
 import { usePlaylistController } from "./usePlaylistController";
 
 export const useAlbumDetailController = () => {
   const { artistId = "", albumId = "" } = useParams<{ artistId: string; albumId: string }>();
-  const navigate = useNavigate();
+  const { handleGoBack, handleGoHome } = useNavigationHelpers();
 
   // Fetch album tracks
   const {
@@ -130,14 +130,6 @@ export const useAlbumDetailController = () => {
   );
 
   const isSaved = tracks.some((t) => t.status === TrackStatusEnum.Completed);
-
-  const handleGoBack = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
-
-  const handleGoHome = useCallback(() => {
-    navigate(Path.HOME);
-  }, [navigate]);
 
   return {
     playlist,
