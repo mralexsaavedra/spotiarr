@@ -121,9 +121,15 @@ export const usePlaylistController = ({
     [playlist?.name, playlist?.type, tracks],
   );
 
+  const isButtonLoading =
+    createPlaylist.isPending ||
+    isDownloading ||
+    (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
+
   return {
     isDownloading,
     isDownloaded,
+    isButtonLoading,
     hasFailed,
     completedCount,
     displayTitle,

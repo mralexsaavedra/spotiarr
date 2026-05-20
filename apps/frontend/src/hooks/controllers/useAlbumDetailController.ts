@@ -98,6 +98,7 @@ export const useAlbumDetailController = () => {
   const {
     isDownloading,
     isDownloaded,
+    isButtonLoading,
     hasFailed,
     completedCount,
     displayTitle,
@@ -127,11 +128,6 @@ export const useAlbumDetailController = () => {
     },
     [artistId, albumId, createPlaylist],
   );
-
-  const isButtonLoading =
-    createPlaylist.isPending ||
-    isDownloading ||
-    (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
 
   const isSaved = tracks.some((t) => t.status === TrackStatusEnum.Completed);
 

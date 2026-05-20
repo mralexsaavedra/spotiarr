@@ -162,6 +162,7 @@ export const usePlaylistPreviewController = () => {
   const {
     isDownloading,
     isDownloaded,
+    isButtonLoading,
     hasFailed,
     completedCount,
     displayTitle,
@@ -170,18 +171,12 @@ export const usePlaylistPreviewController = () => {
     handleDelete,
     handleRetryFailed,
     handleRetryTrack,
-    mutations: { createPlaylist },
   } = usePlaylistController({
     playlist,
     tracks,
     spotifyUrl,
     id: savedPlaylistId,
   });
-
-  const isButtonLoading =
-    createPlaylist.isPending ||
-    isDownloading ||
-    (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
 
   const isSaved = !!savedPlaylistId || tracks.some((t) => t.status === TrackStatusEnum.Completed);
 
