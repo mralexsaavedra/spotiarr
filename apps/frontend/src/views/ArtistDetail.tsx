@@ -4,8 +4,8 @@ import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/atoms/Button";
 import { Loading } from "@/components/atoms/Loading";
+import { ApiErrorState } from "@/components/molecules/ApiErrorState";
 import { ArtistHeader } from "@/components/molecules/ArtistHeader";
-import { SpotifyErrorState } from "@/components/molecules/SpotifyErrorState";
 import { SpotifyLinkButton } from "@/components/molecules/SpotifyLinkButton";
 import { ArtistDiscography } from "@/components/organisms/ArtistDiscography";
 import { useArtistDetailController } from "@/hooks/controllers/useArtistDetailController";
@@ -45,7 +45,7 @@ export const ArtistDetail: FC = () => {
   if (error) {
     return (
       <div className="bg-background flex flex-1 items-center justify-center p-6 text-white">
-        <SpotifyErrorState error={error} message={t("artist.error")} />
+        <ApiErrorState error={error} message={t("artist.error")} />
       </div>
     );
   }

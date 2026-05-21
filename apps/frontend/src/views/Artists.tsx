@@ -1,9 +1,9 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/atoms/Loading";
+import { ApiErrorState } from "@/components/molecules/ApiErrorState";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { SearchInput } from "@/components/molecules/SearchInput";
-import { SpotifyErrorState } from "@/components/molecules/SpotifyErrorState";
 import { ArtistList } from "@/components/organisms/ArtistList";
 import { useArtistsController } from "@/hooks/controllers/useArtistsController";
 
@@ -15,7 +15,7 @@ export const Artists: FC = () => {
   if (error) {
     return (
       <section className="bg-background flex-1 px-4 py-6 md:px-8">
-        <SpotifyErrorState error={error} message={t("artists.error")} />
+        <ApiErrorState error={error} message={t("artists.error")} />
       </section>
     );
   }

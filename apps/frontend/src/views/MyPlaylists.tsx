@@ -2,9 +2,9 @@ import { ApiErrorCode } from "@spotiarr/shared";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/atoms/Loading";
+import { ApiErrorState } from "@/components/molecules/ApiErrorState";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { SearchInput } from "@/components/molecules/SearchInput";
-import { SpotifyErrorState } from "@/components/molecules/SpotifyErrorState";
 import { SpotifyPlaylistList } from "@/components/organisms/SpotifyPlaylistList";
 import { useMyPlaylistsController } from "@/hooks/controllers/useMyPlaylistsController";
 import { ApiError } from "@/services/httpClient";
@@ -20,7 +20,7 @@ export const MyPlaylists: FC = () => {
 
     return (
       <section className="bg-background flex-1 px-4 py-6 md:px-8">
-        <SpotifyErrorState error={errorCode} message={t("myPlaylists.error")} />
+        <ApiErrorState error={errorCode} message={t("myPlaylists.error")} />
       </section>
     );
   }
