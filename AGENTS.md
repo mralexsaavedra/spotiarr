@@ -167,12 +167,12 @@ Pre-commit hooks run lint + format automatically via `lint-staged` + Husky. Neve
 
 Run targeted first, broad only for cross-workspace changes.
 
-| Scope                   | Commands                                                                               |
-| ----------------------- | -------------------------------------------------------------------------------------- |
-| Frontend only           | `pnpm --filter frontend run lint` → `pnpm --filter frontend run build`                 |
-| Backend only            | `pnpm --filter backend run lint` → `pnpm --filter backend run build`                   |
-| Shared package          | `pnpm --filter @spotiarr/shared run lint` → `pnpm --filter @spotiarr/shared run build` |
-| Broad / cross-workspace | `pnpm lint` → `pnpm build`                                                             |
+| Scope                   | Commands                                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Frontend only           | `pnpm --filter frontend run lint` → `pnpm --filter frontend run test:run` → `pnpm --filter frontend run build` |
+| Backend only            | `pnpm --filter backend run lint` → `pnpm --filter backend run test:run` → `pnpm --filter backend run build`    |
+| Shared package          | `pnpm --filter @spotiarr/shared run lint` → `pnpm --filter @spotiarr/shared run build`                         |
+| Broad / cross-workspace | `pnpm lint` → `pnpm test` → `pnpm build`                                                                       |
 
 ---
 
