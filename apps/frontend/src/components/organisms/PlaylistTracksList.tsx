@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { Track } from "@/types";
+import { formatDuration } from "@/utils/date";
 import { isSpotifyUrl } from "@/utils/spotify";
 import { ArtistLinks } from "../molecules/ArtistLinks";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
@@ -110,7 +111,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
                 title={t("common.downloaded")}
               />
             )}
-            {track.durationMs ? new Date(track.durationMs).toISOString().substr(14, 5) : "--:--"}
+            {track.durationMs ? formatDuration(track.durationMs) : "--:--"}
           </div>
         </div>
       </div>

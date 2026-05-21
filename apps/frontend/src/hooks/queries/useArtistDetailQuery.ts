@@ -2,6 +2,7 @@ import type { ApiErrorCode, ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { artistService } from "@/services/artist.service";
+import { STALE_TIME_LONG } from "@/utils/cache";
 import { mapApiError } from "@/utils/spotify";
 import { queryKeys } from "../queryKeys";
 
@@ -18,14 +19,13 @@ export const useArtistDetailQuery = (
   artistId: string | null,
   limit: number = 12,
 ): UseArtistDetailState => {
-  const STALE_TIME_MS = 5 * 60 * 1000;
   const refetchAttemptsRef = useRef(0);
 
   const { data, isLoading, error, refetch } = useQuery<ArtistDetail, Error>({
     queryKey: [...queryKeys.artistDetail(artistId || ""), limit],
     queryFn: () => artistService.getArtistDetail(artistId!, limit),
     enabled: !!artistId,
-    staleTime: STALE_TIME_MS,
+    staleTime: STALE_TIME_LONG,
   });
 
   // Reset attempts when artist changes or response is no longer pending+empty

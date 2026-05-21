@@ -1,6 +1,7 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { artistService } from "@/services/artist.service";
+import { STALE_TIME_LONG } from "@/utils/cache";
 import { queryKeys } from "../queryKeys";
 
 interface UseArtistAlbumsQueryOptions {
@@ -16,12 +17,10 @@ export const useArtistAlbumsQuery = ({
   offset,
   enabled = true,
 }: UseArtistAlbumsQueryOptions) => {
-  const STALE_TIME_MS = 5 * 60 * 1000;
-
   return useQuery<ArtistRelease[], Error>({
     queryKey: queryKeys.artistAlbums(artistId, limit, offset),
     queryFn: () => artistService.getArtistAlbums(artistId, limit, offset),
     enabled,
-    staleTime: STALE_TIME_MS,
+    staleTime: STALE_TIME_LONG,
   });
 };
