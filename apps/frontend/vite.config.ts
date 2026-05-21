@@ -24,9 +24,10 @@ export default defineConfig(({ mode }) => {
     },
     envDir,
     server: {
+      host: env.PUBLIC_HOST || "localhost",
       proxy: {
         "/api": {
-          target: "http://localhost:3000",
+          target: `http://${env.PUBLIC_HOST || "localhost"}:3000`,
           changeOrigin: true,
         },
       },
