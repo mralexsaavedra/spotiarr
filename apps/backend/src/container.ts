@@ -6,6 +6,7 @@ import { TrackService } from "./application/services/track.service";
 import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
 import { GetArtistAlbumsUseCase } from "./application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "./application/use-cases/artists/get-artist-detail.use-case";
+import { GetRecentReleasesUseCase } from "./application/use-cases/feed/get-recent-releases.use-case";
 import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
 import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
 import { CreatePlaylistUseCase } from "./application/use-cases/playlists/create-playlist.use-case";
@@ -327,11 +328,16 @@ const settingsController = new SettingsController(getSettingsUseCase, updateSett
 const historyUseCases = new HistoryUseCases({ repository: historyRepository });
 const historyController = new HistoryController(historyUseCases);
 
+const getRecentReleasesUseCase = new GetRecentReleasesUseCase(
+  feedRepository,
+  spotifyUserLibraryService,
+  releaseFeedService,
+  settingsService,
+);
 const feedController = new FeedController(
   spotifyUserLibraryService,
   feedRepository,
-  settingsService,
-  releaseFeedService,
+  getRecentReleasesUseCase,
 );
 const authController = new AuthController(spotifyAuthService, settingsService);
 const healthController = new HealthController();
