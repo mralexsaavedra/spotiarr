@@ -34,7 +34,6 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@spotiarr/prettier-config": "workspace:*",
     "@spotiarr/tsconfig": "workspace:*",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query-devtools": "^5.91.1",
@@ -44,7 +43,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "jsdom": "^29.1.1",
-    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.7",
     "vitest": "^3.2.4"

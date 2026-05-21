@@ -12,7 +12,6 @@
     "format": "prettier --write \"src/**/*.{ts,json}\""
   },
   "devDependencies": {
-    "@spotiarr/prettier-config": "workspace:*",
     "@spotiarr/tsconfig": "workspace:*"
   }
 }

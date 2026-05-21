@@ -53,8 +53,7 @@ export class SpotifyAlbumClient extends SpotifyBaseClient {
 
         // Paginate through all tracks (Spotify returns max 50 per page)
         const allTracks: SpotifyTrack[] = [];
-        let url: string | null =
-          `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`;
+        let url: string | null = `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`;
 
         while (url) {
           const response = await this.fetchWithAppToken(url);

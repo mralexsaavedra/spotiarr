@@ -25,6 +25,9 @@ importers:
       prettier:
         specifier: ^3.7.4
         version: 3.7.4
+      prettier-plugin-tailwindcss:
+        specifier: ^0.7.2
+        version: 0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4))(prettier@3.7.4)
 
   apps/backend:
     dependencies:
@@ -65,9 +68,6 @@ importers:
         specifier: ^4.1.13
         version: 4.1.13
     devDependencies:
-      "@spotiarr/prettier-config":
-        specifier: workspace:*
-        version: link:../../packages/prettier-config
       "@spotiarr/tsconfig":
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -153,9 +153,6 @@ importers:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.1)(use-sync-external-store@1.6.0(react@19.2.1))
     devDependencies:
-      "@spotiarr/prettier-config":
-        specifier: workspace:*
-        version: link:../../packages/prettier-config
       "@spotiarr/tsconfig":
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -183,9 +180,6 @@ importers:
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
-      prettier-plugin-tailwindcss:
-        specifier: ^0.7.2
-        version: 0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4))(prettier@3.7.4)
       tailwindcss:
         specifier: ^4.1.17
         version: 4.1.17
@@ -196,20 +190,8 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.10.1)(jiti@2.6.1)(jsdom@29.1.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)
 
-  packages/prettier-config:
-    dependencies:
-      prettier:
-        specifier: ">=3"
-        version: 3.7.4
-      prettier-plugin-tailwindcss:
-        specifier: ">=0.6.0"
-        version: 0.7.2(@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.7.4))(prettier@3.7.4)
-
   packages/shared:
     devDependencies:
-      "@spotiarr/prettier-config":
-        specifier: workspace:*
-        version: link:../prettier-config
       "@spotiarr/tsconfig":
         specifier: workspace:*
         version: link:../tsconfig
@@ -4512,8 +4494,7 @@ snapshots:
 
   "@prisma/debug@5.22.0": {}
 
-  "@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2":
-    {}
+  "@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2": {}
 
   "@prisma/engines@5.22.0":
     dependencies:
