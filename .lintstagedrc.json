@@ -2,7 +2,5 @@
   "apps/backend/**/*.ts": ["pnpm --filter backend lint"],
   "apps/frontend/**/*.ts": ["pnpm --filter frontend lint"],
   "packages/shared/**/*.ts": ["pnpm --filter @spotiarr/shared lint"],
-  "**/*.{ts,tsx,css,json,md,yml,yaml}": [
-    "pnpm prettier --write --ignore-path .gitignore"
-  ]
+  "**/*.{ts,tsx,css,json,md,yml,yaml}": ["pnpm prettier --write --ignore-path .gitignore"]
 }

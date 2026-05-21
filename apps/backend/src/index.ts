@@ -3,11 +3,11 @@ import * as fs from "fs";
 import * as http from "http";
 import { app } from "./app";
 import { container } from "./container";
-import { startScheduledJobs } from "./infrastructure/jobs";
+import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { configureAppTokenCircuitBreaker } from "./infrastructure/external/spotify-http.client";
+import { startScheduledJobs } from "./infrastructure/jobs";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
-import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { initializeQueues } from "./infrastructure/setup/queues";
 import {
   getCatalogSyncQueue,
@@ -49,11 +49,9 @@ async function bootstrap() {
   const savedOpenUntil = await settingsRepo.get(CIRCUIT_BREAKER_OPEN_UNTIL_KEY);
   const initialOpenUntilMs = savedOpenUntil ? parseInt(savedOpenUntil, 10) : 0;
   configureAppTokenCircuitBreaker(initialOpenUntilMs, async (openUntilMs) => {
-    await settingsRepo
-      .set(CIRCUIT_BREAKER_OPEN_UNTIL_KEY, openUntilMs.toString())
-      .catch((err) => {
-        console.error("[CircuitBreaker] Failed to persist open-until timestamp", err);
-      });
+    await settingsRepo.set(CIRCUIT_BREAKER_OPEN_UNTIL_KEY, openUntilMs.toString()).catch((err) => {
+      console.error("[CircuitBreaker] Failed to persist open-until timestamp", err);
+    });
   });
 
   // Initialize workers
@@ -67,9 +65,7 @@ async function bootstrap() {
   const { createFeedSyncWorker } = await import("./infrastructure/workers/feed-sync.worker");
   feedSyncWorker = createFeedSyncWorker();
 
-  const { createCatalogSyncWorker } = await import(
-    "./infrastructure/workers/catalog-sync.worker"
-  );
+  const { createCatalogSyncWorker } = await import("./infrastructure/workers/catalog-sync.worker");
   catalogSyncWorker = createCatalogSyncWorker();
 
   // Listen for settings updates to hot-reload workers

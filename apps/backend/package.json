@@ -30,7 +30,6 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@spotiarr/prettier-config": "workspace:*",
     "@spotiarr/tsconfig": "workspace:*",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.5",

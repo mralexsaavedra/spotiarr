@@ -34,9 +34,7 @@ export function createCatalogSyncWorker(): Worker {
         const artists = await spotifyUserLibrarySyncService.getFollowedArtists();
         await feedRepository.upsertArtists(artists);
 
-        const cutoffDate = new Date(
-          Date.now() - CATALOG_SYNC_TTL_DAYS * 24 * 60 * 60 * 1000,
-        );
+        const cutoffDate = new Date(Date.now() - CATALOG_SYNC_TTL_DAYS * 24 * 60 * 60 * 1000);
 
         const maxArtistsPerCycle = await settingsService.getNumber(
           "MAX_CATALOG_ARTISTS_PER_CYCLE",
@@ -66,9 +64,7 @@ export function createCatalogSyncWorker(): Worker {
           365,
         );
         const safeLookbackDays = lookbackDays > 0 ? lookbackDays : 365;
-        const earlyStopBeforeDate = new Date(
-          Date.now() - safeLookbackDays * 24 * 60 * 60 * 1000,
-        );
+        const earlyStopBeforeDate = new Date(Date.now() - safeLookbackDays * 24 * 60 * 60 * 1000);
 
         const allAlbums: import("@spotiarr/shared").ArtistRelease[] = [];
         let successCount = 0;

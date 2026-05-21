@@ -19,8 +19,17 @@ export class MetadataService {
       coverUrl?: string; // Optional: download and embed if present
     },
   ): Promise<void> {
-    const { title, artist, albumArtist, album, albumYear, trackNumber, discNumber, totalTracks, coverUrl } =
-      fileTags;
+    const {
+      title,
+      artist,
+      albumArtist,
+      album,
+      albumYear,
+      trackNumber,
+      discNumber,
+      totalTracks,
+      coverUrl,
+    } = fileTags;
 
     const tags: NodeID3.Tags = {
       title,
