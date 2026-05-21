@@ -8,12 +8,11 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
-    "lint": "spotiarr-lint src --fix",
+    "lint": "oxlint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\""
   },
   "devDependencies": {
     "@spotiarr/prettier-config": "workspace:*",
-    "@spotiarr/eslint-config": "workspace:*",
     "@spotiarr/tsconfig": "workspace:*"
   }
 }
