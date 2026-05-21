@@ -13,18 +13,18 @@ Load when running commands, validating changes, creating PRs, managing branches,
 
 ## Hard Rules
 
-- No automated test suite — CI runs lint + build only. Human verification required for behaviour changes.
+- CI runs lint, tests, and build as separate jobs. Automated tests cover backend and frontend utilities.
 - Never commit `.env`, tokens, or credentials. Use `.env.example` as source of truth.
 - Never bypass pre-commit hooks (`--no-verify` is forbidden).
 - External services required locally: **Redis**, **FFmpeg**, **yt-dlp**, **Python 3.11/3.12**.
 
 ## Decision Gates
 
-| Scope                     | Validate with                                                          |
-| ------------------------- | ---------------------------------------------------------------------- |
-| Frontend only             | `pnpm --filter frontend run lint` → `pnpm --filter frontend run build` |
-| Backend only              | `pnpm --filter backend run lint` → `pnpm --filter backend run build`   |
-| Shared or cross-workspace | `pnpm lint` → `pnpm build`                                             |
+| Scope                     | Validate with                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Frontend only             | `pnpm --filter frontend run lint` → `pnpm --filter frontend run test:run` → `pnpm --filter frontend run build` |
+| Backend only              | `pnpm --filter backend run lint` → `pnpm --filter backend run test:run` → `pnpm --filter backend run build`    |
+| Shared or cross-workspace | `pnpm lint` → `pnpm test` → `pnpm build`                                                                       |
 
 ## Execution Steps
 
@@ -44,7 +44,10 @@ Load when running commands, validating changes, creating PRs, managing branches,
 
 ```bash
 pnpm dev                                    # full dev stack
-pnpm lint && pnpm build                     # broad validation
+pnpm lint && pnpm test && pnpm build        # broad validation
+pnpm test                                   # all workspace tests
+pnpm --filter frontend run test:run         # frontend unit tests
+pnpm --filter backend run test:run          # backend unit tests
 pnpm --filter backend run prisma:migrate:deploy
 gh pr create                                # title must follow Conventional Commits
 ```

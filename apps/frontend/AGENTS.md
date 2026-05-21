@@ -47,6 +47,7 @@ src/
 
 ```bash
 pnpm --filter frontend run lint
+pnpm --filter frontend run test:run
 pnpm --filter frontend run build
 ```
 

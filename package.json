@@ -35,6 +35,7 @@
     "db:generate": "pnpm --filter backend run prisma:generate",
     "build": "pnpm -r run build",
     "start": "node apps/backend/dist/index.js",
+    "test": "pnpm -r --if-present run test:run",
     "lint": "pnpm -r --if-present run lint",
     "format": "pnpm -r --if-present run format",
     "clean": "pnpm -r --if-present run clean && rm -rf apps/*/dist packages/*/dist",

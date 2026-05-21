@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  build-and-lint:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -31,14 +32,61 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Build shared package
         run: pnpm --filter @spotiarr/shared run build
 
       - name: Generate Prisma client
         run: pnpm --filter backend run prisma:generate
 
-      - name: Test backend
-        run: pnpm --filter backend run test:run
+      - name: Run tests
+        run: pnpm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter backend run prisma:generate
 
       - name: Build
         run: pnpm build
