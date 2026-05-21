@@ -1,0 +1,24 @@
+{
+  "$schema": "https://oxc.rs/oxlint/schema.json",
+  "plugins": ["typescript", "react", "unicorn"],
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "apps/frontend/src/app/**/*"
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "args": "none",
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^(?:_|T|Prisma)$",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "typescript/no-explicit-any": "warn",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn"
+  }
+}

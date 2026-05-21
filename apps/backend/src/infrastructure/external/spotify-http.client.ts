@@ -171,7 +171,7 @@ export class SpotifyHttpClient {
   async fetchWithAppToken(input: string | URL, init?: RequestInit): Promise<Response> {
     const token = await this.authService.getAppToken();
     const headers = {
-      ...(init?.headers ?? {}),
+      ...init?.headers,
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 
@@ -192,7 +192,7 @@ export class SpotifyHttpClient {
     init?: RequestInit,
   ): Promise<Response> {
     const headers = {
-      ...(init?.headers ?? {}),
+      ...init?.headers,
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 

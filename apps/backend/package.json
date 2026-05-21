@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "pnpm prisma:generate && tsc && tsc-alias",
     "start": "node dist/index.js",
-    "lint": "spotiarr-lint src --fix",
+    "lint": "oxlint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\"",
     "test": "vitest",
     "test:run": "vitest run",
@@ -30,7 +30,6 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@spotiarr/eslint-config": "workspace:*",
     "@spotiarr/prettier-config": "workspace:*",
     "@spotiarr/tsconfig": "workspace:*",
     "@types/cors": "^2.8.17",
