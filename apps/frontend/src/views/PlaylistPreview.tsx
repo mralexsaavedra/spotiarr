@@ -55,7 +55,7 @@ export const PlaylistPreview: FC = () => {
       hasMoreTracks={hasMoreTracks}
       isLoadingMoreTracks={isLoadingMoreTracks}
       onDownloadTrack={handleRetryTrack}
-      onDownload={handleDownload}
+      onDownloadOrRetry={handleDownload}
       onLoadMoreTracks={handleLoadMoreTracks}
       onRetryTrack={(trackId) => {
         const track = tracks.find((t) => t.id === trackId);

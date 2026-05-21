@@ -1,12 +1,12 @@
-import { useCallback, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Path } from "@/routes/routes";
+import { useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useTracksQuery } from "../queries/useTracksQuery";
+import { useNavigationHelpers } from "../useNavigationHelpers";
 import { usePlaylistController } from "./usePlaylistController";
 
 export const usePlaylistDetailController = () => {
-  const navigate = useNavigate();
+  const { handleGoHome } = useNavigationHelpers();
   const { id } = useParams<{ id: string }>();
 
   const { data: playlists = [], isLoading: isPlaylistsLoading } = usePlaylistsQuery();
@@ -31,10 +31,6 @@ export const usePlaylistDetailController = () => {
     spotifyUrl: playlist?.spotifyUrl,
     id,
   });
-
-  const handleGoHome = useCallback(() => {
-    navigate(Path.HOME);
-  }, [navigate]);
 
   return {
     playlist,

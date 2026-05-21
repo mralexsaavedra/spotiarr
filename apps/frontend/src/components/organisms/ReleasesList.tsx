@@ -1,6 +1,6 @@
 import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
-import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
+import { FC, memo, MouseEvent, useCallback } from "react";
+import { useAlbumListDownloadStates } from "@/hooks/useAlbumListDownloadStates";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 
@@ -61,16 +61,7 @@ export const ReleasesList: FC<ReleasesListProps> = ({
   onDownloadRelease,
   onArtistClick,
 }) => {
-  const releaseStatusItems = useMemo(
-    () =>
-      releases.map((release) => ({
-        url: release.spotifyUrl,
-        totalTracks: release.totalTracks,
-      })),
-    [releases],
-  );
-
-  const downloadStatesMap = useBulkPlaylistStatus(releaseStatusItems);
+  const downloadStatesMap = useAlbumListDownloadStates(releases);
 
   const renderItem = useCallback(
     (release: ArtistRelease) => {

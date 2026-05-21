@@ -49,7 +49,7 @@ export const PlaylistDetail: FC = () => {
       isRetrying={retryFailedTracks.isPending}
       onToggleSubscription={handleToggleSubscription}
       onDownloadTrack={(track) => handleRetryTrack(track)}
-      onDownload={handleRetryFailed}
+      onDownloadOrRetry={handleRetryFailed}
     />
   );
 };

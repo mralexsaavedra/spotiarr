@@ -54,7 +54,7 @@ export const AlbumDetail: FC = () => {
       completedCount={completedCount}
       hasMoreTracks={hasMoreTracks}
       isLoadingMoreTracks={isLoadingMoreTracks}
-      onDownload={handleDownload}
+      onDownloadOrRetry={handleDownload}
       onDownloadTrack={handleDownloadTrack}
       onRetryTrack={(trackId) => {
         const track = tracks.find((t) => t.id === trackId);

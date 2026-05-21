@@ -1,17 +1,18 @@
 import { NormalizedTrack, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useMemo, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { APP_CONFIG } from "@/config/app";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
-import { Path } from "@/routes/routes";
 import { PlaylistWithStats, Track } from "@/types";
+import { buildZeroStats } from "@/utils/playlist";
 import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
+import { useNavigationHelpers } from "../useNavigationHelpers";
 import { usePlaylistController } from "./usePlaylistController";
 
 export const useAlbumDetailController = () => {
   const { artistId = "", albumId = "" } = useParams<{ artistId: string; albumId: string }>();
-  const navigate = useNavigate();
+  const { handleGoBack, handleGoHome } = useNavigationHelpers();
 
   // Fetch album tracks
   const {
@@ -84,19 +85,7 @@ export const useAlbumDetailController = () => {
       createdAt: Date.now(),
       owner,
       ownerUrl: undefined,
-      stats: {
-        completedCount: 0,
-        downloadingCount: 0,
-        searchingCount: 0,
-        queuedCount: 0,
-        activeCount: 0,
-        errorCount: 0,
-        totalCount: tracks.length,
-        progress: 0,
-        isDownloading: false,
-        hasErrors: false,
-        isCompleted: false,
-      },
+      stats: buildZeroStats(tracks.length),
     };
   }, [album, albumId, rawTracks, tracks.length]);
 
@@ -107,8 +96,8 @@ export const useAlbumDetailController = () => {
   }, [album?.spotifyUrl, artistId, albumId]);
 
   const {
-    isDownloading,
     isDownloaded,
+    isButtonLoading,
     hasFailed,
     completedCount,
     displayTitle,
@@ -139,20 +128,7 @@ export const useAlbumDetailController = () => {
     [artistId, albumId, createPlaylist],
   );
 
-  const isButtonLoading =
-    createPlaylist.isPending ||
-    isDownloading ||
-    (createPlaylist.isSuccess && !isDownloading && !isDownloaded);
-
   const isSaved = tracks.some((t) => t.status === TrackStatusEnum.Completed);
-
-  const handleGoBack = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
-
-  const handleGoHome = useCallback(() => {
-    navigate(Path.HOME);
-  }, [navigate]);
 
   return {
     playlist,

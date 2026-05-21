@@ -1,6 +1,20 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { type Playlist, PlaylistStats, type Track } from "@/types";
 
+export const buildZeroStats = (totalCount: number): PlaylistStats => ({
+  completedCount: 0,
+  downloadingCount: 0,
+  searchingCount: 0,
+  queuedCount: 0,
+  activeCount: 0,
+  errorCount: 0,
+  totalCount,
+  progress: 0,
+  isDownloading: false,
+  hasErrors: false,
+  isCompleted: false,
+});
+
 export const calculatePlaylistStats = (playlist: Playlist): PlaylistStats => {
   const tracks = playlist.tracks || [];
   const completed = tracks.filter((t: Track) => t.status === TrackStatusEnum.Completed).length;
