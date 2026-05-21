@@ -14,6 +14,8 @@ export const SYNC_STATUS = {
   Error: "error",
 } as const;
 
+const SyncStateId = { Feed: 1, Catalog: 2 } as const;
+
 export type SyncStatus = (typeof SYNC_STATUS)[keyof typeof SYNC_STATUS];
 
 interface SyncStateRecord {
@@ -25,6 +27,25 @@ interface SyncStateRecord {
 
 export class FeedRepository {
   constructor(private readonly prisma: PrismaClient) {}
+
+  /**
+   * Maps an artistReleaseCache row (with joined artist) to an ArtistRelease.
+   * Centralizes cover URL upgrade so it happens exactly once.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapRow(row: any): ArtistRelease {
+    return {
+      artistId: row.artistId,
+      artistName: row.artist?.name ?? row.artistName ?? "Unknown Artist",
+      artistImageUrl: row.artist?.imageUrl ?? row.artistImageUrl ?? null,
+      albumId: row.albumId,
+      albumName: row.albumName,
+      albumType: row.albumType as ArtistRelease["albumType"],
+      releaseDate: row.releaseDate ?? undefined,
+      coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
+      spotifyUrl: row.spotifyUrl ?? undefined,
+    };
+  }
 
   private mapArtistAlbumRowToRelease(
     row: {
@@ -47,7 +68,7 @@ export class FeedRepository {
       albumName: row.albumName,
       albumType: row.albumType as ArtistRelease["albumType"],
       releaseDate: row.releaseDate ?? undefined,
-      coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
+      coverUrl: this.mapRow({ artistId: row.spotifyArtistId, ...row }).coverUrl,
       spotifyUrl: row.spotifyUrl ?? undefined,
       totalTracks: row.totalTracks ?? undefined,
     };
@@ -121,17 +142,7 @@ export class FeedRepository {
     });
 
     return rows
-      .map<ArtistRelease>((row) => ({
-        artistId: row.artistId,
-        artistName: row.artist.name,
-        artistImageUrl: row.artist.imageUrl ?? null,
-        albumId: row.albumId,
-        albumName: row.albumName,
-        albumType: row.albumType as ArtistRelease["albumType"],
-        releaseDate: row.releaseDate ?? undefined,
-        coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
-        spotifyUrl: row.spotifyUrl ?? undefined,
-      }))
+      .map((row) => this.mapRow(row))
       .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
   }
 
@@ -246,7 +257,7 @@ export class FeedRepository {
 
     return {
       ...row,
-      coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
+      coverUrl: this.mapRow({ artistId: row.spotifyArtistId, ...row }).coverUrl,
       artistName: artistRow?.name ?? "Unknown Artist",
     };
   }
@@ -274,14 +285,15 @@ export class FeedRepository {
       return null;
     }
 
+    const mapped = this.mapRow(row);
     return {
       id: row.id,
-      artistId: row.artistId,
-      albumId: row.albumId,
-      albumName: row.albumName,
+      artistId: mapped.artistId,
+      albumId: mapped.albumId,
+      albumName: mapped.albumName,
       albumType: row.albumType,
       releaseDate: row.releaseDate,
-      coverUrl: upgradeDeezerCoverUrl(row.coverUrl),
+      coverUrl: mapped.coverUrl,
       spotifyUrl: row.spotifyUrl,
       artistName: row.artist.name,
     };
@@ -591,10 +603,10 @@ export class FeedRepository {
 
   async getSyncState(): Promise<SyncStateRecord> {
     return this.prisma.syncState.upsert({
-      where: { id: 1 },
+      where: { id: SyncStateId.Feed },
       update: {},
       create: {
-        id: 1,
+        id: SyncStateId.Feed,
         status: SYNC_STATUS.Idle,
       },
     });
@@ -602,14 +614,14 @@ export class FeedRepository {
 
   async setSyncState(status: SyncStatus, error?: string): Promise<void> {
     await this.prisma.syncState.upsert({
-      where: { id: 1 },
+      where: { id: SyncStateId.Feed },
       update: {
         status,
         error: error ?? null,
         lastSyncAt: status === SYNC_STATUS.Running ? undefined : new Date(),
       },
       create: {
-        id: 1,
+        id: SyncStateId.Feed,
         status,
         error: error ?? null,
         lastSyncAt: status === SYNC_STATUS.Running ? null : new Date(),
@@ -619,10 +631,10 @@ export class FeedRepository {
 
   async getCatalogSyncState(): Promise<SyncStateRecord> {
     return this.prisma.syncState.upsert({
-      where: { id: 2 },
+      where: { id: SyncStateId.Catalog },
       update: {},
       create: {
-        id: 2,
+        id: SyncStateId.Catalog,
         status: SYNC_STATUS.Idle,
       },
     });
@@ -630,14 +642,14 @@ export class FeedRepository {
 
   async setCatalogSyncState(status: SyncStatus, error?: string): Promise<void> {
     await this.prisma.syncState.upsert({
-      where: { id: 2 },
+      where: { id: SyncStateId.Catalog },
       update: {
         status,
         error: error ?? null,
         lastSyncAt: status === SYNC_STATUS.Running ? undefined : new Date(),
       },
       create: {
-        id: 2,
+        id: SyncStateId.Catalog,
         status,
         error: error ?? null,
         lastSyncAt: status === SYNC_STATUS.Running ? null : new Date(),

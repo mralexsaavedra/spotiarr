@@ -15,6 +15,19 @@ const DEEZER_CDN_HOST = "cdns-images.dzcdn.net";
 const DEEZER_API_IMAGE = /^https?:\/\/api\.deezer\.com\/album\/\d+\/image\b/;
 const DEEZER_SIZE_SEGMENT = /\/\d+x\d+-/;
 
+/**
+ * Returns the best available cover URL from a Deezer album object,
+ * preferring the highest resolution available.
+ */
+export function pickBestCover(album: {
+  cover_xl?: string;
+  cover_big?: string;
+  cover_medium?: string;
+  cover?: string;
+}): string | undefined {
+  return album.cover_xl || album.cover_big || album.cover_medium || album.cover || undefined;
+}
+
 export function upgradeDeezerCoverUrl(url: string | null | undefined): string | null {
   if (!url) return null;
 

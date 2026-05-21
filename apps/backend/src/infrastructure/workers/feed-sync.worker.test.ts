@@ -36,7 +36,6 @@ function makeMockDeps(): FeedSyncJobDependencies {
   return {
     spotifyUserLibrarySyncService: {
       getFollowedArtists: vi.fn().mockResolvedValue([makeFollowedArtist()]),
-      getActiveArtistReleases: vi.fn().mockResolvedValue([]),
     } as unknown as SpotifyUserLibraryService,
     releaseFeedService: {
       getActiveArtistReleases: vi.fn().mockResolvedValue({
@@ -106,7 +105,6 @@ describe("FeedSyncWorker — runFeedSyncJob", () => {
         [{ id: "artist-1", name: "Artist One", imageUrl: "https://image.test/1.jpg" }],
         { lookbackDays: 15 },
       );
-      expect(deps.spotifyUserLibrarySyncService.getActiveArtistReleases).not.toHaveBeenCalled();
     });
 
     it("SHALL pass correct artist mapping to ReleaseFeedService when multiple artists are active", async () => {
@@ -176,9 +174,6 @@ describe("FeedSyncWorker — runFeedSyncJob", () => {
       // Worker must call getFollowedArtists (Spotify source) and releaseFeedService (catalog path)
       expect(deps.spotifyUserLibrarySyncService.getFollowedArtists).toHaveBeenCalledTimes(1);
       expect(deps.releaseFeedService.getActiveArtistReleases).toHaveBeenCalledTimes(1);
-
-      // Worker must NOT directly call Spotify catalog methods that bypass ReleaseFeedService
-      expect(deps.spotifyUserLibrarySyncService.getActiveArtistReleases).not.toHaveBeenCalled();
     });
 
     it("SHALL emit feed-updated event after successful sync", async () => {

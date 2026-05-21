@@ -1,20 +1,10 @@
-import { AlbumType, ArtistRelease } from "@spotiarr/shared";
 import { SettingsService } from "@/application/services/settings.service";
-import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
 import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
-import { SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT } from "./spotify-constants";
 import type { SpotifyLimiterMode } from "./spotify-http.client";
-import { SpotifyArtistAlbumsResponse, SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
-
-const ALBUM_PAGE_SIZE = SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT;
-
-function normalizeAlbumLimit(n: number): number {
-  if (!Number.isFinite(n) || n <= 0) return ALBUM_PAGE_SIZE;
-  return Math.min(n, SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT);
-}
+import { SpotifyExternalUrls, SpotifyImage } from "./spotify.types";
 
 export class SpotifyArtistClient extends SpotifyBaseClient {
   private readonly requestCache: PromiseCache;
@@ -63,22 +53,6 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
   }
 
   /**
-   * Get artist image from Spotify API
-   */
-  async getArtistImage(artistId: string): Promise<string | null> {
-    try {
-      const artist = await this.getArtistRaw(artistId);
-      if (!artist) return null;
-
-      // Return the largest image available
-      return artist.images?.[0]?.url || null;
-    } catch (error) {
-      this.log(`Failed to get artist image: ${getErrorMessage(error)}`);
-      return null;
-    }
-  }
-
-  /**
    * Get artist metadata (name and primary image) from Spotify API
    */
   async getArtistDetails(artistId: string): Promise<{
@@ -117,110 +91,5 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
         genres: [],
       };
     }
-  }
-
-  /**
-   * Get all albums for an artist
-   */
-  async getArtistAlbums(
-    artistId: string,
-    limit: number = 50,
-    offset: number = 0,
-  ): Promise<ArtistRelease[]> {
-    const market = await this.getMarket();
-    const effectiveLimit = offset === 0 ? normalizeAlbumLimit(limit) : limit;
-    const cacheKey = `artist-albums:${artistId}:${effectiveLimit}:${offset}:${market}`;
-
-    return this.requestCache.getOrSet(cacheKey, async () => {
-      try {
-        if (effectiveLimit <= SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT) {
-          return this.fetchArtistAlbumsPage(artistId, effectiveLimit, offset, market);
-        }
-
-        const allAlbums: ArtistRelease[] = [];
-        let currentOffset = offset;
-        let remainingLimit = effectiveLimit;
-
-        while (remainingLimit > 0) {
-          const fetchLimit = Math.min(remainingLimit, SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT);
-          const mappedAlbums = await this.fetchArtistAlbumsPage(
-            artistId,
-            fetchLimit,
-            currentOffset,
-            market,
-          );
-
-          allAlbums.push(...mappedAlbums);
-
-          if (mappedAlbums.length < fetchLimit) {
-            break;
-          }
-
-          currentOffset += mappedAlbums.length;
-          remainingLimit -= mappedAlbums.length;
-        }
-
-        return allAlbums;
-      } catch (error) {
-        this.log(`Failed to get artist albums: ${getErrorMessage(error)}`);
-        throw error;
-      }
-    });
-  }
-
-  async getArtistAlbumsPaginated(
-    artistId: string,
-    limit: number = 50,
-    offset: number = 0,
-  ): Promise<ArtistRelease[]> {
-    const market = await this.getMarket();
-    const cacheKey = `artist-albums-page:${artistId}:${limit}:${offset}:${market}`;
-
-    return this.requestCache.getOrSet(cacheKey, async () => {
-      return this.fetchArtistAlbumsPage(
-        artistId,
-        Math.min(limit, SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT),
-        offset,
-        market,
-      );
-    });
-  }
-
-  private async fetchArtistAlbumsPage(
-    artistId: string,
-    limit: number,
-    offset: number,
-    market: string,
-  ): Promise<ArtistRelease[]> {
-    const url = `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,compilation&limit=${limit}&offset=${offset}&market=${market}`;
-    const response = await this.fetchWithAppToken(url);
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
-      }
-
-      throw new AppError(
-        response.status,
-        "internal_server_error",
-        `Failed to fetch artist albums: ${response.status}`,
-      );
-    }
-
-    const data = (await response.json()) as SpotifyArtistAlbumsResponse;
-    const albums = data.items ?? [];
-
-    return albums.map((album) => ({
-      artistId: album.artists?.[0]?.id || artistId,
-      artistName: album.artists?.[0]?.name || "Unknown Artist",
-      artistImageUrl: null,
-      albumId: album.id as string,
-      albumName: album.name,
-      albumType: album.album_type as AlbumType,
-      releaseDate: album.release_date,
-      coverUrl: album.images?.[0]?.url ?? null,
-      spotifyUrl: album.external_urls?.spotify,
-      totalTracks: album.total_tracks,
-    }));
   }
 }

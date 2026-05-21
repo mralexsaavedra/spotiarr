@@ -2,7 +2,6 @@ import type { ArtistRelease } from "@spotiarr/shared";
 import type { CatalogIdentity, FeedRepository } from "@/infrastructure/database/feed.repository";
 import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
-import type { SpotifyUserLibraryService } from "./spotify-user-library.service";
 
 export type CatalogArtist = {
   id: string;
@@ -37,7 +36,6 @@ export class ReleaseFeedService {
     private readonly feedRepository: FeedRepository,
     private readonly deezerClient: DeezerClient,
     private readonly musicBrainzClient: MusicBrainzClient,
-    private readonly _spotifyUserLibrarySyncService: SpotifyUserLibraryService,
   ) {}
 
   /**
@@ -49,7 +47,7 @@ export class ReleaseFeedService {
     const identities = await this.feedRepository.getArtistCatalogIdentities([artist.id]);
     const identity = identities[0];
 
-    const { albums, provider, newIdentity, learnedIdentity } = await this.resolveArtistAlbums(
+    const { albums, provider, newIdentity, learnedIdentity } = await this.resolveDeezerMusicBrainz(
       artist,
       identity,
     );
@@ -60,12 +58,7 @@ export class ReleaseFeedService {
     }
 
     // Normalize artist metadata to preserve downstream cache/UI contracts
-    const normalized = albums.map((album) => ({
-      ...album,
-      artistId: artist.id,
-      artistName: artist.name,
-      artistImageUrl: artist.imageUrl ?? null,
-    }));
+    const normalized = this.normalizeAlbumArtist(albums, artist);
 
     return {
       albums: normalized,
@@ -96,20 +89,11 @@ export class ReleaseFeedService {
 
     for (const artist of artists) {
       const identity = identityMap.get(artist.id);
-      const { albums, provider, newIdentity, learnedIdentity } = await this.resolveArtistAlbums(
-        artist,
-        identity,
-      );
+      const { albums, provider, newIdentity, learnedIdentity } =
+        await this.resolveDeezerMusicBrainz(artist, identity);
 
       // Normalize artist metadata to preserve downstream cache/UI contracts
-      releasesPerArtist.push(
-        albums.map((album) => ({
-          ...album,
-          artistId: artist.id,
-          artistName: artist.name,
-          artistImageUrl: artist.imageUrl ?? null,
-        })),
-      );
+      releasesPerArtist.push(this.normalizeAlbumArtist(albums, artist));
 
       decisions.push({
         spotifyId: artist.id,
@@ -192,16 +176,16 @@ export class ReleaseFeedService {
     return { albums, provider, newIdentity, learnedIdentity };
   }
 
-  private async resolveArtistAlbums(
-    artist: CatalogArtist,
-    identity: CatalogIdentity | undefined,
-  ): Promise<{
-    albums: ArtistRelease[];
-    provider: ProviderDecision;
-    newIdentity: boolean;
-    learnedIdentity?: { spotifyId: string; deezerId?: string | null; mbid?: string | null };
-  }> {
-    return this.resolveDeezerMusicBrainz(artist, identity);
+  private normalizeAlbumArtist(
+    albums: ArtistRelease[],
+    artist: { id: string; name: string; imageUrl?: string | null },
+  ): ArtistRelease[] {
+    return albums.map((album) => ({
+      ...album,
+      artistId: artist.id,
+      artistName: artist.name,
+      artistImageUrl: artist.imageUrl ?? null,
+    }));
   }
 
   private filterByLookback(releases: ArtistRelease[], lookbackDays: number): ArtistRelease[] {

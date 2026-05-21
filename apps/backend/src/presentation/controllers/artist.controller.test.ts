@@ -3,8 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { GetAlbumTracksUseCase } from "@/application/use-cases/artists/get-album-tracks.use-case";
 import type { GetArtistAlbumsUseCase } from "@/application/use-cases/artists/get-artist-albums.use-case";
 import type { GetArtistDetailUseCase } from "@/application/use-cases/artists/get-artist-detail.use-case";
-import type { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.client";
-import type { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
 import { ArtistController } from "./artist.controller";
 
 function mockRes(): Response {
@@ -23,8 +21,6 @@ function makeController(
   } = {},
 ): ArtistController {
   return new ArtistController(
-    {} as unknown as SpotifyArtistClient,
-    {} as unknown as SpotifyAlbumClient,
     {} as unknown as GetArtistDetailUseCase,
     {} as unknown as GetArtistAlbumsUseCase,
     {

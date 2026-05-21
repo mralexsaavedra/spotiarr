@@ -4,8 +4,6 @@ import { GetAlbumTracksUseCase } from "@/application/use-cases/artists/get-album
 import { GetArtistAlbumsUseCase } from "@/application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "@/application/use-cases/artists/get-artist-detail.use-case";
 import { AppError } from "@/domain/errors/app-error";
-import { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.client";
-import { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
 
 const ACTIVE_DETAIL_REQUEST_TTL_MS = 30_000;
 const MAX_ACTIVE_DETAIL_REQUESTS = 200;
@@ -36,8 +34,6 @@ function pruneActiveDetailRequests(): void {
 
 export class ArtistController {
   constructor(
-    private readonly spotifyArtistClient: SpotifyArtistClient,
-    private readonly spotifyAlbumClient: SpotifyAlbumClient,
     private readonly getArtistDetailUseCase: GetArtistDetailUseCase,
     private readonly getArtistAlbumsUseCase: GetArtistAlbumsUseCase,
     private readonly getAlbumTracksUseCase: GetAlbumTracksUseCase,
