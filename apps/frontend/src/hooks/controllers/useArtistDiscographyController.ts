@@ -2,7 +2,6 @@ import type { ArtistRelease } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DiscographyFilter } from "@/components/molecules/ArtistDiscographyFilters";
 import { APP_CONFIG } from "@/config/app";
-import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
 
 interface UseArtistDiscographyProps {
@@ -23,7 +22,6 @@ export const useArtistDiscographyController = ({
   const [allAlbums, setAllAlbums] = useState<ArtistRelease[]>(initialAlbums);
   const [offset, setOffset] = useState(initialAlbums.length);
   const [hasFetchedAll, setHasFetchedAll] = useState(!hasMore || initialAlbums.length < pageSize);
-  const [expandedAlbum, setExpandedAlbum] = useState<ArtistRelease | null>(null);
   const shouldFetchMoreRef = useRef(false);
 
   const { data: moreAlbums, isFetching: isLoadingMore } = useArtistAlbumsQuery({
@@ -32,12 +30,6 @@ export const useArtistDiscographyController = ({
     offset,
     enabled:
       shouldFetchMoreRef.current && offset > initialAlbums.length && !hasFetchedAll && hasMore,
-  });
-
-  const { data: albumTracks = [], isFetching: isLoadingTracks } = useAlbumTracksQuery({
-    artistId,
-    albumId: expandedAlbum?.albumId ?? "",
-    enabled: !!expandedAlbum,
   });
 
   useEffect(() => {
@@ -104,14 +96,6 @@ export const useArtistDiscographyController = ({
     }
   }, [pageSize, hasFetchedAll, hasMore, visibleItems, allAlbums.length]);
 
-  const handleAlbumExpand = useCallback((album: ArtistRelease) => {
-    setExpandedAlbum(album);
-  }, []);
-
-  const handleAlbumExpandClose = useCallback(() => {
-    setExpandedAlbum(null);
-  }, []);
-
   const canShowMore =
     visibleItems < filteredAlbums.length ||
     (!hasFetchedAll && filteredAlbums.length >= pageSize && hasMore);
@@ -123,11 +107,6 @@ export const useArtistDiscographyController = ({
     visibleItems,
     isLoadingMore,
     handleShowMore,
-    handleAlbumExpand,
-    handleAlbumExpandClose,
     canShowMore,
-    expandedAlbum,
-    albumTracks,
-    isLoadingTracks,
   };
 };

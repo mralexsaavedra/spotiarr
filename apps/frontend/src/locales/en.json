@@ -63,8 +63,7 @@
         "alreadyDownloaded": "Already downloaded",
         "downloading": "Downloading...",
         "download": "Download",
-        "subscribed": "Subscribed",
-        "viewTracks": "View tracks"
+        "subscribed": "Subscribed"
       },
       "status": {
         "downloading": "Downloading...",

@@ -1,10 +1,4 @@
-import {
-  faCheck,
-  faCompactDisc,
-  faDownload,
-  faList,
-  faSpinner,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCompactDisc, faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type FC, memo, type MouseEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,7 +19,6 @@ interface AlbumCardProps {
   onCardClick: () => void;
   onDownloadClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   onArtistClick: (artistId: string) => void;
-  onExpandClick?: (e: MouseEvent<Element>) => void;
 }
 
 export const AlbumCard: FC<AlbumCardProps> = memo(
@@ -43,7 +36,6 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
     onCardClick,
     onDownloadClick,
     onArtistClick,
-    onExpandClick,
   }) => {
     const { t } = useTranslation();
     const handleArtistClick = useCallback(
@@ -52,14 +44,6 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
         onArtistClick(artistId);
       },
       [onArtistClick, artistId],
-    );
-
-    const handleExpandClick = useCallback(
-      (e: MouseEvent) => {
-        e.stopPropagation();
-        onExpandClick?.(e);
-      },
-      [onExpandClick],
     );
 
     const typeLabel =
@@ -77,7 +61,7 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
       ? formatRelativeDate(new Date(releaseDate).getTime(), false)
       : "";
 
-    const hasOverlayControls = onExpandClick || (spotifyUrl && onDownloadClick);
+    const hasOverlayControls = spotifyUrl && onDownloadClick;
 
     return (
       <article
@@ -100,15 +84,6 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
                 isDownloading ? "opacity-100" : "md:opacity-0 md:group-hover:opacity-100"
               }`}
             >
-              {onExpandClick && (
-                <button
-                  onClick={handleExpandClick}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 shadow-xl transition-all hover:scale-110 hover:bg-white/30"
-                  title={t("common.cards.tooltips.viewTracks")}
-                >
-                  <FontAwesomeIcon icon={faList} className="text-white" />
-                </button>
-              )}
               {spotifyUrl && onDownloadClick && (
                 <button
                   onClick={onDownloadClick}
