@@ -140,9 +140,36 @@ describe("CreatePlaylistUseCase — albumTrack branch", () => {
       spotifyUrl: "spotiarr://album/artist-1/album-1/track/1",
     });
     expect(stubs.getAlbumTracksUseCase.execute).toHaveBeenCalledWith("artist-1", "album-1");
+    expect(stubs.spotifyService.getPlaylistDetail).not.toHaveBeenCalled();
     expect(stubs.playlistRepository.save).toHaveBeenCalled();
     expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
     expect(result).toBeDefined();
+  });
+
+  it("uses release cache metadata for albumTrack playlists", async () => {
+    stubs.feedRepository.getArtistAlbumWithArtist.mockResolvedValue(null);
+    stubs.feedRepository.getArtistReleaseWithArtist.mockResolvedValue({
+      albumName: "Release Album",
+      artistName: "Release Artist",
+      coverUrl: "http://release-cover.jpg",
+    });
+
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "albumTrack",
+      artistId: "artist-1",
+      albumId: "deezer-1",
+      trackIndex: 1,
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+
+    expect(savedPlaylist.toPrimitive()).toMatchObject({
+      name: "Release Artist - Track 2",
+      coverUrl: "http://release-cover.jpg",
+      owner: "Release Artist",
+    });
   });
 
   it("throws 404 when trackIndex is out of range", async () => {
@@ -192,6 +219,7 @@ describe("CreatePlaylistUseCase — album branch", () => {
       spotifyUrl: "spotiarr://album/artist-1/album-1",
     });
     expect(stubs.getAlbumTracksUseCase.execute).toHaveBeenCalledWith("artist-1", "album-1");
+    expect(stubs.spotifyService.getPlaylistDetail).not.toHaveBeenCalled();
     expect(stubs.playlistRepository.save).toHaveBeenCalled();
     expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
     expect(result).toBeDefined();
@@ -212,6 +240,31 @@ describe("CreatePlaylistUseCase — album branch", () => {
       .catch((e) => e);
     expect(thrown).toBeInstanceOf(AppError);
     expect((thrown as AppError).errorCode).toBe("playlist_already_exists");
+  });
+
+  it("uses release cache metadata when album cache is missing", async () => {
+    stubs.feedRepository.getArtistAlbumWithArtist.mockResolvedValue(null);
+    stubs.feedRepository.getArtistReleaseWithArtist.mockResolvedValue({
+      albumName: "Release Album",
+      artistName: "Release Artist",
+      coverUrl: "http://release-cover.jpg",
+    });
+
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "album",
+      artistId: "artist-1",
+      albumId: "deezer-1",
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+
+    expect(savedPlaylist.toPrimitive()).toMatchObject({
+      name: "Release Artist - Release Album",
+      coverUrl: "http://release-cover.jpg",
+      owner: "Release Artist",
+    });
   });
 
   it("uses fallback metadata when feedRepository returns null", async () => {
