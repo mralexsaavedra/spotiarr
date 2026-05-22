@@ -1,5 +1,5 @@
 import { faCompactDisc } from "@fortawesome/free-solid-svg-icons";
-import { FC } from "react";
+import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Loading } from "@/components/atoms/Loading";
 import { ApiErrorState } from "@/components/molecules/ApiErrorState";
@@ -10,14 +10,8 @@ import { useReleasesController } from "@/hooks/controllers/useReleasesController
 
 export const Releases: FC = () => {
   const { t } = useTranslation();
-  const {
-    releases,
-    isLoading,
-    error,
-    handleReleaseClick,
-    handleDownloadRelease,
-    handleArtistClick,
-  } = useReleasesController();
+  const { releases, isLoading, error, handleReleaseClick, handleArtistClick } =
+    useReleasesController();
 
   if (error) {
     return (
@@ -44,7 +38,6 @@ export const Releases: FC = () => {
           <ReleasesList
             releases={releases}
             onReleaseClick={handleReleaseClick}
-            onDownloadRelease={handleDownloadRelease}
             onArtistClick={handleArtistClick}
           />
         )}

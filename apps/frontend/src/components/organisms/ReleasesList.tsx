@@ -1,89 +1,54 @@
-import { ArtistRelease } from "@spotiarr/shared";
-import { FC, memo, MouseEvent, useCallback } from "react";
-import { useAlbumListDownloadStates } from "@/hooks/useAlbumListDownloadStates";
+import type { ArtistRelease } from "@spotiarr/shared";
+import { type FC, memo, useCallback } from "react";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 
 interface ReleaseItemProps {
   release: ArtistRelease;
-  isDownloaded: boolean;
-  isDownloading: boolean;
   onReleaseClick: (release: ArtistRelease) => void;
-  onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
   onArtistClick: (artistId: string) => void;
 }
 
-const ReleaseItem: FC<ReleaseItemProps> = memo(
-  ({ release, isDownloaded, isDownloading, onReleaseClick, onDownloadRelease, onArtistClick }) => {
-    const handleCardClick = useCallback(() => {
-      onReleaseClick(release);
-    }, [onReleaseClick, release]);
+const ReleaseItem: FC<ReleaseItemProps> = memo(({ release, onReleaseClick, onArtistClick }) => {
+  const handleCardClick = useCallback(() => {
+    onReleaseClick(release);
+  }, [onReleaseClick, release]);
 
-    const handleDownloadClick = useCallback(
-      (e: MouseEvent<HTMLButtonElement>) => {
-        if (release.spotifyUrl) {
-          onDownloadRelease(e, release.spotifyUrl);
-        }
-      },
-      [onDownloadRelease, release.spotifyUrl],
-    );
-
-    return (
-      <AlbumCard
-        albumId={release.albumId}
-        artistId={release.artistId}
-        albumName={release.albumName}
-        artistName={release.artistName}
-        coverUrl={release.coverUrl}
-        releaseDate={release.releaseDate}
-        spotifyUrl={release.spotifyUrl}
-        isDownloaded={isDownloaded}
-        isDownloading={isDownloading}
-        albumType={release.albumType}
-        onCardClick={handleCardClick}
-        onDownloadClick={handleDownloadClick}
-        onArtistClick={onArtistClick}
-      />
-    );
-  },
-);
+  return (
+    <AlbumCard
+      albumId={release.albumId}
+      artistId={release.artistId}
+      albumName={release.albumName}
+      artistName={release.artistName}
+      coverUrl={release.coverUrl}
+      releaseDate={release.releaseDate}
+      albumType={release.albumType}
+      onCardClick={handleCardClick}
+      onArtistClick={onArtistClick}
+    />
+  );
+});
 
 interface ReleasesListProps {
   releases: ArtistRelease[];
   onReleaseClick: (release: ArtistRelease) => void;
-  onDownloadRelease: (e: MouseEvent, spotifyUrl: string) => void;
   onArtistClick: (artistId: string) => void;
 }
 
 export const ReleasesList: FC<ReleasesListProps> = ({
   releases,
   onReleaseClick,
-  onDownloadRelease,
   onArtistClick,
 }) => {
-  const downloadStatesMap = useAlbumListDownloadStates(releases);
-
   const renderItem = useCallback(
-    (release: ArtistRelease) => {
-      const downloadState = release.spotifyUrl
-        ? downloadStatesMap.get(release.spotifyUrl)
-        : undefined;
-
-      const isDownloaded = downloadState?.isDownloaded ?? false;
-      const isDownloading = downloadState?.isDownloading ?? false;
-
-      return (
-        <ReleaseItem
-          release={release}
-          isDownloaded={isDownloaded}
-          isDownloading={isDownloading}
-          onReleaseClick={onReleaseClick}
-          onDownloadRelease={onDownloadRelease}
-          onArtistClick={onArtistClick}
-        />
-      );
-    },
-    [downloadStatesMap, onReleaseClick, onDownloadRelease, onArtistClick],
+    (release: ArtistRelease) => (
+      <ReleaseItem
+        release={release}
+        onReleaseClick={onReleaseClick}
+        onArtistClick={onArtistClick}
+      />
+    ),
+    [onReleaseClick, onArtistClick],
   );
 
   return (

@@ -6,7 +6,7 @@ import {
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, memo, MouseEvent, useCallback } from "react";
+import { type FC, memo, type MouseEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { formatRelativeDate } from "@/utils/date";
 import { Image } from "../atoms/Image";
@@ -23,7 +23,7 @@ interface AlbumCardProps {
   isDownloading?: boolean;
   albumType?: string;
   onCardClick: () => void;
-  onDownloadClick: (e: MouseEvent<HTMLButtonElement>) => void;
+  onDownloadClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   onArtistClick: (artistId: string) => void;
   onExpandClick?: (e: MouseEvent<Element>) => void;
 }
@@ -65,15 +65,19 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
     const typeLabel =
       albumType === "single"
         ? t("common.cards.albumTypes.single")
-        : albumType === "album"
-          ? t("common.cards.albumTypes.album")
-          : albumType === "compilation"
-            ? t("common.cards.albumTypes.compilation")
-            : t("common.cards.albumTypes.release");
+        : albumType === "ep"
+          ? t("common.cards.albumTypes.ep")
+          : albumType === "album"
+            ? t("common.cards.albumTypes.album")
+            : albumType === "compilation"
+              ? t("common.cards.albumTypes.compilation")
+              : t("common.cards.albumTypes.release");
 
     const dateDisplay = releaseDate
       ? formatRelativeDate(new Date(releaseDate).getTime(), false)
       : "";
+
+    const hasOverlayControls = onExpandClick || (spotifyUrl && onDownloadClick);
 
     return (
       <article
@@ -90,50 +94,52 @@ export const AlbumCard: FC<AlbumCardProps> = memo(
             className="group-hover:scale-105"
           />
 
-          <div
-            className={`absolute inset-0 flex items-center justify-center gap-3 bg-black/40 transition-opacity ${
-              isDownloading ? "opacity-100" : "md:opacity-0 md:group-hover:opacity-100"
-            }`}
-          >
-            {onExpandClick && (
-              <button
-                onClick={handleExpandClick}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 shadow-xl transition-all hover:scale-110 hover:bg-white/30"
-                title={t("common.cards.tooltips.viewTracks")}
-              >
-                <FontAwesomeIcon icon={faList} className="text-white" />
-              </button>
-            )}
-            {spotifyUrl && (
-              <button
-                onClick={onDownloadClick}
-                disabled={isDownloaded || isDownloading}
-                className={`flex h-12 w-12 items-center justify-center rounded-full shadow-xl transition-all ${
-                  isDownloaded
-                    ? "cursor-not-allowed bg-green-500"
-                    : isDownloading
-                      ? "bg-background-elevated cursor-wait"
-                      : "bg-primary hover:scale-110"
-                }`}
-                title={
-                  isDownloaded
-                    ? t("common.cards.tooltips.alreadyDownloaded")
-                    : isDownloading
-                      ? t("common.cards.tooltips.downloading")
-                      : t("common.cards.tooltips.download")
-                }
-              >
-                {isDownloading ? (
-                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
-                ) : (
-                  <FontAwesomeIcon
-                    icon={isDownloaded ? faCheck : faDownload}
-                    className="text-black"
-                  />
-                )}
-              </button>
-            )}
-          </div>
+          {hasOverlayControls && (
+            <div
+              className={`absolute inset-0 flex items-center justify-center gap-3 bg-black/40 transition-opacity ${
+                isDownloading ? "opacity-100" : "md:opacity-0 md:group-hover:opacity-100"
+              }`}
+            >
+              {onExpandClick && (
+                <button
+                  onClick={handleExpandClick}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 shadow-xl transition-all hover:scale-110 hover:bg-white/30"
+                  title={t("common.cards.tooltips.viewTracks")}
+                >
+                  <FontAwesomeIcon icon={faList} className="text-white" />
+                </button>
+              )}
+              {spotifyUrl && onDownloadClick && (
+                <button
+                  onClick={onDownloadClick}
+                  disabled={isDownloaded || isDownloading}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full shadow-xl transition-all ${
+                    isDownloaded
+                      ? "cursor-not-allowed bg-green-500"
+                      : isDownloading
+                        ? "bg-background-elevated cursor-wait"
+                        : "bg-primary hover:scale-110"
+                  }`}
+                  title={
+                    isDownloaded
+                      ? t("common.cards.tooltips.alreadyDownloaded")
+                      : isDownloading
+                        ? t("common.cards.tooltips.downloading")
+                        : t("common.cards.tooltips.download")
+                  }
+                >
+                  {isDownloading ? (
+                    <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />
+                  ) : (
+                    <FontAwesomeIcon
+                      icon={isDownloaded ? faCheck : faDownload}
+                      className="text-black"
+                    />
+                  )}
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="space-y-1">
