@@ -33,6 +33,10 @@ const jsonResponse = (body: unknown, status = 200) =>
   });
 
 beforeAll(() => {
+  process.env.SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID ?? "test-client-id";
+  process.env.SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET ?? "test-client-secret";
+  process.env.SPOTIFY_REDIRECT_URI =
+    process.env.SPOTIFY_REDIRECT_URI ?? "http://localhost:3000/auth/spotify/callback";
   validateEnvironment();
 });
 

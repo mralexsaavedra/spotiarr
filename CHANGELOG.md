@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.4.0...v1.5.0) (2026-05-22)
+
+### Bug Fixes
+
+- **Spotify playlists**: My Playlists now hides followed playlists whose tracks Spotify no longer allows SpotiArr to read, while preserving owned playlists and non-owned playlists that pass the playlist-items access check. ([01610a3](https://github.com/mralexsaavedra/spotiarr/commit/01610a3))
+- **Release cards**: Removed Spotify-dependent card actions from release views so users are not shown actions that fail under Spotify's current API restrictions. ([8a19df6](https://github.com/mralexsaavedra/spotiarr/commit/8a19df6))
+- **Frontend reliability**: Fixed SSE handling, Deezer navigation, API error display, and duplicate mutation behavior discovered during the frontend bug-fix pass. ([ebcd12a](https://github.com/mralexsaavedra/spotiarr/commit/ebcd12a))
+
+### Maintenance
+
+- **Codebase cleanup**: Refactored backend release-feed orchestration and frontend shared helpers/hooks to reduce dead code and make future changes safer. ([99fe0a3](https://github.com/mralexsaavedra/spotiarr/commit/99fe0a3), [d3a4681](https://github.com/mralexsaavedra/spotiarr/commit/d3a4681), [72e3b2f](https://github.com/mralexsaavedra/spotiarr/commit/72e3b2f), [7ebc1d5](https://github.com/mralexsaavedra/spotiarr/commit/7ebc1d5))
+- **Tooling**: Replaced ESLint with oxlint, simplified Prettier configuration, and expanded utility test coverage. ([ea5aff8](https://github.com/mralexsaavedra/spotiarr/commit/ea5aff8), [77feb15](https://github.com/mralexsaavedra/spotiarr/commit/77feb15), [7a47162](https://github.com/mralexsaavedra/spotiarr/commit/7a47162))
+
 ## [1.4.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.3.4...v1.4.0) (2026-05-19)
 
 ### Features
