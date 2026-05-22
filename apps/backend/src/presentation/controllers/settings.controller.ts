@@ -1,10 +1,8 @@
-import { SupportedAudioFormat } from "@spotiarr/shared";
-import { Request, Response } from "express";
-import { GetSettingsUseCase } from "@/application/use-cases/settings/get-settings.use-case";
-import { UpdateSettingUseCase } from "@/application/use-cases/settings/update-setting.use-case";
+import { UI_SUPPORTED_AUDIO_FORMATS } from "@spotiarr/shared";
+import type { Request, Response } from "express";
+import type { GetSettingsUseCase } from "@/application/use-cases/settings/get-settings.use-case";
+import type { UpdateSettingUseCase } from "@/application/use-cases/settings/update-setting.use-case";
 import { SETTINGS_METADATA } from "@/constants/settings-metadata";
-
-const UI_SUPPORTED_FORMATS: SupportedAudioFormat[] = ["mp3", "m4a"];
 
 export class SettingsController {
   constructor(
@@ -22,7 +20,7 @@ export class SettingsController {
   };
 
   getFormats = async (_req: Request, res: Response) => {
-    res.json({ data: UI_SUPPORTED_FORMATS });
+    res.json({ data: UI_SUPPORTED_AUDIO_FORMATS });
   };
 
   updateSettings = async (req: Request, res: Response) => {

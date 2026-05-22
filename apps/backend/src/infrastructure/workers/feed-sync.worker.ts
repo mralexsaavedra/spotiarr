@@ -52,9 +52,13 @@ export async function runFeedSyncJob(deps: FeedSyncJobDependencies): Promise<voi
       Date.now() - RELEASES_ACTIVITY_WINDOW_DAYS * 24 * 60 * 60 * 1000,
     );
 
+    const configuredMaxArtistsPerCycle = await settingsService.getNumber(
+      "MAX_ACTIVE_ARTISTS_PER_CYCLE",
+      MAX_RELEASES_ARTISTS_PER_CYCLE,
+    );
     const maxArtistsPerCycle =
-      (await settingsService.getNumber("MAX_ACTIVE_ARTISTS_PER_CYCLE", 15)) > 0
-        ? await settingsService.getNumber("MAX_ACTIVE_ARTISTS_PER_CYCLE", 15)
+      configuredMaxArtistsPerCycle > 0
+        ? configuredMaxArtistsPerCycle
         : MAX_RELEASES_ARTISTS_PER_CYCLE;
 
     const artistIds = await feedRepository.getActiveArtistIdsForReleasesSync(

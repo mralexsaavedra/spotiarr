@@ -30,14 +30,12 @@ Load when adding client-side state, touching Zustand stores, or deciding whether
 
 **Exported selector hooks (prefer these over raw store access):**
 
-| Hook                                              | Returns                                                     |
-| ------------------------------------------------- | ----------------------------------------------------------- |
-| `usePlaylistDownloaded(url, expectedTrackCount?)` | `boolean`                                                   |
-| `usePlaylistDownloading(url)`                     | `boolean`                                                   |
-| `useTrackStatus(url)`                             | `TrackStatusEnum \| undefined`                              |
-| `useDownloadStatusSnapshot()`                     | `{ playlistStatusMap, trackStatusMap, albumTrackCountMap }` |
-| `useBulkPlaylistStatus(items)`                    | `Map<string, { isDownloaded, isDownloading }>`              |
-| `useBulkTrackStatus(urls)`                        | `Map<string, TrackStatusEnum>`                              |
+| Hook                                              | Returns                                        |
+| ------------------------------------------------- | ---------------------------------------------- |
+| `usePlaylistDownloaded(url, expectedTrackCount?)` | `boolean`                                      |
+| `usePlaylistDownloading(url)`                     | `boolean`                                      |
+| `useBulkPlaylistStatus(items)`                    | `Map<string, { isDownloaded, isDownloading }>` |
+| `useBulkTrackStatus(urls)`                        | `Map<string, TrackStatusEnum>`                 |
 
 Use bulk hooks in list components to avoid per-item store subscriptions.
 

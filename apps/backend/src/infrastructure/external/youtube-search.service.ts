@@ -3,15 +3,11 @@ import * as fs from "fs";
 import * as os from "os";
 import { join } from "path";
 import { promisify } from "util";
-import { SettingsService } from "@/application/services/settings.service";
+import type { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
+import { YOUTUBE_USER_AGENT } from "./youtube.constants";
 
 const execFilePromise = promisify(execFile);
-
-const HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-};
 
 export class YoutubeSearchService {
   private readonly ytDlpPath: string;
@@ -111,7 +107,7 @@ export class YoutubeSearchService {
       // Check if it's a rate limit error
       if (this.isRateLimitError(error) && retryCount < maxRetries) {
         // Exponential backoff: 5s, 15s, 45s
-        const backoffMs = 5000 * Math.pow(3, retryCount);
+        const backoffMs = 5000 * 3 ** retryCount;
         console.warn(
           `Rate limit detected. Retry ${retryCount + 1}/${maxRetries} after ${backoffMs / 1000}s`,
         );
@@ -136,7 +132,7 @@ export class YoutubeSearchService {
       `ytsearch3:${artist} - ${name}`,
       "--no-warnings",
       "--user-agent",
-      HEADERS["User-Agent"],
+      YOUTUBE_USER_AGENT,
     ];
 
     // Get cookies browser from settings

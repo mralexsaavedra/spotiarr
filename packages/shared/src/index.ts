@@ -12,6 +12,15 @@ export const SUPPORTED_AUDIO_FORMATS = [
 
 export type SupportedAudioFormat = (typeof SUPPORTED_AUDIO_FORMATS)[number];
 
+export const DEFAULT_AUDIO_FORMAT = "mp3" satisfies SupportedAudioFormat;
+
+export const UI_SUPPORTED_AUDIO_FORMATS = [
+  "mp3",
+  "m4a",
+] as const satisfies readonly SupportedAudioFormat[];
+
+export type UiSupportedAudioFormat = (typeof UI_SUPPORTED_AUDIO_FORMATS)[number];
+
 export const APP_LOCALES = ["en", "es"] as const;
 export type AppLocale = (typeof APP_LOCALES)[number];
 
@@ -128,6 +137,8 @@ export type ApiErrorCode =
   | "missing_user_access_token"
   | "spotify_rate_limited"
   | "failed_to_fetch_releases"
+  | "validation_error"
+  | "invalid_request"
   | "invalid_playlist_payload"
   | "invalid_setting_payload"
   | "invalid_spotify_url"
@@ -139,6 +150,9 @@ export type ApiErrorCode =
   | "playlist_already_exists"
   | "track_not_found"
   | "album_not_found"
+  | "file_not_found"
+  | "missing_artist_id"
+  | "missing_params"
   | "spotify_album_url_not_found"
   | "internal_server_error"
   | "failed_to_fetch_artist_detail"
@@ -196,6 +210,13 @@ export interface PlaylistPreview {
     trackUrl?: string;
     albumUrl?: string;
   }>;
+}
+
+export interface PlaylistPreviewTracksPage {
+  tracks: PlaylistPreview["tracks"];
+  total: number;
+  hasMore: boolean;
+  nextOffset: number | null;
 }
 
 export interface ArtistDetail {

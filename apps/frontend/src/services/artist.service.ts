@@ -5,6 +5,7 @@ import type {
   NormalizedTrack,
 } from "@spotiarr/shared";
 import { ApiRoutes } from "@spotiarr/shared";
+import { APP_CONFIG } from "@/config/app";
 import { httpClient } from "./httpClient";
 
 export const artistService = {
@@ -16,14 +17,17 @@ export const artistService = {
     return httpClient.get<FollowedArtist[]>(`${ApiRoutes.FEED}/artists`);
   },
 
-  getArtistDetail: async (artistId: string, limit: number = 12): Promise<ArtistDetail> => {
+  getArtistDetail: async (
+    artistId: string,
+    limit: number = APP_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE,
+  ): Promise<ArtistDetail> => {
     const params = new URLSearchParams({ limit: limit.toString() });
     return httpClient.get<ArtistDetail>(`${ApiRoutes.ARTIST}/${artistId}?${params.toString()}`);
   },
 
   getArtistAlbums: async (
     artistId: string,
-    limit: number = 50,
+    limit: number = APP_CONFIG.PAGINATION.ARTIST_ALBUMS_LIMIT,
     offset: number = 0,
   ): Promise<ArtistRelease[]> => {
     const params = new URLSearchParams({

@@ -1,16 +1,10 @@
-import { FC, memo, useCallback } from "react";
+import type { FollowedArtist } from "@spotiarr/shared";
+import { type FC, memo, useCallback } from "react";
 import { ArtistCard } from "../molecules/ArtistCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 
-interface Artist {
-  id: string;
-  name: string;
-  image: string | null;
-  spotifyUrl: string | null;
-}
-
 interface ArtistListItemProps {
-  artist: Artist;
+  artist: FollowedArtist;
   onClick: (id: string) => void;
 }
 
@@ -27,13 +21,13 @@ const ArtistListItem: FC<ArtistListItemProps> = memo(({ artist, onClick }) => {
 });
 
 interface ArtistListProps {
-  artists: Artist[];
+  artists: FollowedArtist[];
   onClick: (id: string) => void;
 }
 
 export const ArtistList: FC<ArtistListProps> = ({ artists, onClick }) => {
   const renderItem = useCallback(
-    (artist: Artist) => <ArtistListItem artist={artist} onClick={onClick} />,
+    (artist: FollowedArtist) => <ArtistListItem artist={artist} onClick={onClick} />,
     [onClick],
   );
 

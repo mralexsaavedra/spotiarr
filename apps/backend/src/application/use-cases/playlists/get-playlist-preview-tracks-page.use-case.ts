@@ -1,12 +1,5 @@
-import type { PlaylistPreview } from "@spotiarr/shared";
-import { SpotifyService } from "@/domain/services/spotify.service";
-
-interface PlaylistPreviewTracksPage {
-  tracks: PlaylistPreview["tracks"];
-  total: number;
-  hasMore: boolean;
-  nextOffset: number | null;
-}
+import type { PlaylistPreviewTracksPage } from "@spotiarr/shared";
+import type { SpotifyService } from "@/domain/services/spotify.service";
 
 export class GetPlaylistPreviewTracksPageUseCase {
   constructor(private readonly spotifyService: SpotifyService) {}

@@ -1,6 +1,7 @@
 import type { ApiErrorCode, ArtistDetail } from "@spotiarr/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import { APP_CONFIG } from "@/config/app";
 import { artistService } from "@/services/artist.service";
 import { STALE_TIME_LONG } from "@/utils/cache";
 import { mapApiError } from "@/utils/spotify";
@@ -17,7 +18,7 @@ interface UseArtistDetailState {
 
 export const useArtistDetailQuery = (
   artistId: string | null,
-  limit: number = 12,
+  limit: number = APP_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE,
 ): UseArtistDetailState => {
   const refetchAttemptsRef = useRef(0);
 

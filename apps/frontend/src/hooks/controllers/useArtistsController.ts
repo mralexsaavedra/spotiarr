@@ -1,17 +1,16 @@
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { APP_CONFIG } from "@/config/app";
 import { Path } from "@/routes/routes";
 import { useFollowedArtistsQuery } from "../queries/useFollowedArtistsQuery";
 import { useDebounce } from "../useDebounce";
-
-const DEBOUNCE_DELAY = 300;
 
 export const useArtistsController = () => {
   const navigate = useNavigate();
   const { artists, isLoading, error } = useFollowedArtistsQuery();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, DEBOUNCE_DELAY);
+  const debouncedSearch = useDebounce(search, APP_CONFIG.DEBOUNCE.DEFAULT_DELAY);
 
   const filteredArtists = useMemo(() => {
     const list = artists ?? [];

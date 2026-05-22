@@ -1,4 +1,4 @@
-import { APP_LOCALES, SettingMetadata } from "@spotiarr/shared";
+import { APP_LOCALES, DEFAULT_AUDIO_FORMAT, type SettingMetadata } from "@spotiarr/shared";
 
 export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
   UI_LANGUAGE: {
@@ -71,7 +71,7 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
   },
   FORMAT: {
     key: "FORMAT",
-    defaultValue: "mp3",
+    defaultValue: DEFAULT_AUDIO_FORMAT,
     type: "string",
     component: "select",
     section: "Downloads",

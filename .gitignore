@@ -65,6 +65,9 @@ GEMINI.md
 # Agent Skills standard
 .agents/
 
+# Pi local harness artifacts
+.pi/
+
 # Dependencies
 node_modules/
 

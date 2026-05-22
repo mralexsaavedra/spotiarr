@@ -24,26 +24,3 @@ export function getErrorMessage(error: unknown): string {
   }
   return "Unknown error";
 }
-
-/**
- * Safely extracts error stack from unknown error
- */
-export function getErrorStack(error: unknown): string | undefined {
-  if (isError(error)) {
-    return error.stack;
-  }
-  return undefined;
-}
-
-/**
- * Converts unknown error to Error instance
- */
-export function toError(error: unknown): Error {
-  if (isError(error)) {
-    return error;
-  }
-  if (typeof error === "string") {
-    return new Error(error);
-  }
-  return new Error(getErrorMessage(error));
-}

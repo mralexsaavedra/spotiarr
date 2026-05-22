@@ -1,8 +1,12 @@
-import { SettingMetadata, SettingSection } from "@spotiarr/shared";
 import {
-  ChangeEvent,
-  FormEvent,
-  MouseEvent,
+  UI_SUPPORTED_AUDIO_FORMATS,
+  type SettingMetadata,
+  type SettingSection,
+} from "@spotiarr/shared";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -17,7 +21,7 @@ import { useSupportedFormatsQuery } from "../queries/useSupportedFormatsQuery";
 export const useSettingsController = () => {
   const { data: settingsData = [], isLoading: settingsLoading } = useSettingsQuery();
   const { data: metadata = {}, isLoading: metadataLoading } = useSettingsMetadataQuery();
-  const { data: availableFormats = ["mp3"] } = useSupportedFormatsQuery();
+  const { data: availableFormats = [...UI_SUPPORTED_AUDIO_FORMATS] } = useSupportedFormatsQuery();
   const updateSettings = useUpdateSettingsMutation();
   const { success, error } = useToast();
 
