@@ -1,4 +1,4 @@
-import { ArtistRelease } from "@spotiarr/shared";
+import type { ArtistRelease } from "@spotiarr/shared";
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlaylistDownloaded } from "@/contexts/DownloadStatusContext";
@@ -43,12 +43,7 @@ export const useArtistDetailController = () => {
     visibleItems,
     isLoadingMore,
     handleShowMore,
-    handleAlbumExpand,
-    handleAlbumExpandClose,
     canShowMore,
-    expandedAlbum,
-    albumTracks,
-    isLoadingTracks,
   } = useArtistDiscographyController({
     artistId: id!,
     initialAlbums: artist?.albums || EMPTY_ALBUMS,
@@ -104,13 +99,7 @@ export const useArtistDetailController = () => {
     handleShowMore,
     canShowMore,
     handleArtistDownload,
-    handleDownload,
     handleNavigate,
     handleArtistClick,
-    handleAlbumExpand,
-    handleAlbumExpandClose,
-    expandedAlbum,
-    albumTracks,
-    isLoadingTracks,
   };
 };

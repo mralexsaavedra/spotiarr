@@ -1,18 +1,18 @@
 import {
-  CreatePlaylistRequest,
-  NormalizedTrack,
+  type CreatePlaylistRequest,
+  type NormalizedTrack,
   PlaylistTypeEnum,
   type IPlaylist,
 } from "@spotiarr/shared";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import { AppError } from "@/domain/errors/app-error";
-import { EventBus } from "@/domain/events/event-bus";
+import type { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
-import { SpotifyService } from "@/domain/services/spotify.service";
+import type { SpotifyService } from "@/domain/services/spotify.service";
 import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import { SettingsService } from "../../services/settings.service";
-import { TrackService } from "../../services/track.service";
+import type { SettingsService } from "../../services/settings.service";
+import type { TrackService } from "../../services/track.service";
 import type { GetAlbumTracksUseCase } from "../artists/get-album-tracks.use-case";
 
 interface PlaylistDetail {
@@ -22,6 +22,12 @@ interface PlaylistDetail {
   type: string;
   owner?: string;
   ownerUrl?: string;
+}
+
+interface AlbumMetadata {
+  albumName: string;
+  artistName: string;
+  coverUrl?: string;
 }
 
 export class CreatePlaylistUseCase {
@@ -144,11 +150,10 @@ export class CreatePlaylistUseCase {
     // Resolve tracks via existing Deezer-first cascade
     const tracks = await this.getAlbumTracksUseCase.execute(artistId, albumId);
 
-    // Resolve album metadata from feed cache
-    const albumCache = await this.feedRepository.getArtistAlbumWithArtist(artistId, albumId);
-    const albumName = albumCache?.albumName ?? "Unknown Album";
-    const artistName = albumCache?.artistName ?? "Unknown Artist";
-    const coverUrl = albumCache?.coverUrl ?? undefined;
+    const albumMetadata = await this.resolveAlbumMetadata(artistId, albumId);
+    const albumName = albumMetadata.albumName;
+    const artistName = albumMetadata.artistName;
+    const coverUrl = albumMetadata.coverUrl;
 
     const playlist = new Playlist({
       id: crypto.randomUUID(),
@@ -208,9 +213,9 @@ export class CreatePlaylistUseCase {
 
     const pickedTrack = tracks[trackIndex];
 
-    const albumCache = await this.feedRepository.getArtistAlbumWithArtist(artistId, albumId);
-    const artistName = albumCache?.artistName ?? "Unknown Artist";
-    const coverUrl = albumCache?.coverUrl ?? undefined;
+    const albumMetadata = await this.resolveAlbumMetadata(artistId, albumId);
+    const artistName = albumMetadata.artistName;
+    const coverUrl = albumMetadata.coverUrl;
 
     const trackName = pickedTrack.name ?? "Unknown Track";
 
@@ -238,6 +243,31 @@ export class CreatePlaylistUseCase {
 
     this.eventBus.emit("playlists-updated");
     return savedPlaylist;
+  }
+
+  private async resolveAlbumMetadata(artistId: string, albumId: string): Promise<AlbumMetadata> {
+    const albumCache = await this.feedRepository?.getArtistAlbumWithArtist(artistId, albumId);
+    if (albumCache) {
+      return {
+        albumName: albumCache.albumName,
+        artistName: albumCache.artistName,
+        coverUrl: albumCache.coverUrl ?? undefined,
+      };
+    }
+
+    const releaseCache = await this.feedRepository?.getArtistReleaseWithArtist(artistId, albumId);
+    if (releaseCache) {
+      return {
+        albumName: releaseCache.albumName,
+        artistName: releaseCache.artistName,
+        coverUrl: releaseCache.coverUrl ?? undefined,
+      };
+    }
+
+    return {
+      albumName: "Unknown Album",
+      artistName: "Unknown Artist",
+    };
   }
 
   private async processTracks(

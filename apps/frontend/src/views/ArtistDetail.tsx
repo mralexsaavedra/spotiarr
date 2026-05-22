@@ -1,6 +1,6 @@
 import { faCheck, faDownload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC } from "react";
+import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/atoms/Button";
 import { Loading } from "@/components/atoms/Loading";
@@ -13,7 +13,6 @@ import { useArtistDetailController } from "@/hooks/controllers/useArtistDetailCo
 export const ArtistDetail: FC = () => {
   const { t } = useTranslation();
   const {
-    id,
     artist,
     isLoading,
     error,
@@ -28,14 +27,8 @@ export const ArtistDetail: FC = () => {
     handleShowMore,
     canShowMore,
     handleArtistDownload,
-    handleDownload,
     handleNavigate,
     handleArtistClick,
-    handleAlbumExpand,
-    handleAlbumExpandClose,
-    expandedAlbum,
-    albumTracks,
-    isLoadingTracks,
   } = useArtistDetailController();
 
   if (isLoading) {
@@ -94,8 +87,6 @@ export const ArtistDetail: FC = () => {
         {/* Discography Section */}
         {artist?.albums && artist.albums.length > 0 ? (
           <ArtistDiscography
-            artistId={id!}
-            albums={artist.albums}
             filter={filter}
             onFilterChange={setFilter}
             filteredAlbums={filteredAlbums}
@@ -103,14 +94,8 @@ export const ArtistDetail: FC = () => {
             isLoadingMore={isLoadingMore}
             onShowMore={handleShowMore}
             canShowMore={canShowMore}
-            onDownload={handleDownload}
             onDiscographyItemClick={handleNavigate}
             onArtistClick={handleArtistClick}
-            onAlbumExpand={handleAlbumExpand}
-            onAlbumExpandClose={handleAlbumExpandClose}
-            expandedAlbum={expandedAlbum}
-            albumTracks={albumTracks}
-            isLoadingTracks={isLoadingTracks}
           />
         ) : catalogRefreshPending && artist?.albums.length === 0 ? (
           <div className="mt-10 text-center">

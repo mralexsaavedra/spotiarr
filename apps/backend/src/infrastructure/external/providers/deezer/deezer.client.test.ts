@@ -86,6 +86,23 @@ describe("DeezerClient", () => {
       const albums = await client.getArtistAlbums(123);
       expect(albums).toHaveLength(3);
       expect(albums.map((a) => a.albumName)).toEqual(["Album", "Single", "EP"]);
+      expect(albums.map((a) => a.albumType)).toEqual(["album", "single", "ep"]);
+    });
+
+    it("uses record_type before the Deezer resource type", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 1, title: "Album Object Single", type: "album", record_type: "single" },
+            { id: 2, title: "Album Object EP", type: "album", record_type: "ep" },
+          ],
+        }),
+      } as Response);
+
+      const albums = await client.getArtistAlbums(123);
+
+      expect(albums.map((a) => a.albumType)).toEqual(["single", "ep"]);
     });
 
     it("returns empty array on network error", async () => {

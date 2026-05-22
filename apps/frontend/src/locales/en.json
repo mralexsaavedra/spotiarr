@@ -53,6 +53,7 @@
       "albumTypes": {
         "all": "All",
         "single": "Single",
+        "ep": "EP",
         "singlesAndEps": "Singles & EPs",
         "album": "Album",
         "compilation": "Compilation",
@@ -62,8 +63,7 @@
         "alreadyDownloaded": "Already downloaded",
         "downloading": "Downloading...",
         "download": "Download",
-        "subscribed": "Subscribed",
-        "viewTracks": "View tracks"
+        "subscribed": "Subscribed"
       },
       "status": {
         "downloading": "Downloading...",

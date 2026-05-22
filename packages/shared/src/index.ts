@@ -113,7 +113,7 @@ export interface IPlaylist {
   ownerUrl?: string;
 }
 
-export type AlbumType = "album" | "single" | "compilation";
+export type AlbumType = "album" | "single" | "ep" | "compilation";
 
 export interface ArtistRelease {
   artistId: string;
