@@ -53,6 +53,7 @@
       "albumTypes": {
         "all": "All",
         "single": "Single",
+        "ep": "EP",
         "singlesAndEps": "Singles & EPs",
         "album": "Album",
         "compilation": "Compilation",

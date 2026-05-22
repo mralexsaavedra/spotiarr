@@ -53,6 +53,7 @@
       "albumTypes": {
         "all": "Todos",
         "single": "Sencillo",
+        "ep": "EP",
         "singlesAndEps": "Sencillos y EPs",
         "album": "Álbum",
         "compilation": "Recopilatorio",

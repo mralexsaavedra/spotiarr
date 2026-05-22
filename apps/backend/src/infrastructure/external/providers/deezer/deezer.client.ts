@@ -18,6 +18,7 @@ export interface DeezerAlbum {
   cover_xl?: string;
   release_date?: string;
   type?: string;
+  record_type?: string;
   link?: string;
 }
 
@@ -128,7 +129,7 @@ export class DeezerClient {
 
     return allAlbums
       .filter((album) => {
-        const t = album.type?.toLowerCase();
+        const t = getDeezerReleaseType(album)?.toLowerCase();
         return t === "album" || t === "single" || t === "ep";
       })
       .map((album) => ({
@@ -137,7 +138,7 @@ export class DeezerClient {
         artistImageUrl: null,
         albumId: String(album.id),
         albumName: album.title,
-        albumType: mapDeezerType(album.type),
+        albumType: mapDeezerType(getDeezerReleaseType(album)),
         releaseDate: album.release_date,
         coverUrl: pickBestCover(album) ?? null,
         spotifyUrl: undefined,
@@ -211,9 +212,12 @@ export class DeezerClient {
   }
 }
 
+function getDeezerReleaseType(album: DeezerAlbum): string | undefined {
+  return album.record_type ?? album.type;
+}
+
 function mapDeezerType(type?: string): AlbumType | undefined {
   const t = type?.toLowerCase();
-  if (t === "album" || t === "ep") return "album";
-  if (t === "single") return "single";
+  if (t === "album" || t === "single" || t === "ep") return t;
   return undefined;
 }

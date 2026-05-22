@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { existsSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
-import { z, ZodError, ZodIssue } from "zod";
+import { z, ZodError, type ZodIssue } from "zod";
 import { AppError } from "@/domain/errors/app-error";
 
 // -----------------------------------------------------------------------------
@@ -95,7 +95,7 @@ const envSchema = z
     RELEASES_LOOKBACK_DAYS: z
       .string()
       .regex(/^\d+$/, "RELEASES_LOOKBACK_DAYS must be a number")
-      .default("14")
+      .default("30")
       .transform(Number)
       .pipe(z.number().int().min(7).max(90)),
     RELEASES_CACHE_MINUTES: z

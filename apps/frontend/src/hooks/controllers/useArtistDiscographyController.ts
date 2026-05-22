@@ -1,6 +1,6 @@
-import { ArtistRelease } from "@spotiarr/shared";
+import type { ArtistRelease } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DiscographyFilter } from "@/components/molecules/ArtistDiscographyFilters";
+import type { DiscographyFilter } from "@/components/molecules/ArtistDiscographyFilters";
 import { APP_CONFIG } from "@/config/app";
 import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";
 import { useArtistAlbumsQuery } from "../queries/useArtistAlbumsQuery";
@@ -82,7 +82,9 @@ export const useArtistDiscographyController = ({
   const filteredAlbums = useMemo(() => {
     let result = allAlbums;
 
-    if (filter !== "all") {
+    if (filter === "single") {
+      result = result.filter((a) => a.albumType === "single" || a.albumType === "ep");
+    } else if (filter !== "all") {
       result = result.filter((a) => a.albumType === filter);
     }
 
