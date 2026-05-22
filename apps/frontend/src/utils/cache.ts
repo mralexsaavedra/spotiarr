@@ -3,7 +3,7 @@ import { APP_CONFIG } from "@/config/app";
 const MS_PER_MINUTE = 60 * 1000;
 const DEFAULT_STALE_RATIO = 0.5;
 
-export interface QueryCacheTimings {
+interface QueryCacheTimings {
   staleTime: number;
   gcTime: number;
 }

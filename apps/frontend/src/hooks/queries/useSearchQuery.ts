@@ -9,9 +9,9 @@ const SEARCH_QUERY_CACHE_MINUTES = APP_CONFIG.CACHE.DEFAULT_MINUTES;
 export const useSearchQuery = (
   query: string,
   types: string[] = ["track", "album", "artist"],
-  limit: number = 10,
+  limit: number = APP_CONFIG.SEARCH.DEFAULT_LIMIT,
 ) => {
-  const effectiveLimit = types.length === 1 ? 10 : limit;
+  const effectiveLimit = types.length === 1 ? APP_CONFIG.SEARCH.DEFAULT_LIMIT : limit;
   const { staleTime, gcTime } = buildStaleWhileRevalidateTimings(SEARCH_QUERY_CACHE_MINUTES);
 
   return useQuery({

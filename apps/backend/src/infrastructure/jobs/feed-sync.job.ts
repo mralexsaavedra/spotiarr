@@ -7,7 +7,7 @@ const { settingsService, feedRepository } = container;
 
 let lastFeedSyncCheckTimestamp = 0;
 
-export const feedSyncJob = cron.schedule("* * * * *", async () => {
+export const feedSyncJob = cron.createTask("* * * * *", async () => {
   try {
     const intervalMinutes = await settingsService.getNumber("RELEASES_SYNC_INTERVAL_MINUTES", 60);
     const safeIntervalMinutes = intervalMinutes > 0 ? intervalMinutes : 60;

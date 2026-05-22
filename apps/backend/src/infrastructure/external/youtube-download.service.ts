@@ -1,13 +1,14 @@
-import { SUPPORTED_AUDIO_FORMATS, SupportedAudioFormat, type ITrack } from "@spotiarr/shared";
+import {
+  DEFAULT_AUDIO_FORMAT,
+  SUPPORTED_AUDIO_FORMATS,
+  type ITrack,
+  type SupportedAudioFormat,
+} from "@spotiarr/shared";
 import { YtDlp } from "ytdlp-nodejs";
-import { SettingsService } from "@/application/services/settings.service";
+import type { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
-import { YoutubeSearchService } from "./youtube-search.service";
-
-const HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-};
+import type { YoutubeSearchService } from "./youtube-search.service";
+import { YOUTUBE_HEADERS } from "./youtube.constants";
 
 export class YoutubeDownloadService {
   constructor(
@@ -26,12 +27,11 @@ export class YoutubeDownloadService {
       binaryPath: this.searchService.getYtDlpPath(),
     });
 
-    // Get format from settings with fallback to 'mp3'
     const configuredFormat = await this.settingsService.getString("FORMAT");
     const formatType = (
       SUPPORTED_AUDIO_FORMATS.includes(configuredFormat as SupportedAudioFormat)
         ? configuredFormat
-        : "mp3"
+        : DEFAULT_AUDIO_FORMAT
     ) as SupportedAudioFormat;
 
     const audioQuality = await this.settingsService.getString("YT_AUDIO_QUALITY");
@@ -55,7 +55,7 @@ export class YoutubeDownloadService {
       output,
       cookies: isCookieFile ? ytCookies : undefined,
       cookiesFromBrowser: !isCookieFile && ytCookies ? ytCookies : undefined,
-      headers: HEADERS,
+      headers: YOUTUBE_HEADERS,
     });
     console.debug(`Downloaded ${track.artist} - ${track.name} to ${output}`);
   }

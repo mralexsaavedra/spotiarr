@@ -1,4 +1,4 @@
-import { PlaylistStatusEnum, TrackStatusEnum } from "@spotiarr/shared";
+import { PlaylistStatusEnum, type TrackStatusEnum } from "@spotiarr/shared";
 import type { DownloadStatusResponse } from "@spotiarr/shared";
 import { useMemo } from "react";
 import { create } from "zustand";
@@ -88,31 +88,6 @@ export function usePlaylistDownloading(url: string | null | undefined): boolean 
     if (!url) return false;
     return deriveIsDownloading(state, url);
   });
-}
-
-/**
- * Get the status of a track by its Spotify URL
- */
-export function useTrackStatus(url: string | null | undefined): TrackStatusEnum | undefined {
-  return useDownloadStatusStore((state) => {
-    if (!url) return undefined;
-    return state.trackStatusMap.get(url);
-  });
-}
-
-/**
- * Get a snapshot of all download status maps
- */
-export function useDownloadStatusSnapshot(): {
-  playlistStatusMap: Map<string, PlaylistStatusEnum>;
-  trackStatusMap: Map<string, TrackStatusEnum>;
-  albumTrackCountMap: Map<string, number>;
-} {
-  return useDownloadStatusStore((state) => ({
-    playlistStatusMap: state.playlistStatusMap,
-    trackStatusMap: state.trackStatusMap,
-    albumTrackCountMap: state.albumTrackCountMap,
-  }));
 }
 
 /**

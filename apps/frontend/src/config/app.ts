@@ -12,6 +12,13 @@ export const APP_CONFIG = {
   },
 
   /**
+   * Search settings
+   */
+  SEARCH: {
+    DEFAULT_LIMIT: 10,
+  },
+
+  /**
    * Cache settings
    */
   CACHE: {

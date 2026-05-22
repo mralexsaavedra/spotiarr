@@ -1,19 +1,13 @@
 import {
   ApiRoutes,
-  CreatePlaylistRequest,
-  DownloadStatusResponse,
-  PlaylistPreview,
-  SpotifyPlaylist,
+  type CreatePlaylistRequest,
+  type DownloadStatusResponse,
+  type PlaylistPreview,
+  type PlaylistPreviewTracksPage,
+  type SpotifyPlaylist,
 } from "@spotiarr/shared";
-import { Playlist } from "@/types";
+import type { Playlist } from "@/types";
 import { ApiError, httpClient } from "./httpClient";
-
-interface PlaylistPreviewTracksPage {
-  tracks: PlaylistPreview["tracks"];
-  total: number;
-  hasMore: boolean;
-  nextOffset: number | null;
-}
 
 export const playlistService = {
   getPlaylists: async (): Promise<Playlist[]> => {

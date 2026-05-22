@@ -1,9 +1,9 @@
-import { ApiErrorCode, ApiErrorShape, ApiRoutes } from "@spotiarr/shared";
+import { ApiRoutes, type ApiErrorCode, type ApiErrorShape } from "@spotiarr/shared";
 
 export class ApiError extends Error {
   constructor(
     public message: string,
-    public code?: string,
+    public code?: ApiErrorCode,
     public status?: number,
   ) {
     super(message);
@@ -11,7 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-export class HttpClient {
+class HttpClient {
   private async handleResponse<T>(response: Response): Promise<T> {
     if (response.status === 204) {
       return undefined as unknown as T;

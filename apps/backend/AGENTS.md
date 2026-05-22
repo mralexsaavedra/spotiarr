@@ -31,7 +31,7 @@ src/
 ├── infrastructure/
 │   ├── database/        prisma-*.repository.ts, feed.repository.ts
 │   ├── external/        spotify-*.ts, DeezerClient, MusicBrainzClient, YoutubeDownload/Search
-│   ├── messaging/       sse-event-bus.ts, app-event-bus.ts, bullmq-track-queue.service.ts
+│   ├── messaging/       app-event-bus.ts, bullmq-track-queue.service.ts
 │   ├── workers/         catalog-sync, feed-sync, track-download, track-search
 │   ├── jobs/            catalog-sync.job.ts, feed-sync.job.ts
 │   └── setup/           environment.ts, prisma.ts, queues.ts
@@ -47,7 +47,7 @@ src/
 - Prisma calls ONLY in `infrastructure/database/`. Import the `prisma` singleton from `infrastructure/setup/prisma.ts`.
 - Validate all request input with Zod schemas in `presentation/routes/schemas/` before controllers touch it.
 - Never let Prisma errors escape to the presentation layer — map them in the repository.
-- SSE events emitted via `infrastructure/messaging/sse-event-bus.ts`, never directly from controllers.
+- SSE events emitted via `infrastructure/messaging/app-event-bus.ts`, never directly from controllers.
 - Environment access through `getEnv()` from `infrastructure/setup/environment.ts` — never `process.env` directly.
 
 ## Validation

@@ -9,7 +9,7 @@ const { playlistService, settingsService, trackService, eventBus } = container;
 let lastPlaylistCheckTimestamp = 0;
 let lastStuckTracksCleanupTimestamp = 0;
 
-export const checkPlaylistsJob = cron.schedule("* * * * *", async () => {
+export const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
   try {
     const intervalMinutes = await settingsService.getNumber("PLAYLIST_CHECK_INTERVAL_MINUTES");
     const safeIntervalMinutes = intervalMinutes > 0 ? intervalMinutes : 60;
@@ -28,7 +28,7 @@ export const checkPlaylistsJob = cron.schedule("* * * * *", async () => {
   }
 });
 
-export const cleanStuckTracksJob = cron.schedule("* * * * *", async () => {
+export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
   try {
     const cleanupIntervalMinutes = await settingsService.getNumber(
       "STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES",

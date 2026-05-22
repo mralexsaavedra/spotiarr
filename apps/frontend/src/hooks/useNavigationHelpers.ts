@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Path } from "@/routes/routes";
 
-export interface NavigationHelpers {
+interface NavigationHelpers {
   handleGoBack: () => void;
   handleGoHome: () => void;
 }

@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect } from "react";
+import { type FC, type ReactNode, useEffect } from "react";
 import { useDownloadStatusQuery } from "@/hooks/queries/useDownloadStatusQuery";
 import { useDownloadStatusStore } from "@/store/useDownloadStatusStore";
 
@@ -6,10 +6,8 @@ import { useDownloadStatusStore } from "@/store/useDownloadStatusStore";
 export {
   usePlaylistDownloaded,
   usePlaylistDownloading,
-  useTrackStatus,
   useBulkPlaylistStatus,
   useBulkTrackStatus,
-  useDownloadStatusSnapshot,
 } from "@/store/useDownloadStatusStore";
 
 export const DownloadStatusProvider: FC<{ children: ReactNode }> = ({ children }) => {

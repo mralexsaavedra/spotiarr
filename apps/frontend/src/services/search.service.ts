@@ -1,11 +1,12 @@
-import { ApiRoutes, SpotifySearchResults } from "@spotiarr/shared";
+import { ApiRoutes, type SpotifySearchResults } from "@spotiarr/shared";
+import { APP_CONFIG } from "@/config/app";
 import { httpClient } from "./httpClient";
 
 export const SearchService = {
   searchCatalog: async (
     query: string,
     types?: string[],
-    limit: number = 20,
+    limit: number = APP_CONFIG.SEARCH.DEFAULT_LIMIT,
   ): Promise<SpotifySearchResults> => {
     let url = `${ApiRoutes.SEARCH}?q=${encodeURIComponent(query)}&limit=${limit}`;
     if (types && types.length > 0) {

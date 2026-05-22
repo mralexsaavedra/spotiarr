@@ -1,8 +1,8 @@
-import { ArtistRelease } from "@spotiarr/shared";
+import type { ArtistRelease } from "@spotiarr/shared";
 import { useMemo } from "react";
 import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
 
-export interface AlbumDownloadState {
+interface AlbumDownloadState {
   isDownloaded: boolean;
   isDownloading: boolean;
 }

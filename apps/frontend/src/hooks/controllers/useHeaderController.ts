@@ -1,5 +1,13 @@
-import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { APP_CONFIG } from "@/config/app";
 import { useDebounce } from "@/hooks/useDebounce";
 import { normalizeSpotifyUrl } from "@/utils/spotify";
 import { Path } from "../../routes/routes";
@@ -22,7 +30,7 @@ export const useHeaderController = () => {
     return normalizeSpotifyUrl(url);
   });
 
-  const debouncedUrl = useDebounce(url, 500);
+  const debouncedUrl = useDebounce(url, APP_CONFIG.DEBOUNCE.SEARCH_DELAY);
 
   const setUrl = useCallback((value: string) => {
     setUrlState(value);

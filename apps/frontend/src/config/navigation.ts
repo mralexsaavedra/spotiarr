@@ -1,4 +1,4 @@
-import { IconProp } from "@fortawesome/fontawesome-svg-core";
+import type { IconProp } from "@fortawesome/fontawesome-svg-core";
 import {
   faBell,
   faBolt,
@@ -10,7 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Path } from "@/routes/routes";
 
-export interface NavItem {
+interface NavItem {
   label: string;
   icon: IconProp;
   to: Path;
