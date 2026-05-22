@@ -1,11 +1,14 @@
-import { Request, Response } from "express";
-import { SettingsService } from "@/application/services/settings.service";
-import { SpotifyAuthService } from "@/infrastructure/external/spotify-auth.service";
+import type { Request, Response } from "express";
+import type { SettingsService } from "@/application/services/settings.service";
+import type { SpotifyAuthService } from "@/infrastructure/external/spotify-auth.service";
 import { getEnv } from "@/infrastructure/setup/environment";
 
-const SCOPES = ["user-follow-read", "playlist-read-private", "playlist-read-collaborative"].join(
-  " ",
-);
+const SCOPES = [
+  "user-read-private",
+  "user-follow-read",
+  "playlist-read-private",
+  "playlist-read-collaborative",
+].join(" ");
 
 export class AuthController {
   constructor(

@@ -1,14 +1,14 @@
-import { AlbumType, ArtistRelease, FollowedArtist, SpotifyPlaylist } from "@spotiarr/shared";
-import { SettingsService } from "@/application/services/settings.service";
+import type { AlbumType, ArtistRelease, FollowedArtist, SpotifyPlaylist } from "@spotiarr/shared";
+import type { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 import { getErrorMessage } from "../utils/error.utils";
-import { CacheEntry } from "./cache.types";
+import type { CacheEntry } from "./cache.types";
 import { PromiseCache } from "./promise-cache";
-import { SpotifyAuthService } from "./spotify-auth.service";
+import type { SpotifyAuthService } from "./spotify-auth.service";
 import { SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT } from "./spotify-constants";
 import { SpotifyHttpClient } from "./spotify-http.client";
-import {
+import type {
   SpotifyArtistAlbumsResponse,
   SpotifyArtistFull,
   SpotifyFollowedArtistsResponse,
@@ -17,6 +17,28 @@ import {
 
 const FOLLOWED_ARTISTS_CACHE_KEY = "followed-artists:list";
 const FOLLOWED_ARTISTS_IN_FLIGHT_KEY = "followed-artists:in-flight";
+
+type SpotifyCurrentUserResponse = {
+  id: string;
+};
+
+export type SpotifyUserPlaylistItem = {
+  id: string;
+  name: string;
+  collaborative?: boolean;
+  images: SpotifyImage[];
+  owner: { id?: string; display_name: string; external_urls: { spotify: string } };
+  tracks: { total: number };
+  external_urls: { spotify: string };
+};
+
+export const isOwnedPlaylist = (item: SpotifyUserPlaylistItem, currentUserId: string) =>
+  item.owner?.id === currentUserId;
+
+export const needsPlaylistItemsAccessCheck = (
+  item: SpotifyUserPlaylistItem,
+  currentUserId: string,
+) => !isOwnedPlaylist(item, currentUserId);
 
 export class SpotifyUserLibraryService extends SpotifyHttpClient {
   private static instance: SpotifyUserLibraryService | null = null;
@@ -134,9 +156,74 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
     }
   }
 
+  private async getCurrentUserId(): Promise<string> {
+    const response = await this.fetchWithUserToken("https://api.spotify.com/v1/me");
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new AppError(
+          401,
+          "missing_user_access_token",
+          "Spotify user token expired or invalid",
+        );
+      }
+
+      const errorText = await response.text();
+      throw new AppError(
+        response.status,
+        "internal_server_error",
+        `Failed to fetch current Spotify user: ${response.status} ${errorText}`,
+      );
+    }
+
+    const data = (await response.json()) as SpotifyCurrentUserResponse;
+    return data.id;
+  }
+
+  private async canAccessPlaylistItems(playlistId: string): Promise<boolean> {
+    const fields = "total";
+    const url = `https://api.spotify.com/v1/playlists/${playlistId}/items?limit=1&fields=${encodeURIComponent(fields)}`;
+    const response = await this.fetchWithUserToken(url);
+
+    if (response.ok) {
+      return true;
+    }
+
+    if (response.status === 403 || response.status === 404) {
+      return false;
+    }
+
+    if (response.status === 401) {
+      throw new AppError(401, "missing_user_access_token", "Spotify user token expired or invalid");
+    }
+
+    if (response.status === 429) {
+      throw new AppError(429, "spotify_rate_limited", "Rate limited by Spotify API.");
+    }
+
+    const errorText = await response.text();
+    throw new AppError(
+      response.status >= 500 ? 502 : 500,
+      "internal_server_error",
+      `Failed to check playlist item access: ${response.status} ${errorText}`,
+    );
+  }
+
+  private async canShowPlaylist(
+    item: SpotifyUserPlaylistItem,
+    currentUserId: string,
+  ): Promise<boolean> {
+    if (isOwnedPlaylist(item, currentUserId)) {
+      return true;
+    }
+
+    return this.canAccessPlaylistItems(item.id);
+  }
+
   async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
     try {
       this.log("Getting user's playlists from Spotify");
+      const currentUserId = await this.getCurrentUserId();
       const allPlaylists: SpotifyPlaylist[] = [];
 
       let nextUrl: string | null = "https://api.spotify.com/v1/me/playlists?limit=50";
@@ -162,18 +249,19 @@ export class SpotifyUserLibraryService extends SpotifyHttpClient {
         }
 
         const data = (await response.json()) as {
-          items: {
-            id: string;
-            name: string;
-            images: SpotifyImage[];
-            owner: { display_name: string; external_urls: { spotify: string } };
-            tracks: { total: number };
-            external_urls: { spotify: string };
-          }[];
+          items: SpotifyUserPlaylistItem[];
           next: string | null;
         };
 
-        const mapped = data.items.map((item) => ({
+        const accessibleItems: SpotifyUserPlaylistItem[] = [];
+
+        for (const item of data.items) {
+          if (await this.canShowPlaylist(item, currentUserId)) {
+            accessibleItems.push(item);
+          }
+        }
+
+        const mapped = accessibleItems.map((item) => ({
           id: item.id,
           name: item.name,
           image: item.images?.[0]?.url ?? null,

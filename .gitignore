@@ -67,6 +67,8 @@ GEMINI.md
 
 # Pi local harness artifacts
 .pi/
+.pi-lens/
+**/.pi-lens/
 
 # Dependencies
 node_modules/
@@ -106,6 +108,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # Runtime data
+downloads/
 pids/
 *.pid
 *.seed
