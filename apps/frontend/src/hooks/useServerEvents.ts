@@ -38,6 +38,11 @@ export const useServerEvents = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.followedArtists });
     });
 
+    eventSource.addEventListener("catalog-updated", () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.releases });
+      queryClient.invalidateQueries({ queryKey: queryKeys.followedArtists });
+    });
+
     eventSource.onerror = (error) => {
       console.error("EventSource failed:", error);
     };
