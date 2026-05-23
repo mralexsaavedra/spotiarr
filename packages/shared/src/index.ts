@@ -19,8 +19,6 @@ export const UI_SUPPORTED_AUDIO_FORMATS = [
   "m4a",
 ] as const satisfies readonly SupportedAudioFormat[];
 
-export type UiSupportedAudioFormat = (typeof UI_SUPPORTED_AUDIO_FORMATS)[number];
-
 export const APP_LOCALES = ["en", "es"] as const;
 export type AppLocale = (typeof APP_LOCALES)[number];
 
@@ -170,8 +168,6 @@ export interface ApiErrorShape {
 export interface ApiSuccess<T> {
   data: T;
 }
-
-export type ApiResponse<T> = ApiSuccess<T> | ApiErrorShape;
 
 export interface DownloadHistoryItem {
   id: string;
