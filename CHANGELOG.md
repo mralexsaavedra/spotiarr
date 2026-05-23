@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.5.0...v1.5.1) (2026-05-23)
+
+### Bug Fixes
+
+- **Spotify playlists**: My Playlists now caches non-owned playlist access probes with safe TTLs and 429 cooldowns, and reuses the probe track total when Spotify omits playlist counts so cards no longer show false "0 canciones". ([150fd74](https://github.com/mralexsaavedra/spotiarr/commit/150fd74))
+
 ## [1.5.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.4.0...v1.5.0) (2026-05-22)
 
 ### Bug Fixes
