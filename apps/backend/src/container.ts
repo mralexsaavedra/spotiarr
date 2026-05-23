@@ -54,7 +54,9 @@ import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track
 import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
 import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
+import { FileSystemLibraryImageService } from "./infrastructure/services/library-image.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
+import { getEnv } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
 import { ArtistController } from "./presentation/controllers/artist.controller";
 import { AuthController } from "./presentation/controllers/auth.controller";
@@ -67,6 +69,16 @@ import { PlaylistController } from "./presentation/controllers/playlist.controll
 import { SearchController } from "./presentation/controllers/search.controller";
 import { SettingsController } from "./presentation/controllers/settings.controller";
 import { TrackController } from "./presentation/controllers/track.controller";
+
+function resolveDownloadsRoot(): string {
+  try {
+    return getEnv().DOWNLOADS;
+  } catch {
+    // Test suites can import the container before environment validation bootstraps.
+    // TODO(secure-library-image-serving): Remove this fallback after `getEnv()` becomes lazily initialized.
+    return process.env.DOWNLOADS ?? ".";
+  }
+}
 
 // Repositories
 const playlistRepository = new PrismaPlaylistRepository();
@@ -262,8 +274,9 @@ const scanLibraryUseCase = new ScanLibraryUseCase(
   trackRepository,
 );
 const libraryService = new LibraryService(scanLibraryUseCase);
+const libraryImageService = new FileSystemLibraryImageService(resolveDownloadsRoot());
 
-const libraryController = new LibraryController(libraryService);
+const libraryController = new LibraryController(libraryService, libraryImageService);
 
 const getArtistDetailUseCase = new GetArtistDetailUseCase(
   feedRepository,

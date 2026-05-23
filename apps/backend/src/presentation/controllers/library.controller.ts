@@ -1,8 +1,12 @@
 import { Request, Response } from "express";
 import { LibraryService } from "@/application/services/library.service";
+import { LibraryImageService } from "@/infrastructure/services/library-image.service";
 
 export class LibraryController {
-  constructor(private readonly libraryService: LibraryService) {}
+  constructor(
+    private readonly libraryService: LibraryService,
+    private readonly libraryImageService: LibraryImageService,
+  ) {}
 
   getStats = async (req: Request, res: Response) => {
     try {
@@ -55,26 +59,34 @@ export class LibraryController {
 
   getImage = async (req: Request, res: Response) => {
     try {
-      const imagePath = req.query.path as string;
+      const imagePath = typeof req.query.path === "string" ? req.query.path : undefined;
+      const result = await this.libraryImageService.resolveImage(imagePath);
 
-      if (!imagePath) {
-        res.status(400).json({
-          error: "invalid_request",
-          message: "Image path is required",
+      if (result.kind === "reject") {
+        if (result.reason === "missing-path") {
+          res.status(400).json({
+            error: "invalid_request",
+            message: "Image path is required",
+          });
+          return;
+        }
+
+        res.status(404).json({
+          error: "file_not_found",
+          message: "File not found",
         });
         return;
       }
 
-      res.sendFile(imagePath, (err) => {
-        if (err) {
-          console.error(`Error sending file ${imagePath}:`, err);
-          if (!res.headersSent) {
-            res.status(404).json({
-              error: "file_not_found",
-              message: "File not found",
-            });
-          }
+      res.type(result.contentType).sendFile(result.absolutePath, (err) => {
+        if (!err || res.headersSent) {
+          return;
         }
+
+        res.status(404).json({
+          error: "file_not_found",
+          message: "File not found",
+        });
       });
     } catch (error) {
       console.error("Error serving image:", error);
