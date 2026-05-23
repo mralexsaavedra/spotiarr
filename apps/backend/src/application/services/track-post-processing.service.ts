@@ -1,22 +1,27 @@
 import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
-import { SpotifyService } from "@/application/services/spotify.service";
+import type {
+  FileSystemTrackPathPort,
+  M3uPort,
+  MetadataPort,
+} from "@/application/ports/file-system.port";
+import type { SpotifyService } from "@/application/services/spotify.service";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
-import { FileSystemM3uService } from "@/infrastructure/services/file-system-m3u.service";
-import { FileSystemTrackPathService } from "@/infrastructure/services/file-system-track-path.service";
-import { MetadataService } from "@/infrastructure/services/metadata.service";
-import { getErrorMessage } from "@/infrastructure/utils/error.utils";
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export class TrackPostProcessingService {
   constructor(
     private readonly spotifyService: SpotifyService,
-    private readonly metadataService: MetadataService,
+    private readonly metadataService: MetadataPort,
     private readonly playlistRepository: PlaylistRepository,
     private readonly trackRepository: TrackRepository,
-    private readonly trackPathService: FileSystemTrackPathService,
-    private readonly m3uService: FileSystemM3uService,
+    private readonly trackPathService: FileSystemTrackPathPort,
+    private readonly m3uService: M3uPort,
   ) {}
 
   /**
@@ -52,7 +57,7 @@ export class TrackPostProcessingService {
       await this.saveArtistImageIfNeeded(track);
     } catch (error) {
       console.error(
-        `Error during post-processing for track ${track.name}: ${getErrorMessage(error)}`,
+        `Error during post-processing for track ${track.name}: ${toErrorMessage(error)}`,
       );
       // We don't throw here to avoid failing the whole download if just metadata fails
     }
@@ -81,7 +86,7 @@ export class TrackPostProcessingService {
         console.debug(`Playlist M3U updated: ${completedCount}/${playlistTracks.length} tracks`);
       }
     } catch (err) {
-      console.error(`Failed to generate M3U file: ${getErrorMessage(err)}`);
+      console.error(`Failed to generate M3U file: ${toErrorMessage(err)}`);
     }
   }
 
@@ -110,7 +115,7 @@ export class TrackPostProcessingService {
       try {
         trackCoverUrl = await this.spotifyService.getCoverImage(urlToUse);
       } catch (e) {
-        console.warn(`Failed to fetch cover for track ${track.name}: ${getErrorMessage(e)}`);
+        console.warn(`Failed to fetch cover for track ${track.name}: ${toErrorMessage(e)}`);
       }
     }
 
@@ -139,7 +144,7 @@ export class TrackPostProcessingService {
         );
       }
     } catch (error) {
-      console.warn(`Failed to save artist image: ${getErrorMessage(error)}`);
+      console.warn(`Failed to save artist image: ${toErrorMessage(error)}`);
     }
   }
 }

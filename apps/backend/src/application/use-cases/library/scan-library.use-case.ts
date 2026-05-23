@@ -1,12 +1,14 @@
 import { TrackStatusEnum, type LibraryScanResult } from "@spotiarr/shared";
-import { TrackRepository } from "@/domain/repositories/track.repository";
-import { FileSystemScannerService } from "@/infrastructure/services/file-system-scanner.service";
-import { FileSystemTrackPathService } from "@/infrastructure/services/file-system-track-path.service";
+import type {
+  FileSystemScannerPort,
+  FileSystemTrackPathPort,
+} from "@/application/ports/file-system.port";
+import type { TrackRepository } from "@/domain/repositories/track.repository";
 
 export class ScanLibraryUseCase {
   constructor(
-    private readonly scannerService: FileSystemScannerService,
-    private readonly pathService: FileSystemTrackPathService,
+    private readonly scannerService: FileSystemScannerPort,
+    private readonly pathService: FileSystemTrackPathPort,
     private readonly trackRepository?: TrackRepository,
   ) {}
 

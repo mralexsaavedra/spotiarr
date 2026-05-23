@@ -1,7 +1,6 @@
 import { SETTINGS_METADATA } from "@/constants/settings-metadata";
 import { AppError } from "@/domain/errors/app-error";
 import type { SettingsRepository } from "@/domain/repositories/settings.repository";
-import { getEnv } from "@/infrastructure/setup/environment";
 
 const INTERNALIZED_NUMERIC_SETTINGS = {
   FEED_SYNC_INTERVAL_MINUTES: "FEED_SYNC_INTERVAL_MINUTES",
@@ -24,43 +23,17 @@ type InternalizedNumericSettingKey =
   (typeof INTERNALIZED_NUMERIC_SETTINGS)[keyof typeof INTERNALIZED_NUMERIC_SETTINGS];
 
 export class SettingsService {
-  constructor(private readonly repo: SettingsRepository) {}
+  constructor(
+    private readonly repo: SettingsRepository,
+    private readonly getInternalizedNumericValue: (key: string) => number | undefined,
+  ) {}
 
   private getInternalizedNumericSetting(key: string): number | undefined {
-    const env = getEnv();
-
-    switch (key as InternalizedNumericSettingKey) {
-      case INTERNALIZED_NUMERIC_SETTINGS.FEED_SYNC_INTERVAL_MINUTES:
-        return env.FEED_SYNC_INTERVAL_MINUTES;
-      case INTERNALIZED_NUMERIC_SETTINGS.RELEASES_SYNC_INTERVAL_MINUTES:
-        return env.RELEASES_SYNC_INTERVAL_MINUTES;
-      case INTERNALIZED_NUMERIC_SETTINGS.CATALOG_SYNC_INTERVAL_HOURS:
-        return env.CATALOG_SYNC_INTERVAL_HOURS;
-      case INTERNALIZED_NUMERIC_SETTINGS.CATALOG_LOOKBACK_DAYS:
-        return env.CATALOG_LOOKBACK_DAYS;
-      case INTERNALIZED_NUMERIC_SETTINGS.MAX_ACTIVE_ARTISTS_PER_CYCLE:
-        return env.MAX_ACTIVE_ARTISTS_PER_CYCLE;
-      case INTERNALIZED_NUMERIC_SETTINGS.MAX_CATALOG_ARTISTS_PER_CYCLE:
-        return env.MAX_CATALOG_ARTISTS_PER_CYCLE;
-      case INTERNALIZED_NUMERIC_SETTINGS.FOLLOWED_ARTISTS_MAX:
-        return env.FOLLOWED_ARTISTS_MAX;
-      case INTERNALIZED_NUMERIC_SETTINGS.RELEASES_LOOKBACK_DAYS:
-        return env.RELEASES_LOOKBACK_DAYS;
-      case INTERNALIZED_NUMERIC_SETTINGS.RELEASES_CACHE_MINUTES:
-        return env.RELEASES_CACHE_MINUTES;
-      case INTERNALIZED_NUMERIC_SETTINGS.YT_SEARCH_CONCURRENCY:
-        return env.YT_SEARCH_CONCURRENCY;
-      case INTERNALIZED_NUMERIC_SETTINGS.YT_SEARCH_DELAY_MS:
-        return env.YT_SEARCH_DELAY_MS;
-      case INTERNALIZED_NUMERIC_SETTINGS.YT_DOWNLOADS_PER_MINUTE:
-        return env.YT_DOWNLOADS_PER_MINUTE;
-      case INTERNALIZED_NUMERIC_SETTINGS.STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES:
-        return env.STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES;
-      case INTERNALIZED_NUMERIC_SETTINGS.STUCK_TRACKS_TIMEOUT_MINUTES:
-        return env.STUCK_TRACKS_TIMEOUT_MINUTES;
-      default:
-        return undefined;
+    if (!(key in INTERNALIZED_NUMERIC_SETTINGS)) {
+      return undefined;
     }
+
+    return this.getInternalizedNumericValue(key as InternalizedNumericSettingKey);
   }
 
   async getString(key: string, fallback?: string): Promise<string> {

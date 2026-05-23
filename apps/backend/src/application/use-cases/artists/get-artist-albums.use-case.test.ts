@@ -1,7 +1,7 @@
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import { GetArtistAlbumsUseCase } from "./get-artist-albums.use-case";
 
 function makeRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
@@ -18,17 +18,17 @@ function makeRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
   };
 }
 
-function mockRepo(partial: Partial<FeedRepository> = {}): FeedRepository {
+function mockRepo(partial: Partial<FeedRepositoryPort> = {}): FeedRepositoryPort {
   return {
     getArtistAlbumsFreshness: vi.fn().mockResolvedValue(null),
     getArtistAlbums: vi.fn().mockResolvedValue([]),
     getArtistBySpotifyId: vi.fn().mockResolvedValue(null),
     upsertArtistAlbums: vi.fn().mockResolvedValue(undefined),
     ...partial,
-  } as unknown as FeedRepository;
+  } as unknown as FeedRepositoryPort;
 }
 
-function mockFeedService(): ReleaseFeedService {
+function mockFeedService(): ReleaseFeedPort {
   return {
     getArtistDiscography: vi.fn().mockResolvedValue({
       albums: [],
@@ -39,13 +39,13 @@ function mockFeedService(): ReleaseFeedService {
         newIdentityPersisted: false,
       },
     }),
-  } as unknown as ReleaseFeedService;
+  } as unknown as ReleaseFeedPort;
 }
 
 describe("GetArtistAlbumsUseCase", () => {
   let useCase: GetArtistAlbumsUseCase;
-  let repo: FeedRepository;
-  let feedService: ReleaseFeedService;
+  let repo: FeedRepositoryPort;
+  let feedService: ReleaseFeedPort;
 
   beforeEach(() => {
     repo = mockRepo();

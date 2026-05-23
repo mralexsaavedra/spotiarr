@@ -38,13 +38,13 @@ describe("architecture boundaries (baseline before cleanup)", () => {
     expect(violations.length).toBe(0);
   });
 
-  it("R2: application currently imports infrastructure directly", () => {
+  it("R2: application has zero direct infrastructure imports", () => {
     const appFiles = [
       ...walkTsFiles(join(SRC_ROOT, "application", "use-cases")),
       ...walkTsFiles(join(SRC_ROOT, "application", "services")),
     ];
     const violations = findMatches(appFiles, /from\s+"@\/infrastructure/);
-    expect(violations.length).toBeGreaterThan(0);
+    expect(violations.length).toBe(0);
   });
 
   it("R3: presentation controllers currently import infra/prisma", () => {

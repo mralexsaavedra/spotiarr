@@ -87,8 +87,27 @@ const historyRepository = new PrismaHistoryRepository();
 const settingsRepository = new PrismaSettingsRepository();
 const feedRepository = new FeedRepository(prisma);
 
+const internalizedNumericSettingMap: Record<string, () => number> = {
+  FEED_SYNC_INTERVAL_MINUTES: () => getEnv().FEED_SYNC_INTERVAL_MINUTES,
+  RELEASES_SYNC_INTERVAL_MINUTES: () => getEnv().RELEASES_SYNC_INTERVAL_MINUTES,
+  CATALOG_SYNC_INTERVAL_HOURS: () => getEnv().CATALOG_SYNC_INTERVAL_HOURS,
+  CATALOG_LOOKBACK_DAYS: () => getEnv().CATALOG_LOOKBACK_DAYS,
+  MAX_ACTIVE_ARTISTS_PER_CYCLE: () => getEnv().MAX_ACTIVE_ARTISTS_PER_CYCLE,
+  MAX_CATALOG_ARTISTS_PER_CYCLE: () => getEnv().MAX_CATALOG_ARTISTS_PER_CYCLE,
+  FOLLOWED_ARTISTS_MAX: () => getEnv().FOLLOWED_ARTISTS_MAX,
+  RELEASES_LOOKBACK_DAYS: () => getEnv().RELEASES_LOOKBACK_DAYS,
+  RELEASES_CACHE_MINUTES: () => getEnv().RELEASES_CACHE_MINUTES,
+  YT_SEARCH_CONCURRENCY: () => getEnv().YT_SEARCH_CONCURRENCY,
+  YT_SEARCH_DELAY_MS: () => getEnv().YT_SEARCH_DELAY_MS,
+  YT_DOWNLOADS_PER_MINUTE: () => getEnv().YT_DOWNLOADS_PER_MINUTE,
+  STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES: () => getEnv().STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES,
+  STUCK_TRACKS_TIMEOUT_MINUTES: () => getEnv().STUCK_TRACKS_TIMEOUT_MINUTES,
+};
+
 // Services (Base)
-const settingsService = new SettingsService(settingsRepository);
+const settingsService = new SettingsService(settingsRepository, (key) =>
+  internalizedNumericSettingMap[key]?.(),
+);
 
 const trackFileHelper = new FileSystemTrackPathService(settingsService);
 const m3uService = new FileSystemM3uService(settingsService, trackFileHelper);

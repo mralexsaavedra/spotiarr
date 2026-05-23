@@ -1,6 +1,6 @@
 import type { ArtistRelease } from "@spotiarr/shared";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import {
   INTERACTIVE_CATALOG_TIMEOUT_MS,
   isArtistCacheFresh,
@@ -9,8 +9,8 @@ import {
 
 export class GetArtistAlbumsUseCase {
   constructor(
-    private readonly feedRepository: FeedRepository,
-    private readonly releaseFeedService: ReleaseFeedService,
+    private readonly feedRepository: FeedRepositoryPort,
+    private readonly releaseFeedService: ReleaseFeedPort,
   ) {}
 
   async execute(spotifyArtistId: string, limit: number, offset: number): Promise<ArtistRelease[]> {

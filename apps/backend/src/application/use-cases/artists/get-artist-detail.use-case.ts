@@ -1,8 +1,8 @@
 import type { ArtistDetail, ArtistRelease } from "@spotiarr/shared";
+import type { SpotifyArtistLookupPort } from "@/application/ports/artist-lookup.port";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import { AppError } from "@/domain/errors/app-error";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
-import type { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
 import {
   INTERACTIVE_CATALOG_TIMEOUT_MS,
   isArtistCacheFresh,
@@ -11,9 +11,9 @@ import {
 
 export class GetArtistDetailUseCase {
   constructor(
-    private readonly feedRepository: FeedRepository,
-    private readonly releaseFeedService: ReleaseFeedService,
-    private readonly spotifyArtistClient: SpotifyArtistClient,
+    private readonly feedRepository: FeedRepositoryPort,
+    private readonly releaseFeedService: ReleaseFeedPort,
+    private readonly spotifyArtistClient: SpotifyArtistLookupPort,
   ) {}
 
   async execute(spotifyArtistId: string, limit: number): Promise<ArtistDetail> {

@@ -1,5 +1,9 @@
-import type { FollowedArtist } from "@spotiarr/shared";
-
 export interface SpotifyArtistLookupPort {
-  getArtistDetails(id: string): Promise<FollowedArtist>;
+  getArtistDetails(id: string): Promise<{
+    name: string;
+    image: string | null;
+    spotifyUrl: string | null;
+    followers: number | null;
+    genres: string[];
+  }>;
 }

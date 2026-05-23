@@ -1,21 +1,22 @@
 import { type ITrack } from "@spotiarr/shared";
-import * as fs from "fs";
-import * as path from "path";
+import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
+import type { YoutubeDownloadPort } from "@/application/ports/youtube.port";
 import { AppError } from "@/domain/errors/app-error";
 import { EventBus } from "@/domain/events/event-bus";
 import { HistoryRepository } from "@/domain/repositories/history.repository";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
-import { YoutubeDownloadService } from "@/infrastructure/external/youtube-download.service";
-import { FileSystemTrackPathService } from "@/infrastructure/services/file-system-track-path.service";
-import { getErrorMessage } from "@/infrastructure/utils/error.utils";
 import { TrackPostProcessingService } from "../../services/track-post-processing.service";
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export class DownloadTrackUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
-    private readonly youtubeDownloadService: YoutubeDownloadService,
-    private readonly trackFileHelper: FileSystemTrackPathService,
+    private readonly youtubeDownloadService: YoutubeDownloadPort,
+    private readonly trackFileHelper: FileSystemTrackPathPort,
     private readonly playlistRepository: PlaylistRepository,
     private readonly downloadHistoryRepository: HistoryRepository,
     private readonly eventBus: EventBus,
@@ -46,9 +47,9 @@ export class DownloadTrackUseCase {
     } catch (err) {
       console.error(
         `Failed to download track: ${track.artist} - ${track.name}`,
-        getErrorMessage(err),
+        toErrorMessage(err),
       );
-      error = getErrorMessage(err);
+      error = toErrorMessage(err);
     }
 
     // Update final status
@@ -101,12 +102,7 @@ export class DownloadTrackUseCase {
     }
 
     const trackFilePath = await this.trackFileHelper.getFolderName(track, playlistName);
-    const trackDirectory = path.dirname(trackFilePath);
-
-    // Create directory structure
-    if (!fs.existsSync(trackDirectory)) {
-      fs.mkdirSync(trackDirectory, { recursive: true });
-    }
+    await this.trackFileHelper.ensureParentDirectory(trackFilePath);
 
     // 1. Download Content
     await this.youtubeDownloadService.downloadAndFormat(track, trackFilePath);

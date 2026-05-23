@@ -1,14 +1,19 @@
-import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
+import type { ArtistRelease } from "@spotiarr/shared";
+
+type CatalogArtist = {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+};
 
 export interface ReleaseFeedPort {
   getActiveArtistReleases(
-    artists: FollowedArtist[],
-    lookbackDays: number,
-  ): Promise<{ releases: ArtistRelease[] }>;
+    artists: CatalogArtist[],
+    options?: { lookbackDays?: number },
+  ): Promise<{ releases: ArtistRelease[]; decisions?: unknown[] }>;
   getArtistDiscography(input: {
-    spotifyArtistId: string;
-    artistName: string;
-    limit: number;
-    offset?: number;
-  }): Promise<ArtistRelease[]>;
+    id: string;
+    name: string;
+    imageUrl?: string | null;
+  }): Promise<{ albums: ArtistRelease[]; decision?: unknown }>;
 }
