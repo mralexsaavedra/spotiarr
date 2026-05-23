@@ -171,7 +171,11 @@ export function createFeedSyncWorker(): Worker {
           );
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.warn("[feed-sync.worker] non-fatal error", {
+          err: err instanceof Error ? err.message : String(err),
+        });
+      });
   });
 
   console.log("✅ Feed sync worker initialized");

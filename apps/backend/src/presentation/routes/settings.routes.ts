@@ -6,7 +6,6 @@ const router: ExpressRouter = Router();
 const { settingsController } = container;
 
 // GET /api/settings - Get all settings
-// GET /api/settings - Get all settings
 router.get("/", asyncHandler(settingsController.getSettings));
 
 // GET /api/settings/metadata - Get settings metadata

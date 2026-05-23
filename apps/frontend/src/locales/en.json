@@ -52,6 +52,7 @@
     "cards": {
       "albumTypes": {
         "all": "All",
+        "artist": "Artist",
         "single": "Single",
         "ep": "EP",
         "singlesAndEps": "Singles & EPs",

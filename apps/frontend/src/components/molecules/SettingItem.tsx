@@ -1,5 +1,7 @@
-import { APP_LOCALE_LABELS, AppLocale, SettingMetadata } from "@spotiarr/shared";
-import { ChangeEvent, FC, memo, MouseEvent, ReactNode } from "react";
+import { APP_LOCALE_LABELS } from "@spotiarr/shared";
+import type { AppLocale, SettingMetadata } from "@spotiarr/shared";
+import { memo } from "react";
+import type { ChangeEvent, FC, MouseEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { SettingInput } from "./SettingInput";
 import { SettingSelect } from "./SettingSelect";
