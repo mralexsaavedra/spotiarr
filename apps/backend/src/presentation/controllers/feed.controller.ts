@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import { GetRecentReleasesUseCase } from "@/application/use-cases/feed/get-recent-releases.use-case";
-import { FeedRepository } from "@/infrastructure/database/feed.repository";
-import { SpotifyUserLibraryService } from "@/infrastructure/external/spotify-user-library.service";
 
 export class FeedController {
   constructor(
-    private readonly spotifyUserLibraryService: SpotifyUserLibraryService,
-    private readonly feedRepository: FeedRepository,
+    private readonly spotifyUserLibraryService: SpotifyUserLibraryPort,
+    private readonly feedRepository: FeedRepositoryPort,
     private readonly getRecentReleasesUseCase: GetRecentReleasesUseCase,
   ) {}
 

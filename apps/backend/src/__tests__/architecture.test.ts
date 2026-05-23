@@ -47,13 +47,13 @@ describe("architecture boundaries (baseline before cleanup)", () => {
     expect(violations.length).toBe(0);
   });
 
-  it("R3: presentation controllers currently import infra/prisma", () => {
+  it("R3: presentation controllers have zero infra/prisma imports", () => {
     const controllerFiles = walkTsFiles(join(SRC_ROOT, "presentation", "controllers"));
     const violations = findMatches(
       controllerFiles,
       /from\s+"@\/infrastructure|from\s+"@prisma\/client|\bprisma\b/,
     );
-    expect(violations.length).toBeGreaterThan(0);
+    expect(violations.length).toBe(0);
   });
 
   it("R4: process.env currently leaks outside environment.ts", () => {
