@@ -29,7 +29,7 @@ const getConfig = (item: TopResultItem, t: TFunction): ResultConfig => {
       return {
         imageSrc: item.data.image ?? undefined,
         title: item.data.name,
-        typeLabel: t("common.cards.albumTypes.artist", "Artista"),
+        typeLabel: t("common.cards.albumTypes.artist"),
         isCircular: true,
         fallbackIcon: "user",
       };
