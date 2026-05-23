@@ -29,13 +29,13 @@ function findMatches(files: string[], re: RegExp): string[] {
 }
 
 describe("architecture boundaries (baseline before cleanup)", () => {
-  it("R1: domain currently has outward dependencies", () => {
+  it("R1: domain has zero outward dependencies", () => {
     const domainFiles = walkTsFiles(join(SRC_ROOT, "domain"));
     const violations = findMatches(
       domainFiles,
       /from\s+"@\/(application|presentation|infrastructure)/,
     );
-    expect(violations.length).toBeGreaterThan(0);
+    expect(violations.length).toBe(0);
   });
 
   it("R2: application currently imports infrastructure directly", () => {

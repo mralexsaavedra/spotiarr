@@ -1,9 +1,9 @@
 import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
+import { SpotifyService } from "@/application/services/spotify.service";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
-import { SpotifyService } from "@/domain/services/spotify.service";
 import { FileSystemM3uService } from "@/infrastructure/services/file-system-m3u.service";
 import { FileSystemTrackPathService } from "@/infrastructure/services/file-system-track-path.service";
 import { MetadataService } from "@/infrastructure/services/metadata.service";

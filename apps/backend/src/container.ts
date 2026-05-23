@@ -1,6 +1,7 @@
 import { LibraryService } from "./application/services/library.service";
 import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
+import { SpotifyService } from "./application/services/spotify.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
 import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
@@ -29,7 +30,6 @@ import { RescueStuckTracksUseCase } from "./application/use-cases/tracks/rescue-
 import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-track-download.use-case";
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.use-case";
-import { SpotifyService } from "./domain/services/spotify.service";
 import { NoopAlbumTracksCache } from "./infrastructure/cache/noop-album-tracks-cache";
 import { FeedRepository } from "./infrastructure/database/feed.repository";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
@@ -162,25 +162,25 @@ const musicBrainzClient = new MusicBrainzClient();
 const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
 
 // Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
-const spotifyService = new SpotifyService(
-  spotifyArtistClient,
-  spotifyTrackClient,
-  spotifyAlbumClient,
-  spotifyPlaylistClient,
-  spotifySearchClient,
-  spotifyUserLibraryService,
-);
+const spotifyService = new SpotifyService({
+  artistClient: spotifyArtistClient,
+  trackClient: spotifyTrackClient,
+  albumClient: spotifyAlbumClient,
+  playlistClient: spotifyPlaylistClient,
+  searchClient: spotifySearchClient,
+  userLibraryService: spotifyUserLibraryService,
+});
 
 // Sync SpotifyService — for background workers (create playlist, sync, post-processing)
 // Uses sync rate limiter for playlist fetches to avoid starving interactive requests
-const spotifyServiceSync = new SpotifyService(
-  spotifyArtistClient,
-  spotifyTrackClient,
-  spotifyAlbumClient,
-  spotifyPlaylistClientSync,
-  spotifySearchClient,
-  spotifyUserLibraryService,
-);
+const spotifyServiceSync = new SpotifyService({
+  artistClient: spotifyArtistClient,
+  trackClient: spotifyTrackClient,
+  albumClient: spotifyAlbumClient,
+  playlistClient: spotifyPlaylistClientSync,
+  searchClient: spotifySearchClient,
+  userLibraryService: spotifyUserLibraryService,
+});
 
 // Services (Post-Processing) — uses sync service to avoid starving interactive requests
 const trackPostProcessingService = new TrackPostProcessingService(

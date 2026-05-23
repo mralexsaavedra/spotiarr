@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { SpotifyService } from "@/domain/services/spotify.service";
+import { SpotifyService } from "@/application/services/spotify.service";
 
 export class SearchController {
   constructor(private readonly spotifyService: SpotifyService) {}
