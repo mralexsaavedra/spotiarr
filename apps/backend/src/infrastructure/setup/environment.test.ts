@@ -15,6 +15,12 @@ describe("environment setup", () => {
     vi.doMock("dotenv", () => ({ config: vi.fn() }));
     process.env = { ...originalEnv, ...REQUIRED_ENV };
     delete process.env.RELEASES_LOOKBACK_DAYS;
+    delete process.env.SPOTIFY_HTTP_MAX_CONCURRENCY;
+    delete process.env.SPOTIFY_HTTP_QUEUE_TIMEOUT_MS;
+    delete process.env.SPOTIFY_HTTP_MIN_INTERVAL_MS;
+    delete process.env.SPOTIFY_SYNC_MAX_CONCURRENCY;
+    delete process.env.SPOTIFY_SYNC_QUEUE_TIMEOUT_MS;
+    delete process.env.SPOTIFY_SYNC_MIN_INTERVAL_MS;
   });
 
   afterEach(() => {
@@ -22,11 +28,17 @@ describe("environment setup", () => {
     vi.doUnmock("dotenv");
   });
 
-  it("defaults the releases lookback window to 30 days", async () => {
+  it("defaults releases and spotify limiter env values", async () => {
     const { getEnv, validateEnvironment } = await import("./environment");
 
     validateEnvironment();
 
     expect(getEnv().RELEASES_LOOKBACK_DAYS).toBe(30);
+    expect(getEnv().SPOTIFY_HTTP_MAX_CONCURRENCY).toBe(5);
+    expect(getEnv().SPOTIFY_HTTP_QUEUE_TIMEOUT_MS).toBe(60000);
+    expect(getEnv().SPOTIFY_HTTP_MIN_INTERVAL_MS).toBe(100);
+    expect(getEnv().SPOTIFY_SYNC_MAX_CONCURRENCY).toBe(1);
+    expect(getEnv().SPOTIFY_SYNC_QUEUE_TIMEOUT_MS).toBe(600000);
+    expect(getEnv().SPOTIFY_SYNC_MIN_INTERVAL_MS).toBe(3000);
   });
 });

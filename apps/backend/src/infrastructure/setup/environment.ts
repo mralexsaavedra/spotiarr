@@ -48,6 +48,12 @@ const envSchema = z
       .default("50")
       .transform(Number)
       .pipe(z.number().int().min(0).max(5000)),
+    SPOTIFY_HTTP_MAX_CONCURRENCY: z.coerce.number().int().min(1).max(20).default(5),
+    SPOTIFY_HTTP_QUEUE_TIMEOUT_MS: z.coerce.number().int().min(1000).max(300000).default(60000),
+    SPOTIFY_HTTP_MIN_INTERVAL_MS: z.coerce.number().int().min(0).max(5000).default(100),
+    SPOTIFY_SYNC_MAX_CONCURRENCY: z.coerce.number().int().min(1).max(10).default(1),
+    SPOTIFY_SYNC_QUEUE_TIMEOUT_MS: z.coerce.number().int().min(1000).max(900000).default(600000),
+    SPOTIFY_SYNC_MIN_INTERVAL_MS: z.coerce.number().int().min(0).max(10000).default(3000),
 
     // Internalized Spotify efficiency controls
     FEED_SYNC_INTERVAL_MINUTES: z

@@ -56,7 +56,7 @@ describe("architecture boundaries (baseline before cleanup)", () => {
     expect(violations.length).toBe(0);
   });
 
-  it("R4: process.env currently leaks outside environment.ts", () => {
+  it("R4: process.env is centralized to allowed files", () => {
     const srcFiles = walkTsFiles(SRC_ROOT);
     const matches = srcFiles
       .filter((file) => readFileSync(file, "utf8").includes("process.env"))
@@ -66,6 +66,6 @@ describe("architecture boundaries (baseline before cleanup)", () => {
       (path) =>
         !path.includes("infrastructure/setup/environment.ts") && !path.includes("container.ts"),
     );
-    expect(disallowed.length).toBeGreaterThan(0);
+    expect(disallowed.length).toBe(0);
   });
 });
