@@ -1,5 +1,5 @@
 import type { AlbumType, ArtistRelease } from "@spotiarr/shared";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import type { CacheEntry } from "./cache.types";
 import type { SpotifyAuthService } from "./spotify-auth.service";
@@ -13,7 +13,7 @@ export class SpotifyArtistCatalogService extends SpotifyHttpClient {
   private readonly cache: Map<string, CacheEntry<unknown>> = new Map();
 
   constructor(
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
   ) {

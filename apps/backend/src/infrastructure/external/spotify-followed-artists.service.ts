@@ -1,5 +1,5 @@
 import type { FollowedArtist } from "@spotiarr/shared";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
 import type { CacheEntry } from "./cache.types";
@@ -16,7 +16,7 @@ export class SpotifyFollowedArtistsService extends SpotifyHttpClient {
   private readonly inFlightPromises = new PromiseCache({ ttlMs: 30_000 });
 
   constructor(
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
   ) {

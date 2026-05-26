@@ -1,5 +1,5 @@
 import type { SpotifyPlaylist } from "@spotiarr/shared";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 import { getErrorMessage } from "../utils/error.utils";
@@ -43,7 +43,7 @@ export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
   private playlistAccessProbeCooldownUntil = 0;
 
   constructor(
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
   ) {
