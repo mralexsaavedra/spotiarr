@@ -151,8 +151,14 @@ const metadataService = new MetadataService();
 const queueService = new BullMqTrackQueueService();
 const eventBus = new AppEventBus();
 
+let spotifyUserLibraryService: SpotifyUserLibraryService | null = null;
+let spotifyUserLibrarySyncService: SpotifyUserLibraryService | null = null;
+
 // Spotify
-const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
+const spotifyAuthService = SpotifyAuthService.getInstance(settingsService, () => {
+  spotifyUserLibraryService?.clearCache();
+  spotifyUserLibrarySyncService?.clearCache();
+});
 const spotifyRequestCache = new PromiseCache({ ttlMs: 30_000 });
 const spotifyArtistClient = new SpotifyArtistClient(
   spotifyAuthService,
@@ -198,7 +204,7 @@ const spotifySearchClient = new SpotifySearchClient(
   "interactive",
 );
 
-const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
+spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,
   "user",
@@ -220,7 +226,7 @@ const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
     ),
   },
 );
-const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
+spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,
   "sync",

@@ -2,7 +2,6 @@ import { SettingsService } from "@/application/services/settings.service";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 import { getErrorMessage } from "../utils/error.utils";
-import { SpotifyUserLibraryService } from "./spotify-user-library.service";
 
 interface SpotifyTokenResponse {
   access_token: string;
@@ -15,11 +14,20 @@ export class SpotifyAuthService {
   private tokenExpiry: number = 0;
   private appTokenPromise: Promise<string> | null = null;
 
-  constructor(private readonly settingsService: SettingsService) {}
+  constructor(
+    private readonly settingsService: SettingsService,
+    private readonly invalidateUserLibraryCache: () => void = () => {},
+  ) {}
 
-  static getInstance(settingsService: SettingsService): SpotifyAuthService {
+  static getInstance(
+    settingsService: SettingsService,
+    invalidateUserLibraryCache?: () => void,
+  ): SpotifyAuthService {
     if (!SpotifyAuthService.instance) {
-      SpotifyAuthService.instance = new SpotifyAuthService(settingsService);
+      SpotifyAuthService.instance = new SpotifyAuthService(
+        settingsService,
+        invalidateUserLibraryCache,
+      );
     }
     return SpotifyAuthService.instance;
   }
@@ -176,7 +184,7 @@ export class SpotifyAuthService {
         await this.settingsService.setString(refreshTokenKey, data.refresh_token);
       }
 
-      SpotifyUserLibraryService.clearGlobalCache();
+      this.invalidateUserLibraryCache();
 
       this.log("Successfully refreshed Spotify user access token");
       return true;
@@ -237,7 +245,7 @@ export class SpotifyAuthService {
     try {
       await this.settingsService.delete("spotify_user_access_token");
       await this.settingsService.delete("spotify_user_refresh_token");
-      SpotifyUserLibraryService.clearGlobalCache();
+      this.invalidateUserLibraryCache();
       this.log("Successfully logged out from Spotify");
     } catch (error) {
       this.log(`Failed to logout from Spotify: ${getErrorMessage(error)}`, "error");
