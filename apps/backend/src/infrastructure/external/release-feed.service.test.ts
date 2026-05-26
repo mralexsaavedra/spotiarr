@@ -1,6 +1,6 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
 import { ReleaseFeedService, type CatalogArtist } from "./release-feed.service";
@@ -28,11 +28,11 @@ function makeArtist(overrides: Partial<CatalogArtist> = {}): CatalogArtist {
   };
 }
 
-function mockRepo(): FeedRepository {
+function mockRepo(): FeedRepositoryPort {
   return {
     getArtistCatalogIdentities: vi.fn().mockResolvedValue([]),
     updateArtistCatalogIdentities: vi.fn().mockResolvedValue(undefined),
-  } as unknown as FeedRepository;
+  } as unknown as FeedRepositoryPort;
 }
 
 function mockDeezer(): DeezerClient {
@@ -51,7 +51,7 @@ function mockMusicBrainz(): MusicBrainzClient {
 
 describe("ReleaseFeedService", () => {
   let service: ReleaseFeedService;
-  let repo: FeedRepository;
+  let repo: FeedRepositoryPort;
   let deezer: DeezerClient;
   let musicBrainz: MusicBrainzClient;
 

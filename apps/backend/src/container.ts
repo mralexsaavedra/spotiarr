@@ -1,3 +1,4 @@
+import { FeedCacheEvictionService } from "./application/services/feed-cache-eviction.service";
 import { HealthService } from "./application/services/health.service";
 import { LibraryService } from "./application/services/library.service";
 import { PlaylistService } from "./application/services/playlist.service";
@@ -32,7 +33,12 @@ import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.use-case";
 import { NoopAlbumTracksCache } from "./infrastructure/cache/noop-album-tracks-cache";
+import { ArtistAlbumCacheRepository } from "./infrastructure/database/artist-album-cache.repository";
+import { ArtistReleaseCacheRepository } from "./infrastructure/database/artist-release-cache.repository";
+import { FeedCacheEvictionRepository } from "./infrastructure/database/feed-cache-eviction.repository";
+import { FeedSyncStateRepository } from "./infrastructure/database/feed-sync-state.repository";
 import { FeedRepository } from "./infrastructure/database/feed.repository";
+import { FollowedArtistRepository } from "./infrastructure/database/followed-artist.repository";
 import { PrismaConnectivityAdapter } from "./infrastructure/database/prisma-connectivity.adapter";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
@@ -96,7 +102,19 @@ const playlistRepository = new PrismaPlaylistRepository();
 const trackRepository = new PrismaTrackRepository();
 const historyRepository = new PrismaHistoryRepository();
 const settingsRepository = new PrismaSettingsRepository();
-const feedRepository = new FeedRepository(prisma);
+const followedArtistRepository = new FollowedArtistRepository(prisma);
+const artistAlbumCacheRepository = new ArtistAlbumCacheRepository(prisma);
+const artistReleaseCacheRepository = new ArtistReleaseCacheRepository(prisma);
+const feedSyncStateRepository = new FeedSyncStateRepository(prisma);
+const feedCacheEvictionRepository = new FeedCacheEvictionRepository(prisma);
+const feedCacheEvictionService = new FeedCacheEvictionService(feedCacheEvictionRepository);
+const feedRepository = new FeedRepository(
+  followedArtistRepository,
+  artistAlbumCacheRepository,
+  artistReleaseCacheRepository,
+  feedSyncStateRepository,
+  feedCacheEvictionService,
+);
 const connectivityAdapter = new PrismaConnectivityAdapter();
 
 const internalizedNumericSettingMap: Record<string, () => number> = {
