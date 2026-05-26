@@ -1,8 +1,8 @@
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { SettingsService } from "@/application/services/settings.service";
 import { SYNC_STATUS } from "../database/feed.repository";
-import type { FeedRepository } from "../database/feed.repository";
 import type { ReleaseFeedService } from "../external/release-feed.service";
 import type { SpotifyUserLibraryService } from "../external/spotify-user-library.service";
 import type { AppEventBus } from "../messaging/app-event-bus";
@@ -57,7 +57,7 @@ function makeMockDeps(): FeedSyncJobDependencies {
       upsertReleases: vi.fn().mockResolvedValue(undefined),
       updateArtistReleasesSyncedAt: vi.fn().mockResolvedValue(undefined),
       evictStaleFeedCache: vi.fn().mockResolvedValue(undefined),
-    } as unknown as FeedRepository,
+    } as unknown as FeedRepositoryPort,
     eventBus: {
       emit: vi.fn(),
     } as unknown as AppEventBus,
