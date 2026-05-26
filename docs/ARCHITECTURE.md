@@ -66,10 +66,12 @@ El backend sigue principios de **Clean Architecture** y **Domain-Driven Design (
 
 ```
 apps/backend/src/
-├── application/         # Lógica de negocio pura
-│   ├── services/        # Servicios orquestadores (TrackService, PlaylistService)
-│   └── use-cases/       # Acciones únicas: CreateTrack, DownloadTrack...
-├── domain/              # Modelos y contratos (Interfaces)
+├── __tests__/           # Invariantes arquitectónicas (architecture.test.ts)
+├── application/         # Lógica de aplicación
+│   ├── ports/           # Contratos hexagonales (interfaces)
+│   ├── services/        # Servicios de orquestación (SpotifyService, HealthService...)
+│   └── use-cases/       # Casos de uso: CreateTrack, DownloadTrack...
+├── domain/              # Modelo de dominio puro (entidades, reglas)
 ├── infrastructure/      # Implementaciones concretas
 │   ├── database/        # Repositorios Prisma
 │   ├── external/        # Integraciones (Spotify API, YouTube, Filesystem)
@@ -84,6 +86,18 @@ apps/backend/src/
 1.  **Dependency Injection (DI):** Todo se instancia en `container.ts` para testabilidad.
 2.  **Repository Pattern:** Desacopla la lógica de negocio de la base de datos (Prisma).
 3.  **Use Cases:** Cada acción del usuario tiene una clase dedicada, evitando servicios monolíticos.
+4.  **Hexagonal Ports:** La capa `application` define contratos en `application/ports/`, y `infrastructure` aporta adapters concretos cableados en el contenedor.
+
+#### 4.1.1. Límites de capa (enforced)
+
+Las reglas de arquitectura están validadas por `apps/backend/src/__tests__/architecture.test.ts`:
+
+- **R1:** `domain/` no tiene imports salientes hacia otras capas.
+- **R2:** `application/` no importa `infrastructure/` directamente; depende vía puertos en `application/ports/`.
+- **R3:** `presentation/` (código productivo) no importa ni `infrastructure` ni `@prisma/client`.
+- **R4:** lecturas de `process.env` centralizadas en `infrastructure/setup/environment.ts`, con una única excepción documentada: fallback de `process.env.DOWNLOADS` en `container.ts`.
+
+Este test se ejecuta dentro de `pnpm --filter backend run test:run`. Si alguien rompe un límite, falla CI.
 
 ### 4.2. Frontend (Atomic Design + Feature Driven)
 
@@ -137,7 +151,16 @@ Maneja la complejidad de OAuth2 de forma transparente:
 - **Auto-Refresh:** Almacena el `refresh_token` en base de datos cifrada y renueva el token automáticamente antes de que expire, garantizando que los Cron Jobs nocturnos nunca fallen por auth.
 - **Estrategia de proveedores de catálogo:** Spotify sigue siendo la fuente de verdad para **auth y datos de usuario** (artistas seguidos, playlists, librería). Para **datos públicos de catálogo** (discografía, tracks, lanzamientos), el backend prioriza **Deezer** como primario, **MusicBrainz** como fallback secundario, y **Spotify** como fallback terminal. Esto mitiga las restricciones de quota de Spotify sin perder funcionalidad.
 
-### 5.3. Motor de Descarga (`YoutubeDownloadService`)
+Nota: el orquestador de catálogo de alto nivel es `SpotifyService`, que vive en `application/services/spotify.service.ts` y recibe los clients de Spotify por constructor.
+
+### 5.3. Health & Connectivity
+
+- `application/services/health.service.ts` agrega los checks de conectividad.
+- `application/ports/connectivity.port.ts` define el contrato `pingDatabase()`.
+- `infrastructure/database/prisma-connectivity.adapter.ts` implementa ese contrato con `prisma.$queryRaw`.
+- `GET /api/health` responde `200 { status: "ok" }` si todo está sano, o `503 { status: "degraded", components: { db: "down" } }` si falla DB.
+
+### 5.4. Motor de Descarga (`YoutubeDownloadService`)
 
 No es solo un script de shell. Es un wrapper inteligente sobre `yt-dlp`:
 
@@ -145,7 +168,7 @@ No es solo un script de shell. Es un wrapper inteligente sobre `yt-dlp`:
 - **Calidad Adaptativa:** Mapea la preferencia del usuario (Best/Good/Acceptable).
 - **Seguridad:** Usa una copia local de `yt-dlp` en entornos restrictivos (como Docker) para asegurar permisos de ejecución.
 
-### 5.4. Motor de Búsqueda (`YoutubeSearchService`)
+### 5.5. Motor de Búsqueda (`YoutubeSearchService`)
 
 La pieza clave para encontrar la canción correcta:
 
@@ -153,7 +176,7 @@ La pieza clave para encontrar la canción correcta:
 - Soporta cookies del usuario para acceder a resultados "Premium" o verificados de YouTube Music.
 - Realiza una búsqueda precisa formato `Artist - Track` para minimizar falsos positivos.
 
-### 5.5. Server-Sent Events (SSE)
+### 5.6. Server-Sent Events (SSE)
 
 Implementación nativa sin librerías pesadas como Socket.io:
 
@@ -161,7 +184,7 @@ Implementación nativa sin librerías pesadas como Socket.io:
 - `SseEventBus` desacopla la lógica: cualquier servicio puede hacer `eventBus.emit('event')` sin saber nada de HTTP.
 - Es unidireccional (Server -> Client), ideal para notificaciones de progreso.
 
-### 5.6. Post-Procesado (`TrackPostProcessingService`)
+### 5.7. Post-Procesado (`TrackPostProcessingService`)
 
 Donde ocurre la magia de los metadatos:
 
