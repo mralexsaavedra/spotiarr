@@ -4,7 +4,9 @@ import { describe, expect, it } from "vitest";
 
 const SRC_ROOT = join(__dirname, "..");
 
-function walkTsFiles(root: string): string[] {
+// Architecture invariant applies to production source only.
+// Integration tests are allowed to wire infrastructure for end-to-end behavior checks.
+function walkSrcExcludingTests(root: string): string[] {
   const entries = readdirSync(root);
   const files: string[] = [];
 
@@ -12,7 +14,10 @@ function walkTsFiles(root: string): string[] {
     const full = join(root, entry);
     const stat = statSync(full);
     if (stat.isDirectory()) {
-      files.push(...walkTsFiles(full));
+      if (entry === "__tests__") {
+        continue;
+      }
+      files.push(...walkSrcExcludingTests(full));
       continue;
     }
 
@@ -30,7 +35,7 @@ function findMatches(files: string[], re: RegExp): string[] {
 
 describe("architecture boundaries (baseline before cleanup)", () => {
   it("R1: domain has zero outward dependencies", () => {
-    const domainFiles = walkTsFiles(join(SRC_ROOT, "domain"));
+    const domainFiles = walkSrcExcludingTests(join(SRC_ROOT, "domain"));
     const violations = findMatches(
       domainFiles,
       /from\s+"@\/(application|presentation|infrastructure)/,
@@ -40,32 +45,49 @@ describe("architecture boundaries (baseline before cleanup)", () => {
 
   it("R2: application has zero direct infrastructure imports", () => {
     const appFiles = [
-      ...walkTsFiles(join(SRC_ROOT, "application", "use-cases")),
-      ...walkTsFiles(join(SRC_ROOT, "application", "services")),
+      ...walkSrcExcludingTests(join(SRC_ROOT, "application", "use-cases")),
+      ...walkSrcExcludingTests(join(SRC_ROOT, "application", "services")),
     ];
     const violations = findMatches(appFiles, /from\s+"@\/infrastructure/);
     expect(violations.length).toBe(0);
   });
 
-  it("R3: presentation controllers have zero infra/prisma imports", () => {
-    const controllerFiles = walkTsFiles(join(SRC_ROOT, "presentation", "controllers"));
+  it("R3: presentation has zero infra/prisma imports (production files only)", () => {
+    const presentationFiles = walkSrcExcludingTests(join(SRC_ROOT, "presentation"));
     const violations = findMatches(
-      controllerFiles,
+      presentationFiles,
       /from\s+"@\/infrastructure|from\s+"@prisma\/client|\bprisma\b/,
     );
     expect(violations.length).toBe(0);
   });
 
-  it("R4: process.env is centralized to allowed files", () => {
-    const srcFiles = walkTsFiles(SRC_ROOT);
-    const matches = srcFiles
-      .filter((file) => readFileSync(file, "utf8").includes("process.env"))
-      .map((file) => relative(SRC_ROOT, file));
+  it("R4: process.env reads only in allow-listed locations", () => {
+    const srcFiles = walkSrcExcludingTests(SRC_ROOT);
+    const offenders: string[] = [];
 
-    const disallowed = matches.filter(
-      (path) =>
-        !path.includes("infrastructure/setup/environment.ts") && !path.includes("container.ts"),
-    );
-    expect(disallowed.length).toBe(0);
+    for (const file of srcFiles) {
+      const content = readFileSync(file, "utf8");
+      if (!content.match(/process\.env/)) {
+        continue;
+      }
+
+      const rel = relative(SRC_ROOT, file);
+      if (rel === "infrastructure/setup/environment.ts") {
+        continue;
+      }
+
+      if (rel === "container.ts" && /process\.env\.DOWNLOADS/.test(content)) {
+        const lines = content.split("\n").filter((line) => /process\.env/.test(line));
+        const bad = lines.filter((line) => !/process\.env\.DOWNLOADS/.test(line));
+        if (bad.length > 0) {
+          offenders.push(`${rel}: ${bad.join(" | ")}`);
+        }
+        continue;
+      }
+
+      offenders.push(rel);
+    }
+
+    expect(offenders).toEqual([]);
   });
 });

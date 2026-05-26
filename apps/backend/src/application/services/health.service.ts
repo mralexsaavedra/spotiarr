@@ -4,8 +4,8 @@ export type HealthStatus = "ok" | "degraded";
 
 export interface HealthReport {
   status: HealthStatus;
-  checks: {
-    database: "ok" | "error";
+  components: {
+    db: "ok" | "down";
   };
 }
 
@@ -15,9 +15,9 @@ export class HealthService {
   async check(): Promise<HealthReport> {
     try {
       await this.connectivity.pingDatabase();
-      return { status: "ok", checks: { database: "ok" } };
+      return { status: "ok", components: { db: "ok" } };
     } catch {
-      return { status: "degraded", checks: { database: "error" } };
+      return { status: "degraded", components: { db: "down" } };
     }
   }
 }

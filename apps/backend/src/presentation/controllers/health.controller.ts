@@ -6,14 +6,13 @@ export class HealthController {
 
   check = async (_req: Request, res: Response) => {
     const report = await this.healthService.check();
-    const health = {
-      uptime: process.uptime(),
-      timestamp: Date.now(),
-      status: report.status,
-      checks: report.checks,
-    };
+    if (report.status === "ok") {
+      return res.status(200).json({ status: "ok" });
+    }
 
-    const statusCode = health.status === "ok" ? 200 : 503;
-    res.status(statusCode).json(health);
+    return res.status(503).json({
+      status: "degraded",
+      components: report.components,
+    });
   };
 }

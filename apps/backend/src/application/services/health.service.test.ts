@@ -8,7 +8,7 @@ describe("HealthService", () => {
 
     await expect(service.check()).resolves.toEqual({
       status: "ok",
-      checks: { database: "ok" },
+      components: { db: "ok" },
     });
   });
 
@@ -18,7 +18,7 @@ describe("HealthService", () => {
 
     await expect(service.check()).resolves.toEqual({
       status: "degraded",
-      checks: { database: "error" },
+      components: { db: "down" },
     });
   });
 });

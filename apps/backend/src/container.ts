@@ -87,10 +87,7 @@ function resolveSpotifyAuthConfig(): { clientId: string; redirectUri: string } {
     const env = getEnv();
     return { clientId: env.SPOTIFY_CLIENT_ID, redirectUri: env.SPOTIFY_REDIRECT_URI };
   } catch {
-    return {
-      clientId: process.env.SPOTIFY_CLIENT_ID ?? "",
-      redirectUri: process.env.SPOTIFY_REDIRECT_URI ?? "",
-    };
+    return { clientId: "", redirectUri: "" };
   }
 }
 
