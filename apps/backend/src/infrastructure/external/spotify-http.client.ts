@@ -1,3 +1,4 @@
+import { getEnv } from "@/infrastructure/setup/environment";
 import { CircuitBreaker } from "./circuit-breaker";
 import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
@@ -22,56 +23,71 @@ export const SPOTIFY_LIMITER_MODE = {
 
 export type SpotifyLimiterMode = (typeof SPOTIFY_LIMITER_MODE)[keyof typeof SPOTIFY_LIMITER_MODE];
 
-const resolveLimiterNumber = (value: string | undefined, fallback: number): number => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-};
+function resolveLimiterConfig(): {
+  user: { maxConcurrency: number; queueTimeoutMs: number; minIntervalMs: number };
+  sync: { maxConcurrency: number; queueTimeoutMs: number; minIntervalMs: number };
+  interactive: { maxConcurrency: number; queueTimeoutMs: number; minIntervalMs: number };
+} {
+  try {
+    const env = getEnv();
+    return {
+      user: {
+        maxConcurrency: env.SPOTIFY_HTTP_MAX_CONCURRENCY,
+        queueTimeoutMs: env.SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
+        minIntervalMs: env.SPOTIFY_HTTP_MIN_INTERVAL_MS,
+      },
+      sync: {
+        maxConcurrency: env.SPOTIFY_SYNC_MAX_CONCURRENCY,
+        queueTimeoutMs: env.SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
+        minIntervalMs: env.SPOTIFY_SYNC_MIN_INTERVAL_MS,
+      },
+      interactive: {
+        maxConcurrency: env.SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
+        queueTimeoutMs: env.SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
+        minIntervalMs: env.SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
+      },
+    };
+  } catch {
+    return {
+      user: {
+        maxConcurrency: DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY,
+        queueTimeoutMs: DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
+        minIntervalMs: DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS,
+      },
+      sync: {
+        maxConcurrency: DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY,
+        queueTimeoutMs: DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
+        minIntervalMs: DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS,
+      },
+      interactive: {
+        maxConcurrency: DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
+        queueTimeoutMs: DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
+        minIntervalMs: DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
+      },
+    };
+  }
+}
+
+const limiterConfig = resolveLimiterConfig();
 
 // User-facing limiter: faster, shorter timeout
 const userRateLimiter = new RateLimiter({
-  maxConcurrency: resolveLimiterNumber(
-    process.env.SPOTIFY_HTTP_MAX_CONCURRENCY,
-    DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY,
-  ),
-  queueTimeoutMs: resolveLimiterNumber(
-    process.env.SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
-    DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
-  ),
-  minIntervalMs: resolveLimiterNumber(
-    process.env.SPOTIFY_HTTP_MIN_INTERVAL_MS,
-    DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS,
-  ),
+  maxConcurrency: limiterConfig.user.maxConcurrency,
+  queueTimeoutMs: limiterConfig.user.queueTimeoutMs,
+  minIntervalMs: limiterConfig.user.minIntervalMs,
 });
 
 // Background sync limiter: slower, longer timeout, doesn't block user requests
 const syncRateLimiter = new RateLimiter({
-  maxConcurrency: resolveLimiterNumber(
-    process.env.SPOTIFY_SYNC_MAX_CONCURRENCY,
-    DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY,
-  ),
-  queueTimeoutMs: resolveLimiterNumber(
-    process.env.SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
-    DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
-  ),
-  minIntervalMs: resolveLimiterNumber(
-    process.env.SPOTIFY_SYNC_MIN_INTERVAL_MS,
-    DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS,
-  ),
+  maxConcurrency: limiterConfig.sync.maxConcurrency,
+  queueTimeoutMs: limiterConfig.sync.queueTimeoutMs,
+  minIntervalMs: limiterConfig.sync.minIntervalMs,
 });
 
 const interactiveRateLimiter = new RateLimiter({
-  maxConcurrency: resolveLimiterNumber(
-    process.env.SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
-    DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
-  ),
-  queueTimeoutMs: resolveLimiterNumber(
-    process.env.SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
-    DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
-  ),
-  minIntervalMs: resolveLimiterNumber(
-    process.env.SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
-    DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
-  ),
+  maxConcurrency: limiterConfig.interactive.maxConcurrency,
+  queueTimeoutMs: limiterConfig.interactive.queueTimeoutMs,
+  minIntervalMs: limiterConfig.interactive.minIntervalMs,
 });
 
 // Shared app-token limiter + circuit breaker to prevent 429 storms across workers

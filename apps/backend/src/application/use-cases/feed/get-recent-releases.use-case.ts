@@ -1,14 +1,14 @@
 import type { ArtistRelease } from "@spotiarr/shared";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
+import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import type { SettingsService } from "@/application/services/settings.service";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
-import type { SpotifyUserLibraryService } from "@/infrastructure/external/spotify-user-library.service";
 
 export class GetRecentReleasesUseCase {
   constructor(
-    private readonly feedRepository: FeedRepository,
-    private readonly spotifyUserLibraryService: SpotifyUserLibraryService,
-    private readonly releaseFeedService: ReleaseFeedService,
+    private readonly feedRepository: FeedRepositoryPort,
+    private readonly spotifyUserLibraryService: SpotifyUserLibraryPort,
+    private readonly releaseFeedService: ReleaseFeedPort,
     private readonly settingsService: SettingsService,
   ) {}
 

@@ -1,10 +1,12 @@
 import type { NormalizedTrack } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { AlbumTracksCachePort } from "@/application/ports/album-tracks-cache.port";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import type { DeezerClient } from "@/infrastructure/external/providers/deezer/deezer.client";
-import type { MusicBrainzClient } from "@/infrastructure/external/providers/musicbrainz/musicbrainz.client";
-import type { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.client";
+import type {
+  DeezerAlbumPort,
+  MusicBrainzReleasePort,
+  SpotifyAlbumTracksPort,
+} from "@/application/ports/album-tracks-provider.port";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import { GetAlbumTracksUseCase } from "./get-album-tracks.use-case";
 
 function makeNormalizedTrack(overrides: Partial<NormalizedTrack> = {}): NormalizedTrack {
@@ -20,35 +22,39 @@ function makeNormalizedTrack(overrides: Partial<NormalizedTrack> = {}): Normaliz
   };
 }
 
-function mockRepo(partial: Partial<FeedRepository> = {}): FeedRepository {
+function mockRepo(partial: Partial<FeedRepositoryPort> = {}): FeedRepositoryPort {
   return {
     getArtistAlbumWithArtist: vi.fn().mockResolvedValue(null),
     getArtistReleaseWithArtist: vi.fn().mockResolvedValue(null),
     updateArtistAlbumIdentities: vi.fn().mockResolvedValue(undefined),
     ...partial,
-  } as unknown as FeedRepository;
+  } as unknown as FeedRepositoryPort;
 }
 
-function mockDeezerClient(partial: Partial<DeezerClient> = {}): DeezerClient {
+function mockDeezerClient(partial: Partial<DeezerAlbumPort> = {}): DeezerAlbumPort {
   return {
     searchAlbum: vi.fn().mockResolvedValue(null),
     getAlbumTracks: vi.fn().mockResolvedValue([]),
     ...partial,
-  } as unknown as DeezerClient;
+  } as unknown as DeezerAlbumPort;
 }
 
-function mockMusicBrainzClient(partial: Partial<MusicBrainzClient> = {}): MusicBrainzClient {
+function mockMusicBrainzClient(
+  partial: Partial<MusicBrainzReleasePort> = {},
+): MusicBrainzReleasePort {
   return {
     getReleaseTracks: vi.fn().mockResolvedValue([]),
     ...partial,
-  } as unknown as MusicBrainzClient;
+  } as unknown as MusicBrainzReleasePort;
 }
 
-function mockSpotifyAlbumClient(partial: Partial<SpotifyAlbumClient> = {}): SpotifyAlbumClient {
+function mockSpotifyAlbumClient(
+  partial: Partial<SpotifyAlbumTracksPort> = {},
+): SpotifyAlbumTracksPort {
   return {
     getAlbumTracks: vi.fn().mockResolvedValue([]),
     ...partial,
-  } as unknown as SpotifyAlbumClient;
+  } as unknown as SpotifyAlbumTracksPort;
 }
 
 function mockAlbumTracksCache(partial: Partial<AlbumTracksCachePort> = {}): AlbumTracksCachePort {
@@ -61,10 +67,10 @@ function mockAlbumTracksCache(partial: Partial<AlbumTracksCachePort> = {}): Albu
 
 describe("GetAlbumTracksUseCase", () => {
   let useCase: GetAlbumTracksUseCase;
-  let repo: FeedRepository;
-  let deezerClient: DeezerClient;
-  let musicBrainzClient: MusicBrainzClient;
-  let spotifyAlbumClient: SpotifyAlbumClient;
+  let repo: FeedRepositoryPort;
+  let deezerClient: DeezerAlbumPort;
+  let musicBrainzClient: MusicBrainzReleasePort;
+  let spotifyAlbumClient: SpotifyAlbumTracksPort;
 
   beforeEach(() => {
     repo = mockRepo();
@@ -122,11 +128,7 @@ describe("GetAlbumTracksUseCase", () => {
         mbAlbumId: null,
         artistName: "Test Artist",
       });
-      vi.mocked(deezerClient.searchAlbum).mockResolvedValue({
-        id: 456,
-        title: "Album One",
-        cover: "http://cover.jpg",
-      });
+      vi.mocked(deezerClient.searchAlbum).mockResolvedValue({ id: 456 });
       vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue(deezerTracks);
 
       const result = await useCase.execute("sp-artist-1", "album-1");
@@ -188,7 +190,6 @@ describe("GetAlbumTracksUseCase", () => {
       });
       vi.mocked(deezerClient.searchAlbum).mockResolvedValue({
         id: 456,
-        title: "Album One",
       });
       vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue([]);
       vi.mocked(musicBrainzClient.getReleaseTracks).mockResolvedValue(mbTracks);
@@ -319,10 +320,7 @@ describe("GetAlbumTracksUseCase", () => {
       const deezerTracks = [makeNormalizedTrack()];
 
       vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue(null);
-      vi.mocked(deezerClient.searchAlbum).mockResolvedValue({
-        id: 789,
-        title: "Unknown Album",
-      });
+      vi.mocked(deezerClient.searchAlbum).mockResolvedValue({ id: 789 });
       vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue(deezerTracks);
 
       const result = await useCase.execute("sp-artist-1", "album-1");
@@ -360,10 +358,10 @@ describe("GetAlbumTracksUseCase", () => {
 });
 
 describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
-  let repo: FeedRepository;
-  let deezerClient: DeezerClient;
-  let musicBrainzClient: MusicBrainzClient;
-  let spotifyAlbumClient: SpotifyAlbumClient;
+  let repo: FeedRepositoryPort;
+  let deezerClient: DeezerAlbumPort;
+  let musicBrainzClient: MusicBrainzReleasePort;
+  let spotifyAlbumClient: SpotifyAlbumTracksPort;
   let cache: AlbumTracksCachePort;
 
   beforeEach(() => {

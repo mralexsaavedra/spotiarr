@@ -132,7 +132,8 @@ spotiarr/
 ├── apps/
 │   ├── backend/
 │   │   ├── src/
-│   │   │   ├── application/   # Use cases & business logic
+│   │   │   ├── __tests__/     # Architecture and integration tests
+│   │   │   ├── application/   # Use cases, services, and ports
 │   │   │   ├── domain/        # Entities & core types
 │   │   │   ├── infrastructure/# External services (DB, Redis, Spotify)
 │   │   │   ├── presentation/  # HTTP controllers & routes
@@ -192,14 +193,14 @@ The backend follows a **layered architecture** with strict dependency rules:
 1. **Domain (`apps/backend/src/domain`)**:
    - The core. Contains business rules and entities.
    - **Must NOT depend** on any other layer.
-   - Contains: Entities, Value Objects, Repository Interfaces, Domain Services.
-   - Domain Services orchestrate business operations without knowing implementation details.
+   - Contains: Entities, Value Objects, Repository Interfaces, Domain Services (only those without external dependencies).
 
 2. **Application (`apps/backend/src/application`)**:
    - Application business rules (Use Cases and Application Services).
    - Coordinates data flow between Presentation and Domain.
    - **Depends only on** Domain.
-   - Contains: Use Cases (single responsibility actions), Application Services (orchestrators).
+   - Contains: Use Cases (single responsibility actions), Application Services (orchestrators), Ports (`application/ports/`) as interfaces that infrastructure must implement.
+   - Use-cases and services depend on ports, not concrete infrastructure classes.
 
 3. **Infrastructure (`apps/backend/src/infrastructure`)**:
    - Frameworks and tools (Database, External APIs, File System, Queues).
@@ -219,6 +220,8 @@ The backend follows a **layered architecture** with strict dependency rules:
    - Receives inputs and converts them to Use Case requirements.
    - **Depends on** Application.
    - Contains: Routes, Middleware (auth, error handling), SSE endpoints.
+
+**Layer boundary enforcement:** `apps/backend/src/__tests__/architecture.test.ts` enforces four invariants in test/CI: domain has no outward imports, application has no direct infrastructure imports (ports only), production presentation code has no direct infrastructure/prisma imports, and `process.env` reads are centralized in `infrastructure/setup/environment.ts` (with one documented `process.env.DOWNLOADS` fallback in `container.ts`).
 
 **Key architectural principles:**
 

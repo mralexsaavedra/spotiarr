@@ -1,14 +1,14 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import type { YoutubeSearchPort } from "@/application/ports/youtube.port";
 import { EventBus } from "@/domain/events/event-bus";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 import type { TrackQueueService } from "@/domain/services/track-queue.service";
-import { YoutubeSearchService } from "@/infrastructure/external/youtube-search.service";
 import { SettingsService } from "../../services/settings.service";
 
 export class SearchTrackOnYoutubeUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
-    private readonly youtubeSearchService: YoutubeSearchService,
+    private readonly youtubeSearchService: YoutubeSearchPort,
     private readonly settingsService: SettingsService,
     private readonly queueService: TrackQueueService,
     private readonly eventBus: EventBus,
@@ -37,7 +37,11 @@ export class SearchTrackOnYoutubeUseCase {
           existingTrack.artist,
           existingTrack.name,
         );
-        existingTrack.markAsQueued(youtubeUrl);
+        if (youtubeUrl) {
+          existingTrack.markAsQueued(youtubeUrl);
+        } else {
+          existingTrack.markAsError("youtube_not_found");
+        }
       } catch (error) {
         console.error(
           `Failed to find track on YouTube: ${existingTrack.artist} - ${existingTrack.name}`,

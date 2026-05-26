@@ -1,9 +1,9 @@
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
+import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import type { SettingsService } from "@/application/services/settings.service";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
-import type { SpotifyUserLibraryService } from "@/infrastructure/external/spotify-user-library.service";
 import { GetRecentReleasesUseCase } from "./get-recent-releases.use-case";
 
 function makeArtist(overrides: Partial<FollowedArtist> = {}): FollowedArtist {
@@ -35,15 +35,15 @@ function makeDeps() {
     getReleases: vi.fn().mockResolvedValue([]),
     upsertArtists: vi.fn().mockResolvedValue(undefined),
     upsertReleases: vi.fn().mockResolvedValue(undefined),
-  } as unknown as FeedRepository;
+  } as unknown as FeedRepositoryPort;
 
   const spotifyUserLibraryService = {
     getFollowedArtists: vi.fn().mockResolvedValue([makeArtist()]),
-  } as unknown as SpotifyUserLibraryService;
+  } as unknown as SpotifyUserLibraryPort;
 
   const releaseFeedService = {
     getActiveArtistReleases: vi.fn().mockResolvedValue({ releases: [], decisions: [] }),
-  } as unknown as ReleaseFeedService;
+  } as unknown as ReleaseFeedPort;
 
   const settingsService = {
     getNumber: vi.fn().mockResolvedValue(30),

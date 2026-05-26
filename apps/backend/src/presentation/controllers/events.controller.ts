@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { getErrorMessage } from "@/infrastructure/utils/error.utils";
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 interface SseClient {
   id: number;
@@ -42,7 +45,7 @@ export class EventsController {
       try {
         client.res.write(payload);
       } catch (error) {
-        console.error("Failed to write SSE event:", getErrorMessage(error));
+        console.error("Failed to write SSE event:", toErrorMessage(error));
       }
     }
   };

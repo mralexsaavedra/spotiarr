@@ -1,9 +1,9 @@
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { SpotifyArtistLookupPort } from "@/application/ports/artist-lookup.port";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import { AppError } from "@/domain/errors/app-error";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import type { ReleaseFeedService } from "@/infrastructure/external/release-feed.service";
-import type { SpotifyArtistClient } from "@/infrastructure/external/spotify-artist.client";
 import { GetArtistDetailUseCase } from "./get-artist-detail.use-case";
 
 function makeRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
@@ -20,17 +20,17 @@ function makeRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
   };
 }
 
-function mockRepo(partial: Partial<FeedRepository> = {}): FeedRepository {
+function mockRepo(partial: Partial<FeedRepositoryPort> = {}): FeedRepositoryPort {
   return {
     getArtistBySpotifyId: vi.fn().mockResolvedValue(null),
     getArtistAlbumsFreshness: vi.fn().mockResolvedValue(null),
     getArtistAlbums: vi.fn().mockResolvedValue([]),
     upsertArtistAlbums: vi.fn().mockResolvedValue(undefined),
     ...partial,
-  } as unknown as FeedRepository;
+  } as unknown as FeedRepositoryPort;
 }
 
-function mockFeedService(): ReleaseFeedService {
+function mockFeedService(): ReleaseFeedPort {
   return {
     getArtistDiscography: vi.fn().mockResolvedValue({
       albums: [],
@@ -41,10 +41,10 @@ function mockFeedService(): ReleaseFeedService {
         newIdentityPersisted: false,
       },
     }),
-  } as unknown as ReleaseFeedService;
+  } as unknown as ReleaseFeedPort;
 }
 
-function mockSpotifyArtist(): SpotifyArtistClient {
+function mockSpotifyArtist(): SpotifyArtistLookupPort {
   return {
     getArtistDetails: vi.fn().mockResolvedValue({
       name: "Spotify Artist",
@@ -53,14 +53,14 @@ function mockSpotifyArtist(): SpotifyArtistClient {
       followers: null,
       genres: [],
     }),
-  } as unknown as SpotifyArtistClient;
+  } as unknown as SpotifyArtistLookupPort;
 }
 
 describe("GetArtistDetailUseCase", () => {
   let useCase: GetArtistDetailUseCase;
-  let repo: FeedRepository;
-  let feedService: ReleaseFeedService;
-  let spotifyArtist: SpotifyArtistClient;
+  let repo: FeedRepositoryPort;
+  let feedService: ReleaseFeedPort;
+  let spotifyArtist: SpotifyArtistLookupPort;
 
   beforeEach(() => {
     repo = mockRepo();

@@ -1,9 +1,11 @@
 import type { ITrack } from "@spotiarr/shared";
-import { resolve } from "path";
+import { mkdir } from "node:fs/promises";
+import { dirname, resolve } from "path";
+import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
 import { SettingsService } from "@/application/services/settings.service";
 import { getEnv } from "../setup/environment";
 
-export class FileSystemTrackPathService {
+export class FileSystemTrackPathService implements FileSystemTrackPathPort {
   constructor(private readonly settingsService: SettingsService) {}
 
   /**
@@ -80,5 +82,9 @@ export class FileSystemTrackPathService {
 
   async getFolderName(track: ITrack, playlistName?: string): Promise<string> {
     return this.getTrackFileName(track, playlistName);
+  }
+
+  async ensureParentDirectory(filePath: string): Promise<void> {
+    await mkdir(dirname(filePath), { recursive: true });
   }
 }

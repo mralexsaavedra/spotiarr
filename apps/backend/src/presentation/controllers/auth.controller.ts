@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import type { SettingsService } from "@/application/services/settings.service";
-import type { SpotifyAuthService } from "@/infrastructure/external/spotify-auth.service";
-import { getEnv } from "@/infrastructure/setup/environment";
+
+interface SpotifyAuthPort {
+  exchangeCodeForToken(code: string): Promise<void>;
+  logout(): Promise<void>;
+}
 
 const SCOPES = [
   "user-read-private",
@@ -12,19 +15,17 @@ const SCOPES = [
 
 export class AuthController {
   constructor(
-    private readonly spotifyAuthService: SpotifyAuthService,
+    private readonly spotifyAuthService: SpotifyAuthPort,
     private readonly settingsService: SettingsService,
+    private readonly spotifyClientId: string,
+    private readonly spotifyRedirectUri: string,
   ) {}
 
   login = async (_req: Request, res: Response) => {
-    const env = getEnv();
-    const clientId = env.SPOTIFY_CLIENT_ID;
-    const redirectUri = env.SPOTIFY_REDIRECT_URI;
-
     const params = new URLSearchParams({
-      client_id: clientId,
+      client_id: this.spotifyClientId,
       response_type: "code",
-      redirect_uri: redirectUri,
+      redirect_uri: this.spotifyRedirectUri,
       scope: SCOPES,
       show_dialog: "true",
     });

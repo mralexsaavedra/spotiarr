@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
+import type { LibraryImagePort } from "@/application/ports/library-image.port";
 import { LibraryService } from "@/application/services/library.service";
-import { LibraryImageService } from "@/infrastructure/services/library-image.service";
 
 export class LibraryController {
   constructor(
     private readonly libraryService: LibraryService,
-    private readonly libraryImageService: LibraryImageService,
+    private readonly libraryImageService: LibraryImagePort,
   ) {}
 
   getStats = async (req: Request, res: Response) => {

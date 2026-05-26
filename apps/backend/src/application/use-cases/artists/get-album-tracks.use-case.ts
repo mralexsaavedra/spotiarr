@@ -1,15 +1,21 @@
 import type { NormalizedTrack } from "@spotiarr/shared";
 import type { AlbumTracksCachePort } from "@/application/ports/album-tracks-cache.port";
+import type {
+  DeezerAlbumPort,
+  MusicBrainzReleasePort,
+  SpotifyAlbumTracksPort,
+} from "@/application/ports/album-tracks-provider.port";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import {
   isDeezerAlbumId,
   isMusicBrainzId,
   isSpotifyAlbumId,
 } from "@/application/utils/album-id.utils";
-import { NoopAlbumTracksCache } from "@/infrastructure/cache/noop-album-tracks-cache";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
-import { DeezerClient } from "@/infrastructure/external/providers/deezer/deezer.client";
-import { MusicBrainzClient } from "@/infrastructure/external/providers/musicbrainz/musicbrainz.client";
-import { SpotifyAlbumClient } from "@/infrastructure/external/spotify-album.client";
+
+const noopAlbumTracksCache: AlbumTracksCachePort = {
+  get: async () => null,
+  set: async () => undefined,
+};
 
 /**
  * Orchestrates album track resolution through the provider fallback chain:
@@ -25,11 +31,11 @@ export class GetAlbumTracksUseCase {
   private readonly albumTracksCache: AlbumTracksCachePort;
 
   constructor(
-    private readonly feedRepository: FeedRepository,
-    private readonly deezerClient: DeezerClient,
-    private readonly musicBrainzClient: MusicBrainzClient,
-    private readonly spotifyAlbumClient: SpotifyAlbumClient,
-    albumTracksCache: AlbumTracksCachePort = new NoopAlbumTracksCache(),
+    private readonly feedRepository: FeedRepositoryPort,
+    private readonly deezerClient: DeezerAlbumPort,
+    private readonly musicBrainzClient: MusicBrainzReleasePort,
+    private readonly spotifyAlbumClient: SpotifyAlbumTracksPort,
+    albumTracksCache: AlbumTracksCachePort = noopAlbumTracksCache,
   ) {
     this.albumTracksCache = albumTracksCache;
   }
@@ -90,7 +96,7 @@ export class GetAlbumTracksUseCase {
   private async resolveViaCascade(
     spotifyArtistId: string,
     albumId: string,
-    albumCache: Awaited<ReturnType<FeedRepository["getArtistAlbumWithArtist"]>>,
+    albumCache: Awaited<ReturnType<FeedRepositoryPort["getArtistAlbumWithArtist"]>>,
   ): Promise<NormalizedTrack[]> {
     const artistName = albumCache?.artistName ?? "Unknown Artist";
     const albumName = albumCache?.albumName ?? "";

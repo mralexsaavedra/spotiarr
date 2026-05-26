@@ -1,6 +1,8 @@
+import { HealthService } from "./application/services/health.service";
 import { LibraryService } from "./application/services/library.service";
 import { PlaylistService } from "./application/services/playlist.service";
 import { SettingsService } from "./application/services/settings.service";
+import { SpotifyService } from "./application/services/spotify.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
 import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
@@ -29,9 +31,9 @@ import { RescueStuckTracksUseCase } from "./application/use-cases/tracks/rescue-
 import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-track-download.use-case";
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
 import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.use-case";
-import { SpotifyService } from "./domain/services/spotify.service";
 import { NoopAlbumTracksCache } from "./infrastructure/cache/noop-album-tracks-cache";
 import { FeedRepository } from "./infrastructure/database/feed.repository";
+import { PrismaConnectivityAdapter } from "./infrastructure/database/prisma-connectivity.adapter";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
@@ -80,15 +82,44 @@ function resolveDownloadsRoot(): string {
   }
 }
 
+function resolveSpotifyAuthConfig(): { clientId: string; redirectUri: string } {
+  try {
+    const env = getEnv();
+    return { clientId: env.SPOTIFY_CLIENT_ID, redirectUri: env.SPOTIFY_REDIRECT_URI };
+  } catch {
+    return { clientId: "", redirectUri: "" };
+  }
+}
+
 // Repositories
 const playlistRepository = new PrismaPlaylistRepository();
 const trackRepository = new PrismaTrackRepository();
 const historyRepository = new PrismaHistoryRepository();
 const settingsRepository = new PrismaSettingsRepository();
 const feedRepository = new FeedRepository(prisma);
+const connectivityAdapter = new PrismaConnectivityAdapter();
+
+const internalizedNumericSettingMap: Record<string, () => number> = {
+  FEED_SYNC_INTERVAL_MINUTES: () => getEnv().FEED_SYNC_INTERVAL_MINUTES,
+  RELEASES_SYNC_INTERVAL_MINUTES: () => getEnv().RELEASES_SYNC_INTERVAL_MINUTES,
+  CATALOG_SYNC_INTERVAL_HOURS: () => getEnv().CATALOG_SYNC_INTERVAL_HOURS,
+  CATALOG_LOOKBACK_DAYS: () => getEnv().CATALOG_LOOKBACK_DAYS,
+  MAX_ACTIVE_ARTISTS_PER_CYCLE: () => getEnv().MAX_ACTIVE_ARTISTS_PER_CYCLE,
+  MAX_CATALOG_ARTISTS_PER_CYCLE: () => getEnv().MAX_CATALOG_ARTISTS_PER_CYCLE,
+  FOLLOWED_ARTISTS_MAX: () => getEnv().FOLLOWED_ARTISTS_MAX,
+  RELEASES_LOOKBACK_DAYS: () => getEnv().RELEASES_LOOKBACK_DAYS,
+  RELEASES_CACHE_MINUTES: () => getEnv().RELEASES_CACHE_MINUTES,
+  YT_SEARCH_CONCURRENCY: () => getEnv().YT_SEARCH_CONCURRENCY,
+  YT_SEARCH_DELAY_MS: () => getEnv().YT_SEARCH_DELAY_MS,
+  YT_DOWNLOADS_PER_MINUTE: () => getEnv().YT_DOWNLOADS_PER_MINUTE,
+  STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES: () => getEnv().STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES,
+  STUCK_TRACKS_TIMEOUT_MINUTES: () => getEnv().STUCK_TRACKS_TIMEOUT_MINUTES,
+};
 
 // Services (Base)
-const settingsService = new SettingsService(settingsRepository);
+const settingsService = new SettingsService(settingsRepository, (key) =>
+  internalizedNumericSettingMap[key]?.(),
+);
 
 const trackFileHelper = new FileSystemTrackPathService(settingsService);
 const m3uService = new FileSystemM3uService(settingsService, trackFileHelper);
@@ -162,25 +193,25 @@ const musicBrainzClient = new MusicBrainzClient();
 const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
 
 // Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
-const spotifyService = new SpotifyService(
-  spotifyArtistClient,
-  spotifyTrackClient,
-  spotifyAlbumClient,
-  spotifyPlaylistClient,
-  spotifySearchClient,
-  spotifyUserLibraryService,
-);
+const spotifyService = new SpotifyService({
+  artistClient: spotifyArtistClient,
+  trackClient: spotifyTrackClient,
+  albumClient: spotifyAlbumClient,
+  playlistClient: spotifyPlaylistClient,
+  searchClient: spotifySearchClient,
+  userLibraryService: spotifyUserLibraryService,
+});
 
 // Sync SpotifyService — for background workers (create playlist, sync, post-processing)
 // Uses sync rate limiter for playlist fetches to avoid starving interactive requests
-const spotifyServiceSync = new SpotifyService(
-  spotifyArtistClient,
-  spotifyTrackClient,
-  spotifyAlbumClient,
-  spotifyPlaylistClientSync,
-  spotifySearchClient,
-  spotifyUserLibraryService,
-);
+const spotifyServiceSync = new SpotifyService({
+  artistClient: spotifyArtistClient,
+  trackClient: spotifyTrackClient,
+  albumClient: spotifyAlbumClient,
+  playlistClient: spotifyPlaylistClientSync,
+  searchClient: spotifySearchClient,
+  userLibraryService: spotifyUserLibraryService,
+});
 
 // Services (Post-Processing) — uses sync service to avoid starving interactive requests
 const trackPostProcessingService = new TrackPostProcessingService(
@@ -277,6 +308,7 @@ const libraryService = new LibraryService(scanLibraryUseCase);
 const libraryImageService = new FileSystemLibraryImageService(resolveDownloadsRoot());
 
 const libraryController = new LibraryController(libraryService, libraryImageService);
+const healthService = new HealthService(connectivityAdapter);
 
 const getArtistDetailUseCase = new GetArtistDetailUseCase(
   feedRepository,
@@ -352,8 +384,13 @@ const feedController = new FeedController(
   feedRepository,
   getRecentReleasesUseCase,
 );
-const authController = new AuthController(spotifyAuthService, settingsService);
-const healthController = new HealthController();
+const authController = new AuthController(
+  spotifyAuthService,
+  settingsService,
+  resolveSpotifyAuthConfig().clientId,
+  resolveSpotifyAuthConfig().redirectUri,
+);
+const healthController = new HealthController(healthService);
 const eventsController = new EventsController();
 
 // When SPOTIFY_MARKET changes, invalidate the in-memory market cache on all clients

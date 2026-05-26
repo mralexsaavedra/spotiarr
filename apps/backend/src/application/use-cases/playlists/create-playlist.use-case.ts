@@ -4,13 +4,13 @@ import {
   PlaylistTypeEnum,
   type IPlaylist,
 } from "@spotiarr/shared";
+import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { SpotifyService } from "@/application/services/spotify.service";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import { AppError } from "@/domain/errors/app-error";
 import type { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
-import type { SpotifyService } from "@/domain/services/spotify.service";
-import type { FeedRepository } from "@/infrastructure/database/feed.repository";
 import type { SettingsService } from "../../services/settings.service";
 import type { TrackService } from "../../services/track.service";
 import type { GetAlbumTracksUseCase } from "../artists/get-album-tracks.use-case";
@@ -38,7 +38,7 @@ export class CreatePlaylistUseCase {
     private readonly settingsService: SettingsService,
     private readonly eventBus: EventBus,
     private readonly getAlbumTracksUseCase?: GetAlbumTracksUseCase,
-    private readonly feedRepository?: FeedRepository,
+    private readonly feedRepository?: FeedRepositoryPort,
   ) {}
 
   async execute(input: CreatePlaylistRequest): Promise<IPlaylist> {

@@ -1,27 +1,18 @@
 import { Request, Response } from "express";
-import { prisma } from "@/infrastructure/setup/prisma";
+import type { HealthService } from "@/application/services/health.service";
 
 export class HealthController {
-  check = async (_req: Request, res: Response) => {
-    const health = {
-      uptime: process.uptime(),
-      timestamp: Date.now(),
-      status: "ok",
-      checks: {
-        database: "unknown" as "ok" | "error" | "unknown",
-      },
-    };
+  constructor(private readonly healthService: HealthService) {}
 
-    try {
-      // Check database connection
-      await prisma.$queryRaw`SELECT 1`;
-      health.checks.database = "ok";
-    } catch {
-      health.checks.database = "error";
-      health.status = "degraded";
+  check = async (_req: Request, res: Response) => {
+    const report = await this.healthService.check();
+    if (report.status === "ok") {
+      return res.status(200).json({ status: "ok" });
     }
 
-    const statusCode = health.status === "ok" ? 200 : 503;
-    res.status(statusCode).json(health);
+    return res.status(503).json({
+      status: "degraded",
+      components: report.components,
+    });
   };
 }
