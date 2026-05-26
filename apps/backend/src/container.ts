@@ -49,8 +49,11 @@ import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
 import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
+import { SpotifyArtistCatalogService } from "./infrastructure/external/spotify-artist-catalog.service";
 import { SpotifyArtistClient } from "./infrastructure/external/spotify-artist.client";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
+import { SpotifyFollowedArtistsService } from "./infrastructure/external/spotify-followed-artists.service";
+import { SpotifyPlaylistLibraryService } from "./infrastructure/external/spotify-playlist-library.service";
 import { SpotifyPlaylistClient } from "./infrastructure/external/spotify-playlist.client";
 import { SpotifySearchClient } from "./infrastructure/external/spotify-search.client";
 import { SpotifyTrackClient } from "./infrastructure/external/spotify-track.client";
@@ -198,11 +201,46 @@ const spotifySearchClient = new SpotifySearchClient(
 const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,
+  "user",
+  {
+    spotifyFollowedArtistsService: new SpotifyFollowedArtistsService(
+      settingsService,
+      spotifyAuthService,
+      "user",
+    ),
+    spotifyPlaylistLibraryService: new SpotifyPlaylistLibraryService(
+      settingsService,
+      spotifyAuthService,
+      "user",
+    ),
+    spotifyArtistCatalogService: new SpotifyArtistCatalogService(
+      settingsService,
+      spotifyAuthService,
+      "user",
+    ),
+  },
 );
 const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,
   "sync",
+  {
+    spotifyFollowedArtistsService: new SpotifyFollowedArtistsService(
+      settingsService,
+      spotifyAuthService,
+      "sync",
+    ),
+    spotifyPlaylistLibraryService: new SpotifyPlaylistLibraryService(
+      settingsService,
+      spotifyAuthService,
+      "sync",
+    ),
+    spotifyArtistCatalogService: new SpotifyArtistCatalogService(
+      settingsService,
+      spotifyAuthService,
+      "sync",
+    ),
+  },
 );
 
 // External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
