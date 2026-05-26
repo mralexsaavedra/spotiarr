@@ -272,7 +272,7 @@ const spotifyServiceSync = new SpotifyService({
   albumClient: spotifyAlbumClient,
   playlistClient: spotifyPlaylistClientSync,
   searchClient: spotifySearchClient,
-  userLibraryService: spotifyUserLibraryService,
+  userLibraryService: spotifyUserLibrarySyncService,
 });
 
 // Services (Post-Processing) — uses sync service to avoid starving interactive requests
