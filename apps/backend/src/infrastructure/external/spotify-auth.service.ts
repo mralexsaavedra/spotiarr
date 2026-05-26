@@ -239,6 +239,8 @@ export class SpotifyAuthService {
     if (data.refresh_token) {
       await this.settingsService.setString("spotify_user_refresh_token", data.refresh_token);
     }
+
+    this.invalidateUserLibraryCache();
   }
 
   async logout(): Promise<void> {
