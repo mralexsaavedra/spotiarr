@@ -90,4 +90,20 @@ describe("architecture boundaries (baseline before cleanup)", () => {
 
     expect(offenders).toEqual([]);
   });
+
+  it("R5: infrastructure/database and infrastructure/external stay decoupled", () => {
+    const databaseFiles = walkSrcExcludingTests(join(SRC_ROOT, "infrastructure", "database"));
+    const externalFiles = walkSrcExcludingTests(join(SRC_ROOT, "infrastructure", "external"));
+
+    const databaseViolations = findMatches(
+      databaseFiles,
+      /from\s+"@\/infrastructure\/external/,
+    ).map((file) => `database->external: ${relative(SRC_ROOT, file)}`);
+    const externalViolations = findMatches(
+      externalFiles,
+      /from\s+"@\/infrastructure\/database/,
+    ).map((file) => `external->database: ${relative(SRC_ROOT, file)}`);
+
+    expect([...databaseViolations, ...externalViolations]).toEqual([]);
+  });
 });
