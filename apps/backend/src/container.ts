@@ -49,8 +49,11 @@ import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
 import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
+import { SpotifyArtistCatalogService } from "./infrastructure/external/spotify-artist-catalog.service";
 import { SpotifyArtistClient } from "./infrastructure/external/spotify-artist.client";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
+import { SpotifyFollowedArtistsService } from "./infrastructure/external/spotify-followed-artists.service";
+import { SpotifyPlaylistLibraryService } from "./infrastructure/external/spotify-playlist-library.service";
 import { SpotifyPlaylistClient } from "./infrastructure/external/spotify-playlist.client";
 import { SpotifySearchClient } from "./infrastructure/external/spotify-search.client";
 import { SpotifyTrackClient } from "./infrastructure/external/spotify-track.client";
@@ -148,8 +151,14 @@ const metadataService = new MetadataService();
 const queueService = new BullMqTrackQueueService();
 const eventBus = new AppEventBus();
 
+let spotifyUserLibraryService: SpotifyUserLibraryService | null = null;
+let spotifyUserLibrarySyncService: SpotifyUserLibraryService | null = null;
+
 // Spotify
-const spotifyAuthService = SpotifyAuthService.getInstance(settingsService);
+const spotifyAuthService = SpotifyAuthService.getInstance(settingsService, () => {
+  spotifyUserLibraryService?.clearCache();
+  spotifyUserLibrarySyncService?.clearCache();
+});
 const spotifyRequestCache = new PromiseCache({ ttlMs: 30_000 });
 const spotifyArtistClient = new SpotifyArtistClient(
   spotifyAuthService,
@@ -195,14 +204,49 @@ const spotifySearchClient = new SpotifySearchClient(
   "interactive",
 );
 
-const spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
+spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,
+  "user",
+  {
+    spotifyFollowedArtistsService: new SpotifyFollowedArtistsService(
+      settingsService,
+      spotifyAuthService,
+      "user",
+    ),
+    spotifyPlaylistLibraryService: new SpotifyPlaylistLibraryService(
+      settingsService,
+      spotifyAuthService,
+      "user",
+    ),
+    spotifyArtistCatalogService: new SpotifyArtistCatalogService(
+      settingsService,
+      spotifyAuthService,
+      "user",
+    ),
+  },
 );
-const spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
+spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
   settingsService,
   spotifyAuthService,
   "sync",
+  {
+    spotifyFollowedArtistsService: new SpotifyFollowedArtistsService(
+      settingsService,
+      spotifyAuthService,
+      "sync",
+    ),
+    spotifyPlaylistLibraryService: new SpotifyPlaylistLibraryService(
+      settingsService,
+      spotifyAuthService,
+      "sync",
+    ),
+    spotifyArtistCatalogService: new SpotifyArtistCatalogService(
+      settingsService,
+      spotifyAuthService,
+      "sync",
+    ),
+  },
 );
 
 // External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
@@ -228,7 +272,7 @@ const spotifyServiceSync = new SpotifyService({
   albumClient: spotifyAlbumClient,
   playlistClient: spotifyPlaylistClientSync,
   searchClient: spotifySearchClient,
-  userLibraryService: spotifyUserLibraryService,
+  userLibraryService: spotifyUserLibrarySyncService,
 });
 
 // Services (Post-Processing) — uses sync service to avoid starving interactive requests
