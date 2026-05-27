@@ -1,3 +1,5 @@
+import type { FeedRepositoryPort } from "./application/ports/feed-repository.port";
+import type { SpotifyUserLibraryPort } from "./application/ports/spotify-user-library.port";
 import { FeedCacheEvictionService } from "./application/services/feed-cache-eviction.service";
 import { HealthService } from "./application/services/health.service";
 import { LibraryService } from "./application/services/library.service";
@@ -37,7 +39,6 @@ import { ArtistAlbumCacheRepository } from "./infrastructure/database/artist-alb
 import { ArtistReleaseCacheRepository } from "./infrastructure/database/artist-release-cache.repository";
 import { FeedCacheEvictionRepository } from "./infrastructure/database/feed-cache-eviction.repository";
 import { FeedSyncStateRepository } from "./infrastructure/database/feed-sync-state.repository";
-import { FeedRepository } from "./infrastructure/database/feed.repository";
 import { FollowedArtistRepository } from "./infrastructure/database/followed-artist.repository";
 import { PrismaConnectivityAdapter } from "./infrastructure/database/prisma-connectivity.adapter";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
@@ -57,7 +58,6 @@ import { SpotifyPlaylistLibraryService } from "./infrastructure/external/spotify
 import { SpotifyPlaylistClient } from "./infrastructure/external/spotify-playlist.client";
 import { SpotifySearchClient } from "./infrastructure/external/spotify-search.client";
 import { SpotifyTrackClient } from "./infrastructure/external/spotify-track.client";
-import { SpotifyUserLibraryService } from "./infrastructure/external/spotify-user-library.service";
 import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
 import { AppEventBus } from "./infrastructure/messaging/app-event-bus";
@@ -100,6 +100,11 @@ function resolveSpotifyAuthConfig(): { clientId: string; redirectUri: string } {
   }
 }
 
+type ComposedSpotifyUserLibrary = SpotifyUserLibraryPort & {
+  getMyPlaylists: SpotifyPlaylistLibraryService["getMyPlaylists"];
+  getArtistCatalogData: SpotifyArtistCatalogService["getArtistCatalogData"];
+};
+
 // Repositories
 const playlistRepository = new PrismaPlaylistRepository();
 const trackRepository = new PrismaTrackRepository();
@@ -111,13 +116,58 @@ const artistReleaseCacheRepository = new ArtistReleaseCacheRepository(prisma);
 const feedSyncStateRepository = new FeedSyncStateRepository(prisma);
 const feedCacheEvictionRepository = new FeedCacheEvictionRepository(prisma);
 const feedCacheEvictionService = new FeedCacheEvictionService(feedCacheEvictionRepository);
-const feedRepository = new FeedRepository(
-  followedArtistRepository,
-  artistAlbumCacheRepository,
-  artistReleaseCacheRepository,
-  feedSyncStateRepository,
-  feedCacheEvictionService,
-);
+const feedRepository: FeedRepositoryPort = {
+  getArtistBySpotifyId: (spotifyId) => followedArtistRepository.getArtistBySpotifyId(spotifyId),
+  getArtistCatalogIdentities: (spotifyIds) =>
+    followedArtistRepository.getArtistCatalogIdentities(spotifyIds),
+  updateArtistCatalogIdentities: (identities) =>
+    followedArtistRepository.updateArtistCatalogIdentities(identities),
+  getReleases: (lookbackDays) => artistReleaseCacheRepository.getReleases(lookbackDays),
+  getArtists: () => followedArtistRepository.getArtists(),
+  upsertArtists: (artists) => followedArtistRepository.upsertArtists(artists),
+  upsertReleases: (releases) => artistReleaseCacheRepository.upsertReleases(releases),
+  getArtistAlbumWithArtist: (spotifyArtistId, albumId) =>
+    artistAlbumCacheRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId),
+  getArtistReleaseWithArtist: (artistId, albumId) =>
+    artistReleaseCacheRepository.getArtistReleaseWithArtist(artistId, albumId),
+  updateArtistAlbumIdentities: (id, identities) =>
+    artistAlbumCacheRepository.updateArtistAlbumIdentities(id, identities),
+  upsertArtistAlbumSpotifyUrl: (input) =>
+    artistAlbumCacheRepository.upsertArtistAlbumSpotifyUrl(input),
+  updateArtistReleaseSpotifyUrl: (artistId, albumId, spotifyUrl) =>
+    artistReleaseCacheRepository.updateArtistReleaseSpotifyUrl(artistId, albumId, spotifyUrl),
+  getArtistAlbumCount: (spotifyArtistId) =>
+    artistAlbumCacheRepository.getArtistAlbumCount(spotifyArtistId),
+  getArtistAlbumsFreshness: (spotifyArtistId) =>
+    artistAlbumCacheRepository.getArtistAlbumsFreshness(spotifyArtistId),
+  getArtistIdsWithNoAlbums: () => followedArtistRepository.getArtistIdsWithNoAlbums(),
+  getArtistIdsWithFreshAlbums: (cutoffDate) =>
+    artistAlbumCacheRepository.getArtistIdsWithFreshAlbums(cutoffDate),
+  getArtistIdsWithFreshReleases: (cutoffDate) =>
+    artistReleaseCacheRepository.getArtistIdsWithFreshReleases(cutoffDate),
+  getArtistAlbums: (spotifyArtistId, limit, offset) =>
+    artistAlbumCacheRepository.getArtistAlbums(spotifyArtistId, limit, offset),
+  upsertArtistAlbums: (albums) => artistAlbumCacheRepository.upsertArtistAlbums(albums),
+  evictStaleFeedCache: (artistIds, cutoffDays) =>
+    feedCacheEvictionService.evictStaleFeedCache(artistIds, cutoffDays),
+  getArtistIdsNeedingCatalogSync: (cutoffDate, limit) =>
+    followedArtistRepository.getArtistIdsNeedingCatalogSync(cutoffDate, limit),
+  getActiveArtistIdsForReleasesSync: (releaseCutoff, activityWindowDate, limit) =>
+    followedArtistRepository.getActiveArtistIdsForReleasesSync(
+      releaseCutoff,
+      activityWindowDate,
+      limit,
+    ),
+  updateArtistCatalogSyncedAt: (artistIds) =>
+    followedArtistRepository.updateArtistCatalogSyncedAt(artistIds),
+  updateArtistReleasesSyncedAt: (artistIds) =>
+    followedArtistRepository.updateArtistReleasesSyncedAt(artistIds),
+  getSyncState: () => feedSyncStateRepository.getSyncState(),
+  setSyncState: (status, error) => feedSyncStateRepository.setSyncState(status, error),
+  getCatalogSyncState: () => feedSyncStateRepository.getCatalogSyncState(),
+  setCatalogSyncState: (status, error) =>
+    feedSyncStateRepository.setCatalogSyncState(status, error),
+};
 const connectivityAdapter = new PrismaConnectivityAdapter();
 
 const internalizedNumericSettingMap: Record<string, () => number> = {
@@ -151,8 +201,14 @@ const metadataService = new MetadataService();
 const queueService = new BullMqTrackQueueService();
 const eventBus = new AppEventBus();
 
-let spotifyUserLibraryService: SpotifyUserLibraryService | null = null;
-let spotifyUserLibrarySyncService: SpotifyUserLibraryService | null = null;
+let spotifyUserLibraryService: ComposedSpotifyUserLibrary | null = null;
+let spotifyUserLibrarySyncService: ComposedSpotifyUserLibrary | null = null;
+let spotifyPlaylistLibraryService: SpotifyPlaylistLibraryService | null = null;
+let spotifyPlaylistLibrarySyncService: SpotifyPlaylistLibraryService | null = null;
+let spotifyArtistCatalogService: SpotifyArtistCatalogService | null = null;
+let spotifyArtistCatalogSyncService: SpotifyArtistCatalogService | null = null;
+let spotifyFollowedArtistsService: SpotifyFollowedArtistsService | null = null;
+let spotifyFollowedArtistsSyncService: SpotifyFollowedArtistsService | null = null;
 
 // Spotify
 const spotifyAuthService = SpotifyAuthService.getInstance(settingsService, () => {
@@ -204,50 +260,61 @@ const spotifySearchClient = new SpotifySearchClient(
   "interactive",
 );
 
-spotifyUserLibraryService = SpotifyUserLibraryService.getInstance(
+spotifyFollowedArtistsService = new SpotifyFollowedArtistsService(
   settingsService,
   spotifyAuthService,
   "user",
-  {
-    spotifyFollowedArtistsService: new SpotifyFollowedArtistsService(
-      settingsService,
-      spotifyAuthService,
-      "user",
-    ),
-    spotifyPlaylistLibraryService: new SpotifyPlaylistLibraryService(
-      settingsService,
-      spotifyAuthService,
-      "user",
-    ),
-    spotifyArtistCatalogService: new SpotifyArtistCatalogService(
-      settingsService,
-      spotifyAuthService,
-      "user",
-    ),
-  },
 );
-spotifyUserLibrarySyncService = SpotifyUserLibraryService.getInstance(
+spotifyPlaylistLibraryService = new SpotifyPlaylistLibraryService(
+  settingsService,
+  spotifyAuthService,
+  "user",
+);
+spotifyArtistCatalogService = new SpotifyArtistCatalogService(
+  settingsService,
+  spotifyAuthService,
+  "user",
+);
+
+spotifyFollowedArtistsSyncService = new SpotifyFollowedArtistsService(
   settingsService,
   spotifyAuthService,
   "sync",
-  {
-    spotifyFollowedArtistsService: new SpotifyFollowedArtistsService(
-      settingsService,
-      spotifyAuthService,
-      "sync",
-    ),
-    spotifyPlaylistLibraryService: new SpotifyPlaylistLibraryService(
-      settingsService,
-      spotifyAuthService,
-      "sync",
-    ),
-    spotifyArtistCatalogService: new SpotifyArtistCatalogService(
-      settingsService,
-      spotifyAuthService,
-      "sync",
-    ),
-  },
 );
+spotifyPlaylistLibrarySyncService = new SpotifyPlaylistLibraryService(
+  settingsService,
+  spotifyAuthService,
+  "sync",
+);
+spotifyArtistCatalogSyncService = new SpotifyArtistCatalogService(
+  settingsService,
+  spotifyAuthService,
+  "sync",
+);
+
+spotifyUserLibraryService = {
+  getFollowedArtists: () => spotifyFollowedArtistsService.getFollowedArtists(),
+  getMyPlaylists: () => spotifyPlaylistLibraryService.getMyPlaylists(),
+  getArtistCatalogData: (artists, earlyStopBeforeDate) =>
+    spotifyArtistCatalogService.getArtistCatalogData(artists, earlyStopBeforeDate),
+  clearCache: () => {
+    spotifyFollowedArtistsService?.clearCache();
+    spotifyPlaylistLibraryService?.clearCache();
+    spotifyArtistCatalogService?.clearCache();
+  },
+};
+
+spotifyUserLibrarySyncService = {
+  getFollowedArtists: () => spotifyFollowedArtistsSyncService.getFollowedArtists(),
+  getMyPlaylists: () => spotifyPlaylistLibrarySyncService.getMyPlaylists(),
+  getArtistCatalogData: (artists, earlyStopBeforeDate) =>
+    spotifyArtistCatalogSyncService.getArtistCatalogData(artists, earlyStopBeforeDate),
+  clearCache: () => {
+    spotifyFollowedArtistsSyncService?.clearCache();
+    spotifyPlaylistLibrarySyncService?.clearCache();
+    spotifyArtistCatalogSyncService?.clearCache();
+  },
+};
 
 // External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
 const deezerClient = new DeezerClient();
