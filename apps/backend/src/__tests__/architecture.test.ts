@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SRC_ROOT = join(__dirname, "..");
@@ -31,6 +31,45 @@ function walkSrcExcludingTests(root: string): string[] {
 
 function findMatches(files: string[], re: RegExp): string[] {
   return files.filter((file) => re.test(readFileSync(file, "utf8")));
+}
+
+function findCrossLayerViolations(
+  sourceFiles: string[],
+  sourceLabel: string,
+  forbiddenAliasPrefix: string,
+  forbiddenDir: string,
+): string[] {
+  const forbiddenRoot = resolve(forbiddenDir);
+  const importSpecifierRe = /from\s+"([^"]+)"/g;
+  const violations: string[] = [];
+
+  for (const file of sourceFiles) {
+    const content = readFileSync(file, "utf8");
+    const matches = content.matchAll(importSpecifierRe);
+
+    for (const match of matches) {
+      const specifier = match[1];
+      if (!specifier) {
+        continue;
+      }
+
+      if (specifier.startsWith(forbiddenAliasPrefix)) {
+        violations.push(`${sourceLabel}: ${relative(SRC_ROOT, file)} -> ${specifier}`);
+        continue;
+      }
+
+      if (!specifier.startsWith(".")) {
+        continue;
+      }
+
+      const resolvedImport = resolve(dirname(file), specifier);
+      if (resolvedImport === forbiddenRoot || resolvedImport.startsWith(`${forbiddenRoot}${sep}`)) {
+        violations.push(`${sourceLabel}: ${relative(SRC_ROOT, file)} -> ${specifier}`);
+      }
+    }
+  }
+
+  return violations;
 }
 
 describe("architecture boundaries (baseline before cleanup)", () => {
@@ -89,5 +128,28 @@ describe("architecture boundaries (baseline before cleanup)", () => {
     }
 
     expect(offenders).toEqual([]);
+  });
+
+  it("R5: infrastructure/database and infrastructure/external stay decoupled", () => {
+    const databaseDir = join(SRC_ROOT, "infrastructure", "database");
+    const externalDir = join(SRC_ROOT, "infrastructure", "external");
+    const databaseFiles = walkSrcExcludingTests(databaseDir);
+    const externalFiles = walkSrcExcludingTests(externalDir);
+
+    // R5 guards both alias imports and relative imports between sibling infra layers.
+    const databaseViolations = findCrossLayerViolations(
+      databaseFiles,
+      "database->external",
+      "@/infrastructure/external",
+      externalDir,
+    );
+    const externalViolations = findCrossLayerViolations(
+      externalFiles,
+      "external->database",
+      "@/infrastructure/database",
+      databaseDir,
+    );
+
+    expect([...databaseViolations, ...externalViolations]).toEqual([]);
   });
 });

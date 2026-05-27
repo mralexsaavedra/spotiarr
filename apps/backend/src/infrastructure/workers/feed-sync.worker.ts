@@ -1,9 +1,8 @@
 import { Worker } from "bullmq";
-import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import type { SettingsService } from "@/application/services/settings.service";
 import { container } from "@/container";
-import { SYNC_STATUS } from "../database/feed.repository";
 import type { ReleaseFeedService } from "../external/release-feed.service";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { getEnv } from "../setup/environment";

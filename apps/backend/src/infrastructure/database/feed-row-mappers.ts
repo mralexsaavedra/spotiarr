@@ -1,5 +1,5 @@
 import type { ArtistRelease } from "@spotiarr/shared";
-import { upgradeDeezerCoverUrl } from "@/infrastructure/external/providers/deezer/cover-url";
+import { upgradeDeezerCoverUrl } from "@/domain/utils/deezer-cover-url";
 
 export interface ArtistReleaseRow {
   artistId: string;
