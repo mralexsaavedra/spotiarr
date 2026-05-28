@@ -1,16 +1,13 @@
-import { faMusic } from "@fortawesome/free-solid-svg-icons";
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
-import { EmptyState } from "../molecules/EmptyState";
+import { AlbumPageLayout } from "../molecules/AlbumPageLayout";
 import { PlaylistActions } from "../molecules/PlaylistActions";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
-import { PlaylistHeader } from "../molecules/PlaylistHeader";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
 import { ConfirmModal } from "../organisms/ConfirmModal";
-import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
 
 interface PlaylistProps {
   playlist: PlaylistWithStats;
@@ -73,72 +70,57 @@ export const Playlist: FC<PlaylistProps> = ({
 
   return (
     <>
-      <div className="bg-background text-text-primary flex-1">
-        <PlaylistHeader
-          title={displayTitle}
-          type={playlist.type || PlaylistTypeEnum.Playlist}
-          coverUrl={playlist.coverUrl || null}
-          description={
-            <PlaylistDescription
-              description={playlist.description}
-              completedCount={completedCount}
-              totalCount={totalCount}
-              isDownloading={isDownloading}
-            />
-          }
-          metadata={
-            <PlaylistMetadata
-              type={playlist.type || PlaylistTypeEnum.Playlist}
-              tracks={tracks}
-              owner={playlist.owner}
-              ownerUrl={playlist.ownerUrl}
-            />
-          }
-          totalCount={totalCount}
-        />
-
-        {/* Action Bar */}
-        <div className="to-background bg-gradient-to-b from-black/20 px-6 py-6 md:px-8">
-          <PlaylistActions
-            isSubscribed={!!playlist?.subscribed}
-            hasFailed={hasFailed}
-            isRetrying={isRetrying}
+      <AlbumPageLayout
+        title={displayTitle}
+        type={playlist.type || PlaylistTypeEnum.Playlist}
+        coverUrl={playlist.coverUrl || null}
+        description={
+          <PlaylistDescription
+            description={playlist.description}
+            completedCount={completedCount}
+            totalCount={totalCount}
             isDownloading={isDownloading}
-            isDownloaded={isDownloaded ?? false}
-            isSaved={isSaved}
-            onToggleSubscription={onToggleSubscription}
-            onRetryFailed={onRetryFailed}
-            onDelete={handleDelete}
-            onDownload={onDownloadOrRetry}
-            spotifyUrl={
-              playlist?.spotifyUrl && !playlist.spotifyUrl.startsWith("spotiarr://")
-                ? playlist.spotifyUrl
-                : undefined
-            }
           />
-        </div>
-
-        {/* Content */}
-        <div className="px-6 pb-8 md:px-8">
-          {tracks.length === 0 ? (
-            <EmptyState
-              icon={faMusic}
-              title={t("playlist.emptyTracksTitle")}
-              description={t("playlist.emptyTracksDescription")}
-              className="py-12"
+        }
+        metadata={
+          <PlaylistMetadata
+            type={playlist.type || PlaylistTypeEnum.Playlist}
+            tracks={tracks}
+            owner={playlist.owner}
+            ownerUrl={playlist.ownerUrl}
+          />
+        }
+        totalCount={totalCount}
+        tracks={tracks}
+        actions={
+          <div className="to-background bg-gradient-to-b from-black/20 px-6 py-6 md:px-8">
+            <PlaylistActions
+              isSubscribed={!!playlist?.subscribed}
+              hasFailed={hasFailed}
+              isRetrying={isRetrying}
+              isDownloading={isDownloading}
+              isDownloaded={isDownloaded ?? false}
+              isSaved={isSaved}
+              onToggleSubscription={onToggleSubscription}
+              onRetryFailed={onRetryFailed}
+              onDelete={handleDelete}
+              onDownload={onDownloadOrRetry}
+              spotifyUrl={
+                playlist?.spotifyUrl && !playlist.spotifyUrl.startsWith("spotiarr://")
+                  ? playlist.spotifyUrl
+                  : undefined
+              }
             />
-          ) : (
-            <PlaylistTracksList
-              tracks={tracks}
-              onRetryTrack={onRetryTrack}
-              onDownloadTrack={onDownloadTrack}
-              onLoadMoreTracks={onLoadMoreTracks}
-              hasMoreTracks={hasMoreTracks}
-              isLoadingMoreTracks={isLoadingMoreTracks}
-            />
-          )}
-        </div>
-      </div>
+          </div>
+        }
+        emptyTitle={t("playlist.emptyTracksTitle")}
+        emptyDescription={t("playlist.emptyTracksDescription")}
+        onRetryTrack={onRetryTrack}
+        onDownloadTrack={onDownloadTrack}
+        onLoadMoreTracks={onLoadMoreTracks}
+        hasMoreTracks={hasMoreTracks}
+        isLoadingMoreTracks={isLoadingMoreTracks}
+      />
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}
