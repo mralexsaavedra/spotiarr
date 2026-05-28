@@ -121,7 +121,9 @@
     "emptyDescription": "Scan your downloads folder to populate your library.",
     "scanNow": "Scan Now",
     "artistNotFound": "Artist not found",
-    "artistNotFoundDescription": "Could not load artist details."
+    "artistNotFoundDescription": "Could not load artist details.",
+    "artistCardAriaLabel": "Artist {{name}}, {{albums}} albums, {{tracks}} tracks",
+    "albumCardAriaLabel": "Album {{name}} by {{artist}}, {{year}}, {{tracks}} tracks"
   },
   "history": {
     "title": "Download History",

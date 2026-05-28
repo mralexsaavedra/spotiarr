@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useLibraryArtistQuery } from "@/hooks/queries/useLibraryArtistQuery";
 
 export const useLibraryArtistController = () => {
   const { name } = useParams<{ name: string }>();
+  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const { data: artist, isLoading, error } = useLibraryArtistQuery(name || "");
@@ -23,10 +24,19 @@ export const useLibraryArtistController = () => {
     return { ...artist, albums: sortedAlbums };
   }, [artist]);
 
+  const handleAlbumClick = (albumName: string) => {
+    if (!name) {
+      return;
+    }
+
+    navigate(`/library/artist/${name}/album/${encodeURIComponent(albumName)}`);
+  };
+
   return {
     t,
     artist: artistWithSortedAlbums,
     isLoading,
     error,
+    handleAlbumClick,
   };
 };
