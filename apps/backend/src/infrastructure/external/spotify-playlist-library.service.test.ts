@@ -5,9 +5,9 @@ import type { SpotifyAuthService } from "./spotify-auth.service";
 import {
   isOwnedPlaylist,
   needsPlaylistItemsAccessCheck,
-  SpotifyUserLibraryService,
+  SpotifyPlaylistLibraryService,
   type SpotifyUserPlaylistItem,
-} from "./spotify-user-library.service";
+} from "./spotify-playlist-library.service";
 
 const buildPlaylist = (
   overrides: Partial<SpotifyUserPlaylistItem> = {},
@@ -40,6 +40,17 @@ beforeAll(() => {
   validateEnvironment();
 });
 
+const buildService = () =>
+  new SpotifyPlaylistLibraryService(
+    {
+      getNumber: vi.fn().mockResolvedValue(30),
+    } as unknown as SettingsService,
+    {
+      getUserToken: vi.fn().mockResolvedValue("user-token"),
+      refreshUserToken: vi.fn().mockResolvedValue(false),
+    } as unknown as SpotifyAuthService,
+  );
+
 beforeEach(() => {
   buildService().clearCache();
 });
@@ -48,18 +59,6 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
-
-const buildService = () =>
-  SpotifyUserLibraryService.getInstance(
-    {
-      getNumber: vi.fn().mockResolvedValue(30),
-      getString: vi.fn().mockResolvedValue("ES"),
-    } as unknown as SettingsService,
-    {
-      getUserToken: vi.fn().mockResolvedValue("user-token"),
-      refreshUserToken: vi.fn().mockResolvedValue(false),
-    } as unknown as SpotifyAuthService,
-  );
 
 describe("isOwnedPlaylist", () => {
   it("detects playlists owned by the current user", () => {
@@ -89,7 +88,7 @@ describe("needsPlaylistItemsAccessCheck", () => {
   });
 });
 
-describe("SpotifyUserLibraryService.getMyPlaylists", () => {
+describe("SpotifyPlaylistLibraryService.getMyPlaylists", () => {
   it("keeps owned playlists, probes non-owned playlists, and filters inaccessible ones", async () => {
     const ownedPlaylist = buildPlaylist({
       id: "owned",

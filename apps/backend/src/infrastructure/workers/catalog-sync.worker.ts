@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
+import { SYNC_STATUS } from "@/application/ports/feed-repository.port";
 import { container } from "@/container";
-import { SYNC_STATUS } from "../database/feed.repository";
 import { getEnv } from "../setup/environment";
 import { CATALOG_SYNC_QUEUE } from "../setup/queues";
 

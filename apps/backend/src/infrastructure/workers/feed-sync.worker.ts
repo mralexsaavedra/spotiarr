@@ -1,9 +1,9 @@
 import { Worker } from "bullmq";
+import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import type { SettingsService } from "@/application/services/settings.service";
 import { container } from "@/container";
-import { SYNC_STATUS, type FeedRepository } from "../database/feed.repository";
 import type { ReleaseFeedService } from "../external/release-feed.service";
-import type { SpotifyUserLibraryService } from "../external/spotify-user-library.service";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { getEnv } from "../setup/environment";
 import { FEED_SYNC_QUEUE } from "../setup/queues";
@@ -21,9 +21,9 @@ const RELEASES_ACTIVITY_WINDOW_DAYS = 90;
 const MAX_RELEASES_ARTISTS_PER_CYCLE = 15;
 
 export interface FeedSyncJobDependencies {
-  spotifyUserLibrarySyncService: SpotifyUserLibraryService;
+  spotifyUserLibrarySyncService: SpotifyUserLibraryPort;
   releaseFeedService: ReleaseFeedService;
-  feedRepository: FeedRepository;
+  feedRepository: FeedRepositoryPort;
   eventBus: AppEventBus;
   settingsService: SettingsService;
 }

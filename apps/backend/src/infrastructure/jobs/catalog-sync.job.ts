@@ -1,6 +1,6 @@
 import cron from "node-cron";
+import { SYNC_STATUS } from "@/application/ports/feed-repository.port";
 import { container } from "@/container";
-import { SYNC_STATUS } from "../database/feed.repository";
 import { getCatalogSyncQueue } from "../setup/queues";
 
 const { settingsService, feedRepository } = container;

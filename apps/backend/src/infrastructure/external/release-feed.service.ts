@@ -1,5 +1,5 @@
 import type { ArtistRelease } from "@spotiarr/shared";
-import type { CatalogIdentity, FeedRepository } from "@/infrastructure/database/feed.repository";
+import type { CatalogIdentity, FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
 
@@ -33,7 +33,7 @@ export interface ArtistDiscographyResult {
  */
 export class ReleaseFeedService {
   constructor(
-    private readonly feedRepository: FeedRepository,
+    private readonly feedRepository: FeedRepositoryPort,
     private readonly deezerClient: DeezerClient,
     private readonly musicBrainzClient: MusicBrainzClient,
   ) {}

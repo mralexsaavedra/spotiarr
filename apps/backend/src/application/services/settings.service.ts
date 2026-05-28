@@ -1,3 +1,4 @@
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { SETTINGS_METADATA } from "@/constants/settings-metadata";
 import { AppError } from "@/domain/errors/app-error";
 import type { SettingsRepository } from "@/domain/repositories/settings.repository";
@@ -22,7 +23,7 @@ const INTERNALIZED_NUMERIC_SETTINGS = {
 type InternalizedNumericSettingKey =
   (typeof INTERNALIZED_NUMERIC_SETTINGS)[keyof typeof INTERNALIZED_NUMERIC_SETTINGS];
 
-export class SettingsService {
+export class SettingsService implements SettingsPort {
   constructor(
     private readonly repo: SettingsRepository,
     private readonly getInternalizedNumericValue: (key: string) => number | undefined,
