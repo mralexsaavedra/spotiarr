@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { generatePath, useNavigate, useParams } from "react-router-dom";
 import { useLibraryArtistQuery } from "@/hooks/queries/useLibraryArtistQuery";
+import { Path } from "@/routes/routes";
 
 export const useLibraryArtistController = () => {
   const { name } = useParams<{ name: string }>();
@@ -30,7 +31,12 @@ export const useLibraryArtistController = () => {
         return;
       }
 
-      navigate(`/library/artist/${name}/album/${encodeURIComponent(albumName)}`);
+      navigate(
+        generatePath(Path.LIBRARY_ALBUM, {
+          name,
+          albumName,
+        }),
+      );
     },
     [name, navigate],
   );

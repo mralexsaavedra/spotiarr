@@ -30,6 +30,9 @@ const ArtistDetail = lazy(() =>
 const LibraryArtist = lazy(() =>
   import("../views/LibraryArtist").then((module) => ({ default: module.LibraryArtist })),
 );
+const LibraryAlbumDetail = lazy(() =>
+  import("../views/LibraryAlbumDetail").then((module) => ({ default: module.LibraryAlbumDetail })),
+);
 const MyPlaylists = lazy(() =>
   import("../views/MyPlaylists").then((module) => ({ default: module.MyPlaylists })),
 );
@@ -70,6 +73,7 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
         <Route path={Path.ARTISTS} element={<Artists />} />
         <Route path={Path.ARTIST_DETAIL} element={<ArtistDetail />} />
         <Route path={Path.LIBRARY_ARTIST} element={<LibraryArtist />} />
+        <Route path={Path.LIBRARY_ALBUM} element={<LibraryAlbumDetail />} />
         <Route path={Path.MY_PLAYLISTS} element={<MyPlaylists />} />
         <Route path={Path.SETTINGS} element={<Settings />} />
         <Route path={Path.SEARCH} element={<Search />} />
