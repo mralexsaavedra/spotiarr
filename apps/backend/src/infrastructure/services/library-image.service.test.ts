@@ -99,6 +99,33 @@ describe("FileSystemLibraryImageService", () => {
     });
   });
 
+  it("resolves downloads root lazily at call time", async () => {
+    const earlyWrongRoot = await makeTempDir("lib-img-early-wrong-");
+    const actualDownloadsRoot = await makeTempDir("lib-img-actual-root-");
+    const cachedArtworkPath = path.join(
+      actualDownloadsRoot,
+      ".spotiarr",
+      "cache",
+      "artwork",
+      "lazy.jpg",
+    );
+
+    await fs.mkdir(path.dirname(cachedArtworkPath), { recursive: true });
+    await fs.writeFile(cachedArtworkPath, "img");
+
+    let currentRoot = earlyWrongRoot;
+    const service = new FileSystemLibraryImageService(() => currentRoot);
+
+    currentRoot = actualDownloadsRoot;
+    const result = await service.resolveImage(cachedArtworkPath);
+
+    expect(result).toEqual({
+      kind: "ok",
+      absolutePath: await fs.realpath(cachedArtworkPath),
+      contentType: "image/jpeg",
+    });
+  });
+
   it("rejects non-image extension", async () => {
     const downloadsRoot = await makeTempDir("lib-img-root-");
     const filePath = path.join(downloadsRoot, "cover.txt");

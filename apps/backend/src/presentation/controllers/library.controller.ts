@@ -78,7 +78,7 @@ export class LibraryController {
         return;
       }
 
-      res.type(result.contentType).sendFile(result.absolutePath, (err) => {
+      res.type(result.contentType).sendFile(result.absolutePath, { dotfiles: "allow" }, (err) => {
         if (!err || res.headersSent) {
           return;
         }

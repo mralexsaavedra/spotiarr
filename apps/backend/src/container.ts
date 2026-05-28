@@ -434,7 +434,7 @@ const scanLibraryUseCase = new ScanLibraryUseCase(
   trackRepository,
 );
 const libraryService = new LibraryService(scanLibraryUseCase);
-const libraryImageService = new FileSystemLibraryImageService(resolveDownloadsRoot());
+const libraryImageService = new FileSystemLibraryImageService(() => resolveDownloadsRoot());
 
 const libraryController = new LibraryController(libraryService, libraryImageService);
 const healthService = new HealthService(connectivityAdapter);
