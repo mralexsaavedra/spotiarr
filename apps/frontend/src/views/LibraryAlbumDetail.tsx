@@ -74,15 +74,6 @@ export const LibraryAlbumDetail: FC = () => {
 
   return (
     <main className="flex flex-1 flex-col">
-      <div className="px-6 pt-6 md:px-8">
-        <Link
-          to={backToArtistPath}
-          className="text-primary hover:text-primary/80 focus-visible:ring-primary inline-flex rounded-md px-3 py-2 text-sm font-medium underline-offset-4 transition-colors hover:underline focus-visible:ring-2 focus-visible:outline-none"
-        >
-          {t("library.album.backToArtist")}
-        </Link>
-      </div>
-
       <AlbumPageLayout
         title={album.name}
         type={playlistType}

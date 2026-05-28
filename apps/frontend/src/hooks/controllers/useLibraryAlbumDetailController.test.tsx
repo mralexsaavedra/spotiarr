@@ -47,6 +47,7 @@ const makeArtist = (): LibraryArtist => ({
           album: "( )",
           format: "mp3",
           size: 100,
+          duration: 180,
           modifiedAt: 1,
         },
         {
@@ -58,6 +59,7 @@ const makeArtist = (): LibraryArtist => ({
           album: "( )",
           format: "mp3",
           size: 200,
+          duration: 245,
           modifiedAt: 2,
         },
       ],
@@ -86,6 +88,8 @@ describe("useLibraryAlbumDetailController", () => {
     expect(result.current.coverUrl).toContain("/api/library/image?path=");
     expect(result.current.tracks).toHaveLength(2);
     expect(result.current.tracks[0]?.status).toBe(TrackStatusEnum.Completed);
+    expect(result.current.tracks[0]?.durationMs).toBe(180000);
+    expect(result.current.tracks[1]?.durationMs).toBe(245000);
   });
 
   it("builds back link with raw artist name and router handles encoding once", () => {

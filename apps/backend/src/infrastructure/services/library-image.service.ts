@@ -11,6 +11,8 @@ export interface LibraryImageService {
   resolveImage(rawPath: string | undefined): Promise<ResolveImageResult>;
 }
 
+type DownloadsRootResolver = () => string;
+
 const IMAGE_CONTENT_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -19,7 +21,14 @@ const IMAGE_CONTENT_TYPES: Record<string, string> = {
 };
 
 export class FileSystemLibraryImageService implements LibraryImageService {
-  constructor(private readonly downloadsRoot: string) {}
+  private readonly resolveDownloadsRoot: DownloadsRootResolver;
+
+  constructor(downloadsRootOrResolver: string | DownloadsRootResolver) {
+    this.resolveDownloadsRoot =
+      typeof downloadsRootOrResolver === "function"
+        ? downloadsRootOrResolver
+        : () => downloadsRootOrResolver;
+  }
 
   private logRejection(reason: RejectReason): void {
     console.warn("[LibraryImageService] Request rejected", { reason });
@@ -35,7 +44,7 @@ export class FileSystemLibraryImageService implements LibraryImageService {
     let candidateRealPath: string;
 
     try {
-      rootRealPath = await fs.realpath(this.downloadsRoot);
+      rootRealPath = await fs.realpath(this.resolveDownloadsRoot());
       candidateRealPath = await fs.realpath(rawPath);
     } catch {
       this.logRejection("not-found");

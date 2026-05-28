@@ -183,4 +183,25 @@ describe("GET /image integration", () => {
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ error: "file_not_found", message: "File not found" });
   });
+
+  it("serves cached artwork files inside .spotiarr directory", async () => {
+    const downloadsRoot = await makeTempDir("lib-route-root-");
+    const cachedArtworkPath = path.join(
+      downloadsRoot,
+      ".spotiarr",
+      "cache",
+      "artwork",
+      "cover.jpg",
+    );
+
+    await fs.mkdir(path.dirname(cachedArtworkPath), { recursive: true });
+    await fs.writeFile(cachedArtworkPath, "cached-image-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/image?path=${encodeURIComponent(cachedArtworkPath)}`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("image/jpeg");
+    expect(await response.text()).toBe("cached-image-content");
+  });
 });

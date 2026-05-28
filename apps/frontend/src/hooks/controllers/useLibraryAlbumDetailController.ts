@@ -34,7 +34,7 @@ export const useLibraryAlbumDetailController = () => {
       artist: track.artist,
       artists: [{ name: track.artist, url: undefined }],
       album: track.album,
-      durationMs: 0,
+      durationMs: track.duration ? track.duration * 1000 : 0,
       status: TrackStatusEnum.Completed,
       trackUrl: undefined,
       albumUrl: undefined,

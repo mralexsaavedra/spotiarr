@@ -1,6 +1,7 @@
 import type { LibraryAlbum, LibraryArtist, LibraryTrack } from "@spotiarr/shared";
 import { SUPPORTED_AUDIO_FORMATS } from "@spotiarr/shared";
 import fs from "fs/promises";
+import { createHash } from "node:crypto";
 import path from "path";
 
 export class FileSystemScannerService {
@@ -14,6 +15,9 @@ export class FileSystemScannerService {
     const artists: LibraryArtist[] = [];
 
     try {
+      const artworkCacheRoot = path.join(libraryPath, ".spotiarr", "cache", "artwork");
+      await fs.mkdir(artworkCacheRoot, { recursive: true });
+
       const entries = await fs.readdir(libraryPath, { withFileTypes: true });
 
       for (const entry of entries) {
@@ -23,7 +27,7 @@ export class FileSystemScannerService {
         if (entry.name === "Playlists" || entry.name.startsWith(".")) continue;
 
         const artistPath = path.join(libraryPath, entry.name);
-        const artist = await this.scanArtist(entry.name, artistPath);
+        const artist = await this.scanArtist(entry.name, artistPath, artworkCacheRoot);
 
         if (artist && artist.albumCount > 0) {
           artists.push(artist);
@@ -43,7 +47,11 @@ export class FileSystemScannerService {
   /**
    * Scan an artist folder and return all albums
    */
-  private async scanArtist(artistName: string, artistPath: string): Promise<LibraryArtist | null> {
+  private async scanArtist(
+    artistName: string,
+    artistPath: string,
+    artworkCacheRoot: string,
+  ): Promise<LibraryArtist | null> {
     try {
       const entries = await fs.readdir(artistPath, { withFileTypes: true });
       const albums: LibraryAlbum[] = [];
@@ -53,7 +61,7 @@ export class FileSystemScannerService {
         if (entry.name.startsWith(".")) continue;
 
         const albumPath = path.join(artistPath, entry.name);
-        const album = await this.scanAlbum(artistName, entry.name, albumPath);
+        const album = await this.scanAlbum(artistName, entry.name, albumPath, artworkCacheRoot);
 
         if (album && album.trackCount > 0) {
           albums.push(album);
@@ -93,6 +101,7 @@ export class FileSystemScannerService {
     artistName: string,
     albumName: string,
     albumPath: string,
+    artworkCacheRoot: string,
   ): Promise<LibraryAlbum | null> {
     try {
       const entries = await fs.readdir(albumPath, { withFileTypes: true });
@@ -131,7 +140,13 @@ export class FileSystemScannerService {
       const year = this.extractYear(albumName);
 
       // Look for album cover
-      const albumImage = await this.findImage(albumPath);
+      const albumImage =
+        (await this.findImage(albumPath)) ??
+        (await this.extractEmbeddedArtwork(
+          albumPath,
+          tracks.map((track) => track.filePath),
+          artworkCacheRoot,
+        ));
 
       return {
         name: albumName,
@@ -147,6 +162,76 @@ export class FileSystemScannerService {
       console.error(`Error scanning album ${albumName}:`, error);
       return null;
     }
+  }
+
+  private async extractEmbeddedArtwork(
+    albumPath: string,
+    trackPaths: string[],
+    artworkCacheRoot: string,
+  ): Promise<string | undefined> {
+    const outputBaseName = createHash("sha256")
+      .update(path.resolve(albumPath))
+      .digest("hex")
+      .slice(0, 32);
+
+    for (const trackPath of trackPaths) {
+      try {
+        const mm = await import("music-metadata");
+        const metadata = await mm.parseFile(trackPath, { duration: false, skipCovers: false });
+        const picture = metadata.common.picture?.find((candidate) => {
+          const extension = this.getImageExtensionFromMime(candidate.format);
+          return Boolean(extension && candidate.data?.length);
+        });
+
+        if (!picture) {
+          continue;
+        }
+
+        const extension = this.getImageExtensionFromMime(picture.format);
+
+        if (!extension) {
+          continue;
+        }
+
+        const cachedImagePath = path.join(artworkCacheRoot, `${outputBaseName}${extension}`);
+
+        try {
+          await fs.access(cachedImagePath);
+          return cachedImagePath;
+        } catch {
+          await fs.writeFile(cachedImagePath, picture.data);
+          return cachedImagePath;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return undefined;
+  }
+
+  private getImageExtensionFromMime(
+    mimeType: string | undefined,
+  ): ".jpg" | ".png" | ".webp" | undefined {
+    if (!mimeType) {
+      return undefined;
+    }
+
+    const normalizedMimeType = mimeType.trim().toLowerCase();
+
+    if (normalizedMimeType === "image/jpeg" || normalizedMimeType === "image/jpg") {
+      return ".jpg";
+    }
+
+    if (normalizedMimeType === "image/png") {
+      return ".png";
+    }
+
+    if (normalizedMimeType === "image/webp") {
+      return ".webp";
+    }
+
+    return undefined;
   }
 
   /**
