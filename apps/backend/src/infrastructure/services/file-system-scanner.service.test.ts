@@ -54,7 +54,7 @@ describe("FileSystemScannerService artwork extraction", () => {
     expect(artists[0]?.albums[0]?.image).toBe(path.join(albumDir, "folder.jpg"));
   });
 
-  it("extracts embedded artwork to deterministic cache path and falls back for artist image", async () => {
+  it("extracts embedded artwork to deterministic cache path without using it as artist fallback", async () => {
     const libraryRoot = await makeTempDir("scanner-lib-");
     const albumDir = path.join(libraryRoot, "Artist", "Album");
 
@@ -79,7 +79,7 @@ describe("FileSystemScannerService artwork extraction", () => {
     expect(albumImage).toContain(path.join(libraryRoot, ".spotiarr", "cache", "artwork"));
     expect(path.basename(albumImage ?? "")).toMatch(/^[a-f0-9]{32}\.jpg$/);
     await expect(fs.readFile(albumImage!)).resolves.toEqual(Buffer.from("embedded-cover"));
-    expect(artists[0]?.image).toBe(albumImage);
+    expect(artists[0]?.image).toBeUndefined();
   });
 
   it("does not create cached artwork when embedded picture is missing", async () => {

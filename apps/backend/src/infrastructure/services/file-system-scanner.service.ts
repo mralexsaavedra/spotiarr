@@ -77,8 +77,7 @@ export class FileSystemScannerService {
       const totalSize = albums.reduce((sum, album) => sum + album.totalSize, 0);
 
       // Look for artist image
-      const artistImage =
-        (await this.findImage(artistPath)) ?? albums.find((album) => album.image)?.image;
+      const artistImage = await this.findImage(artistPath);
 
       return {
         name: artistName,
