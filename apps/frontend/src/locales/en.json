@@ -123,7 +123,16 @@
     "artistNotFound": "Artist not found",
     "artistNotFoundDescription": "Could not load artist details.",
     "artistCardAriaLabel": "Artist {{name}}, {{albums}} albums, {{tracks}} tracks",
-    "albumCardAriaLabel": "Album {{name}} by {{artist}}, {{year}}, {{tracks}} tracks"
+    "albumCardAriaLabel": "Album {{name}} by {{artist}}, {{year}}, {{tracks}} tracks",
+    "album": {
+      "notFound": "Album not found",
+      "notFoundDescription": "Could not find this album in your library.",
+      "backToArtist": "Back to artist",
+      "tracks": "tracks",
+      "loading": "Loading album details...",
+      "error": "Could not load album details.",
+      "emptyTracks": "No tracks found for this album."
+    }
   },
   "history": {
     "title": "Download History",
