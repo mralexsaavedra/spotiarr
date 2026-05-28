@@ -2,6 +2,7 @@ import { LibraryAlbum } from "@spotiarr/shared";
 import { FC, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { LibraryAlbumGridCard } from "../molecules/LibraryAlbumGridCard";
+import { VirtualGrid } from "../molecules/VirtualGrid";
 
 interface LibraryAlbumListProps {
   artistName: string;
@@ -22,16 +23,13 @@ export const LibraryAlbumList: FC<LibraryAlbumListProps> = memo(
     }
 
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {albums.map((album) => (
-          <LibraryAlbumGridCard
-            key={album.path}
-            album={album}
-            artistName={artistName}
-            onClick={onAlbumClick}
-          />
-        ))}
-      </div>
+      <VirtualGrid
+        items={albums}
+        itemKey={(album) => album.path}
+        renderItem={(album) => (
+          <LibraryAlbumGridCard album={album} artistName={artistName} onClick={onAlbumClick} />
+        )}
+      />
     );
   },
 );

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLibraryArtistQuery } from "@/hooks/queries/useLibraryArtistQuery";
@@ -24,13 +24,16 @@ export const useLibraryArtistController = () => {
     return { ...artist, albums: sortedAlbums };
   }, [artist]);
 
-  const handleAlbumClick = (albumName: string) => {
-    if (!name) {
-      return;
-    }
+  const handleAlbumClick = useCallback(
+    (albumName: string) => {
+      if (!name) {
+        return;
+      }
 
-    navigate(`/library/artist/${name}/album/${encodeURIComponent(albumName)}`);
-  };
+      navigate(`/library/artist/${name}/album/${encodeURIComponent(albumName)}`);
+    },
+    [name, navigate],
+  );
 
   return {
     t,
