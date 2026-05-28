@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.5.1...v1.6.0) (2026-05-28)
+
+### Features
+
+- **Architectural Excellence**: Re-engineered the backend into a strict Port/Adapter (Clean Architecture) structure, isolating domain logic from infrastructure and improving testability across the entire workspace. ([000ae48](https://github.com/mralexsaavedra/spotiarr/commit/000ae48))
+- **Feed Sync Optimization**: Refactored the "god-file" sync logic into bucketed repositories and specialized services, resulting in more granular cache management and improved reliability for release discovery. ([ef21b8e](https://github.com/mralexsaavedra/spotiarr/commit/ef21b8e))
+
+### Bug Fixes
+
+- **Security**: Closed a potential path traversal vulnerability in the library image endpoint. ([ec1f9df](https://github.com/mralexsaavedra/spotiarr/commit/ec1f9df))
+- **Reliability**: Improved SSE listener management and logging for better real-time updates. ([b6baab2](https://github.com/mralexsaavedra/spotiarr/commit/b6baab2))
+
+### Maintenance
+
+- **Testing**: Significantly expanded test coverage for repositories, external services, and controllers as part of the architectural refactor. ([000ae48](https://github.com/mralexsaavedra/spotiarr/commit/000ae48), [ef21b8e](https://github.com/mralexsaavedra/spotiarr/commit/ef21b8e))
+- **Codebase Health**: Audit pass to remove dead code and unify i18n handling across frontend and backend. ([b6baab2](https://github.com/mralexsaavedra/spotiarr/commit/b6baab2))
+
 ## [1.5.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.5.0...v1.5.1) (2026-05-23)
 
 ### Bug Fixes
