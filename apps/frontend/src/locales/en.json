@@ -118,7 +118,7 @@
     "tracks": "Tracks",
     "size": "Total Size",
     "emptyTitle": "Library is empty",
-    "emptyDescription": "Scan your downloads folder to populate your library.",
+    "emptyDescription": "Scan or rescan your downloads folder to populate your library and artwork.",
     "scanNow": "Scan Now",
     "artistNotFound": "Artist not found",
     "artistNotFoundDescription": "Could not load artist details.",

@@ -82,6 +82,23 @@ describe("FileSystemLibraryImageService", () => {
     expect(result).toEqual({ kind: "reject", reason: "outside-root" });
   });
 
+  it("serves cached artwork paths under .spotiarr cache", async () => {
+    const downloadsRoot = await makeTempDir("lib-img-root-");
+    const cachedArtworkPath = path.join(downloadsRoot, ".spotiarr", "cache", "artwork", "a1b2.jpg");
+
+    await fs.mkdir(path.dirname(cachedArtworkPath), { recursive: true });
+    await fs.writeFile(cachedArtworkPath, "img");
+
+    const service = new FileSystemLibraryImageService(downloadsRoot);
+    const result = await service.resolveImage(cachedArtworkPath);
+
+    expect(result).toEqual({
+      kind: "ok",
+      absolutePath: await fs.realpath(cachedArtworkPath),
+      contentType: "image/jpeg",
+    });
+  });
+
   it("rejects non-image extension", async () => {
     const downloadsRoot = await makeTempDir("lib-img-root-");
     const filePath = path.join(downloadsRoot, "cover.txt");
