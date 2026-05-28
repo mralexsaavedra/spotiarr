@@ -1,37 +1,37 @@
 import { LibraryAlbum } from "@spotiarr/shared";
-import { FC, memo, useCallback } from "react";
+import { FC, memo } from "react";
 import { useTranslation } from "react-i18next";
-import { LibraryAlbumCard } from "../molecules/LibraryAlbumCard";
+import { LibraryAlbumGridCard } from "../molecules/LibraryAlbumGridCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 
 interface LibraryAlbumListProps {
+  artistName: string;
   albums: LibraryAlbum[];
+  onAlbumClick: (album: LibraryAlbum) => void;
 }
 
-interface LibraryAlbumListItemProps {
-  album: LibraryAlbum;
-}
+export const LibraryAlbumList: FC<LibraryAlbumListProps> = memo(
+  ({ artistName, albums, onAlbumClick }) => {
+    const { t } = useTranslation();
 
-const LibraryAlbumListItem: FC<LibraryAlbumListItemProps> = memo(({ album }) => {
-  return <LibraryAlbumCard album={album} />;
-});
+    if (!albums || albums.length === 0) {
+      return (
+        <div className="text-text-secondary mt-10 text-center">
+          <p>{t("artist.noDiscography", "No albums found")}</p>
+        </div>
+      );
+    }
 
-export const LibraryAlbumList: FC<LibraryAlbumListProps> = memo(({ albums }) => {
-  const { t } = useTranslation();
-
-  const renderItem = useCallback((album: LibraryAlbum) => {
-    return <LibraryAlbumListItem album={album} />;
-  }, []);
-
-  if (!albums || albums.length === 0) {
     return (
-      <div className="text-text-secondary mt-10 text-center">
-        <p>{t("artist.noDiscography", "No albums found")}</p>
-      </div>
+      <VirtualGrid
+        items={albums}
+        itemKey={(album) => album.path}
+        renderItem={(album) => (
+          <LibraryAlbumGridCard album={album} artistName={artistName} onClick={onAlbumClick} />
+        )}
+      />
     );
-  }
-
-  return <VirtualGrid items={albums} itemKey={(album) => album.path} renderItem={renderItem} />;
-});
+  },
+);
 
 LibraryAlbumList.displayName = "LibraryAlbumList";

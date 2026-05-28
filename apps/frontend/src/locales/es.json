@@ -121,7 +121,9 @@
     "emptyDescription": "Escanea tu carpeta de descargas para poblar tu biblioteca.",
     "scanNow": "Escanear Ahora",
     "artistNotFound": "Artista no encontrado",
-    "artistNotFoundDescription": "No se pudieron cargar los detalles del artista."
+    "artistNotFoundDescription": "No se pudieron cargar los detalles del artista.",
+    "artistCardAriaLabel": "Artista {{name}}, {{albums}} álbumes, {{tracks}} canciones",
+    "albumCardAriaLabel": "Álbum {{name}} de {{artist}}, {{year}}, {{tracks}} canciones"
   },
   "history": {
     "title": "Historial de Descargas",
