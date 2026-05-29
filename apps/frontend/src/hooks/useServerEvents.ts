@@ -43,6 +43,10 @@ export const useServerEvents = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.followedArtists });
     });
 
+    eventSource.addEventListener("artwork-backfill-updated", () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.artworkBackfillStatus });
+    });
+
     eventSource.onerror = (error) => {
       console.error("EventSource failed:", error);
     };

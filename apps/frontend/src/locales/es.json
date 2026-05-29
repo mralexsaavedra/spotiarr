@@ -132,6 +132,32 @@
       "loading": "Cargando detalles del álbum...",
       "error": "No se pudieron cargar los detalles del álbum.",
       "emptyTracks": "No se encontraron canciones para este álbum."
+    },
+    "scanModal": {
+      "title": "Escanear biblioteca",
+      "description": "Elegí si querés solo escanear tu biblioteca o también iniciar el backfill de carátulas.",
+      "startBackfill": "Iniciar backfill de carátulas después de que el escaneo arranque correctamente",
+      "backfillActive": "El backfill de carátulas ya está en ejecución. Igual podés ejecutar solo escaneo.",
+      "confirm": "Iniciar escaneo",
+      "scanStarted": "Se inició el escaneo de la biblioteca.",
+      "scanAndBackfillStarted": "Se iniciaron el escaneo y el backfill de carátulas.",
+      "retryBackfillStarted": "Se inició el backfill de carátulas.",
+      "backfillAlreadyRunning": "Se inició el escaneo. El backfill de carátulas ya está en ejecución.",
+      "retryBackfillAlreadyRunning": "El backfill de carátulas ya está en ejecución.",
+      "partialFailure": "El escaneo se inició, pero no se pudo iniciar el backfill de carátulas.",
+      "scanFailed": "No se pudo iniciar el escaneo de la biblioteca."
+    },
+    "artworkBackfill": {
+      "title": "Backfill de carátulas",
+      "progress": "{{processed}} / {{totals}} ({{progress}}%)",
+      "status": {
+        "running": "En ejecución",
+        "pause_requested": "Pausa solicitada",
+        "paused": "Pausado",
+        "paused_rate_limited": "Pausado (límite de tasa)",
+        "completed": "Completado",
+        "error": "Fallido"
+      }
     }
   },
   "history": {

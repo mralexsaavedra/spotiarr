@@ -78,6 +78,24 @@ describe("useServerEvents", () => {
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: queryKeys.libraryArtists });
   });
 
+  it("invalidates artwork backfill status on artwork-backfill-updated", () => {
+    const queryClient = new QueryClient();
+    const invalidateQueriesSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    renderHook(() => useServerEvents(), { wrapper });
+
+    const source = MockEventSource.instances[0];
+    source.dispatch("artwork-backfill-updated");
+
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: queryKeys.artworkBackfillStatus,
+    });
+  });
+
   it("closes EventSource on unmount", () => {
     const queryClient = new QueryClient();
 

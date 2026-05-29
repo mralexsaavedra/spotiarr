@@ -1,22 +1,10 @@
+import type { ArtworkBackfillStatusResponse } from "@spotiarr/shared";
 import type { ArtworkBackfillRepositoryPort } from "@/application/ports/artwork-backfill-repository.port";
 
 export class GetArtworkBackfillStatusUseCase {
   constructor(private readonly backfillRepository: ArtworkBackfillRepositoryPort) {}
 
-  async execute(): Promise<{
-    runId: string | null;
-    status: string;
-    phase: string | null;
-    totals: number;
-    processed: number;
-    skippedExisting: number;
-    written: number;
-    failed: number;
-    externalCalls: number;
-    lastCheckpoint: string | null;
-    rateLimitUntil: string | null;
-    updatedAt: string | null;
-  }> {
+  async execute(): Promise<ArtworkBackfillStatusResponse> {
     const run = await this.backfillRepository.getActiveRun();
 
     if (!run) {

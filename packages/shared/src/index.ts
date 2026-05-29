@@ -333,3 +333,32 @@ export interface SpotifySearchResults {
   albums: ArtistRelease[];
   artists: FollowedArtist[];
 }
+
+export type ArtworkBackfillRunStatus =
+  | "idle"
+  | "running"
+  | "pause_requested"
+  | "paused"
+  | "paused_rate_limited"
+  | "completed"
+  | "error";
+
+export interface ArtworkBackfillStatusResponse {
+  runId: string | null;
+  status: ArtworkBackfillRunStatus;
+  phase: "artists" | "albums" | null;
+  totals: number;
+  processed: number;
+  skippedExisting: number;
+  written: number;
+  failed: number;
+  externalCalls: number;
+  lastCheckpoint: string | null;
+  rateLimitUntil: string | null;
+  updatedAt: string | null;
+}
+
+export interface ArtworkBackfillStartResponse {
+  runId: string;
+  status: "running";
+}
