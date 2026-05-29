@@ -5,6 +5,10 @@ import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.h
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackService } from "../../services/track.service";
 
+function getTrackIdentityUrl(track: { trackUrl?: string; spotifyUrl?: string }): string {
+  return track.trackUrl ?? track.spotifyUrl ?? "undefined";
+}
+
 export class SyncSubscribedPlaylistsUseCase {
   constructor(
     private readonly playlistRepository: PlaylistRepository,
@@ -49,7 +53,7 @@ export class SyncSubscribedPlaylistsUseCase {
 
       const existingTracks = await this.trackService.getAllByPlaylist(playlist.id);
       const existingTrackKeys = new Set(
-        existingTracks.map((t) => `${t.artist}|${t.name}|${t.spotifyUrl || "undefined"}`),
+        existingTracks.map((t) => `${t.artist}|${t.name}|${getTrackIdentityUrl(t)}`),
       );
 
       const tracksToCreate: { track: PlaylistTrack; index: number }[] = [];
@@ -68,13 +72,12 @@ export class SyncSubscribedPlaylistsUseCase {
           album: track.album ?? (isTrack ? "Singles" : playlist.name),
           albumYear: track.albumYear,
           trackNumber: isAlbum ? (track.trackNumber ?? i + 1) : i + 1,
-          spotifyUrl: track.previewUrl ?? undefined,
           artists: track.artists,
           trackUrl: track.trackUrl,
           durationMs: track.durationMs,
         };
 
-        const key = `${track2Save.artist}|${track2Save.name}|${track2Save.spotifyUrl || "undefined"}`;
+        const key = `${track2Save.artist}|${track2Save.name}|${getTrackIdentityUrl(track2Save)}`;
 
         if (!existingTrackKeys.has(key)) {
           tracksToCreate.push({ track: track, index: i });
@@ -97,7 +100,6 @@ export class SyncSubscribedPlaylistsUseCase {
                 album: track.album ?? (isTrack ? "Singles" : playlist.name),
                 albumYear: track.albumYear,
                 trackNumber: isAlbum ? (track.trackNumber ?? index + 1) : index + 1,
-                spotifyUrl: track.previewUrl ?? undefined,
                 artists: track.artists,
                 trackUrl: track.trackUrl,
                 durationMs: track.durationMs,

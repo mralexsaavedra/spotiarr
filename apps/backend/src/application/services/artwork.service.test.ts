@@ -20,7 +20,8 @@ describe("ArtworkService", () => {
     albumArtist: "Album Artist",
     album: "Album",
     playlistId: "playlist-1",
-    spotifyUrl: "https://open.spotify.com/track/123",
+    spotifyUrl: "https://p.scdn.co/mp3-preview/123",
+    trackUrl: "https://open.spotify.com/track/123",
   };
 
   const jpegBuffer = Buffer.from([0xff, 0xd8, 0xff]);
@@ -57,6 +58,26 @@ describe("ArtworkService", () => {
       artistImageBuffer: jpegBuffer,
     });
     expect(artworkAssets.downloadImage).toHaveBeenCalledTimes(3);
+    expect(spotifyService.getCoverImage).toHaveBeenCalledWith("https://open.spotify.com/track/123");
+  });
+
+  it("falls back to legacy spotifyUrl when trackUrl is missing", async () => {
+    const service = new ArtworkService(
+      playlistRepository as never,
+      spotifyService as never,
+      pathService as never,
+      artworkAssets as never,
+    );
+
+    await service.resolveTrackArtwork({
+      ...track,
+      trackUrl: undefined,
+      spotifyUrl: "https://open.spotify.com/track/legacy-123",
+    });
+
+    expect(spotifyService.getCoverImage).toHaveBeenCalledWith(
+      "https://open.spotify.com/track/legacy-123",
+    );
   });
 
   it("falls back to playlist cover for non-playlist folder cover when track cover is unavailable", async () => {

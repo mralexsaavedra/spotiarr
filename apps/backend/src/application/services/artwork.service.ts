@@ -38,7 +38,8 @@ export class ArtworkService {
       playlistCoverBuffer = await this.artworkAssets.downloadImage(playlist.coverUrl);
     }
 
-    const urlToResolve = track.spotifyUrl || track.trackUrl;
+    // Prefer the explicit track URL; keep spotifyUrl only as a legacy fallback for older rows.
+    const urlToResolve = track.trackUrl || track.spotifyUrl;
     if (urlToResolve) {
       try {
         const resolvedTrackCoverUrl = await this.spotifyService.getCoverImage(urlToResolve);
