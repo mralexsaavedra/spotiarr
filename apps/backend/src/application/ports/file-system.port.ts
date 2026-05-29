@@ -17,6 +17,7 @@ export interface FileSystemTrackPathPort {
   getFolderName(track: ITrack, playlistName?: string): Promise<string>;
   getPlaylistFolderPath(name: string): string;
   getArtistFolderPath(artist: string): string;
+  getAlbumFolderPath(artist: string, album: string): string;
   ensureParentDirectory(filePath: string): Promise<void>;
 }
 

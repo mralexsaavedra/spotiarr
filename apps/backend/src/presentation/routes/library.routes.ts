@@ -3,7 +3,7 @@ import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
 const router: ExpressRouter = Router();
-const { libraryController } = container;
+const { libraryController, artworkBackfillController } = container;
 
 // GET /api/library/stats - Get library statistics
 router.get("/stats", asyncHandler(libraryController.getStats));
@@ -19,5 +19,10 @@ router.get("/image", asyncHandler(libraryController.getImage));
 
 // POST /api/library/scan - Trigger a manual library scan
 router.post("/scan", asyncHandler(libraryController.scan));
+
+router.post("/artwork-backfill/start", asyncHandler(artworkBackfillController.start));
+router.post("/artwork-backfill/pause", asyncHandler(artworkBackfillController.pause));
+router.post("/artwork-backfill/resume", asyncHandler(artworkBackfillController.resume));
+router.get("/artwork-backfill/status", asyncHandler(artworkBackfillController.status));
 
 export default router;
