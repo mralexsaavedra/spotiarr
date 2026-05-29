@@ -336,4 +336,41 @@ describe("CreatePlaylistUseCase — album branch", () => {
     );
     expect(stubs.getAlbumTracksUseCase.execute).not.toHaveBeenCalled();
   });
+
+  it("persists trackUrl without overloading spotifyUrl with previewUrl", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Song",
+          artist: "Artist",
+          artists: [{ name: "Artist", url: "https://open.spotify.com/artist/artist-1" }],
+          album: "Album",
+          albumUrl: "https://open.spotify.com/album/album-1",
+          albumYear: 2026,
+          trackUrl: "https://open.spotify.com/track/track-1",
+          previewUrl: "https://p.scdn.co/mp3-preview/track-1",
+          durationMs: 180000,
+        },
+      ],
+      name: "My Playlist",
+      image: "",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/playlist/abc123",
+    });
+
+    const createdTrack = stubs.trackService.create.mock.calls[0]?.[0];
+
+    expect(createdTrack).toMatchObject({
+      trackUrl: "https://open.spotify.com/track/track-1",
+      albumUrl: "https://open.spotify.com/album/album-1",
+    });
+    expect(createdTrack).not.toHaveProperty("spotifyUrl");
+  });
 });

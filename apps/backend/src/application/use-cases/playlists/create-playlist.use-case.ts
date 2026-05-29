@@ -361,7 +361,6 @@ export class CreatePlaylistUseCase {
         album: track.album ?? (useSinglesFallback ? "Singles" : context.playlistName),
         albumYear: track.albumYear,
         trackNumber: trackNumber,
-        spotifyUrl: track.previewUrl ?? undefined,
         artists: track.artists,
         trackUrl: track.trackUrl,
         albumUrl: track.albumUrl,
