@@ -56,6 +56,7 @@ function makeStubs() {
       {
         name: "Track 1",
         artist: "Artist",
+        primaryArtistImage: "http://track-artist.jpg",
         artists: [{ name: "Artist", url: undefined }],
         album: "Album",
         trackNumber: 1,
@@ -65,6 +66,12 @@ function makeStubs() {
   };
 
   const feedRepository = {
+    getArtistBySpotifyId: vi.fn().mockResolvedValue({
+      id: "artist-1",
+      name: "Artist",
+      image: "http://artist.jpg",
+      spotifyUrl: "https://open.spotify.com/artist/artist1",
+    }),
     getArtistAlbumWithArtist: vi.fn().mockResolvedValue({
       albumName: "Album",
       artistName: "Artist",
@@ -110,6 +117,7 @@ describe("CreatePlaylistUseCase — albumTrack branch", () => {
       {
         name: "Track 1",
         artist: "Artist",
+        primaryArtistImage: "http://track-artist.jpg",
         artists: [{ name: "Artist", url: undefined }],
         album: "Album",
         trackNumber: 1,
@@ -118,6 +126,7 @@ describe("CreatePlaylistUseCase — albumTrack branch", () => {
       {
         name: "Track 2",
         artist: "Artist",
+        primaryArtistImage: "http://track-artist.jpg",
         artists: [{ name: "Artist", url: undefined }],
         album: "Album",
         trackNumber: 2,
@@ -168,8 +177,31 @@ describe("CreatePlaylistUseCase — albumTrack branch", () => {
     expect(savedPlaylist.toPrimitive()).toMatchObject({
       name: "Release Artist - Track 2",
       coverUrl: "http://release-cover.jpg",
+      artistImageUrl: "http://artist.jpg",
       owner: "Release Artist",
     });
+  });
+
+  it("falls back to track artist image when cached artist image is unavailable", async () => {
+    stubs.feedRepository.getArtistBySpotifyId.mockResolvedValue({
+      id: "artist-1",
+      name: "Artist",
+      image: null,
+      spotifyUrl: "https://open.spotify.com/artist/artist1",
+    });
+
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "albumTrack",
+      artistId: "artist-1",
+      albumId: "album-1",
+      trackIndex: 1,
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+
+    expect(savedPlaylist.toPrimitive().artistImageUrl).toBe("http://track-artist.jpg");
   });
 
   it("throws 404 when trackIndex is out of range", async () => {
@@ -263,6 +295,7 @@ describe("CreatePlaylistUseCase — album branch", () => {
     expect(savedPlaylist.toPrimitive()).toMatchObject({
       name: "Release Artist - Release Album",
       coverUrl: "http://release-cover.jpg",
+      artistImageUrl: "http://artist.jpg",
       owner: "Release Artist",
     });
   });

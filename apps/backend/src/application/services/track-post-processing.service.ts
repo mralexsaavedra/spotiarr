@@ -1,12 +1,11 @@
-import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
-import * as fs from "fs";
+import type { ITrack } from "@spotiarr/shared";
 import * as path from "path";
 import type {
   FileSystemTrackPathPort,
   M3uPort,
   MetadataPort,
 } from "@/application/ports/file-system.port";
-import type { SpotifyService } from "@/application/services/spotify.service";
+import { ArtworkService } from "@/application/services/artwork.service";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 
@@ -16,7 +15,7 @@ function toErrorMessage(error: unknown): string {
 
 export class TrackPostProcessingService {
   constructor(
-    private readonly spotifyService: SpotifyService,
+    private readonly artworkService: ArtworkService,
     private readonly metadataService: MetadataPort,
     private readonly playlistRepository: PlaylistRepository,
     private readonly trackRepository: TrackRepository,
@@ -30,9 +29,9 @@ export class TrackPostProcessingService {
    */
   async process(track: ITrack, trackFilePath: string): Promise<void> {
     try {
-      const { trackCoverUrl, playlistCoverUrl, isPlaylistType } = await this.getCoverUrls(track);
+      const artwork = await this.artworkService.resolveTrackArtwork(track);
 
-      // 1. Embed ID3 Tags (prefer specific track cover)
+      // 1. Embed ID3 Tags (prefer specific track cover via artwork service)
       await this.metadataService.writeTags(trackFilePath, {
         title: track.name,
         artist: track.artist,
@@ -42,19 +41,15 @@ export class TrackPostProcessingService {
         trackNumber: track.trackNumber,
         discNumber: track.discNumber,
         totalTracks: track.totalTracks,
-        coverUrl: trackCoverUrl || playlistCoverUrl || "",
+        coverBuffer: artwork.tagCoverBuffer || undefined,
       });
 
       // 2. Save folder cover.jpg
       const trackDirectory = path.dirname(trackFilePath);
-      const folderCoverUrl = isPlaylistType ? playlistCoverUrl : trackCoverUrl;
-
-      if (folderCoverUrl) {
-        await this.metadataService.saveCoverArt(trackDirectory, folderCoverUrl);
-      }
+      await this.artworkService.saveAlbumCover(trackDirectory, artwork);
 
       // 3. Save Artist Image (if applicable)
-      await this.saveArtistImageIfNeeded(track);
+      await this.artworkService.saveArtistImageIfNeeded(track, artwork);
     } catch (error) {
       console.error(
         `Error during post-processing for track ${track.name}: ${toErrorMessage(error)}`,
@@ -87,64 +82,6 @@ export class TrackPostProcessingService {
       }
     } catch (err) {
       console.error(`Failed to generate M3U file: ${toErrorMessage(err)}`);
-    }
-  }
-
-  private async getCoverUrls(track: ITrack): Promise<{
-    trackCoverUrl: string;
-    playlistCoverUrl?: string;
-    isPlaylistType: boolean;
-  }> {
-    let playlistCoverUrl: string | undefined;
-    let isPlaylistType = false;
-
-    // Get Playlist Info
-    if (track.playlistId) {
-      const playlist = await this.playlistRepository.findOne(track.playlistId);
-      isPlaylistType = playlist?.type === "playlist";
-      if (playlist) {
-        playlistCoverUrl = playlist.coverUrl;
-      }
-    }
-
-    // Get Specific Track Cover from Spotify — uses minimum API calls (no track fetching)
-    let trackCoverUrl = "";
-    const urlToUse = track.spotifyUrl || track.trackUrl;
-
-    if (urlToUse) {
-      try {
-        trackCoverUrl = await this.spotifyService.getCoverImage(urlToUse);
-      } catch (e) {
-        console.warn(`Failed to fetch cover for track ${track.name}: ${toErrorMessage(e)}`);
-      }
-    }
-
-    return { trackCoverUrl, playlistCoverUrl, isPlaylistType };
-  }
-
-  private async saveArtistImageIfNeeded(track: ITrack): Promise<void> {
-    if (!track.playlistId) return;
-
-    try {
-      const playlist = await this.playlistRepository.findOne(track.playlistId);
-
-      // Only save artist image if it's NOT a generic playlist and we have an image
-      if (playlist && playlist.type !== PlaylistTypeEnum.Playlist && playlist.artistImageUrl) {
-        const artistFolderPath = this.trackPathService.getArtistFolderPath(track.artist);
-
-        if (!fs.existsSync(artistFolderPath)) {
-          fs.mkdirSync(artistFolderPath, { recursive: true });
-        }
-
-        // Save as folder.jpg (standard)
-        await this.metadataService.saveCoverArt(
-          artistFolderPath,
-          playlist.artistImageUrl,
-          "folder.jpg",
-        );
-      }
-    } catch (error) {
-      console.warn(`Failed to save artist image: ${toErrorMessage(error)}`);
     }
   }
 }

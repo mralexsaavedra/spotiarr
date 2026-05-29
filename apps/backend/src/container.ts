@@ -1,5 +1,6 @@
 import type { FeedRepositoryPort } from "./application/ports/feed-repository.port";
 import type { SpotifyUserLibraryPort } from "./application/ports/spotify-user-library.port";
+import { ArtworkService } from "./application/services/artwork.service";
 import { FeedCacheEvictionService } from "./application/services/feed-cache-eviction.service";
 import { HealthService } from "./application/services/health.service";
 import { LibraryService } from "./application/services/library.service";
@@ -62,6 +63,7 @@ import { YoutubeDownloadService } from "./infrastructure/external/youtube-downlo
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
 import { AppEventBus } from "./infrastructure/messaging/app-event-bus";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
+import { ArtworkAssetsService } from "./infrastructure/services/artwork-assets.service";
 import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
 import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
@@ -197,6 +199,7 @@ const m3uService = new FileSystemM3uService(settingsService, trackFileHelper);
 const youtubeSearchService = new YoutubeSearchService(settingsService);
 const youtubeDownloadService = new YoutubeDownloadService(settingsService, youtubeSearchService);
 const metadataService = new MetadataService();
+const artworkAssetsService = new ArtworkAssetsService();
 
 const queueService = new BullMqTrackQueueService();
 const eventBus = new AppEventBus();
@@ -343,8 +346,14 @@ const spotifyServiceSync = new SpotifyService({
 });
 
 // Services (Post-Processing) — uses sync service to avoid starving interactive requests
-const trackPostProcessingService = new TrackPostProcessingService(
+const artworkService = new ArtworkService(
+  playlistRepository,
   spotifyServiceSync,
+  trackFileHelper,
+  artworkAssetsService,
+);
+const trackPostProcessingService = new TrackPostProcessingService(
+  artworkService,
   metadataService,
   playlistRepository,
   trackRepository,
