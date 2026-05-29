@@ -4,11 +4,13 @@ import { getEnv } from "../setup/environment";
 
 export const FEED_SYNC_QUEUE = "feed-sync-queue";
 export const CATALOG_SYNC_QUEUE = "catalog-sync-queue";
+export const ARTWORK_BACKFILL_QUEUE = "artwork-backfill-queue";
 
 let trackDownloadQueue: Queue;
 let trackSearchQueue: Queue;
 let feedSyncQueue: Queue;
 let catalogSyncQueue: Queue;
+let artworkBackfillQueue: Queue;
 
 export function initializeQueues(): void {
   const env = getEnv();
@@ -45,6 +47,13 @@ export function initializeQueues(): void {
     },
   });
 
+  artworkBackfillQueue = new Queue(ARTWORK_BACKFILL_QUEUE, {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: true,
+    },
+  });
+
   console.log("✅ BullMQ queues initialized");
 }
 
@@ -74,4 +83,11 @@ export function getCatalogSyncQueue(): Queue {
     throw new AppError(500, "internal_server_error", "Catalog sync queue not initialized");
   }
   return catalogSyncQueue;
+}
+
+export function getArtworkBackfillQueue(): Queue {
+  if (!artworkBackfillQueue) {
+    throw new AppError(500, "internal_server_error", "Artwork backfill queue not initialized");
+  }
+  return artworkBackfillQueue;
 }

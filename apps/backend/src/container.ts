@@ -12,6 +12,11 @@ import { TrackService } from "./application/services/track.service";
 import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
 import { GetArtistAlbumsUseCase } from "./application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "./application/use-cases/artists/get-artist-detail.use-case";
+import { GetArtworkBackfillStatusUseCase } from "./application/use-cases/artwork-backfill/get-artwork-backfill-status.use-case";
+import { PauseArtworkBackfillUseCase } from "./application/use-cases/artwork-backfill/pause-artwork-backfill.use-case";
+import { ProcessArtworkBackfillBatchUseCase } from "./application/use-cases/artwork-backfill/process-artwork-backfill-batch.use-case";
+import { ResumeArtworkBackfillUseCase } from "./application/use-cases/artwork-backfill/resume-artwork-backfill.use-case";
+import { StartArtworkBackfillUseCase } from "./application/use-cases/artwork-backfill/start-artwork-backfill.use-case";
 import { GetRecentReleasesUseCase } from "./application/use-cases/feed/get-recent-releases.use-case";
 import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
 import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
@@ -38,6 +43,7 @@ import { UpdateTrackUseCase } from "./application/use-cases/tracks/update-track.
 import { NoopAlbumTracksCache } from "./infrastructure/cache/noop-album-tracks-cache";
 import { ArtistAlbumCacheRepository } from "./infrastructure/database/artist-album-cache.repository";
 import { ArtistReleaseCacheRepository } from "./infrastructure/database/artist-release-cache.repository";
+import { PrismaArtworkBackfillRepository } from "./infrastructure/database/artwork-backfill.repository";
 import { FeedCacheEvictionRepository } from "./infrastructure/database/feed-cache-eviction.repository";
 import { FeedSyncStateRepository } from "./infrastructure/database/feed-sync-state.repository";
 import { FollowedArtistRepository } from "./infrastructure/database/followed-artist.repository";
@@ -53,6 +59,7 @@ import { ReleaseFeedService } from "./infrastructure/external/release-feed.servi
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
 import { SpotifyArtistCatalogService } from "./infrastructure/external/spotify-artist-catalog.service";
 import { SpotifyArtistClient } from "./infrastructure/external/spotify-artist.client";
+import { SpotifyArtworkSourceService } from "./infrastructure/external/spotify-artwork-source.service";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
 import { SpotifyFollowedArtistsService } from "./infrastructure/external/spotify-followed-artists.service";
 import { SpotifyPlaylistLibraryService } from "./infrastructure/external/spotify-playlist-library.service";
@@ -62,8 +69,12 @@ import { SpotifyTrackClient } from "./infrastructure/external/spotify-track.clie
 import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
 import { AppEventBus } from "./infrastructure/messaging/app-event-bus";
+import { BullMqArtworkBackfillQueueService } from "./infrastructure/messaging/bullmq-artwork-backfill-queue.service";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
 import { ArtworkAssetsService } from "./infrastructure/services/artwork-assets.service";
+import { CacheArtworkSourceService } from "./infrastructure/services/cache-artwork-source.service";
+import { EmbeddedArtworkSourceService } from "./infrastructure/services/embedded-artwork-source.service";
+import { FileSystemArtworkSourceService } from "./infrastructure/services/file-system-artwork-source.service";
 import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
 import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
@@ -72,6 +83,7 @@ import { MetadataService } from "./infrastructure/services/metadata.service";
 import { getEnv } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
 import { ArtistController } from "./presentation/controllers/artist.controller";
+import { ArtworkBackfillController } from "./presentation/controllers/artwork-backfill.controller";
 import { AuthController } from "./presentation/controllers/auth.controller";
 import { EventsController } from "./presentation/controllers/events.controller";
 import { FeedController } from "./presentation/controllers/feed.controller";
@@ -116,6 +128,7 @@ const followedArtistRepository = new FollowedArtistRepository(prisma);
 const artistAlbumCacheRepository = new ArtistAlbumCacheRepository(prisma);
 const artistReleaseCacheRepository = new ArtistReleaseCacheRepository(prisma);
 const feedSyncStateRepository = new FeedSyncStateRepository(prisma);
+const artworkBackfillRepository = new PrismaArtworkBackfillRepository(prisma);
 const feedCacheEvictionRepository = new FeedCacheEvictionRepository(prisma);
 const feedCacheEvictionService = new FeedCacheEvictionService(feedCacheEvictionRepository);
 const feedRepository: FeedRepositoryPort = {
@@ -202,6 +215,7 @@ const metadataService = new MetadataService();
 const artworkAssetsService = new ArtworkAssetsService();
 
 const queueService = new BullMqTrackQueueService();
+const artworkBackfillQueueService = new BullMqArtworkBackfillQueueService();
 const eventBus = new AppEventBus();
 
 let spotifyUserLibraryService: ComposedSpotifyUserLibrary | null = null;
@@ -437,6 +451,37 @@ const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService);
 
 // Library Services
 const fileSystemScannerService = new FileSystemScannerService();
+const cacheArtworkSourceService = new CacheArtworkSourceService(prisma);
+const fileSystemArtworkSourceService = new FileSystemArtworkSourceService(
+  trackFileHelper,
+  artworkAssetsService,
+);
+const embeddedArtworkSourceService = new EmbeddedArtworkSourceService();
+const spotifyArtworkSourceService = new SpotifyArtworkSourceService(
+  spotifyArtistClient,
+  spotifyAlbumClient,
+  spotifySearchClient,
+);
+const processArtworkBackfillBatchUseCase = new ProcessArtworkBackfillBatchUseCase(
+  cacheArtworkSourceService,
+  fileSystemArtworkSourceService,
+  cacheArtworkSourceService,
+  embeddedArtworkSourceService,
+  spotifyArtworkSourceService,
+  artworkBackfillRepository,
+);
+const startArtworkBackfillUseCase = new StartArtworkBackfillUseCase(
+  artworkBackfillRepository,
+  artworkBackfillQueueService,
+);
+const pauseArtworkBackfillUseCase = new PauseArtworkBackfillUseCase(artworkBackfillRepository);
+const resumeArtworkBackfillUseCase = new ResumeArtworkBackfillUseCase(
+  artworkBackfillRepository,
+  artworkBackfillQueueService,
+);
+const getArtworkBackfillStatusUseCase = new GetArtworkBackfillStatusUseCase(
+  artworkBackfillRepository,
+);
 const scanLibraryUseCase = new ScanLibraryUseCase(
   fileSystemScannerService,
   trackFileHelper,
@@ -446,6 +491,12 @@ const libraryService = new LibraryService(scanLibraryUseCase);
 const libraryImageService = new FileSystemLibraryImageService(() => resolveDownloadsRoot());
 
 const libraryController = new LibraryController(libraryService, libraryImageService);
+const artworkBackfillController = new ArtworkBackfillController(
+  startArtworkBackfillUseCase,
+  pauseArtworkBackfillUseCase,
+  resumeArtworkBackfillUseCase,
+  getArtworkBackfillStatusUseCase,
+);
 const healthService = new HealthService(connectivityAdapter);
 
 const getArtistDetailUseCase = new GetArtistDetailUseCase(
@@ -553,6 +604,7 @@ export const container = {
   artistController,
   searchController,
   libraryController,
+  artworkBackfillController,
   settingsController,
   historyController,
   feedController,
@@ -581,4 +633,6 @@ export const container = {
   rescueStuckTracksUseCase,
   libraryService,
   feedRepository,
+  artworkBackfillRepository,
+  processArtworkBackfillBatchUseCase,
 };

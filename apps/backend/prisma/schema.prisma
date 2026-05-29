@@ -136,3 +136,24 @@ model SyncState {
   status     String    @default("idle")
   error      String?
 }
+
+model ArtworkBackfillRun {
+  id              String   @id @default(uuid())
+  status          String
+  phase           String
+  cursorKind      String
+  cursorValue     String?
+  totalCandidates Int      @default(0)
+  processed       Int      @default(0)
+  skippedExisting Int      @default(0)
+  written         Int      @default(0)
+  failed          Int      @default(0)
+  externalCalls   Int      @default(0)
+  rateLimitUntil  DateTime?
+  error           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([updatedAt])
+}
