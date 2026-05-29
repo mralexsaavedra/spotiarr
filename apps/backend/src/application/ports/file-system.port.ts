@@ -9,7 +9,7 @@ export interface TrackTags {
   trackNumber?: number;
   discNumber?: number;
   totalTracks?: number;
-  coverUrl?: string;
+  coverBuffer?: Buffer;
 }
 
 export interface FileSystemTrackPathPort {
@@ -26,7 +26,6 @@ export interface FileSystemScannerPort {
 
 export interface MetadataPort {
   writeTags(filePath: string, tags: TrackTags): Promise<void>;
-  saveCoverArt(directory: string, url: string, fileName?: string): Promise<void>;
 }
 
 export interface M3uPort {

@@ -28,6 +28,7 @@ interface AlbumMetadata {
   albumName: string;
   artistName: string;
   coverUrl?: string;
+  artistImageUrl?: string;
 }
 
 export class CreatePlaylistUseCase {
@@ -154,6 +155,8 @@ export class CreatePlaylistUseCase {
     const albumName = albumMetadata.albumName;
     const artistName = albumMetadata.artistName;
     const coverUrl = albumMetadata.coverUrl;
+    const artistImageUrl =
+      albumMetadata.artistImageUrl ?? tracks[0]?.primaryArtistImage ?? undefined;
 
     const playlist = new Playlist({
       id: crypto.randomUUID(),
@@ -164,7 +167,7 @@ export class CreatePlaylistUseCase {
       `${artistName} - ${albumName}`,
       PlaylistTypeEnum.Album,
       coverUrl,
-      undefined,
+      artistImageUrl,
       artistName,
       undefined,
     );
@@ -216,6 +219,8 @@ export class CreatePlaylistUseCase {
     const albumMetadata = await this.resolveAlbumMetadata(artistId, albumId);
     const artistName = albumMetadata.artistName;
     const coverUrl = albumMetadata.coverUrl;
+    const artistImageUrl =
+      albumMetadata.artistImageUrl ?? pickedTrack.primaryArtistImage ?? undefined;
 
     const trackName = pickedTrack.name ?? "Unknown Track";
 
@@ -228,7 +233,7 @@ export class CreatePlaylistUseCase {
       `${artistName} - ${trackName}`,
       PlaylistTypeEnum.Track,
       coverUrl,
-      undefined,
+      artistImageUrl,
       artistName,
       undefined,
     );
@@ -246,12 +251,16 @@ export class CreatePlaylistUseCase {
   }
 
   private async resolveAlbumMetadata(artistId: string, albumId: string): Promise<AlbumMetadata> {
+    const artist = await this.feedRepository?.getArtistBySpotifyId(artistId);
+    const artistImageUrl = artist?.image ?? undefined;
+
     const albumCache = await this.feedRepository?.getArtistAlbumWithArtist(artistId, albumId);
     if (albumCache) {
       return {
         albumName: albumCache.albumName,
         artistName: albumCache.artistName,
         coverUrl: albumCache.coverUrl ?? undefined,
+        artistImageUrl,
       };
     }
 
@@ -261,12 +270,14 @@ export class CreatePlaylistUseCase {
         albumName: releaseCache.albumName,
         artistName: releaseCache.artistName,
         coverUrl: releaseCache.coverUrl ?? undefined,
+        artistImageUrl,
       };
     }
 
     return {
       albumName: "Unknown Album",
       artistName: "Unknown Artist",
+      artistImageUrl,
     };
   }
 

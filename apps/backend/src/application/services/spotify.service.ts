@@ -2,7 +2,15 @@ import { NormalizedTrack, SpotifyPlaylist, SpotifySearchResults } from "@spotiar
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 
-type SpotifyArtistClientLike = { getArtistDetails(id: string): Promise<unknown> };
+type SpotifyArtistClientLike = {
+  getArtistDetails(id: string): Promise<{
+    name: string;
+    image: string | null;
+    spotifyUrl: string | null;
+    followers: number | null;
+    genres: string[];
+  }>;
+};
 type SpotifyTrackClientLike = { getTrackDetails(id: string): Promise<NormalizedTrack> };
 type SpotifyAlbumClientLike = {
   getAlbumTracks(id: string): Promise<NormalizedTrack[]>;
@@ -74,12 +82,20 @@ export class SpotifyService {
       if (urlType === SpotifyUrlType.Track) {
         const trackId = SpotifyUrlHelper.extractId(spotifyUrl);
         const track = await this.deps.trackClient.getTrackDetails(trackId);
-        return { name: track.name, tracks: [track], image: track.albumCoverUrl ?? "", type };
+        const [enrichedTrack] = await this.populatePrimaryArtistImages([track]);
+        return {
+          name: enrichedTrack.name,
+          tracks: [enrichedTrack],
+          image: enrichedTrack.albumCoverUrl ?? "",
+          type,
+        };
       }
 
       if (urlType === SpotifyUrlType.Album) {
         const albumId = SpotifyUrlHelper.extractId(spotifyUrl);
-        const tracks = await this.deps.albumClient.getAlbumTracks(albumId);
+        const tracks = await this.populatePrimaryArtistImages(
+          await this.deps.albumClient.getAlbumTracks(albumId),
+        );
         return {
           name: tracks[0]?.album || "Unknown Album",
           tracks: tracks || [],
@@ -114,6 +130,42 @@ export class SpotifyService {
       console.error(`Error getting playlist details: ${toErrorMessage(error)}`);
       throw error;
     }
+  }
+
+  private async populatePrimaryArtistImages(tracks: PlaylistTrack[]): Promise<PlaylistTrack[]> {
+    const artistImageCache = new Map<string, Promise<string | null>>();
+
+    return Promise.all(
+      tracks.map(async (track) => {
+        if (track.primaryArtistImage) {
+          return track;
+        }
+
+        const primaryArtistUrl = track.artists[0]?.url;
+        if (!primaryArtistUrl) {
+          return track;
+        }
+
+        try {
+          const artistId = SpotifyUrlHelper.extractId(primaryArtistUrl);
+
+          if (!artistImageCache.has(artistId)) {
+            artistImageCache.set(
+              artistId,
+              this.deps.artistClient
+                .getArtistDetails(artistId)
+                .then((artist) => artist.image ?? null)
+                .catch(() => null),
+            );
+          }
+
+          const artistImage = await artistImageCache.get(artistId);
+          return artistImage ? { ...track, primaryArtistImage: artistImage } : track;
+        } catch {
+          return track;
+        }
+      }),
+    );
   }
 
   async getCoverImage(spotifyUrl: string): Promise<string> {

@@ -1,8 +1,4 @@
-import * as fs from "fs";
 import * as NodeID3 from "node-id3";
-import { join } from "path";
-import { AppError } from "@/domain/errors/app-error";
-import { getErrorMessage } from "../utils/error.utils";
 
 export class MetadataService {
   async writeTags(
@@ -16,7 +12,7 @@ export class MetadataService {
       trackNumber?: number;
       discNumber?: number;
       totalTracks?: number;
-      coverUrl?: string; // Optional: download and embed if present
+      coverBuffer?: Buffer;
     },
   ): Promise<void> {
     const {
@@ -28,7 +24,7 @@ export class MetadataService {
       trackNumber,
       discNumber,
       totalTracks,
-      coverUrl,
+      coverBuffer,
     } = fileTags;
 
     const tags: NodeID3.Tags = {
@@ -53,72 +49,18 @@ export class MetadataService {
       tags.partOfSet = discNumber.toString();
     }
 
-    if (coverUrl) {
-      try {
-        const res = await fetch(coverUrl);
-        const arrayBuf = await res.arrayBuffer();
-        const imageBuffer = Buffer.from(arrayBuf);
-
-        tags.image = {
-          mime: "image/jpeg",
-          type: { id: 3, name: "front cover" }, // Cover (front)
-          description: "cover",
-          imageBuffer,
-        };
-      } catch (error) {
-        console.warn(`Failed to download cover for embedding: ${getErrorMessage(error)}`);
-      }
+    if (coverBuffer) {
+      tags.image = {
+        mime: "image/jpeg",
+        type: { id: 3, name: "front cover" },
+        description: "cover",
+        imageBuffer: coverBuffer,
+      };
     }
 
     const success = NodeID3.write(tags, folderName);
     if (!success) {
       console.warn(`NodeID3.write returned false for ${folderName}`);
-    }
-  }
-
-  /**
-   * Saves cover art in the specified directory for Jellyfin detection
-   * Jellyfin looks for: cover.jpg
-   * Downloads the image only if it doesn't exist yet
-   */
-  async saveCoverArt(
-    directory: string,
-    coverUrl: string,
-    fileName: string = "cover.jpg",
-  ): Promise<void> {
-    if (!coverUrl) {
-      return;
-    }
-
-    try {
-      const coverFile = join(directory, fileName);
-
-      // Only download if the file doesn't exist
-      if (fs.existsSync(coverFile)) {
-        console.debug(`Cover art already exists in ${directory}`);
-        return;
-      }
-
-      // Download the image
-      console.debug(`Downloading cover art to ${directory}`);
-      const response = await fetch(coverUrl);
-
-      if (!response.ok) {
-        throw new AppError(
-          500,
-          "internal_server_error",
-          `Failed to download cover: ${response.statusText}`,
-        );
-      }
-
-      const imageBuffer = Buffer.from(await response.arrayBuffer());
-
-      // Save file
-      fs.writeFileSync(coverFile, imageBuffer);
-
-      console.debug(`✓ Cover art saved: ${coverFile}`);
-    } catch (error) {
-      console.warn(`Failed to save cover art in ${directory}: ${getErrorMessage(error)}`);
     }
   }
 }
