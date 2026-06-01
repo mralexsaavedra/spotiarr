@@ -1,3 +1,4 @@
+import type { ArtworkBackfillStartResponse } from "@spotiarr/shared";
 import type { ArtworkBackfillQueuePort } from "@/application/ports/artwork-backfill-queue.port";
 import type { ArtworkBackfillRepositoryPort } from "@/application/ports/artwork-backfill-repository.port";
 import { AppError } from "@/domain/errors/app-error";
@@ -8,7 +9,7 @@ export class StartArtworkBackfillUseCase {
     private readonly queuePort: ArtworkBackfillQueuePort,
   ) {}
 
-  async execute(): Promise<{ runId: string; status: "running" }> {
+  async execute(): Promise<ArtworkBackfillStartResponse> {
     const activeRun = await this.backfillRepository.getActiveRun();
     if (
       activeRun &&

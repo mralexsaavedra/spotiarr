@@ -5,12 +5,25 @@ import { Loading } from "@/components/atoms/Loading";
 import { EmptyState } from "@/components/molecules/EmptyState";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { StatCard } from "@/components/molecules/StatCard";
+import { ArtworkBackfillStatusIndicator } from "@/components/organisms/ArtworkBackfillStatusIndicator";
 import { LibraryArtistList } from "@/components/organisms/LibraryArtistList";
+import { ScanLibraryModal } from "@/components/organisms/ScanLibraryModal";
 import { useHomeController } from "@/hooks/controllers/useHomeController";
 
 export const Home: FC = () => {
-  const { t, stats, artists, isLoading, isScanning, handleScan, handleArtistClick } =
-    useHomeController();
+  const {
+    t,
+    stats,
+    artists,
+    isLoading,
+    isScanning,
+    isScanModalOpen,
+    artworkBackfillStatus,
+    handleOpenScanModal,
+    handleCloseScanModal,
+    handleConfirmScan,
+    handleArtistClick,
+  } = useHomeController();
 
   return (
     <section className="bg-background w-full px-4 py-6 md:px-8">
@@ -24,7 +37,7 @@ export const Home: FC = () => {
               variant="primary"
               size="md"
               icon={faRotate}
-              onClick={handleScan}
+              onClick={handleOpenScanModal}
               disabled={isScanning}
               loading={isScanning}
             >
@@ -34,6 +47,8 @@ export const Home: FC = () => {
             </Button>
           }
         />
+
+        <ArtworkBackfillStatusIndicator status={artworkBackfillStatus} />
 
         {stats && (
           <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -55,7 +70,7 @@ export const Home: FC = () => {
               "Scan your downloads folder to populate your library.",
             )}
             action={
-              <Button onClick={handleScan} icon={faRotate} variant="primary">
+              <Button onClick={handleOpenScanModal} icon={faRotate} variant="primary">
                 {t("library.scanNow", "Scan Now")}
               </Button>
             }
@@ -63,6 +78,14 @@ export const Home: FC = () => {
         ) : (
           <LibraryArtistList artists={artists} onArtistClick={handleArtistClick} />
         )}
+
+        <ScanLibraryModal
+          isOpen={isScanModalOpen}
+          isSubmitting={isScanning}
+          backfillStatus={artworkBackfillStatus?.status ?? "idle"}
+          onCancel={handleCloseScanModal}
+          onConfirm={handleConfirmScan}
+        />
       </div>
     </section>
   );

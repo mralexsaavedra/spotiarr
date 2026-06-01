@@ -37,6 +37,7 @@ describe("runArtworkBackfillJob", () => {
       backfillRepository,
       processBatchUseCase: { execute: vi.fn() } as any,
       eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
     };
 
     await runArtworkBackfillJob(deps, { runId: "run-1" });
@@ -60,6 +61,7 @@ describe("runArtworkBackfillJob", () => {
         execute: vi.fn().mockRejectedValue(new AppError(429, "spotify_rate_limited", "429")),
       } as any,
       eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
     };
 
     await runArtworkBackfillJob(deps, { runId: "run-1" });
@@ -131,6 +133,7 @@ describe("runArtworkBackfillJob", () => {
       backfillRepository,
       processBatchUseCase,
       eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
     };
 
     await runArtworkBackfillJob(deps, { runId: "run-1" });
@@ -199,6 +202,7 @@ describe("runArtworkBackfillJob", () => {
       backfillRepository,
       processBatchUseCase,
       eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
     };
 
     await runArtworkBackfillJob(deps, { runId: "run-1" });
@@ -211,5 +215,60 @@ describe("runArtworkBackfillJob", () => {
       2,
       expect.objectContaining({ allowExternalFallback: false }),
     );
+  });
+
+  it("clears library cache when run reaches completed status", async () => {
+    const backfillRepository = {
+      getById: vi
+        .fn()
+        .mockResolvedValueOnce(makeRun())
+        .mockResolvedValueOnce(makeRun())
+        .mockResolvedValueOnce(makeRun({ phase: "albums", cursorValue: null })),
+      updateStatus: vi
+        .fn()
+        .mockResolvedValue(makeRun({ status: ARTWORK_BACKFILL_STATUS.Completed })),
+    } as any;
+
+    const processBatchUseCase = {
+      execute: vi
+        .fn()
+        .mockResolvedValueOnce({
+          phase: "artists",
+          processed: 0,
+          skippedExisting: 0,
+          written: 0,
+          failed: 0,
+          externalCalls: 0,
+          cursorValue: null,
+        })
+        .mockResolvedValueOnce({
+          phase: "albums",
+          processed: 0,
+          skippedExisting: 0,
+          written: 0,
+          failed: 0,
+          externalCalls: 0,
+          cursorValue: null,
+        }),
+    } as any;
+
+    const libraryService = {
+      clearCache: vi.fn(),
+    } as any;
+
+    const deps = {
+      backfillRepository,
+      processBatchUseCase,
+      eventBus: { emit: vi.fn() } as any,
+      libraryService,
+    };
+
+    await runArtworkBackfillJob(deps, { runId: "run-1" });
+
+    expect(backfillRepository.updateStatus).toHaveBeenCalledWith({
+      runId: "run-1",
+      status: ARTWORK_BACKFILL_STATUS.Completed,
+    });
+    expect(libraryService.clearCache).toHaveBeenCalledTimes(1);
   });
 });

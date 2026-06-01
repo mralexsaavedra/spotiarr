@@ -1,39 +1,42 @@
 import type { PrismaClient } from "@prisma/client";
+import { readdir } from "node:fs/promises";
 import type {
   ArtworkBackfillCacheSourcePort,
   ArtworkBackfillCandidate,
   ArtworkBackfillCandidateSourcePort,
 } from "@/application/ports/artwork-backfill-sources.port";
+import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
 
 const normalize = (value: string): string => value.trim().toLowerCase();
 
 export class CacheArtworkSourceService
   implements ArtworkBackfillCacheSourcePort, ArtworkBackfillCandidateSourcePort
 {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly pathPort: FileSystemTrackPathPort,
+  ) {}
 
   async getArtistCandidates(
     limit: number,
     cursorValue?: string | null,
   ): Promise<ArtworkBackfillCandidate[]> {
-    const rows = await this.prisma.followedArtistCache.findMany({
-      orderBy: { spotifyId: "asc" },
-      take: Math.max(limit, 1),
-      ...(cursorValue
-        ? {
-            cursor: {
-              spotifyId: cursorValue.replace("artist:", ""),
-            },
-            skip: 1,
-          }
-        : {}),
-    });
+    const names = await this.readLibraryArtistNames();
+    const startAfter = cursorValue?.replace("artist:", "") ?? null;
+    const filtered = startAfter ? names.filter((name) => name > startAfter) : names;
+    const rows = filtered.slice(0, Math.max(limit, 1));
 
-    return rows.map((row) => ({
+    const followed = await this.prisma.followedArtistCache.findMany({
+      where: { name: { in: rows } },
+      select: { name: true, spotifyId: true },
+    });
+    const spotifyIdByName = new Map(followed.map((row) => [normalize(row.name), row.spotifyId]));
+
+    return rows.map((name) => ({
       type: "artist",
-      cursorValue: `artist:${row.spotifyId}`,
-      artistName: row.name,
-      artistSpotifyId: row.spotifyId,
+      cursorValue: `artist:${name}`,
+      artistName: name,
+      artistSpotifyId: spotifyIdByName.get(normalize(name)) ?? null,
     }));
   }
 
@@ -80,6 +83,24 @@ export class CacheArtworkSourceService
       if (direct?.imageUrl) return direct.imageUrl;
     }
 
+    const trackArtistImage = await this.prisma.track.findFirst({
+      where: {
+        OR: [{ artist: candidate.artistName }, { albumArtist: candidate.artistName }],
+        primaryArtistImageUrl: { not: null },
+      },
+      select: { primaryArtistImageUrl: true },
+    });
+    if (trackArtistImage?.primaryArtistImageUrl) return trackArtistImage.primaryArtistImageUrl;
+
+    const albumFallback = await this.prisma.track.findFirst({
+      where: {
+        OR: [{ artist: candidate.artistName }, { albumArtist: candidate.artistName }],
+        albumCoverUrl: { not: null },
+      },
+      select: { albumCoverUrl: true },
+    });
+    if (albumFallback?.albumCoverUrl) return albumFallback.albumCoverUrl;
+
     const fallback = await this.prisma.followedArtistCache.findMany({
       select: { name: true, imageUrl: true },
       where: { imageUrl: { not: null } },
@@ -98,6 +119,16 @@ export class CacheArtworkSourceService
       select: { artistImageUrl: true },
     });
     return playlist?.artistImageUrl ?? null;
+  }
+
+  private async readLibraryArtistNames(): Promise<string[]> {
+    const entries = await readdir(this.pathPort.getMusicLibraryPath(), { withFileTypes: true });
+
+    return entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name.trim())
+      .filter(Boolean)
+      .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: "base" }));
   }
 
   async findAlbumCoverUrl(candidate: ArtworkBackfillCandidate): Promise<string | null> {

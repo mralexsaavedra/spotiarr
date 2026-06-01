@@ -132,6 +132,32 @@
       "loading": "Loading album details...",
       "error": "Could not load album details.",
       "emptyTracks": "No tracks found for this album."
+    },
+    "scanModal": {
+      "title": "Scan library",
+      "description": "Choose whether to only scan your library or also start artwork backfill.",
+      "startBackfill": "Start artwork backfill after scan starts successfully",
+      "backfillActive": "Artwork backfill is already running. You can still run scan-only.",
+      "confirm": "Start scan",
+      "scanStarted": "Library scan started.",
+      "scanAndBackfillStarted": "Library scan and artwork backfill started.",
+      "retryBackfillStarted": "Artwork backfill started.",
+      "backfillAlreadyRunning": "Library scan started. Artwork backfill is already running.",
+      "retryBackfillAlreadyRunning": "Artwork backfill is already running.",
+      "partialFailure": "Library scan started, but artwork backfill could not be started.",
+      "scanFailed": "Failed to start library scan."
+    },
+    "artworkBackfill": {
+      "title": "Artwork backfill",
+      "progress": "{{processed}} processed",
+      "status": {
+        "running": "Running",
+        "pause_requested": "Pause requested",
+        "paused": "Paused",
+        "paused_rate_limited": "Paused (rate limited)",
+        "completed": "Completed",
+        "error": "Failed"
+      }
     }
   },
   "history": {

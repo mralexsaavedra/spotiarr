@@ -21,6 +21,7 @@ export interface ArtworkBackfillCandidateSourcePort {
 export interface ArtworkBackfillFileSystemSourcePort {
   hasArtistArtwork(artistName: string): Promise<boolean>;
   hasAlbumArtwork(artistName: string, albumName: string): Promise<boolean>;
+  findArtistAlbumArtwork(artistName: string): Promise<string | null>;
   writeArtistArtworkIfMissing(artistName: string, imageUrl: string): Promise<boolean>;
   writeAlbumArtworkIfMissing(
     artistName: string,
