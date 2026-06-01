@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.7.0...v1.7.1) (2026-06-01)
+
+### Bug Fixes
+
+- **album navigation**: Always resolve album detail through the Deezer-first cascade route (`/album/:artistId/:albumId`) instead of falling back to the Spotify-only `/preview` route when an album has a cached `spotifyUrl`. Spotify rate-limit storms no longer block browsing cached albums.
+- **playlist sync**: Skip the entire run when the Spotify app-token circuit breaker is open, and abort the loop on transient rate-limit errors instead of writing per-playlist error rows on every cycle.
+- **playlist sync**: Permanently unsubscribe playlists that return `playlist_not_accessible` or `playlist_not_found` (third-party playlists unreachable since the Spotify API February 2026 update), so they stop being retried every cycle.
+- **catalog sync**: Skip catalog sync runs when the Spotify circuit breaker is open instead of issuing the first request and tripping the breaker again.
+
 ## [1.7.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.6.0...v1.7.0) (2026-06-01)
 
 ### Features

@@ -1,7 +1,12 @@
 import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Playlist } from "@/domain/entities/playlist.entity";
+import { AppError } from "@/domain/errors/app-error";
 import { SyncSubscribedPlaylistsUseCase } from "./sync-subscribed-playlists.use-case";
+
+const spotifyCircuitBreaker = {
+  isOpen: vi.fn(() => false),
+};
 
 describe("SyncSubscribedPlaylistsUseCase", () => {
   const playlist = new Playlist({
@@ -33,6 +38,7 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    spotifyCircuitBreaker.isOpen.mockReturnValue(false);
     playlistRepository.findAll.mockResolvedValue([playlist]);
     playlistRepository.save.mockResolvedValue(undefined);
     playlistRepository.update.mockResolvedValue(undefined);
@@ -71,10 +77,83 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
       spotifyService as never,
       trackService as never,
       eventBus as never,
+      spotifyCircuitBreaker as never,
     );
 
     await useCase.execute();
 
     expect(trackService.create).not.toHaveBeenCalled();
+  });
+
+  it("skips the run entirely when the Spotify circuit breaker is open", async () => {
+    spotifyCircuitBreaker.isOpen.mockReturnValue(true);
+
+    const useCase = new SyncSubscribedPlaylistsUseCase(
+      playlistRepository as never,
+      spotifyService as never,
+      trackService as never,
+      eventBus as never,
+      spotifyCircuitBreaker as never,
+    );
+
+    await useCase.execute();
+
+    expect(playlistRepository.findAll).not.toHaveBeenCalled();
+    expect(spotifyService.getPlaylistDetail).not.toHaveBeenCalled();
+  });
+
+  it("unsubscribes 3rd-party playlists permanently on playlist_not_accessible", async () => {
+    const thirdParty = new Playlist({
+      id: "other-user-playlist",
+      spotifyUrl: "https://open.spotify.com/playlist/other-user-playlist",
+      subscribed: true,
+      type: PlaylistTypeEnum.Playlist,
+      name: "Foreign",
+    });
+    playlistRepository.findAll.mockResolvedValue([thirdParty]);
+    spotifyService.getPlaylistDetail.mockRejectedValue(
+      new AppError(403, "playlist_not_accessible", "belongs to another user"),
+    );
+
+    const useCase = new SyncSubscribedPlaylistsUseCase(
+      playlistRepository as never,
+      spotifyService as never,
+      trackService as never,
+      eventBus as never,
+      spotifyCircuitBreaker as never,
+    );
+
+    await useCase.execute();
+
+    expect(thirdParty.subscribed).toBe(false);
+    expect(thirdParty.error).toBe("belongs to another user");
+    expect(playlistRepository.update).toHaveBeenCalledWith(thirdParty.id, thirdParty);
+  });
+
+  it("aborts the loop on circuit_open instead of marking every playlist as errored", async () => {
+    const second = new Playlist({
+      id: "playlist-2",
+      spotifyUrl: "https://open.spotify.com/playlist/playlist-2",
+      subscribed: true,
+      type: PlaylistTypeEnum.Playlist,
+      name: "Second",
+    });
+    playlistRepository.findAll.mockResolvedValue([playlist, second]);
+    spotifyService.getPlaylistDetail.mockRejectedValue(
+      new AppError(503, "circuit_open", "Spotify rate limit circuit breaker is open"),
+    );
+
+    const useCase = new SyncSubscribedPlaylistsUseCase(
+      playlistRepository as never,
+      spotifyService as never,
+      trackService as never,
+      eventBus as never,
+      spotifyCircuitBreaker as never,
+    );
+
+    await useCase.execute();
+
+    expect(spotifyService.getPlaylistDetail).toHaveBeenCalledTimes(1);
+    expect(playlistRepository.update).not.toHaveBeenCalled();
   });
 });

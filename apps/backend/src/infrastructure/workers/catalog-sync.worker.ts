@@ -1,6 +1,7 @@
 import { Worker } from "bullmq";
 import { SYNC_STATUS } from "@/application/ports/feed-repository.port";
 import { container } from "@/container";
+import { isAppTokenCircuitOpen } from "@/infrastructure/external/spotify-http.client";
 import { getEnv } from "../setup/environment";
 import { CATALOG_SYNC_QUEUE } from "../setup/queues";
 
@@ -28,6 +29,14 @@ export function createCatalogSyncWorker(): Worker {
   const worker = new Worker(
     CATALOG_SYNC_QUEUE,
     async () => {
+      if (isAppTokenCircuitOpen()) {
+        console.warn(
+          "[CatalogSyncWorker] Skipping run — Spotify circuit breaker is open. Will retry on next scheduled tick.",
+        );
+        await feedRepository.setCatalogSyncState(SYNC_STATUS.Idle);
+        return;
+      }
+
       await feedRepository.setCatalogSyncState(SYNC_STATUS.Running);
 
       try {

@@ -61,6 +61,7 @@ import { SpotifyArtistCatalogService } from "./infrastructure/external/spotify-a
 import { SpotifyArtistClient } from "./infrastructure/external/spotify-artist.client";
 import { SpotifyArtworkSourceService } from "./infrastructure/external/spotify-artwork-source.service";
 import { SpotifyAuthService } from "./infrastructure/external/spotify-auth.service";
+import { SpotifyCircuitBreakerAdapter } from "./infrastructure/external/spotify-circuit-breaker.adapter";
 import { SpotifyFollowedArtistsService } from "./infrastructure/external/spotify-followed-artists.service";
 import { SpotifyPlaylistLibraryService } from "./infrastructure/external/spotify-playlist-library.service";
 import { SpotifyPlaylistClient } from "./infrastructure/external/spotify-playlist.client";
@@ -435,11 +436,14 @@ const getPlaylistsUseCase = new GetPlaylistsUseCase(playlistRepository);
 const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
 const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
 
+const spotifyCircuitBreakerAdapter = new SpotifyCircuitBreakerAdapter();
+
 const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
   playlistRepository,
   spotifyServiceSync,
   trackService,
   eventBus,
+  spotifyCircuitBreakerAdapter,
 );
 
 const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
