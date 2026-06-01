@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.6.0...v1.7.0) (2026-06-01)
+
+### Features
+
+- **Library artwork backfill**: Added a safe background artwork backfill for existing Jellyfin/Plex library folders, with local/cache-first artist and album resolution, resumable progress, and conservative Spotify fallback only when cheaper sources miss. ([ac6faba](https://github.com/mralexsaavedra/spotiarr/commit/ac6faba0139f7cdf8df267e86db27c8d51a1e4a5))
+- **Library scan UX**: The library view now offers a modal flow to choose between scan-only and scan-plus-artwork-backfill, plus live backfill status in the UI. ([1b95992](https://github.com/mralexsaavedra/spotiarr/commit/1b95992522bb335a46f88b27de434a9397e340ca))
+- **Album browsing**: Added a dedicated library album detail route/page so downloaded albums can be explored directly from the built-in library. ([9de0139](https://github.com/mralexsaavedra/spotiarr/commit/9de01391e76dcab84bc793501cea0fc0ffa5dda5))
+- **Library cards refresh**: Redesigned library artist/album cards and images so the built-in library is easier to browse visually. ([376928e](https://github.com/mralexsaavedra/spotiarr/commit/376928eb54bb49266af0da76a346c6ba5114100d))
+
+### Bug Fixes
+
+- **Artwork reliability**: Library scans now extract embedded album artwork more reliably, backfill refreshes cached library data when new files are written, and non-followed artists already present in the library can also receive `folder.jpg` artwork. ([a69135c](https://github.com/mralexsaavedra/spotiarr/commit/a69135cfb12118a909d858b230f8e7605910fb49), [ff77ef4](https://github.com/mralexsaavedra/spotiarr/commit/ff77ef4cb9933ddf89bce7cd4e0bd74349c3ad65), [58f3b06](https://github.com/mralexsaavedra/spotiarr/commit/58f3b061e10b19d5dfa4bea22bfbfda54504cf50))
+
 ## [1.6.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.5.1...v1.6.0) (2026-05-28)
 
 ### Features
