@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.7.1...v1.7.2) (2026-06-01)
+
+### Bug Fixes
+
+- **ci**: Build `linux/arm64` images on the native `ubuntu-24.04-arm` runner instead of QEMU-emulated arm64 on an amd64 runner, and merge the per-arch digests into the multi-arch manifest. The `v1.7.1` Docker build hung for over an hour in QEMU and was never published; this release republishes the same fixes under a Docker image that actually exists.
+
+### Notes
+
+- Functional changes are identical to `v1.7.1` (Spotify rate-limit resilience + unified album navigation). Only the publish pipeline changed.
+
 ## [1.7.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.7.0...v1.7.1) (2026-06-01)
 
 ### Bug Fixes
