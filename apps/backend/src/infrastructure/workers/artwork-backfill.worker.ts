@@ -21,13 +21,14 @@ export interface ArtworkBackfillWorkerDependencies {
   backfillRepository: typeof container.artworkBackfillRepository;
   processBatchUseCase: ProcessArtworkBackfillBatchUseCase;
   eventBus: typeof container.eventBus;
+  libraryService: Pick<typeof container.libraryService, "clearCache">;
 }
 
 export async function runArtworkBackfillJob(
   deps: ArtworkBackfillWorkerDependencies,
   data: JobData,
 ): Promise<void> {
-  const { backfillRepository, processBatchUseCase, eventBus } = deps;
+  const { backfillRepository, processBatchUseCase, eventBus, libraryService } = deps;
   const run = await backfillRepository.getById(data.runId);
   if (!run || run.status !== ARTWORK_BACKFILL_STATUS.Running) return;
 
@@ -70,6 +71,7 @@ export async function runArtworkBackfillJob(
           runId: run.id,
           status: ARTWORK_BACKFILL_STATUS.Completed,
         });
+        libraryService.clearCache();
         eventBus.emit("artwork-backfill-updated", { runId: run.id, status: "completed" });
         return;
       }
@@ -111,7 +113,12 @@ function isRateLimited(error: unknown): boolean {
 }
 
 export function createArtworkBackfillWorker(): Worker {
-  const { artworkBackfillRepository, processArtworkBackfillBatchUseCase, eventBus } = container;
+  const {
+    artworkBackfillRepository,
+    processArtworkBackfillBatchUseCase,
+    eventBus,
+    libraryService,
+  } = container;
 
   const worker = new Worker(
     ARTWORK_BACKFILL_QUEUE,
@@ -122,6 +129,7 @@ export function createArtworkBackfillWorker(): Worker {
           backfillRepository: artworkBackfillRepository,
           processBatchUseCase: processArtworkBackfillBatchUseCase,
           eventBus,
+          libraryService,
         },
         data,
       );
