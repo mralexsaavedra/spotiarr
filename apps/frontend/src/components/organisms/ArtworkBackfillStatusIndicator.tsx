@@ -13,7 +13,6 @@ export const ArtworkBackfillStatusIndicator: FC<ArtworkBackfillStatusIndicatorPr
 
   if (!status || status.status === "idle") return null;
 
-  const progress = status.totals > 0 ? Math.round((status.processed / status.totals) * 100) : 0;
   const localizedStatus = t(`library.artworkBackfill.status.${status.status}`, status.status);
 
   return (
@@ -22,10 +21,8 @@ export const ArtworkBackfillStatusIndicator: FC<ArtworkBackfillStatusIndicatorPr
         {t("library.artworkBackfill.title", "Artwork backfill")} · {localizedStatus}
       </p>
       <p className="text-text-subtle">
-        {t("library.artworkBackfill.progress", "{{processed}} / {{totals}} ({{progress}}%)", {
+        {t("library.artworkBackfill.progress", "{{processed}} processed", {
           processed: status.processed,
-          totals: status.totals,
-          progress,
         })}
       </p>
     </div>

@@ -118,7 +118,7 @@
     "tracks": "Canciones",
     "size": "Tamaño Total",
     "emptyTitle": "La biblioteca está vacía",
-    "emptyDescription": "Escaneá o reescaneá tu carpeta de descargas para poblar tu biblioteca y carátulas.",
+    "emptyDescription": "Escanea o vuelve a escanear tu carpeta de descargas para rellenar tu biblioteca y las carátulas.",
     "scanNow": "Escanear Ahora",
     "artistNotFound": "Artista no encontrado",
     "artistNotFoundDescription": "No se pudieron cargar los detalles del artista.",
@@ -135,9 +135,9 @@
     },
     "scanModal": {
       "title": "Escanear biblioteca",
-      "description": "Elegí si querés solo escanear tu biblioteca o también iniciar el backfill de carátulas.",
+      "description": "Elige si quieres solo escanear tu biblioteca o también iniciar el backfill de carátulas.",
       "startBackfill": "Iniciar backfill de carátulas después de que el escaneo arranque correctamente",
-      "backfillActive": "El backfill de carátulas ya está en ejecución. Igual podés ejecutar solo escaneo.",
+      "backfillActive": "El backfill de carátulas ya está en ejecución. Aun así puedes ejecutar solo el escaneo.",
       "confirm": "Iniciar escaneo",
       "scanStarted": "Se inició el escaneo de la biblioteca.",
       "scanAndBackfillStarted": "Se iniciaron el escaneo y el backfill de carátulas.",
@@ -149,7 +149,7 @@
     },
     "artworkBackfill": {
       "title": "Backfill de carátulas",
-      "progress": "{{processed}} / {{totals}} ({{progress}}%)",
+      "progress": "{{processed}} procesados",
       "status": {
         "running": "En ejecución",
         "pause_requested": "Pausa solicitada",

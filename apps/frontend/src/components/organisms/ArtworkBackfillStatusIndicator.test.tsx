@@ -51,6 +51,8 @@ describe("ArtworkBackfillStatusIndicator", () => {
 
     expect(screen.getByText(/Artwork backfill · Failed/)).toBeDefined();
     expect(screen.queryByText("error")).toBeNull();
+    expect(screen.getByText("20 processed")).toBeDefined();
+    expect(screen.queryByText(/%/)).toBeNull();
   });
 
   it("renders localized terminal error status in Spanish", async () => {
@@ -79,5 +81,7 @@ describe("ArtworkBackfillStatusIndicator", () => {
 
     expect(screen.getByText(/Backfill de carátulas · Fallido/)).toBeDefined();
     expect(screen.queryByText("error")).toBeNull();
+    expect(screen.getByText("20 procesados")).toBeDefined();
+    expect(screen.queryByText(/%/)).toBeNull();
   });
 });

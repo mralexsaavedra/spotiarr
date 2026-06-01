@@ -3,6 +3,20 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { queryKeys } from "@/hooks/queryKeys";
 
+interface ArtworkBackfillUpdatedEvent {
+  status?: string;
+}
+
+const parseArtworkBackfillEvent = (event: MessageEvent): ArtworkBackfillUpdatedEvent => {
+  if (!event.data) return {};
+
+  try {
+    return JSON.parse(String(event.data)) as ArtworkBackfillUpdatedEvent;
+  } catch {
+    return {};
+  }
+};
+
 export const useServerEvents = () => {
   const queryClient = useQueryClient();
 
@@ -43,8 +57,21 @@ export const useServerEvents = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.followedArtists });
     });
 
-    eventSource.addEventListener("artwork-backfill-updated", () => {
+    eventSource.addEventListener("artwork-backfill-updated", (event) => {
+      const payload = parseArtworkBackfillEvent(event);
+
       queryClient.invalidateQueries({ queryKey: queryKeys.artworkBackfillStatus });
+
+      if (payload.status === "completed") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.libraryStats });
+        queryClient.invalidateQueries({ queryKey: queryKeys.libraryArtists });
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0] === "library" &&
+            query.queryKey[1] === "artist",
+        });
+      }
     });
 
     eventSource.onerror = (error) => {

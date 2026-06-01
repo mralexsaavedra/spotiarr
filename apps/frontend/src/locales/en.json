@@ -149,7 +149,7 @@
     },
     "artworkBackfill": {
       "title": "Artwork backfill",
-      "progress": "{{processed}} / {{totals}} ({{progress}}%)",
+      "progress": "{{processed}} processed",
       "status": {
         "running": "Running",
         "pause_requested": "Pause requested",
