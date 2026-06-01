@@ -44,6 +44,7 @@ function build() {
   const fileSystemSource: ArtworkBackfillFileSystemSourcePort = {
     hasArtistArtwork: vi.fn().mockResolvedValue(false),
     hasAlbumArtwork: vi.fn().mockResolvedValue(false),
+    findArtistAlbumArtwork: vi.fn().mockResolvedValue(null),
     writeArtistArtworkIfMissing: vi.fn().mockResolvedValue(false),
     writeAlbumArtworkIfMissing: vi.fn().mockResolvedValue(false),
     listAlbumTrackPaths: vi.fn().mockResolvedValue([]),
@@ -190,6 +191,31 @@ describe("ProcessArtworkBackfillBatchUseCase", () => {
     expect(ctx.fileSystemSource.writeArtistArtworkIfMissing).toHaveBeenCalledWith(
       "Artist A",
       "https://img/spotify-artist.jpg",
+    );
+  });
+
+  it("uses local album artwork as artist fallback before spotify", async () => {
+    const ctx = build();
+    vi.mocked(ctx.candidateSource.getArtistCandidates).mockResolvedValue([artistCandidate()]);
+    vi.mocked(ctx.cacheSource.findArtistImageUrl).mockResolvedValue(null);
+    vi.mocked(ctx.fileSystemSource.findArtistAlbumArtwork).mockResolvedValue(
+      "file:///music/Artist A/Album One/cover.jpg",
+    );
+    vi.mocked(ctx.fileSystemSource.writeArtistArtworkIfMissing).mockResolvedValue(true);
+
+    const result = await ctx.useCase.execute({
+      runId: "run-4b",
+      phase: "artists",
+      limit: 10,
+      allowExternalFallback: true,
+    });
+
+    expect(result.written).toBe(1);
+    expect(result.externalCalls).toBe(0);
+    expect(ctx.spotifySource.findArtistImageUrl).not.toHaveBeenCalled();
+    expect(ctx.fileSystemSource.writeArtistArtworkIfMissing).toHaveBeenCalledWith(
+      "Artist A",
+      "file:///music/Artist A/Album One/cover.jpg",
     );
   });
 

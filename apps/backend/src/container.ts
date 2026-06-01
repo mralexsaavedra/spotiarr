@@ -451,7 +451,7 @@ const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService);
 
 // Library Services
 const fileSystemScannerService = new FileSystemScannerService();
-const cacheArtworkSourceService = new CacheArtworkSourceService(prisma);
+const cacheArtworkSourceService = new CacheArtworkSourceService(prisma, trackFileHelper);
 const fileSystemArtworkSourceService = new FileSystemArtworkSourceService(
   trackFileHelper,
   artworkAssetsService,

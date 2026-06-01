@@ -113,6 +113,17 @@ export class ProcessArtworkBackfillBatchUseCase {
         if (written) return "written";
       }
 
+      const localAlbumArtwork = await this.fileSystemSource.findArtistAlbumArtwork(
+        candidate.artistName,
+      );
+      if (localAlbumArtwork) {
+        const written = await this.fileSystemSource.writeArtistArtworkIfMissing(
+          candidate.artistName,
+          localAlbumArtwork,
+        );
+        if (written) return "written";
+      }
+
       if (allowExternalFallback) {
         const spotifyImage = await this.spotifySource.findArtistImageUrl(candidate);
         if (!spotifyImage) return "failed";

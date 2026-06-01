@@ -18,6 +18,22 @@ export class FileSystemArtworkSourceService implements ArtworkBackfillFileSystem
     return this.exists(join(this.pathPort.getAlbumFolderPath(artistName, albumName), "cover.jpg"));
   }
 
+  async findArtistAlbumArtwork(artistName: string): Promise<string | null> {
+    const artistPath = this.pathPort.getArtistFolderPath(artistName);
+    const entries = await this.readDirectorySafe(artistPath);
+
+    for (const entry of entries.filter((item) => item.isDirectory())) {
+      const albumPath = join(artistPath, entry.name);
+      const coverPath = join(albumPath, "cover.jpg");
+
+      if (await this.exists(coverPath)) {
+        return `file://${coverPath}`;
+      }
+    }
+
+    return null;
+  }
+
   async writeArtistArtworkIfMissing(artistName: string, imageUrl: string): Promise<boolean> {
     const targetPath = join(this.pathPort.getArtistFolderPath(artistName), "folder.jpg");
     return this.writeIfMissing(targetPath, imageUrl);
