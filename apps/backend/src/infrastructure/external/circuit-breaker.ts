@@ -59,6 +59,15 @@ export class CircuitBreaker {
     this.onOpenCallback = fn;
   }
 
+  isOpen(): boolean {
+    if (this.state !== CIRCUIT_BREAKER_STATE.OPEN) return false;
+    return Date.now() < this.openUntil;
+  }
+
+  getOpenUntil(): number {
+    return this.openUntil;
+  }
+
   /**
    * Restore persisted open-until timestamp after construction.
    * Safe to call even if the window has already passed — no-op in that case.

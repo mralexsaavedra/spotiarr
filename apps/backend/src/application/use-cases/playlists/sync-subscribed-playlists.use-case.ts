@@ -1,9 +1,16 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
+import type { SpotifyCircuitBreakerPort } from "@/application/ports/spotify-circuit-breaker.port";
 import { SpotifyService, type PlaylistTrack } from "@/application/services/spotify.service";
+import { AppError } from "@/domain/errors/app-error";
 import { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackService } from "../../services/track.service";
+
+const PERMANENTLY_UNAVAILABLE_ERROR_CODES = new Set([
+  "playlist_not_accessible",
+  "playlist_not_found",
+]);
 
 function getTrackIdentityUrl(track: { trackUrl?: string; spotifyUrl?: string }): string {
   return track.trackUrl ?? track.spotifyUrl ?? "undefined";
@@ -15,9 +22,17 @@ export class SyncSubscribedPlaylistsUseCase {
     private readonly spotifyService: SpotifyService,
     private readonly trackService: TrackService,
     private readonly eventBus: EventBus,
+    private readonly spotifyCircuitBreaker: SpotifyCircuitBreakerPort,
   ) {}
 
   async execute(): Promise<void> {
+    if (this.spotifyCircuitBreaker.isOpen()) {
+      console.warn(
+        "[SyncSubscribedPlaylists] Skipping run — Spotify circuit breaker is open. Will retry on next scheduled tick.",
+      );
+      return;
+    }
+
     const subscribedPlaylists = await this.playlistRepository.findAll(false, { subscribed: true });
 
     for (const playlist of subscribedPlaylists) {
@@ -42,7 +57,31 @@ export class SyncSubscribedPlaylistsUseCase {
         );
         await this.playlistRepository.save(playlist);
       } catch (error) {
-        playlist.markAsError(error instanceof Error ? error.message : String(error));
+        const message = error instanceof Error ? error.message : String(error);
+        const errorCode = error instanceof AppError ? error.errorCode : undefined;
+
+        if (errorCode && PERMANENTLY_UNAVAILABLE_ERROR_CODES.has(errorCode)) {
+          // Permanent: 3rd-party playlists are unreachable since Spotify API
+          // Feb 2026 update. Unsubscribe so we stop retrying every cycle.
+          playlist.markAsUnsubscribed();
+          playlist.markAsError(message);
+          await this.playlistRepository.update(playlist.id, playlist);
+          console.warn(
+            `[SyncSubscribedPlaylists] Unsubscribed permanently-unavailable playlist ${playlist.id}: ${errorCode}`,
+          );
+          continue;
+        }
+
+        if (errorCode === "circuit_open" || errorCode === "spotify_rate_limited") {
+          // Transient: stop the loop entirely — every other playlist will fail
+          // for the same reason and we'll just spam writes.
+          console.warn(
+            "[SyncSubscribedPlaylists] Aborting run — Spotify rate limited. Will retry on next scheduled tick.",
+          );
+          return;
+        }
+
+        playlist.markAsError(message);
         await this.playlistRepository.update(playlist.id, playlist);
         continue;
       }

@@ -108,6 +108,14 @@ const appTokenCircuitBreaker = new CircuitBreaker();
  * @param initialOpenUntilMs - timestamp (ms) read from persistent storage
  * @param onOpen             - called whenever the circuit opens; persist this value
  */
+export function isAppTokenCircuitOpen(): boolean {
+  return appTokenCircuitBreaker.isOpen();
+}
+
+export function getAppTokenCircuitOpenUntil(): number {
+  return appTokenCircuitBreaker.getOpenUntil();
+}
+
 export function configureAppTokenCircuitBreaker(
   initialOpenUntilMs: number,
   onOpen: (openUntilMs: number) => void,
