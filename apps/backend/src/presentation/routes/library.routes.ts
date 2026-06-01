@@ -1,6 +1,8 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
+import { validate } from "../middleware/validate";
+import { libraryAudioRequestSchema } from "./schemas/library.schema";
 
 const router: ExpressRouter = Router();
 const { libraryController, artworkBackfillController } = container;
@@ -16,6 +18,11 @@ router.get("/artists/:name", asyncHandler(libraryController.getArtist));
 
 // GET /api/library/image?path=...
 router.get("/image", asyncHandler(libraryController.getImage));
+router.get(
+  "/audio",
+  validate(libraryAudioRequestSchema),
+  asyncHandler(libraryController.streamAudio),
+);
 
 // POST /api/library/scan - Trigger a manual library scan
 router.post("/scan", asyncHandler(libraryController.scan));

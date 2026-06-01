@@ -79,6 +79,7 @@ import { FileSystemArtworkSourceService } from "./infrastructure/services/file-s
 import { FileSystemM3uService } from "./infrastructure/services/file-system-m3u.service";
 import { FileSystemScannerService } from "./infrastructure/services/file-system-scanner.service";
 import { FileSystemTrackPathService } from "./infrastructure/services/file-system-track-path.service";
+import { FileSystemLibraryAudioService } from "./infrastructure/services/library-audio.service";
 import { FileSystemLibraryImageService } from "./infrastructure/services/library-image.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
 import { getEnv } from "./infrastructure/setup/environment";
@@ -492,9 +493,14 @@ const scanLibraryUseCase = new ScanLibraryUseCase(
   trackRepository,
 );
 const libraryService = new LibraryService(scanLibraryUseCase);
+const libraryAudioService = new FileSystemLibraryAudioService(() => resolveDownloadsRoot());
 const libraryImageService = new FileSystemLibraryImageService(() => resolveDownloadsRoot());
 
-const libraryController = new LibraryController(libraryService, libraryImageService);
+const libraryController = new LibraryController(
+  libraryService,
+  libraryAudioService,
+  libraryImageService,
+);
 const artworkBackfillController = new ArtworkBackfillController(
   startArtworkBackfillUseCase,
   pauseArtworkBackfillUseCase,
