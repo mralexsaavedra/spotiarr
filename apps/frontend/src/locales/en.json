@@ -131,7 +131,15 @@
       "tracks": "tracks",
       "loading": "Loading album details...",
       "error": "Could not load album details.",
-      "emptyTracks": "No tracks found for this album."
+      "emptyTracks": "No tracks found for this album.",
+      "play": "Play",
+      "pause": "Pause",
+      "playTrack": "Play track",
+      "pauseTrack": "Pause track",
+      "playbackBlocked": "Your browser blocked playback. Try pressing play again or checking autoplay permissions.",
+      "playbackFailed": "Playback failed for this track. Try again.",
+      "playbackUnavailable": "This track could not be loaded for playback. The source may be unavailable or unsupported.",
+      "playbackUnsupported": "Playback is not supported for this track format in your browser."
     },
     "scanModal": {
       "title": "Scan library",

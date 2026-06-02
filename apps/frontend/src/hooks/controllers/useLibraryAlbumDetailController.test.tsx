@@ -1,5 +1,5 @@
 import { LibraryArtist, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { generatePath } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { Path } from "@/routes/routes";
@@ -90,6 +90,7 @@ describe("useLibraryAlbumDetailController", () => {
     expect(result.current.tracks[0]?.status).toBe(TrackStatusEnum.Completed);
     expect(result.current.tracks[0]?.durationMs).toBe(180000);
     expect(result.current.tracks[1]?.durationMs).toBe(245000);
+    expect(result.current.tracks[0]?.trackUrl).toBe("/api/library/audio?path=%2Ftmp%2F01.mp3");
   });
 
   it("builds back link with raw artist name and router handles encoding once", () => {
@@ -136,5 +137,69 @@ describe("useLibraryAlbumDetailController", () => {
     expect(result.current.album).toBeUndefined();
     expect(result.current.isNotFound).toBe(true);
     expect(result.current.tracks).toEqual([]);
+  });
+
+  it("pauses and resets playback when route params change without unmount", () => {
+    const pause = vi.fn();
+    const audioElement = { pause } as unknown as HTMLAudioElement;
+
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    const { result, rerender } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.setAudioElement(audioElement);
+      result.current.onPlayTrack(result.current.tracks[0]!.id);
+      result.current.onAudioPlay();
+      result.current.onAudioError();
+    });
+
+    expect(result.current.currentTrackId).toBe(result.current.tracks[0]!.id);
+    expect(result.current.isPlaying).toBe(false);
+    expect(result.current.playbackError).toBe("library.album.playbackFailed");
+
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "Different%20Album",
+    });
+
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: {
+        ...makeArtist(),
+        albums: [
+          {
+            ...makeArtist().albums[0]!,
+            name: "Different Album",
+            path: "/library/sigur-ros/different-album",
+            tracks: [
+              {
+                ...makeArtist().albums[0]!.tracks[0]!,
+                filePath: "/tmp/different.mp3",
+                name: "Different Track",
+                album: "Different Album",
+              },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    rerender();
+
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(result.current.currentTrackId).toBeNull();
+    expect(result.current.isPlaying).toBe(false);
+    expect(result.current.playbackError).toBeNull();
   });
 });

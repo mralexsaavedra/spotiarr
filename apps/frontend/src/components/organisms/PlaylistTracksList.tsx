@@ -20,10 +20,24 @@ interface PlaylistTrackItemProps {
   status?: TrackStatusEnum;
   onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
+  onPlayTrack?: (trackId: string) => void;
+  onPauseTrack?: () => void;
+  currentTrackId?: string | null;
+  isPlaying?: boolean;
 }
 
 const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
-  ({ track, index, status, onRetryTrack, onDownloadTrack }) => {
+  ({
+    track,
+    index,
+    status,
+    onRetryTrack,
+    onDownloadTrack,
+    onPlayTrack,
+    onPauseTrack,
+    currentTrackId,
+    isPlaying,
+  }) => {
     const { t } = useTranslation();
     const artists = track.artists || [{ name: track.artist }];
 
@@ -50,6 +64,26 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
     const stopPropagation = useCallback((e: MouseEvent) => {
       e.stopPropagation();
     }, []);
+
+    const isCurrent = currentTrackId === track.id;
+
+    const handleTogglePlayback = useCallback(
+      (e: MouseEvent) => {
+        e.stopPropagation();
+
+        if (!onPlayTrack) {
+          return;
+        }
+
+        if (isCurrent && isPlaying && onPauseTrack) {
+          onPauseTrack();
+          return;
+        }
+
+        onPlayTrack(track.id);
+      },
+      [isCurrent, isPlaying, onPauseTrack, onPlayTrack, track.id],
+    );
 
     return (
       <div className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-md px-4 py-2 transition-colors hover:bg-white/10 md:grid-cols-[16px_1fr_1fr_180px]">
@@ -104,6 +138,20 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         {/* Duration & Actions */}
         <div className="flex items-center justify-end gap-4">
           <div className="text-text-secondary flex min-w-[40px] items-center justify-end gap-2 text-right text-sm tabular-nums">
+            {onPlayTrack ? (
+              <button
+                type="button"
+                onClick={handleTogglePlayback}
+                className="text-primary hover:text-primary/80 focus-visible:ring-primary rounded px-2 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                aria-label={
+                  isCurrent && isPlaying
+                    ? t("library.album.pauseTrack")
+                    : t("library.album.playTrack")
+                }
+              >
+                {isCurrent && isPlaying ? t("library.album.pause") : t("library.album.play")}
+              </button>
+            ) : null}
             {(status ?? track.status) === "completed" && (
               <FontAwesomeIcon
                 icon={faCircleCheck}
@@ -126,6 +174,10 @@ interface PlaylistTracksListProps {
   onLoadMoreTracks?: () => void;
   hasMoreTracks?: boolean;
   isLoadingMoreTracks?: boolean;
+  onPlayTrack?: (trackId: string) => void;
+  onPauseTrack?: () => void;
+  currentTrackId?: string | null;
+  isPlaying?: boolean;
 }
 
 export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
@@ -135,6 +187,10 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   onLoadMoreTracks,
   hasMoreTracks = false,
   isLoadingMoreTracks = false,
+  onPlayTrack,
+  onPauseTrack,
+  currentTrackId,
+  isPlaying = false,
 }) => {
   const { t } = useTranslation();
 
@@ -155,10 +211,22 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
           status={status}
           onRetryTrack={onRetryTrack}
           onDownloadTrack={onDownloadTrack}
+          onPlayTrack={onPlayTrack}
+          onPauseTrack={onPauseTrack}
+          currentTrackId={currentTrackId}
+          isPlaying={isPlaying}
         />
       );
     },
-    [onRetryTrack, onDownloadTrack, trackStatusesMap],
+    [
+      onRetryTrack,
+      onDownloadTrack,
+      onPlayTrack,
+      onPauseTrack,
+      currentTrackId,
+      isPlaying,
+      trackStatusesMap,
+    ],
   );
 
   return (

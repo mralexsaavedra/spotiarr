@@ -22,6 +22,10 @@ export interface AlbumPageLayoutProps {
   hasMoreTracks?: boolean;
   isLoadingMoreTracks?: boolean;
   onLoadMoreTracks?: () => void;
+  onPlayTrack?: (trackId: string) => void;
+  onPauseTrack?: () => void;
+  currentTrackId?: string | null;
+  isPlaying?: boolean;
 }
 
 export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
@@ -40,6 +44,10 @@ export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
   hasMoreTracks = false,
   isLoadingMoreTracks = false,
   onLoadMoreTracks,
+  onPlayTrack,
+  onPauseTrack,
+  currentTrackId,
+  isPlaying = false,
 }) => {
   return (
     <div className="bg-background text-text-primary flex-1">
@@ -70,6 +78,10 @@ export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
             onLoadMoreTracks={onLoadMoreTracks}
             hasMoreTracks={hasMoreTracks}
             isLoadingMoreTracks={isLoadingMoreTracks}
+            onPlayTrack={onPlayTrack}
+            onPauseTrack={onPauseTrack}
+            currentTrackId={currentTrackId}
+            isPlaying={isPlaying}
           />
         )}
       </div>

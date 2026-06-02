@@ -131,7 +131,15 @@
       "tracks": "canciones",
       "loading": "Cargando detalles del álbum...",
       "error": "No se pudieron cargar los detalles del álbum.",
-      "emptyTracks": "No se encontraron canciones para este álbum."
+      "emptyTracks": "No se encontraron canciones para este álbum.",
+      "play": "Reproducir",
+      "pause": "Pausar",
+      "playTrack": "Reproducir canción",
+      "pauseTrack": "Pausar canción",
+      "playbackBlocked": "Tu navegador bloqueó la reproducción. Probá reproducir de nuevo o revisá los permisos de autoplay.",
+      "playbackFailed": "La reproducción falló para esta canción. Probá de nuevo.",
+      "playbackUnavailable": "No se pudo cargar esta canción para reproducirla. La fuente puede no estar disponible o no ser compatible.",
+      "playbackUnsupported": "Este formato de audio no es compatible con tu navegador."
     },
     "scanModal": {
       "title": "Escanear biblioteca",

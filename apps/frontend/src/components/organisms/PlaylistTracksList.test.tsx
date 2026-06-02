@@ -1,0 +1,80 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { Track } from "@/types";
+import { PlaylistTracksList } from "./PlaylistTracksList";
+
+vi.mock("@/contexts/DownloadStatusContext", () => ({
+  useBulkTrackStatus: () => new Map<string, TrackStatusEnum>(),
+}));
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => key,
+    }),
+  };
+});
+
+vi.mock("../molecules/VirtualList", () => ({
+  VirtualList: ({
+    items,
+    renderItem,
+  }: {
+    items: Track[];
+    renderItem: (track: Track, index: number) => React.ReactNode;
+  }) => (
+    <div>
+      {items.map((item, index) => (
+        <div key={item.id}>{renderItem(item, index)}</div>
+      ))}
+    </div>
+  ),
+}));
+
+const tracks: Track[] = [
+  {
+    id: "track-1",
+    name: "Track 1",
+    artist: "Artist 1",
+    album: "Album 1",
+    durationMs: 120000,
+    status: TrackStatusEnum.Completed,
+    trackUrl: "/api/library/audio?path=%2Ftmp%2F01.mp3",
+  },
+];
+
+describe("PlaylistTracksList playback", () => {
+  it("renders a pause button for currently playing track", () => {
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId="track-1"
+        isPlaying={true}
+        onPlayTrack={vi.fn()}
+        onPauseTrack={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "library.album.pauseTrack" })).toBeTruthy();
+  });
+
+  it("calls onPlayTrack when play is pressed", () => {
+    const onPlayTrack = vi.fn();
+
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId={null}
+        isPlaying={false}
+        onPlayTrack={onPlayTrack}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "library.album.playTrack" }));
+    expect(onPlayTrack).toHaveBeenCalledWith("track-1");
+  });
+});
