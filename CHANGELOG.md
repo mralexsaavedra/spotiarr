@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.7.2...v1.8.0) (2026-06-02)
+
+### Features
+
+- **Library Playback**: Added a native audio player to the library album detail view, supporting seamless playback of downloaded tracks with assertive browser-restriction handling and error recovery.
+- **Secure Streaming**: Implemented a secure backend endpoint for streaming library audio files with proper range support and authentication.
+
 ## [1.7.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.7.1...v1.7.2) (2026-06-01)
 
 ### Bug Fixes

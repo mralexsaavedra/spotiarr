@@ -19,6 +19,15 @@ export const LibraryAlbumDetail: FC = () => {
     isNotFound,
     playlistType,
     backToArtistPath,
+    currentTrackId,
+    isPlaying,
+    playbackError,
+    setAudioElement,
+    onPlayTrack,
+    onPauseTrack,
+    onAudioError,
+    onAudioPlay,
+    onAudioPause,
   } = useLibraryAlbumDetailController();
 
   if (isLoading) {
@@ -86,9 +95,25 @@ export const LibraryAlbumDetail: FC = () => {
         }
         totalCount={tracks.length}
         tracks={tracks}
+        onPlayTrack={onPlayTrack}
+        onPauseTrack={onPauseTrack}
+        currentTrackId={currentTrackId}
+        isPlaying={isPlaying}
         emptyTitle={t("library.album.emptyTracks")}
         emptyDescription={t("library.album.emptyTracks")}
       />
+      <audio
+        ref={setAudioElement}
+        className="sr-only"
+        onError={onAudioError}
+        onPlay={onAudioPlay}
+        onPause={onAudioPause}
+      />
+      {playbackError ? (
+        <p className="text-text-secondary px-6 py-3 text-sm" role="alert" aria-live="assertive">
+          {t(playbackError)}
+        </p>
+      ) : null}
     </main>
   );
 };
