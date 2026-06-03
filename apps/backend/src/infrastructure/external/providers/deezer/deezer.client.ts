@@ -146,6 +146,16 @@ export class DeezerClient {
   }
 
   /**
+   * Fetch an artist directly by their Deezer numeric ID.
+   * Returns null on any error or non-OK response.
+   */
+  async getArtistById(deezerId: string | number): Promise<DeezerArtist | null> {
+    const result = await this.fetchJson<DeezerArtist>(`${DEEZER_API_BASE}/artist/${deezerId}`);
+    if (!result?.id) return null;
+    return result;
+  }
+
+  /**
    * Search for an album by artist name + album name and return the first exact match.
    */
   async searchAlbum(artistName: string, albumName: string): Promise<DeezerAlbum | null> {
