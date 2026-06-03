@@ -14,6 +14,7 @@ export interface TrackTags {
 
 export interface FileSystemTrackPathPort {
   getMusicLibraryPath(): string;
+  getTrackFileName(track: ITrack, playlistName?: string): Promise<string>;
   getFolderName(track: ITrack, playlistName?: string): Promise<string>;
   getPlaylistFolderPath(name: string): string;
   getArtistFolderPath(artist: string): string;

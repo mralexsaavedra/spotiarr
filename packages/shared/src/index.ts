@@ -82,6 +82,7 @@ export interface ITrack {
   totalTracks?: number;
   spotifyUrl?: string;
   trackUrl?: string;
+  audioUrl?: string;
   albumUrl?: string;
   durationMs?: number;
   artists?: TrackArtist[];
