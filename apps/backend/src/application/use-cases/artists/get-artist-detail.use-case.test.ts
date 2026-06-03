@@ -1,6 +1,7 @@
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { SpotifyArtistLookupPort } from "@/application/ports/artist-lookup.port";
+import type { DeezerArtistLookupPort } from "@/application/ports/deezer-artist-lookup.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import { AppError } from "@/domain/errors/app-error";
@@ -23,11 +24,20 @@ function makeRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
 function mockRepo(partial: Partial<FeedRepositoryPort> = {}): FeedRepositoryPort {
   return {
     getArtistBySpotifyId: vi.fn().mockResolvedValue(null),
+    getArtistByAnyId: vi.fn().mockResolvedValue(null),
     getArtistAlbumsFreshness: vi.fn().mockResolvedValue(null),
     getArtistAlbums: vi.fn().mockResolvedValue([]),
     upsertArtistAlbums: vi.fn().mockResolvedValue(undefined),
+    upsertArtists: vi.fn().mockResolvedValue(undefined),
     ...partial,
   } as unknown as FeedRepositoryPort;
+}
+
+function mockDeezerArtist(): DeezerArtistLookupPort {
+  return {
+    searchArtist: vi.fn().mockResolvedValue(null),
+    getArtistById: vi.fn().mockResolvedValue(null),
+  } as unknown as DeezerArtistLookupPort;
 }
 
 function mockFeedService(): ReleaseFeedPort {
@@ -61,12 +71,14 @@ describe("GetArtistDetailUseCase", () => {
   let repo: FeedRepositoryPort;
   let feedService: ReleaseFeedPort;
   let spotifyArtist: SpotifyArtistLookupPort;
+  let deezerArtist: DeezerArtistLookupPort;
 
   beforeEach(() => {
     repo = mockRepo();
     feedService = mockFeedService();
     spotifyArtist = mockSpotifyArtist();
-    useCase = new GetArtistDetailUseCase(repo, feedService, spotifyArtist);
+    deezerArtist = mockDeezerArtist();
+    useCase = new GetArtistDetailUseCase(repo, feedService, spotifyArtist, deezerArtist);
   });
 
   describe("Scenario: Fresh local cache satisfies request", () => {
@@ -76,7 +88,7 @@ describe("GetArtistDetailUseCase", () => {
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(freshDate);
       vi.mocked(repo.getArtistAlbums).mockResolvedValue(dbAlbums);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Cached Artist",
         image: "http://image",
@@ -98,7 +110,7 @@ describe("GetArtistDetailUseCase", () => {
       const deezerAlbums = [makeRelease({ albumId: "dz-1", albumName: "Deezer Album" })];
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Test Artist",
         image: null,
@@ -129,9 +141,15 @@ describe("GetArtistDetailUseCase", () => {
   });
 
   describe("Scenario: Unknown artist with no cache", () => {
-    it("falls back to Spotify for details when no DB entry exists", async () => {
+    it("uses Deezer for details when no DB entry exists (not Spotify)", async () => {
       vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue(null);
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(null);
+      vi.mocked(deezerArtist.searchArtist).mockResolvedValue({
+        id: 123456,
+        name: "Deezer Artist",
+        picture: "http://deezer-pic",
+      });
       vi.mocked(feedService.getArtistDiscography).mockResolvedValue({
         albums: [makeRelease()],
         decision: {
@@ -145,21 +163,19 @@ describe("GetArtistDetailUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25);
 
-      expect(spotifyArtist.getArtistDetails).toHaveBeenCalledWith("sp-artist-1");
-      expect(feedService.getArtistDiscography).toHaveBeenCalledWith({
-        id: "sp-artist-1",
-        name: "Spotify Artist",
-        imageUrl: null,
-      });
-      expect(result.name).toBe("Spotify Artist");
+      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+      expect(deezerArtist.searchArtist).toHaveBeenCalled();
+      expect(result.name).toBe("Deezer Artist");
+      expect(result.spotifyUrl).toBeNull();
     });
 
-    it("returns partial Unknown Artist when Spotify details hang beyond interactive timeout", async () => {
+    it("returns partial Unknown Artist when Deezer miss path hangs beyond interactive timeout", async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
 
       vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue(null);
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(null);
-      vi.mocked(spotifyArtist.getArtistDetails).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(deezerArtist.searchArtist).mockImplementation(() => new Promise(() => {}));
 
       const promise = useCase.execute("sp-artist-1", 25);
       await vi.advanceTimersByTimeAsync(600);
@@ -168,6 +184,7 @@ describe("GetArtistDetailUseCase", () => {
       expect(result.name).toBe("Unknown Artist");
       expect(result.isFollowed).toBe(false);
       expect(result.albums).toEqual([]);
+      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
 
       vi.useRealTimers();
     });
@@ -179,7 +196,7 @@ describe("GetArtistDetailUseCase", () => {
       const spotifyAlbums = [makeRelease({ albumId: "sp-1", albumName: "Spotify Album" })];
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Test Artist",
         image: null,
@@ -209,7 +226,7 @@ describe("GetArtistDetailUseCase", () => {
       const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Test Artist",
         image: null,
@@ -231,7 +248,7 @@ describe("GetArtistDetailUseCase", () => {
       const staleAlbums = [makeRelease({ albumId: "old-1" })];
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Test Artist",
         image: null,
@@ -249,15 +266,127 @@ describe("GetArtistDetailUseCase", () => {
     });
   });
 
-  describe("Scenario: 429 or timeout on artist details resolution", () => {
-    it("returns partial response when Spotify details return 429 and no DB entry", async () => {
+  describe("Scenario: DB miss — Deezer search hit", () => {
+    it("returns artist with spotifyUrl null, persists to cache, no Spotify call", async () => {
       vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
-      vi.mocked(spotifyArtist.getArtistDetails).mockRejectedValue(
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(null);
+      vi.mocked(deezerArtist.searchArtist).mockResolvedValue({
+        id: 999,
+        name: "Found Artist",
+        picture: "http://pic",
+      });
+      vi.mocked(feedService.getArtistDiscography).mockResolvedValue({
+        albums: [],
+        decision: {
+          spotifyId: "sp-artist-1",
+          provider: "deezer",
+          albumsFound: 0,
+          newIdentityPersisted: false,
+        },
+      });
+      vi.mocked(repo.getArtistAlbums).mockResolvedValue([]);
+
+      const result = await useCase.execute("sp-artist-1", 25);
+
+      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+      expect(deezerArtist.searchArtist).toHaveBeenCalled();
+      expect(repo.upsertArtists).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "Found Artist", spotifyUrl: null }),
+        ]),
+      );
+      expect(result.spotifyUrl).toBeNull();
+      expect(result.name).toBe("Found Artist");
+    });
+  });
+
+  describe("Scenario: DB miss — Deezer miss (graceful degradation)", () => {
+    it("returns Unknown Artist placeholder, no Spotify call, no crash", async () => {
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(null);
+      vi.mocked(deezerArtist.searchArtist).mockResolvedValue(null);
+      vi.mocked(feedService.getArtistDiscography).mockResolvedValue({
+        albums: [],
+        decision: {
+          spotifyId: "sp-artist-1",
+          provider: "unresolved",
+          albumsFound: 0,
+          newIdentityPersisted: false,
+        },
+      });
+      vi.mocked(repo.getArtistAlbums).mockResolvedValue([]);
+
+      const result = await useCase.execute("sp-artist-1", 25);
+
+      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+      expect(result.name).toBe("Unknown Artist");
+      expect(result.spotifyUrl).toBeNull();
+      expect(result.albums).toEqual([]);
+    });
+  });
+
+  describe("Scenario: Deezer 429 during miss path", () => {
+    it("returns graceful degradation response, no Spotify fallback", async () => {
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(null);
+      vi.mocked(deezerArtist.searchArtist).mockRejectedValue(
         new AppError(429, "spotify_rate_limited", "Rate limited"),
       );
 
       const result = await useCase.execute("sp-artist-1", 25);
 
+      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+      expect(result.name).toBe("Unknown Artist");
+      expect(result.spotifyUrl).toBeNull();
+      expect(result.albums).toEqual([]);
+    });
+  });
+
+  describe("Scenario: Deezer ID in miss path — getArtistById used", () => {
+    it("calls getArtistById when id looks like a Deezer numeric ID", async () => {
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(null);
+      vi.mocked(deezerArtist.getArtistById).mockResolvedValue({
+        id: 123,
+        name: "Deezer Direct Artist",
+        picture: null,
+      });
+      vi.mocked(feedService.getArtistDiscography).mockResolvedValue({
+        albums: [],
+        decision: {
+          spotifyId: "123",
+          provider: "deezer",
+          albumsFound: 0,
+          newIdentityPersisted: false,
+        },
+      });
+      vi.mocked(repo.getArtistAlbums).mockResolvedValue([]);
+
+      // "123" is a pure numeric string — a Deezer ID
+      const result = await useCase.execute("123", 25);
+
+      expect(deezerArtist.getArtistById).toHaveBeenCalledWith("123");
+      expect(deezerArtist.searchArtist).not.toHaveBeenCalled();
+      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+      expect(result.name).toBe("Deezer Direct Artist");
+    });
+  });
+
+  describe("Scenario: 429 or timeout on artist details resolution", () => {
+    it("returns partial response when Deezer details return 429 and no DB entry", async () => {
+      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue(null);
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(deezerArtist.searchArtist).mockRejectedValue(
+        new AppError(429, "spotify_rate_limited", "Rate limited"),
+      );
+
+      const result = await useCase.execute("sp-artist-1", 25);
+
+      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
       expect(result.name).toBe("Unknown Artist");
       expect(result.isFollowed).toBe(false);
       expect(result.albums).toEqual([]);
@@ -271,7 +400,7 @@ describe("GetArtistDetailUseCase", () => {
       const staleDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Test Artist",
         image: null,
@@ -297,7 +426,7 @@ describe("GetArtistDetailUseCase", () => {
       const dbAlbums = [makeRelease({ albumId: "db-1" })];
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Test Artist",
         image: null,
@@ -325,7 +454,7 @@ describe("GetArtistDetailUseCase", () => {
       const dbAlbums = [makeRelease({ albumId: "db-1" })];
 
       vi.mocked(repo.getArtistAlbumsFreshness).mockResolvedValue(staleDate);
-      vi.mocked(repo.getArtistBySpotifyId).mockResolvedValue({
+      vi.mocked(repo.getArtistByAnyId).mockResolvedValue({
         id: "sp-artist-1",
         name: "Test Artist",
         image: null,
