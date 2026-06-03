@@ -17,6 +17,7 @@ import { PauseArtworkBackfillUseCase } from "./application/use-cases/artwork-bac
 import { ProcessArtworkBackfillBatchUseCase } from "./application/use-cases/artwork-backfill/process-artwork-backfill-batch.use-case";
 import { ResumeArtworkBackfillUseCase } from "./application/use-cases/artwork-backfill/resume-artwork-backfill.use-case";
 import { StartArtworkBackfillUseCase } from "./application/use-cases/artwork-backfill/start-artwork-backfill.use-case";
+import { ResolveExternalUrlUseCase } from "./application/use-cases/external-url/resolve-external-url.use-case";
 import { GetRecentReleasesUseCase } from "./application/use-cases/feed/get-recent-releases.use-case";
 import { HistoryUseCases } from "./application/use-cases/history/history.use-cases";
 import { ScanLibraryUseCase } from "./application/use-cases/library/scan-library.use-case";
@@ -44,6 +45,7 @@ import { NoopAlbumTracksCache } from "./infrastructure/cache/noop-album-tracks-c
 import { ArtistAlbumCacheRepository } from "./infrastructure/database/artist-album-cache.repository";
 import { ArtistReleaseCacheRepository } from "./infrastructure/database/artist-release-cache.repository";
 import { PrismaArtworkBackfillRepository } from "./infrastructure/database/artwork-backfill.repository";
+import { ExternalUrlCacheRepository } from "./infrastructure/database/external-url-cache.repository";
 import { FeedCacheEvictionRepository } from "./infrastructure/database/feed-cache-eviction.repository";
 import { FeedSyncStateRepository } from "./infrastructure/database/feed-sync-state.repository";
 import { FollowedArtistRepository } from "./infrastructure/database/followed-artist.repository";
@@ -58,6 +60,7 @@ import { DeezerCatalogSearchAdapter } from "./infrastructure/external/providers/
 import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
 import { SpotifyCatalogSearchAdapter } from "./infrastructure/external/providers/spotify/spotify-catalog-search.adapter";
+import { SpotifyUrlLookupClient } from "./infrastructure/external/providers/spotify/spotify-url-lookup.client";
 import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
 import { SpotifyArtistCatalogService } from "./infrastructure/external/spotify-artist-catalog.service";
@@ -91,6 +94,7 @@ import { ArtistController } from "./presentation/controllers/artist.controller";
 import { ArtworkBackfillController } from "./presentation/controllers/artwork-backfill.controller";
 import { AuthController } from "./presentation/controllers/auth.controller";
 import { EventsController } from "./presentation/controllers/events.controller";
+import { ExternalUrlController } from "./presentation/controllers/external-url.controller";
 import { FeedController } from "./presentation/controllers/feed.controller";
 import { HealthController } from "./presentation/controllers/health.controller";
 import { HistoryController } from "./presentation/controllers/history.controller";
@@ -359,6 +363,15 @@ const catalogSearchPort =
     : new SpotifyCatalogSearchAdapter(spotifySearchClient);
 const musicBrainzClient = new MusicBrainzClient();
 const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
+
+// External URL lazy resolution (Design D2)
+const externalUrlCacheRepository = new ExternalUrlCacheRepository(prisma);
+const spotifyUrlLookupClient = new SpotifyUrlLookupClient(spotifyAuthService, settingsService);
+const resolveExternalUrlUseCase = new ResolveExternalUrlUseCase(
+  externalUrlCacheRepository,
+  spotifyUrlLookupClient,
+);
+const externalUrlController = new ExternalUrlController(resolveExternalUrlUseCase);
 
 // Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
 const spotifyService = new SpotifyService({
@@ -633,6 +646,7 @@ export const container = {
   trackController,
   artistController,
   searchController,
+  externalUrlController,
   libraryController,
   artworkBackfillController,
   settingsController,

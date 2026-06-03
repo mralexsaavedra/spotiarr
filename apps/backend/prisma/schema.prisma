@@ -157,3 +157,17 @@ model ArtworkBackfillRun {
   @@index([status])
   @@index([updatedAt])
 }
+
+model ExternalUrlCache {
+  id          String   @id @default(uuid())
+  provider    String
+  type        String
+  internalId  String
+  name        String?
+  artistName  String?
+  externalUrl String
+  createdAt   DateTime @default(now())
+
+  @@unique([provider, type, internalId])
+  @@index([provider, type, name])
+}

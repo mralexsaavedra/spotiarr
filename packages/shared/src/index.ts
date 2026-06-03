@@ -276,6 +276,8 @@ export type NormalizedTrack = ITrack & {
   previewUrl?: string | null;
   artists: { name: string; url: string | undefined }[];
   unavailable?: boolean;
+  /** Deezer album ID — present on Deezer-origin tracks for download routing via album path (D4) */
+  albumId?: string;
 };
 
 export interface SpotifyPlaylist {

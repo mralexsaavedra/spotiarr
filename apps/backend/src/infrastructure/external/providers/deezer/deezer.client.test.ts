@@ -261,4 +261,68 @@ describe("DeezerClient", () => {
       expect(tracks[1].name).toBe("Page 2");
     });
   });
+
+  describe("searchTrack", () => {
+    it("returns list of track results with expected fields", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 999,
+              title: "Test Track",
+              duration: 210,
+              track_position: 1,
+              disk_number: 1,
+              artist: { id: 11, name: "Test Artist" },
+              album: { id: 22, title: "Test Album" },
+            },
+          ],
+        }),
+      } as Response);
+
+      const results = await client.searchTrack("Test Track");
+      expect(results).toHaveLength(1);
+      expect(results[0].id).toBe(999);
+      expect(results[0].title).toBe("Test Track");
+      expect(results[0].artist.name).toBe("Test Artist");
+    });
+
+    it("returns empty array when Deezer returns no results", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      } as Response);
+
+      const results = await client.searchTrack("nonexistent track");
+      expect(results).toEqual([]);
+    });
+
+    it("returns empty array on API error (non-OK response)", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      const results = await client.searchTrack("track");
+      expect(results).toEqual([]);
+    });
+
+    it("returns empty array on network error", async () => {
+      fetchSpy.mockRejectedValue(new Error("network failure"));
+
+      const results = await client.searchTrack("track");
+      expect(results).toEqual([]);
+    });
+
+    it("calls the correct Deezer search/track endpoint", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      } as Response);
+
+      await client.searchTrack("my query");
+      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining("/search/track?q="));
+    });
+  });
 });
