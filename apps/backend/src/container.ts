@@ -54,8 +54,10 @@ import { PrismaSettingsRepository } from "./infrastructure/database/prisma-setti
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { PromiseCache } from "./infrastructure/external/promise-cache";
 import { DeezerArtistLookupAdapter } from "./infrastructure/external/providers/deezer/deezer-artist-lookup.adapter";
+import { DeezerCatalogSearchAdapter } from "./infrastructure/external/providers/deezer/deezer-catalog-search.adapter";
 import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
+import { SpotifyCatalogSearchAdapter } from "./infrastructure/external/providers/spotify/spotify-catalog-search.adapter";
 import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
 import { SpotifyArtistCatalogService } from "./infrastructure/external/spotify-artist-catalog.service";
@@ -340,6 +342,21 @@ spotifyUserLibrarySyncService = {
 // External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
 const deezerClient = new DeezerClient();
 const deezerArtistLookupAdapter = new DeezerArtistLookupAdapter(deezerClient);
+
+// Catalog search provider — controlled by SEARCH_PROVIDER env var.
+// "deezer": Deezer-first search (no Spotify search API calls). Default target.
+// "spotify" (default): legacy Spotify search path kept until PR-3.4 cleanup.
+function resolveSearchProvider(): "spotify" | "deezer" {
+  try {
+    return getEnv().SEARCH_PROVIDER;
+  } catch {
+    return "spotify";
+  }
+}
+const catalogSearchPort =
+  resolveSearchProvider() === "deezer"
+    ? new DeezerCatalogSearchAdapter(deezerClient, feedRepository)
+    : new SpotifyCatalogSearchAdapter(spotifySearchClient);
 const musicBrainzClient = new MusicBrainzClient();
 const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
 
@@ -568,7 +585,7 @@ const artistController = new ArtistController(
   getArtistAlbumsUseCase,
   getAlbumTracksUseCase,
 );
-const searchController = new SearchController(spotifyService);
+const searchController = new SearchController(catalogSearchPort);
 
 const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
 

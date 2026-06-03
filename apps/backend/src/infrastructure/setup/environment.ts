@@ -128,6 +128,9 @@ const envSchema = z
     DOWNLOADS: z.string().optional(),
     DATABASE_URL: z.string().optional(),
 
+    // Feature flags
+    SEARCH_PROVIDER: z.enum(["spotify", "deezer"]).optional().default("spotify"),
+
     // System
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
   })
