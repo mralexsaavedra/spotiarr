@@ -53,6 +53,7 @@ import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playl
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { PromiseCache } from "./infrastructure/external/promise-cache";
+import { DeezerArtistLookupAdapter } from "./infrastructure/external/providers/deezer/deezer-artist-lookup.adapter";
 import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
 import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
@@ -135,6 +136,7 @@ const feedCacheEvictionRepository = new FeedCacheEvictionRepository(prisma);
 const feedCacheEvictionService = new FeedCacheEvictionService(feedCacheEvictionRepository);
 const feedRepository: FeedRepositoryPort = {
   getArtistBySpotifyId: (spotifyId) => followedArtistRepository.getArtistBySpotifyId(spotifyId),
+  getArtistByAnyId: (id) => followedArtistRepository.getArtistByAnyId(id),
   getArtistCatalogIdentities: (spotifyIds) =>
     followedArtistRepository.getArtistCatalogIdentities(spotifyIds),
   updateArtistCatalogIdentities: (identities) =>
@@ -337,6 +339,7 @@ spotifyUserLibrarySyncService = {
 
 // External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
 const deezerClient = new DeezerClient();
+const deezerArtistLookupAdapter = new DeezerArtistLookupAdapter(deezerClient);
 const musicBrainzClient = new MusicBrainzClient();
 const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
 
@@ -513,6 +516,7 @@ const getArtistDetailUseCase = new GetArtistDetailUseCase(
   feedRepository,
   releaseFeedService,
   spotifyArtistClient,
+  deezerArtistLookupAdapter,
 );
 const getArtistAlbumsUseCase = new GetArtistAlbumsUseCase(feedRepository, releaseFeedService);
 const noopAlbumTracksCache = new NoopAlbumTracksCache();
