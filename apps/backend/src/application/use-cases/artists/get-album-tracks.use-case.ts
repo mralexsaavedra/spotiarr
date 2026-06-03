@@ -3,14 +3,9 @@ import type { AlbumTracksCachePort } from "@/application/ports/album-tracks-cach
 import type {
   DeezerAlbumPort,
   MusicBrainzReleasePort,
-  SpotifyAlbumTracksPort,
 } from "@/application/ports/album-tracks-provider.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
-import {
-  isDeezerAlbumId,
-  isMusicBrainzId,
-  isSpotifyAlbumId,
-} from "@/application/utils/album-id.utils";
+import { isDeezerAlbumId, isMusicBrainzId } from "@/application/utils/album-id.utils";
 
 const noopAlbumTracksCache: AlbumTracksCachePort = {
   get: async () => null,
@@ -18,8 +13,11 @@ const noopAlbumTracksCache: AlbumTracksCachePort = {
 };
 
 /**
- * Orchestrates album track resolution through the provider fallback chain:
- * Deezer (primary) → MusicBrainz (secondary) → Spotify (terminal fallback).
+ * Orchestrates album track resolution through the provider cascade:
+ * Deezer (primary) → MusicBrainz (secondary) → [] (cascade exhaustion).
+ *
+ * Spotify terminal fallback removed per REQ ALT-1. The use-case must not
+ * emit Spotify HTTP calls under any condition (PR-3.3, Phase 3).
  *
  * Persisted album identities (deezerAlbumId, mbAlbumId) are stored in
  * ArtistAlbumCache to avoid repeated discovery searches.
@@ -34,7 +32,6 @@ export class GetAlbumTracksUseCase {
     private readonly feedRepository: FeedRepositoryPort,
     private readonly deezerClient: DeezerAlbumPort,
     private readonly musicBrainzClient: MusicBrainzReleasePort,
-    private readonly spotifyAlbumClient: SpotifyAlbumTracksPort,
     albumTracksCache: AlbumTracksCachePort = noopAlbumTracksCache,
   ) {
     this.albumTracksCache = albumTracksCache;
@@ -90,7 +87,7 @@ export class GetAlbumTracksUseCase {
   }
 
   /**
-   * Runs the full provider cascade: Deezer → MusicBrainz → Spotify.
+   * Runs the provider cascade: Deezer → MusicBrainz → [] on exhaustion.
    * Persists discovered identities (deezerAlbumId, mbAlbumId) for future fast loads.
    */
   private async resolveViaCascade(
@@ -141,12 +138,8 @@ export class GetAlbumTracksUseCase {
       }
     }
 
-    // 4. Spotify terminal fallback — only when the albumId looks like a Spotify ID
-    // to avoid passing Deezer numeric / MB UUID IDs to Spotify.
-    if (isSpotifyAlbumId(albumId)) {
-      return this.spotifyAlbumClient.getAlbumTracks(albumId);
-    }
-
+    // Cascade exhausted — both Deezer and MusicBrainz missed.
+    // Spotify fallback removed per REQ ALT-1: use-case must not emit Spotify HTTP calls.
     return [];
   }
 }

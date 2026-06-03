@@ -4,7 +4,6 @@ import type { AlbumTracksCachePort } from "@/application/ports/album-tracks-cach
 import type {
   DeezerAlbumPort,
   MusicBrainzReleasePort,
-  SpotifyAlbumTracksPort,
 } from "@/application/ports/album-tracks-provider.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import { GetAlbumTracksUseCase } from "./get-album-tracks.use-case";
@@ -48,15 +47,6 @@ function mockMusicBrainzClient(
   } as unknown as MusicBrainzReleasePort;
 }
 
-function mockSpotifyAlbumClient(
-  partial: Partial<SpotifyAlbumTracksPort> = {},
-): SpotifyAlbumTracksPort {
-  return {
-    getAlbumTracks: vi.fn().mockResolvedValue([]),
-    ...partial,
-  } as unknown as SpotifyAlbumTracksPort;
-}
-
 function mockAlbumTracksCache(partial: Partial<AlbumTracksCachePort> = {}): AlbumTracksCachePort {
   return {
     get: vi.fn().mockResolvedValue(null),
@@ -70,14 +60,12 @@ describe("GetAlbumTracksUseCase", () => {
   let repo: FeedRepositoryPort;
   let deezerClient: DeezerAlbumPort;
   let musicBrainzClient: MusicBrainzReleasePort;
-  let spotifyAlbumClient: SpotifyAlbumTracksPort;
 
   beforeEach(() => {
     repo = mockRepo();
     deezerClient = mockDeezerClient();
     musicBrainzClient = mockMusicBrainzClient();
-    spotifyAlbumClient = mockSpotifyAlbumClient();
-    useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient, spotifyAlbumClient);
+    useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
   });
 
   describe("Scenario: Deezer resolves tracks successfully with persisted ID", () => {
@@ -106,7 +94,7 @@ describe("GetAlbumTracksUseCase", () => {
       expect(deezerClient.getAlbumTracks).toHaveBeenCalledWith("dz-123");
       expect(deezerClient.searchAlbum).not.toHaveBeenCalled();
       expect(musicBrainzClient.getReleaseTracks).not.toHaveBeenCalled();
-      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
   });
 
@@ -139,7 +127,7 @@ describe("GetAlbumTracksUseCase", () => {
         deezerAlbumId: "456",
       });
       expect(musicBrainzClient.getReleaseTracks).not.toHaveBeenCalled();
-      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
   });
 
@@ -168,7 +156,7 @@ describe("GetAlbumTracksUseCase", () => {
 
       expect(result).toEqual(mbTracks);
       expect(musicBrainzClient.getReleaseTracks).toHaveBeenCalledWith("mb-rg-1");
-      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
 
     it("falls back to MusicBrainz when Deezer search finds album but no tracks", async () => {
@@ -203,9 +191,9 @@ describe("GetAlbumTracksUseCase", () => {
     });
   });
 
-  describe("Scenario: MusicBrainz miss triggers Spotify terminal fallback", () => {
-    it("falls back to Spotify only for Spotify-shaped album IDs", async () => {
-      const spotifyTracks = [makeNormalizedTrack({ name: "Spotify Track" })];
+  // REQ ALT-1: cascade exhaustion must return [] and NEVER call Spotify
+  describe("Scenario: Cascade exhaustion — Spotify fallback NOT called on Spotify albumId", () => {
+    it("returns [] and never calls Spotify even when albumId is Spotify-shaped", async () => {
       const spotifyAlbumId = "0x1234567890ABCDEF1234";
 
       vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
@@ -224,14 +212,44 @@ describe("GetAlbumTracksUseCase", () => {
       });
       vi.mocked(deezerClient.searchAlbum).mockResolvedValue(null);
       vi.mocked(musicBrainzClient.getReleaseTracks).mockResolvedValue([]);
-      vi.mocked(spotifyAlbumClient.getAlbumTracks).mockResolvedValue(spotifyTracks);
 
       const result = await useCase.execute("sp-artist-1", spotifyAlbumId);
 
-      expect(result).toEqual(spotifyTracks);
-      expect(spotifyAlbumClient.getAlbumTracks).toHaveBeenCalledWith(spotifyAlbumId);
+      expect(result).toEqual([]);
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
+  });
 
+  // REQ ALT-1: both providers miss → always returns []
+  describe("Scenario: Cascade exhaustion — returns [] when both providers miss", () => {
+    it("returns empty array when Deezer and MusicBrainz both return nothing", async () => {
+      const spotifyAlbumId = "0x1234567890ABCDEF1234";
+
+      vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
+        id: `sp-artist-1:${spotifyAlbumId}`,
+        spotifyArtistId: "sp-artist-1",
+        albumId: spotifyAlbumId,
+        albumName: "Album One",
+        albumType: "album",
+        releaseDate: "2024-01-01",
+        coverUrl: null,
+        spotifyUrl: null,
+        totalTracks: 10,
+        deezerAlbumId: null,
+        mbAlbumId: null,
+        artistName: "Test Artist",
+      });
+      vi.mocked(deezerClient.searchAlbum).mockResolvedValue(null);
+      vi.mocked(musicBrainzClient.getReleaseTracks).mockResolvedValue([]);
+
+      const result = await useCase.execute("sp-artist-1", spotifyAlbumId);
+
+      expect(result).toEqual([]);
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
+    });
+  });
+
+  describe("Scenario: Non-Spotify ID — Spotify skipped", () => {
     it("skips Spotify fallback for non-Spotify IDs", async () => {
       vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
         id: "sp-artist-1:123456789",
@@ -253,7 +271,7 @@ describe("GetAlbumTracksUseCase", () => {
       const result = await useCase.execute("sp-artist-1", "123456789");
 
       expect(result).toEqual([]);
-      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
 
     it("attempts MusicBrainz for MB UUID album IDs and persists identity", async () => {
@@ -284,7 +302,7 @@ describe("GetAlbumTracksUseCase", () => {
       expect(repo.updateArtistAlbumIdentities).toHaveBeenCalledWith("sp-artist-1:mb-id", {
         mbAlbumId: mbUuid,
       });
-      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
 
     it("skips Spotify fallback for MB UUID IDs when MusicBrainz also fails", async () => {
@@ -311,7 +329,7 @@ describe("GetAlbumTracksUseCase", () => {
 
       expect(result).toEqual([]);
       expect(musicBrainzClient.getReleaseTracks).toHaveBeenCalledWith(mbUuid);
-      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
   });
 
@@ -361,14 +379,12 @@ describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
   let repo: FeedRepositoryPort;
   let deezerClient: DeezerAlbumPort;
   let musicBrainzClient: MusicBrainzReleasePort;
-  let spotifyAlbumClient: SpotifyAlbumTracksPort;
   let cache: AlbumTracksCachePort;
 
   beforeEach(() => {
     repo = mockRepo();
     deezerClient = mockDeezerClient();
     musicBrainzClient = mockMusicBrainzClient();
-    spotifyAlbumClient = mockSpotifyAlbumClient();
     cache = mockAlbumTracksCache();
   });
 
@@ -381,7 +397,6 @@ describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
         repo,
         deezerClient,
         musicBrainzClient,
-        spotifyAlbumClient,
         cache,
       );
 
@@ -393,7 +408,7 @@ describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
       expect(deezerClient.searchAlbum).not.toHaveBeenCalled();
       expect(deezerClient.getAlbumTracks).not.toHaveBeenCalled();
       expect(musicBrainzClient.getReleaseTracks).not.toHaveBeenCalled();
-      expect(spotifyAlbumClient.getAlbumTracks).not.toHaveBeenCalled();
+      // Spotify client no longer injected — cascade ends at [] per REQ ALT-1
     });
   });
 
@@ -421,7 +436,6 @@ describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
         repo,
         deezerClient,
         musicBrainzClient,
-        spotifyAlbumClient,
         cache,
       );
 
@@ -454,12 +468,7 @@ describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
       vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue(deezerTracks);
 
       // Instantiate without cache port — default NOOP should be used
-      const useCaseNoCache = new GetAlbumTracksUseCase(
-        repo,
-        deezerClient,
-        musicBrainzClient,
-        spotifyAlbumClient,
-      );
+      const useCaseNoCache = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
 
       const result = await useCaseNoCache.execute("sp-artist-1", "album-1");
 
