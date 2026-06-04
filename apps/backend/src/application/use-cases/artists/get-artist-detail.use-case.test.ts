@@ -1,6 +1,5 @@
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { SpotifyArtistLookupPort } from "@/application/ports/artist-lookup.port";
 import type { DeezerArtistLookupPort } from "@/application/ports/deezer-artist-lookup.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
@@ -54,31 +53,17 @@ function mockFeedService(): ReleaseFeedPort {
   } as unknown as ReleaseFeedPort;
 }
 
-function mockSpotifyArtist(): SpotifyArtistLookupPort {
-  return {
-    getArtistDetails: vi.fn().mockResolvedValue({
-      name: "Spotify Artist",
-      image: null,
-      spotifyUrl: null,
-      followers: null,
-      genres: [],
-    }),
-  } as unknown as SpotifyArtistLookupPort;
-}
-
 describe("GetArtistDetailUseCase", () => {
   let useCase: GetArtistDetailUseCase;
   let repo: FeedRepositoryPort;
   let feedService: ReleaseFeedPort;
-  let spotifyArtist: SpotifyArtistLookupPort;
   let deezerArtist: DeezerArtistLookupPort;
 
   beforeEach(() => {
     repo = mockRepo();
     feedService = mockFeedService();
-    spotifyArtist = mockSpotifyArtist();
     deezerArtist = mockDeezerArtist();
-    useCase = new GetArtistDetailUseCase(repo, feedService, spotifyArtist, deezerArtist);
+    useCase = new GetArtistDetailUseCase(repo, feedService, deezerArtist);
   });
 
   describe("Scenario: Fresh local cache satisfies request", () => {
@@ -98,7 +83,7 @@ describe("GetArtistDetailUseCase", () => {
       const result = await useCase.execute("sp-artist-1", 25);
 
       expect(feedService.getArtistDiscography).not.toHaveBeenCalled();
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+
       expect(result.albums).toEqual(dbAlbums);
       expect(result.name).toBe("Cached Artist");
     });
@@ -135,7 +120,7 @@ describe("GetArtistDetailUseCase", () => {
         imageUrl: null,
       });
       expect(repo.upsertArtistAlbums).toHaveBeenCalledWith(deezerAlbums);
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+
       expect(result.albums).toEqual(deezerAlbums);
     });
   });
@@ -163,7 +148,6 @@ describe("GetArtistDetailUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25);
 
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
       expect(deezerArtist.searchArtist).toHaveBeenCalled();
       expect(result.name).toBe("Deezer Artist");
       expect(result.spotifyUrl).toBeNull();
@@ -184,7 +168,6 @@ describe("GetArtistDetailUseCase", () => {
       expect(result.name).toBe("Unknown Artist");
       expect(result.isFollowed).toBe(false);
       expect(result.albums).toEqual([]);
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
 
       vi.useRealTimers();
     });
@@ -289,7 +272,6 @@ describe("GetArtistDetailUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25);
 
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
       expect(deezerArtist.searchArtist).toHaveBeenCalled();
       expect(repo.upsertArtists).toHaveBeenCalledWith(
         expect.arrayContaining([
@@ -320,7 +302,6 @@ describe("GetArtistDetailUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25);
 
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
       expect(result.name).toBe("Unknown Artist");
       expect(result.spotifyUrl).toBeNull();
       expect(result.albums).toEqual([]);
@@ -338,7 +319,6 @@ describe("GetArtistDetailUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25);
 
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
       expect(result.name).toBe("Unknown Artist");
       expect(result.spotifyUrl).toBeNull();
       expect(result.albums).toEqual([]);
@@ -371,7 +351,7 @@ describe("GetArtistDetailUseCase", () => {
 
       expect(deezerArtist.getArtistById).toHaveBeenCalledWith("123");
       expect(deezerArtist.searchArtist).not.toHaveBeenCalled();
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
+
       expect(result.name).toBe("Deezer Direct Artist");
     });
   });
@@ -386,7 +366,6 @@ describe("GetArtistDetailUseCase", () => {
 
       const result = await useCase.execute("sp-artist-1", 25);
 
-      expect(spotifyArtist.getArtistDetails).not.toHaveBeenCalled();
       expect(result.name).toBe("Unknown Artist");
       expect(result.isFollowed).toBe(false);
       expect(result.albums).toEqual([]);
