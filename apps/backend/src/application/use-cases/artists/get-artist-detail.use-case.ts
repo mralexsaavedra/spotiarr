@@ -11,9 +11,6 @@ import {
   withTimeout,
 } from "./artist-catalog.constants";
 
-// Identity format detection — will move to packages/shared/src/identity.ts in PR-3.1a
-const isDeezerArtistId = (id: string): boolean => /^\d+$/.test(id);
-
 export class GetArtistDetailUseCase {
   constructor(
     private readonly feedRepository: FeedRepositoryPort,
