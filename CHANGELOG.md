@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file. See [standa
 - **Saved playlist playback**: Added native playback for downloaded tracks from saved playlist detail pages, including playlist-level and row-level controls, clear passive messaging when a playlist has no playable local audio yet, and browser-aware playback feedback.
 - **Playback foundation**: Extended saved playlist track responses with local `audioUrl` support and extracted a reusable local playback controller hook so album and playlist playback share the same page-local audio behavior.
 
+### Bug Fixes
+
+- **My Playlists navigation**: Saved playlists now open their internal playlist detail route from `My Playlists` instead of always falling back to preview, so the new playback flow is reachable from the normal user entrypoint.
+
 ## [1.8.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.8.0...v1.8.1) (2026-06-02)
 
 ### Reliability
