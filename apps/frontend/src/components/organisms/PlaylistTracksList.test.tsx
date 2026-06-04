@@ -43,6 +43,7 @@ const tracks: Track[] = [
     album: "Album 1",
     durationMs: 120000,
     status: TrackStatusEnum.Completed,
+    audioUrl: "/api/library/audio?path=%2Ftmp%2F01.mp3",
     trackUrl: "/api/library/audio?path=%2Ftmp%2F01.mp3",
   },
 ];
@@ -56,6 +57,7 @@ describe("PlaylistTracksList playback", () => {
         isPlaying={true}
         onPlayTrack={vi.fn()}
         onPauseTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
       />,
     );
 
@@ -71,10 +73,31 @@ describe("PlaylistTracksList playback", () => {
         currentTrackId={null}
         isPlaying={false}
         onPlayTrack={onPlayTrack}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
       />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "library.album.playTrack" }));
     expect(onPlayTrack).toHaveBeenCalledWith("track-1");
+  });
+
+  it("hides playback controls for tracks without a playable audioUrl", () => {
+    render(
+      <PlaylistTracksList
+        tracks={[
+          {
+            ...tracks[0],
+            id: "track-2",
+            audioUrl: undefined,
+          },
+        ]}
+        currentTrackId={null}
+        isPlaying={false}
+        onPlayTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "library.album.playTrack" })).toBeNull();
   });
 });
