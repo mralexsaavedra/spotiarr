@@ -111,6 +111,23 @@ describe("DeezerCatalogSearchAdapter", () => {
       );
     });
 
+    it("overrides cached low-res image with fresh high-res Deezer picture", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
+        { id: 42, name: "Cached Artist", picture_xl: "http://fresh-xl.jpg" },
+      ]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue({
+        id: "spotifyIdABCDEF1234567",
+        name: "Cached Artist",
+        image: "http://stale-low-res.jpg",
+        spotifyUrl: "https://open.spotify.com/artist/spotifyIdABCDEF1234567",
+      });
+
+      const result = await adapter.searchCatalog("Cached Artist", ["artist"], { artist: 5 });
+
+      expect(result.artists[0].image).toBe("http://fresh-xl.jpg");
+      expect(result.artists[0].id).toBe("spotifyIdABCDEF1234567");
+    });
+
     it("does not emit Spotify search calls for artist queries", async () => {
       vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
         { id: 99, name: "Deezer Artist" },
@@ -421,6 +438,16 @@ describe("DeezerCatalogSearchAdapter", () => {
 
       expect(deezerClient.getArtistTopTracks).not.toHaveBeenCalled();
       expect(result.tracks).toEqual([]);
+    });
+
+    it("fetches /search/artist exactly once when both artist and track types are requested", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([{ id: 42, name: "Cruz Cafuné" }]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(deezerClient.getArtistTopTracks).mockResolvedValue([]);
+
+      await adapter.searchCatalog("cruz cafune", ["artist", "track"], { artist: 5, track: 5 });
+
+      expect(deezerClient.searchArtistList).toHaveBeenCalledTimes(1);
     });
   });
 });
