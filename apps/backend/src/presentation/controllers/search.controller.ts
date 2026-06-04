@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { SpotifyService } from "@/application/services/spotify.service";
+import type { CatalogSearchPort } from "@/application/ports/catalog-search.port";
 
 export class SearchController {
-  constructor(private readonly spotifyService: SpotifyService) {}
+  constructor(private readonly catalogSearchPort: CatalogSearchPort) {}
 
   searchCatalog = async (req: Request, res: Response) => {
     const query = req.query.q as string;
@@ -18,16 +18,13 @@ export class SearchController {
     const safeLimit = Number.isNaN(requestedLimit) ? 10 : requestedLimit;
     const limit = Math.max(1, Math.min(safeLimit, 10));
 
-    const limits =
-      types.length === 1
-        ? { track: limit, album: limit, artist: limit }
-        : {
-            track: limit,
-            album: limit,
-            artist: limit,
-          };
+    const limits = {
+      track: limit,
+      album: limit,
+      artist: limit,
+    };
 
-    const results = await this.spotifyService.searchCatalog(query, types, limits);
+    const results = await this.catalogSearchPort.searchCatalog(query, types, limits);
     res.json({ data: results });
   };
 }

@@ -14,7 +14,7 @@ const ArtistListItem: FC<ArtistListItemProps> = memo(({ artist, onClick }) => {
       id={artist.id}
       name={artist.name}
       image={artist.image}
-      spotifyUrl={artist.spotifyUrl}
+      spotifyUrl={artist.spotifyUrl ?? null}
       onClick={onClick}
     />
   );

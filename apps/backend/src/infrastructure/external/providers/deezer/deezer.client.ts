@@ -103,6 +103,33 @@ export class DeezerClient {
   }
 
   /**
+   * Search for artists by name and return multiple matches up to limit.
+   * Unlike searchArtist, this does not filter to an exact name match —
+   * it returns all results up to `limit` so the caller can apply its own ranking.
+   */
+  async searchArtistList(name: string, limit: number): Promise<DeezerArtist[]> {
+    const encoded = encodeURIComponent(name);
+    const result = await this.fetchJson<{ data: DeezerArtist[] }>(
+      `${DEEZER_API_BASE}/search/artist?q=${encoded}&limit=${limit}`,
+    );
+    return result?.data?.slice(0, limit) ?? [];
+  }
+
+  /**
+   * Search for albums by query and return multiple matches up to limit.
+   */
+  async searchAlbumList(
+    query: string,
+    limit: number,
+  ): Promise<(DeezerAlbum & { artist?: { id: number; name: string } })[]> {
+    const encoded = encodeURIComponent(query);
+    const result = await this.fetchJson<{
+      data: (DeezerAlbum & { artist?: { id: number; name: string } })[];
+    }>(`${DEEZER_API_BASE}/search/album?q=${encoded}&limit=${limit}`);
+    return result?.data?.slice(0, limit) ?? [];
+  }
+
+  /**
    * Fetch albums for a given Deezer artist ID.
    * Deezer returns albums, singles, and compilations under the same endpoint.
    * We map album + single types to ArtistRelease.

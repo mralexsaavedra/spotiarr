@@ -1,4 +1,5 @@
 export * from "./routes.js";
+export * from "./identity.js";
 export const SUPPORTED_AUDIO_FORMATS = [
   "aac",
   "flac",
@@ -251,10 +252,21 @@ export interface DownloadStatusResponse {
 }
 
 export interface FollowedArtist {
+  /**
+   * Stable internal identifier.
+   * Equals the Spotify ID when the artist was synced from a Spotify follow.
+   * Equals the Deezer ID transiently for Deezer-only search results that have
+   * not yet been persisted to FollowedArtistCache.
+   */
   id: string;
   name: string;
   image: string | null;
-  spotifyUrl: string | null;
+  /**
+   * Spotify profile URL.
+   * null when the artist was resolved exclusively via Deezer (unfollowed artist).
+   * undefined when the value has not been fetched yet (lazy resolution pending).
+   */
+  spotifyUrl: string | null | undefined;
 }
 
 export type NormalizedTrack = ITrack & {

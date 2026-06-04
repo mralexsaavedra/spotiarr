@@ -112,7 +112,7 @@ export const Search: FC = () => {
                     id={artist.id}
                     name={artist.name}
                     image={artist.image}
-                    spotifyUrl={artist.spotifyUrl}
+                    spotifyUrl={artist.spotifyUrl ?? null}
                     onClick={handleArtistClick}
                   />
                 ))}

@@ -1,4 +1,5 @@
 import type { ArtistDetail, ArtistRelease } from "@spotiarr/shared";
+import { isDeezerArtistId } from "@spotiarr/shared";
 import type { SpotifyArtistLookupPort } from "@/application/ports/artist-lookup.port";
 import type { DeezerArtistLookupPort } from "@/application/ports/deezer-artist-lookup.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
@@ -9,9 +10,6 @@ import {
   isArtistCacheFresh,
   withTimeout,
 } from "./artist-catalog.constants";
-
-// Identity format detection — will move to packages/shared/src/identity.ts in PR-3.1a
-const isDeezerArtistId = (id: string): boolean => /^\d+$/.test(id);
 
 export class GetArtistDetailUseCase {
   constructor(
@@ -39,7 +37,7 @@ export class GetArtistDetailUseCase {
       details = {
         name: cachedArtist.name,
         image: cachedArtist.image,
-        spotifyUrl: cachedArtist.spotifyUrl,
+        spotifyUrl: cachedArtist.spotifyUrl ?? null,
         followers: null,
         genres: [],
       };
