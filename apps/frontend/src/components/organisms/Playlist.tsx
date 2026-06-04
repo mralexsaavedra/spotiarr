@@ -128,6 +128,8 @@ export const Playlist: FC<PlaylistProps> = ({
                   ? playlist.spotifyUrl
                   : undefined
               }
+              playlistId={playlist?.id}
+              playlistName={playlist?.name}
             />
           </div>
         }

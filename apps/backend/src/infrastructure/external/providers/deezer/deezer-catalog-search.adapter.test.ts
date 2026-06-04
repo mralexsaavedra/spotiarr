@@ -12,6 +12,8 @@ function makeMockDeezerClient(): DeezerClient {
     getArtistById: vi.fn().mockResolvedValue(null),
     getArtistAlbums: vi.fn().mockResolvedValue([]),
     getAlbumTracks: vi.fn().mockResolvedValue([]),
+    searchTrack: vi.fn().mockResolvedValue([]),
+    getArtistTopTracks: vi.fn().mockResolvedValue([]),
   } as unknown as DeezerClient;
 }
 
@@ -109,6 +111,23 @@ describe("DeezerCatalogSearchAdapter", () => {
       );
     });
 
+    it("overrides cached low-res image with fresh high-res Deezer picture", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
+        { id: 42, name: "Cached Artist", picture_xl: "http://fresh-xl.jpg" },
+      ]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue({
+        id: "spotifyIdABCDEF1234567",
+        name: "Cached Artist",
+        image: "http://stale-low-res.jpg",
+        spotifyUrl: "https://open.spotify.com/artist/spotifyIdABCDEF1234567",
+      });
+
+      const result = await adapter.searchCatalog("Cached Artist", ["artist"], { artist: 5 });
+
+      expect(result.artists[0].image).toBe("http://fresh-xl.jpg");
+      expect(result.artists[0].id).toBe("spotifyIdABCDEF1234567");
+    });
+
     it("does not emit Spotify search calls for artist queries", async () => {
       vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
         { id: 99, name: "Deezer Artist" },
@@ -179,11 +198,256 @@ describe("DeezerCatalogSearchAdapter", () => {
     });
   });
 
-  describe("searchCatalog — track type (deferred to PR-3.1b)", () => {
-    it("returns empty tracks array when track type requested (not yet implemented)", async () => {
+  describe("searchCatalog — artist images (Bug 1)", () => {
+    it("uses picture_xl when present", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
+        { id: 1, name: "Test Artist", picture_xl: "http://xl.jpg", picture: "http://low.jpg" },
+      ]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+
+      const result = await adapter.searchCatalog("Test Artist", ["artist"], { artist: 1 });
+
+      expect(result.artists[0].image).toBe("http://xl.jpg");
+    });
+
+    it("falls back to picture_big when picture_xl is absent", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
+        { id: 1, name: "Test Artist", picture_big: "http://big.jpg", picture: "http://low.jpg" },
+      ]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+
+      const result = await adapter.searchCatalog("Test Artist", ["artist"], { artist: 1 });
+
+      expect(result.artists[0].image).toBe("http://big.jpg");
+    });
+
+    it("falls back to picture_medium when picture_xl and picture_big are absent", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
+        {
+          id: 1,
+          name: "Test Artist",
+          picture_medium: "http://medium.jpg",
+          picture: "http://low.jpg",
+        },
+      ]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+
+      const result = await adapter.searchCatalog("Test Artist", ["artist"], { artist: 1 });
+
+      expect(result.artists[0].image).toBe("http://medium.jpg");
+    });
+
+    it("falls back to picture when no higher-res variant is available", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
+        { id: 1, name: "Test Artist", picture: "http://low.jpg" },
+      ]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+
+      const result = await adapter.searchCatalog("Test Artist", ["artist"], { artist: 1 });
+
+      expect(result.artists[0].image).toBe("http://low.jpg");
+    });
+
+    it("returns null when no picture fields are present", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([{ id: 1, name: "Test Artist" }]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+
+      const result = await adapter.searchCatalog("Test Artist", ["artist"], { artist: 1 });
+
+      expect(result.artists[0].image).toBeNull();
+    });
+  });
+
+  describe("searchCatalog — track type, no artist match (Bug 2)", () => {
+    it("includes durationMs from track.duration * 1000", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([]);
+      vi.mocked(deezerClient.searchTrack).mockResolvedValue([
+        {
+          id: 1,
+          title: "Some Track",
+          duration: 210,
+          track_position: 1,
+          disk_number: 1,
+          artist: { id: 99, name: "Some Artist" },
+          album: { id: 50, title: "Some Album", cover_medium: "http://cover.jpg" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("Some Track", ["track"], { track: 5 });
+
+      expect(result.tracks).toHaveLength(1);
+      expect(result.tracks[0].durationMs).toBe(210000);
+    });
+
+    it("returns empty tracks when searchTrack returns no results", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([]);
+      vi.mocked(deezerClient.searchTrack).mockResolvedValue([]);
+
       const result = await adapter.searchCatalog("query", ["track"], { track: 5 });
 
       expect(result.tracks).toEqual([]);
+    });
+  });
+
+  describe("searchCatalog — album type with record_type (Bug 3)", () => {
+    it('maps record_type "album" to albumType "album"', async () => {
+      vi.mocked(deezerClient.searchAlbumList).mockResolvedValue([
+        {
+          id: 1,
+          title: "Full Album",
+          record_type: "album",
+          artist: { id: 10, name: "Artist" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("Full Album", ["album"], { album: 5 });
+
+      expect(result.albums[0].albumType).toBe("album");
+    });
+
+    it('maps record_type "single" to albumType "single"', async () => {
+      vi.mocked(deezerClient.searchAlbumList).mockResolvedValue([
+        {
+          id: 2,
+          title: "A Single",
+          record_type: "single",
+          artist: { id: 10, name: "Artist" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("A Single", ["album"], { album: 5 });
+
+      expect(result.albums[0].albumType).toBe("single");
+    });
+
+    it('maps record_type "ep" to albumType "ep"', async () => {
+      vi.mocked(deezerClient.searchAlbumList).mockResolvedValue([
+        {
+          id: 3,
+          title: "An EP",
+          record_type: "ep",
+          artist: { id: 10, name: "Artist" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("An EP", ["album"], { album: 5 });
+
+      expect(result.albums[0].albumType).toBe("ep");
+    });
+
+    it('maps record_type "compile" to albumType "compilation"', async () => {
+      vi.mocked(deezerClient.searchAlbumList).mockResolvedValue([
+        {
+          id: 4,
+          title: "Greatest Hits",
+          record_type: "compile",
+          artist: { id: 10, name: "Artist" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("Greatest Hits", ["album"], { album: 5 });
+
+      expect(result.albums[0].albumType).toBe("compilation");
+    });
+
+    it("returns albumType undefined when record_type is missing", async () => {
+      vi.mocked(deezerClient.searchAlbumList).mockResolvedValue([
+        {
+          id: 5,
+          title: "Unknown Type",
+          artist: { id: 10, name: "Artist" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("Unknown Type", ["album"], { album: 5 });
+
+      expect(result.albums[0].albumType).toBeUndefined();
+    });
+  });
+
+  describe("searchCatalog — artist top tracks path (Bug 4)", () => {
+    it("uses getArtistTopTracks when first artist name fuzzy-matches the query", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([{ id: 42, name: "Cruz Cafuné" }]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(deezerClient.getArtistTopTracks).mockResolvedValue([
+        {
+          id: 10,
+          title: "Top Track",
+          duration: 180,
+          track_position: 1,
+          disk_number: 1,
+          artist: { id: 42, name: "Cruz Cafuné" },
+          album: { id: 5, title: "Album", cover_medium: "http://cover.jpg" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("cruz cafune", ["track"], { track: 5 });
+
+      expect(deezerClient.getArtistTopTracks).toHaveBeenCalledWith(42, 5);
+      expect(result.tracks).toHaveLength(1);
+      expect(result.tracks[0].name).toBe("Top Track");
+    });
+
+    it("includes durationMs in artist top tracks path", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([{ id: 42, name: "Cruz Cafuné" }]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(deezerClient.getArtistTopTracks).mockResolvedValue([
+        {
+          id: 10,
+          title: "Top Track",
+          duration: 240,
+          track_position: 1,
+          disk_number: 1,
+          artist: { id: 42, name: "Cruz Cafuné" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("cruz cafune", ["track"], { track: 5 });
+
+      expect(result.tracks[0].durationMs).toBe(240000);
+    });
+
+    it("falls back to searchTrack when no artist fuzzy-matches the query", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([
+        { id: 99, name: "Totally Unrelated Artist" },
+      ]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(deezerClient.searchTrack).mockResolvedValue([
+        {
+          id: 20,
+          title: "Generic Track",
+          duration: 150,
+          track_position: 1,
+          disk_number: 1,
+          artist: { id: 99, name: "Totally Unrelated Artist" },
+        },
+      ]);
+
+      const result = await adapter.searchCatalog("something else", ["track"], { track: 5 });
+
+      expect(deezerClient.getArtistTopTracks).not.toHaveBeenCalled();
+      expect(deezerClient.searchTrack).toHaveBeenCalledWith("something else");
+      expect(result.tracks).toHaveLength(1);
+    });
+
+    it("falls back to searchTrack when artist list is empty", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([]);
+      vi.mocked(deezerClient.searchTrack).mockResolvedValue([]);
+
+      const result = await adapter.searchCatalog("query", ["track"], { track: 5 });
+
+      expect(deezerClient.getArtistTopTracks).not.toHaveBeenCalled();
+      expect(result.tracks).toEqual([]);
+    });
+
+    it("fetches /search/artist exactly once when both artist and track types are requested", async () => {
+      vi.mocked(deezerClient.searchArtistList).mockResolvedValue([{ id: 42, name: "Cruz Cafuné" }]);
+      vi.mocked(feedRepo.getArtistByAnyId).mockResolvedValue(null);
+      vi.mocked(deezerClient.getArtistTopTracks).mockResolvedValue([]);
+
+      await adapter.searchCatalog("cruz cafune", ["artist", "track"], { artist: 5, track: 5 });
+
+      expect(deezerClient.searchArtistList).toHaveBeenCalledTimes(1);
     });
   });
 });

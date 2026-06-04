@@ -28,6 +28,7 @@ function mockRepo(partial: Partial<FeedRepositoryPort> = {}): FeedRepositoryPort
     getArtistAlbums: vi.fn().mockResolvedValue([]),
     upsertArtistAlbums: vi.fn().mockResolvedValue(undefined),
     upsertArtists: vi.fn().mockResolvedValue(undefined),
+    getArtistCatalogIdentities: vi.fn().mockResolvedValue([]),
     ...partial,
   } as unknown as FeedRepositoryPort;
 }

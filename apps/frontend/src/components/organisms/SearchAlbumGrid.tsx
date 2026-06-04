@@ -4,34 +4,40 @@ import { useAlbumListDownloadStates } from "@/hooks/useAlbumListDownloadStates";
 import { AlbumCard } from "../molecules/AlbumCard";
 import { VirtualGrid } from "../molecules/VirtualGrid";
 
+type AlbumNavTarget = Pick<ArtistRelease, "spotifyUrl" | "artistId" | "albumId">;
+
 interface SearchAlbumGridProps {
   albums: ArtistRelease[];
-  onClick: (spotifyUrl: string) => void;
+  onClick: (album: AlbumNavTarget) => void;
   onArtistClick: (artistId: string) => void;
-  onDownload: (url: string) => void;
+  onDownload: (album: AlbumNavTarget) => void;
 }
 
 interface SearchAlbumItemProps {
   album: ArtistRelease;
   isDownloaded: boolean;
   isDownloading: boolean;
-  onClick: (spotifyUrl: string) => void;
+  onClick: (album: AlbumNavTarget) => void;
   onArtistClick: (artistId: string) => void;
-  onDownload: (url: string) => void;
+  onDownload: (album: AlbumNavTarget) => void;
 }
 
 export const SearchAlbumItem: FC<SearchAlbumItemProps> = memo(
   ({ album, isDownloaded, isDownloading, onClick, onArtistClick, onDownload }) => {
     const handleCardClick = useCallback(() => {
-      if (album.spotifyUrl) onClick(album.spotifyUrl);
-    }, [album.spotifyUrl, onClick]);
+      onClick({ spotifyUrl: album.spotifyUrl, artistId: album.artistId, albumId: album.albumId });
+    }, [album.spotifyUrl, album.artistId, album.albumId, onClick]);
 
     const handleDownloadClick = useCallback(
       (e: MouseEvent) => {
         e.stopPropagation();
-        if (album.spotifyUrl) onDownload(album.spotifyUrl);
+        onDownload({
+          spotifyUrl: album.spotifyUrl,
+          artistId: album.artistId,
+          albumId: album.albumId,
+        });
       },
-      [album.spotifyUrl, onDownload],
+      [album.spotifyUrl, album.artistId, album.albumId, onDownload],
     );
 
     return (

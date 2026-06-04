@@ -262,6 +262,51 @@ describe("DeezerClient", () => {
     });
   });
 
+  describe("getArtistTopTracks", () => {
+    it("calls /artist/{id}/top?limit=N and returns parsed tracks", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 55,
+              title: "Hit Song",
+              duration: 200,
+              track_position: 1,
+              disk_number: 1,
+              artist: { id: 7, name: "Big Artist" },
+              album: { id: 9, title: "Big Album", cover_medium: "http://cover.jpg" },
+            },
+          ],
+        }),
+      } as Response);
+
+      const tracks = await client.getArtistTopTracks(7, 5);
+
+      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining("/artist/7/top?limit=5"));
+      expect(tracks).toHaveLength(1);
+      expect(tracks[0].id).toBe(55);
+      expect(tracks[0].title).toBe("Hit Song");
+      expect(tracks[0].duration).toBe(200);
+    });
+
+    it("returns empty array when API returns no data", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      } as Response);
+
+      const tracks = await client.getArtistTopTracks(7, 5);
+      expect(tracks).toEqual([]);
+    });
+
+    it("returns empty array on network error", async () => {
+      fetchSpy.mockRejectedValue(new Error("network failure"));
+      const tracks = await client.getArtistTopTracks(7, 5);
+      expect(tracks).toEqual([]);
+    });
+  });
+
   describe("searchTrack", () => {
     it("returns list of track results with expected fields", async () => {
       fetchSpy.mockResolvedValue({

@@ -1,21 +1,13 @@
-import type { ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
+import type { AlbumType, ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
 import type {
   CatalogSearchPort,
   CatalogSearchResult,
 } from "@/application/ports/catalog-search.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
-import type { DeezerClient } from "./deezer.client";
+import { namesMatch } from "../normalize-name";
+import type { DeezerArtist, DeezerClient, DeezerTrack } from "./deezer.client";
+import { pickBestDeezerArtistPicture, upscaleDeezerImage } from "./picture";
 
-/**
- * Implements CatalogSearchPort using Deezer as the primary search provider.
- *
- * Artist ID resolution (Design D1):
- * - For each Deezer artist result, look up FollowedArtistCache by the Deezer numeric ID.
- * - If a cache hit exists, surface the Spotify ID (the stable internal PK).
- * - If no cache entry, surface the Deezer ID so the frontend can still navigate.
- *
- * Track results include albumId for download routing via album path (Design D4).
- */
 export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
   constructor(
     private readonly deezerClient: DeezerClient,
@@ -27,46 +19,50 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
     types: string[],
     limits: { track?: number; album?: number; artist?: number },
   ): Promise<CatalogSearchResult> {
+    const needsArtistContext = types.includes("artist") || types.includes("track");
+    const rawArtists = needsArtistContext
+      ? await this.safeSearchArtistList(query, Math.max(limits.artist ?? 5, 1))
+      : [];
+
     const [artists, albums, tracks] = await Promise.all([
       types.includes("artist")
-        ? this.searchArtists(query, limits.artist ?? 5)
+        ? this.resolveArtists(rawArtists)
         : Promise.resolve<FollowedArtist[]>([]),
       types.includes("album")
         ? this.searchAlbums(query, limits.album ?? 10)
         : Promise.resolve<ArtistRelease[]>([]),
       types.includes("track")
-        ? this.searchTracks(query, limits.track ?? 10)
+        ? this.searchTracks(query, limits.track ?? 10, rawArtists[0])
         : Promise.resolve<NormalizedTrack[]>([]),
     ]);
 
     return { tracks, albums, artists };
   }
 
-  private async searchArtists(query: string, limit: number): Promise<FollowedArtist[]> {
+  private async safeSearchArtistList(query: string, limit: number): Promise<DeezerArtist[]> {
     try {
-      const deezerArtists = await this.deezerClient.searchArtistList(query, limit);
-
-      const resolved = await Promise.all(
-        deezerArtists.map(async (deezerArtist): Promise<FollowedArtist> => {
-          // Look up the cache by Deezer ID to resolve to the Spotify ID
-          const cached = await this.feedRepository.getArtistByAnyId(String(deezerArtist.id));
-          if (cached) {
-            return cached;
-          }
-          // Artist not in cache — surface the Deezer ID as the identifier
-          return {
-            id: String(deezerArtist.id),
-            name: deezerArtist.name,
-            image: deezerArtist.picture ?? null,
-            spotifyUrl: null,
-          };
-        }),
-      );
-
-      return resolved;
+      return await this.deezerClient.searchArtistList(query, limit);
     } catch {
       return [];
     }
+  }
+
+  private async resolveArtists(deezerArtists: DeezerArtist[]): Promise<FollowedArtist[]> {
+    return Promise.all(
+      deezerArtists.map(async (deezerArtist): Promise<FollowedArtist> => {
+        const freshImage = pickBestDeezerArtistPicture(deezerArtist);
+        const cached = await this.feedRepository.getArtistByAnyId(String(deezerArtist.id));
+        if (cached) {
+          return { ...cached, image: freshImage ?? upscaleDeezerImage(cached.image) };
+        }
+        return {
+          id: String(deezerArtist.id),
+          name: deezerArtist.name,
+          image: freshImage,
+          spotifyUrl: null,
+        };
+      }),
+    );
   }
 
   private async searchAlbums(query: string, limit: number): Promise<ArtistRelease[]> {
@@ -80,7 +76,7 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
           artistImageUrl: null,
           albumId: String(album.id),
           albumName: album.title,
-          albumType: undefined,
+          albumType: mapDeezerRecordType(album.record_type),
           releaseDate: album.release_date,
           coverUrl: album.cover_medium ?? album.cover ?? null,
           spotifyUrl: undefined,
@@ -91,24 +87,53 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
     }
   }
 
-  private async searchTracks(query: string, limit: number): Promise<NormalizedTrack[]> {
+  private async searchTracks(
+    query: string,
+    limit: number,
+    firstArtist: DeezerArtist | undefined,
+  ): Promise<NormalizedTrack[]> {
     try {
-      const deezerTracks = await this.deezerClient.searchTrack(query);
-      const limitedTracks = deezerTracks.slice(0, limit);
+      // Artist name match → /artist/{id}/top returns the artist's own tracks
+      // ranked by plays; generic /search/track ranks globally and surfaces features.
+      let rawTracks: DeezerTrack[];
+      if (firstArtist && namesMatch(firstArtist.name, query)) {
+        rawTracks = await this.deezerClient.getArtistTopTracks(firstArtist.id, limit);
+      } else {
+        const allTracks = await this.deezerClient.searchTrack(query);
+        rawTracks = allTracks.slice(0, limit);
+      }
 
-      return limitedTracks.map(
+      return rawTracks.map(
         (track): NormalizedTrack => ({
           name: track.title,
           artist: track.artist.name,
           artists: [{ name: track.artist.name, url: undefined }],
-          // Deezer-opaque URL — not a Spotify URL, will be lazy-resolved by ExternalUrlResolver
+          primaryArtist: track.artist.id ? String(track.artist.id) : undefined,
           trackUrl: `https://api.deezer.com/track/${track.id}`,
           albumId: track.album?.id ? String(track.album.id) : undefined,
           albumCoverUrl: track.album?.cover_medium ?? track.album?.cover ?? undefined,
+          // Deezer returns seconds; NormalizedTrack expects milliseconds.
+          durationMs: track.duration * 1000,
         }),
       );
     } catch {
       return [];
     }
+  }
+}
+
+function mapDeezerRecordType(recordType?: string): AlbumType | undefined {
+  // Deezer emits "compile"; the shared enum uses "compilation".
+  switch (recordType) {
+    case "album":
+      return "album";
+    case "single":
+      return "single";
+    case "ep":
+      return "ep";
+    case "compile":
+      return "compilation";
+    default:
+      return undefined;
   }
 }

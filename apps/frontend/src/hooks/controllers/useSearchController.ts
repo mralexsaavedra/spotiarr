@@ -43,10 +43,8 @@ export const useSearchController = () => {
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
       if (isSpotifyUrl(track.trackUrl)) {
-        // Spotify-origin track: use direct URL path
         createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
       } else if (track.albumId) {
-        // Deezer-origin track: route via album path (D4)
         createPlaylist.mutate({
           kind: "album",
           artistId: track.primaryArtist ?? "",
@@ -60,16 +58,29 @@ export const useSearchController = () => {
   );
 
   const handleAlbumClick = useCallback(
-    (spotifyUrl: string) => {
-      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(spotifyUrl)}`);
+    (album: { spotifyUrl?: string; artistId: string; albumId: string }) => {
+      if (album.spotifyUrl && isSpotifyUrl(album.spotifyUrl)) {
+        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(album.spotifyUrl)}`);
+      } else {
+        navigate(
+          Path.ALBUM_DETAIL.replace(":artistId", album.artistId).replace(":albumId", album.albumId),
+        );
+      }
     },
     [navigate],
   );
 
   const handleDownloadAlbum = useCallback(
-    (url: string) => {
-      if (!isSpotifyUrl(url)) return;
-      createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: url });
+    (album: { spotifyUrl?: string; artistId: string; albumId: string }) => {
+      if (album.spotifyUrl && isSpotifyUrl(album.spotifyUrl)) {
+        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: album.spotifyUrl });
+      } else if (album.artistId && album.albumId) {
+        createPlaylist.mutate({
+          kind: "album",
+          artistId: album.artistId,
+          albumId: album.albumId,
+        });
+      }
     },
     [createPlaylist],
   );
@@ -83,10 +94,28 @@ export const useSearchController = () => {
     (item: TopResultItem) => {
       if (item.type === "artist") {
         navigate(Path.ARTIST_DETAIL.replace(":id", item.data.id));
-      } else if (item.type === "track" && item.data.trackUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.trackUrl)}`);
-      } else if (item.type === "album" && item.data.spotifyUrl) {
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.spotifyUrl)}`);
+      } else if (item.type === "track") {
+        if (item.data.trackUrl && isSpotifyUrl(item.data.trackUrl)) {
+          navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.trackUrl)}`);
+        } else if (item.data.primaryArtist && item.data.albumId) {
+          navigate(
+            Path.ALBUM_DETAIL.replace(":artistId", item.data.primaryArtist).replace(
+              ":albumId",
+              item.data.albumId,
+            ),
+          );
+        }
+      } else if (item.type === "album") {
+        if (item.data.spotifyUrl && isSpotifyUrl(item.data.spotifyUrl)) {
+          navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(item.data.spotifyUrl)}`);
+        } else {
+          navigate(
+            Path.ALBUM_DETAIL.replace(":artistId", item.data.artistId).replace(
+              ":albumId",
+              item.data.albumId,
+            ),
+          );
+        }
       }
     },
     [navigate],

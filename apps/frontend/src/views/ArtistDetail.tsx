@@ -81,12 +81,13 @@ export const ArtistDetail: FC = () => {
             )}
           </Button>
 
-          {artist?.spotifyUrl && (
+          {artist && (
             <SpotifyLinkButton
               provider="spotify"
               entityType="artist"
-              id={artist.spotifyUrl}
-              eagerUrl={artist.spotifyUrl}
+              id={artist.id}
+              name={artist.name}
+              eagerUrl={artist.spotifyUrl ?? undefined}
             />
           )}
         </div>

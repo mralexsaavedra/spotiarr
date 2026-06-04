@@ -12,11 +12,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/cn";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
 
 interface PlaylistActionsProps {
   spotifyUrl?: string;
+  playlistId?: string;
+  playlistName?: string;
   isSubscribed: boolean;
   hasFailed: boolean;
   isRetrying: boolean;
@@ -49,7 +52,11 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   onDelete,
   onDownload,
   spotifyUrl,
+  playlistId,
+  playlistName,
 }) => {
+  const hasEagerSpotifyUrl = spotifyUrl && isSpotifyUrl(spotifyUrl);
+  const canLazyResolve = !hasEagerSpotifyUrl && Boolean(playlistName);
   const { t } = useTranslation();
 
   return (
@@ -117,12 +124,20 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </div>
       </Button>
 
-      {spotifyUrl && (
+      {hasEagerSpotifyUrl && (
         <SpotifyLinkButton
           provider="spotify"
           entityType="album"
-          id={spotifyUrl}
+          id={spotifyUrl!}
           eagerUrl={spotifyUrl}
+        />
+      )}
+      {canLazyResolve && (
+        <SpotifyLinkButton
+          provider="spotify"
+          entityType="album"
+          id={playlistId ?? playlistName!}
+          name={playlistName}
         />
       )}
 

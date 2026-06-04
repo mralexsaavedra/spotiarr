@@ -4,6 +4,7 @@ import type { DeezerArtistLookupPort } from "@/application/ports/deezer-artist-l
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import { AppError } from "@/domain/errors/app-error";
+import { upscaleDeezerImage } from "@/domain/helpers/deezer-image.helper";
 import {
   INTERACTIVE_CATALOG_TIMEOUT_MS,
   isArtistCacheFresh,
@@ -22,7 +23,6 @@ export class GetArtistDetailUseCase {
     const isFollowed = cachedArtist !== null;
     const effectiveLimit = isFollowed ? limit : Math.min(limit, 5);
 
-    // Resolve artist details — prefer DB, fallback to Deezer, fallback to unknown on 429
     let details: {
       name: string;
       image: string | null;
@@ -32,22 +32,21 @@ export class GetArtistDetailUseCase {
     };
 
     if (cachedArtist) {
+      const freshImage = await this.refreshArtistImage(cachedArtist.id);
       details = {
         name: cachedArtist.name,
-        image: cachedArtist.image,
+        image: freshImage ?? upscaleDeezerImage(cachedArtist.image) ?? cachedArtist.image,
         spotifyUrl: cachedArtist.spotifyUrl ?? null,
         followers: null,
         genres: [],
       };
     } else {
-      // DB miss path — resolve via Deezer (not Spotify)
       try {
         details = await withTimeout(
           this.resolveDeezerArtistDetails(artistId),
           INTERACTIVE_CATALOG_TIMEOUT_MS,
         );
 
-        // Persist resolved artist to cache if we got a real name
         if (details.name !== "Unknown Artist") {
           await this.feedRepository.upsertArtists([
             {
@@ -60,7 +59,6 @@ export class GetArtistDetailUseCase {
         }
       } catch (err) {
         if (err instanceof AppError && (err.statusCode === 429 || err.statusCode === 504)) {
-          // Rate limited or interactive timeout — return partial response
           return {
             id: artistId,
             name: "Unknown Artist",
@@ -76,7 +74,6 @@ export class GetArtistDetailUseCase {
       }
     }
 
-    // Resolve albums with freshness check
     let albums: ArtistRelease[];
     let catalogRefreshPending = false;
 
@@ -85,7 +82,6 @@ export class GetArtistDetailUseCase {
     if (isArtistCacheFresh(freshness)) {
       albums = await this.feedRepository.getArtistAlbums(artistId, effectiveLimit, 0);
     } else {
-      // Stale or missing cache — try provider refresh (Deezer → MusicBrainz → Spotify)
       try {
         const { albums: providerAlbums } = await withTimeout(
           this.releaseFeedService.getArtistDiscography({
@@ -102,13 +98,9 @@ export class GetArtistDetailUseCase {
 
         albums = await this.feedRepository.getArtistAlbums(artistId, effectiveLimit, 0);
       } catch (err) {
+        albums = await this.feedRepository.getArtistAlbums(artistId, effectiveLimit, 0);
         if (err instanceof AppError && (err.statusCode === 429 || err.statusCode === 504)) {
-          // Rate limited or interactive timeout during refresh — fall back to whatever is in DB
-          albums = await this.feedRepository.getArtistAlbums(artistId, effectiveLimit, 0);
           catalogRefreshPending = albums.length === 0;
-        } else {
-          // Other errors — fall back to DB but don't mark as pending
-          albums = await this.feedRepository.getArtistAlbums(artistId, effectiveLimit, 0);
         }
       }
     }
@@ -126,13 +118,17 @@ export class GetArtistDetailUseCase {
     };
   }
 
-  /**
-   * Resolve artist details from Deezer.
-   * - If the ID looks like a Deezer numeric ID, call getArtistById directly.
-   * - Otherwise try getArtistByAnyId via the DB first (may return a cached name to search by),
-   *   then fall back to searchArtist if we have a name hint.
-   * Returns an Unknown Artist placeholder when Deezer returns nothing.
-   */
+  private async refreshArtistImage(spotifyArtistId: string): Promise<string | null> {
+    const [identity] = await this.feedRepository.getArtistCatalogIdentities([spotifyArtistId]);
+    if (!identity?.deezerId) return null;
+    try {
+      const fresh = await this.deezerArtistClient.getArtistById(identity.deezerId);
+      return fresh?.picture ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   private async resolveDeezerArtistDetails(artistId: string): Promise<{
     name: string;
     image: string | null;
@@ -161,13 +157,7 @@ export class GetArtistDetailUseCase {
         };
       }
 
-      // Spotify-shaped or unknown ID: we don't have a name to search by in the miss path.
-      // Try searchArtist with the ID as a last resort (may return nothing useful).
-      // In practice, the caller should have a name from the UI context; this path handles
-      // edge cases where only the ID is available.
-      // For Spotify-shaped or other IDs: try searchArtist using the ID as a hint.
-      // This is a best-effort call; PR-3.1a will resolve proper name-based search via
-      // the catalog search context when a name is available.
+      // No name available in miss path; pass ID as a best-effort search term.
       const result = await this.deezerArtistClient.searchArtist(artistId);
       if (!result) return unknown;
       return {

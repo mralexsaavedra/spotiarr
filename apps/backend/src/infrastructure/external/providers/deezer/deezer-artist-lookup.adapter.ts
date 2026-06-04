@@ -3,11 +3,8 @@ import type {
   DeezerArtistResult,
 } from "@/application/ports/deezer-artist-lookup.port";
 import type { DeezerClient } from "./deezer.client";
+import { pickBestDeezerArtistPicture } from "./picture";
 
-/**
- * Implements DeezerArtistLookupPort by delegating to DeezerClient.
- * Handles 429/null responses gracefully by returning null.
- */
 export class DeezerArtistLookupAdapter implements DeezerArtistLookupPort {
   constructor(private readonly deezerClient: DeezerClient) {}
 
@@ -18,7 +15,7 @@ export class DeezerArtistLookupAdapter implements DeezerArtistLookupPort {
       return {
         id: result.id,
         name: result.name,
-        picture: result.picture ?? null,
+        picture: pickBestDeezerArtistPicture(result),
       };
     } catch {
       return null;
@@ -32,7 +29,7 @@ export class DeezerArtistLookupAdapter implements DeezerArtistLookupPort {
       return {
         id: result.id,
         name: result.name,
-        picture: result.picture ?? null,
+        picture: pickBestDeezerArtistPicture(result),
       };
     } catch {
       return null;
