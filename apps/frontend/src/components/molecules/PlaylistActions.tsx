@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/cn";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
 
@@ -117,7 +118,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </div>
       </Button>
 
-      {spotifyUrl && (
+      {spotifyUrl && isSpotifyUrl(spotifyUrl) && (
         <SpotifyLinkButton
           provider="spotify"
           entityType="album"
