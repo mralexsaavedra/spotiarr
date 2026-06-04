@@ -380,7 +380,7 @@ const trackPostProcessingService = new TrackPostProcessingService(
 // Use Cases - Tracks
 const createTrackUseCase = new CreateTrackUseCase(trackRepository, queueService);
 const deleteTrackUseCase = new DeleteTrackUseCase(trackRepository);
-const getTracksUseCase = new GetTracksUseCase(trackRepository);
+const getTracksUseCase = new GetTracksUseCase(trackRepository, playlistRepository, trackFileHelper);
 const updateTrackUseCase = new UpdateTrackUseCase(trackRepository);
 const searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
   trackRepository,

@@ -127,6 +127,13 @@ describe("Playlist", () => {
         onDownloadOrRetry={onDownloadOrRetry}
         onDownloadTrack={onDownloadTrack}
         onRetryTrack={onRetryTrack}
+        onPlayTrack={vi.fn()}
+        onPauseTrack={vi.fn()}
+        onPlayPlaylist={vi.fn()}
+        onPausePlaylist={vi.fn()}
+        currentTrackId="track-1"
+        isPlaying={true}
+        hasPlayableTracks={true}
         onConfirmDelete={onConfirmDelete}
         onRetryFailed={onRetryFailed}
         onToggleSubscription={onToggleSubscription}
@@ -159,5 +166,13 @@ describe("Playlist", () => {
     expect(screen.queryByRole("dialog", { name: "confirm-delete" })).toBeNull();
 
     expect(albumPageLayoutSpy).toHaveBeenCalled();
+    expect(albumPageLayoutSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onPlayTrack: expect.any(Function),
+        onPauseTrack: expect.any(Function),
+        currentTrackId: "track-1",
+        isPlaying: true,
+      }),
+    );
   });
 });

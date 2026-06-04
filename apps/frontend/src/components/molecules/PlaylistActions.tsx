@@ -1,5 +1,13 @@
 import { faBell as faBellRegular } from "@fortawesome/free-regular-svg-icons";
-import { faBell, faCheck, faDownload, faRepeat, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBell,
+  faCheck,
+  faDownload,
+  faPause,
+  faPlay,
+  faRepeat,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,6 +23,10 @@ interface PlaylistActionsProps {
   isDownloading: boolean;
   isDownloaded: boolean;
   isSaved: boolean;
+  hasPlayableTracks?: boolean;
+  isPlaying?: boolean;
+  onPlayPlaylist?: () => void;
+  onPausePlaylist?: () => void;
   onToggleSubscription: () => void;
   onRetryFailed: () => void;
   onDelete: () => void;
@@ -28,6 +40,10 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   isDownloading,
   isDownloaded,
   isSaved,
+  hasPlayableTracks = false,
+  isPlaying = false,
+  onPlayPlaylist,
+  onPausePlaylist,
   onToggleSubscription,
   onRetryFailed,
   onDelete,
@@ -38,6 +54,22 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
 
   return (
     <div className="flex items-center gap-3 md:gap-4">
+      {hasPlayableTracks ? (
+        <Button
+          variant="primary"
+          size="lg"
+          className="!h-12 !w-12 justify-center !rounded-full !p-0 shadow-lg transition-transform hover:scale-105 md:!h-14 md:!w-14"
+          onClick={isPlaying ? onPausePlaylist : onPlayPlaylist}
+          title={isPlaying ? t("library.album.pauseTrack") : t("library.album.playTrack")}
+          ariaLabel={isPlaying ? t("library.album.pauseTrack") : t("library.album.playTrack")}
+          icon={isPlaying ? faPause : faPlay}
+        >
+          <span className="sr-only">
+            {isPlaying ? t("library.album.pause") : t("library.album.play")}
+          </span>
+        </Button>
+      ) : null}
+
       <Button
         variant="primary"
         size="lg"

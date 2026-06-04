@@ -199,6 +199,7 @@
     },
     "emptyTracksTitle": "No tracks in this playlist yet",
     "emptyTracksDescription": "Tracks you download or sync will appear here.",
+    "noPlayableTracks": "Download tracks in this playlist to start local playback.",
     "deleteModal": {
       "title": "Delete {{name}}?",
       "description": "This will remove the playlist from your library. Downloaded files will NOT be deleted."
