@@ -171,3 +171,13 @@ model ExternalUrlCache {
   @@unique([provider, type, internalId])
   @@index([provider, type, name])
 }
+
+model PlaylistCache {
+  id        String   @id @default(uuid())
+  cacheKey  String   @unique
+  payload   String
+  cachedAt  DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
