@@ -43,10 +43,8 @@ export const useSearchController = () => {
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
       if (isSpotifyUrl(track.trackUrl)) {
-        // Spotify-origin track: use direct URL path
         createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
       } else if (track.albumId) {
-        // Deezer-origin track: route via album path (D4)
         createPlaylist.mutate({
           kind: "album",
           artistId: track.primaryArtist ?? "",

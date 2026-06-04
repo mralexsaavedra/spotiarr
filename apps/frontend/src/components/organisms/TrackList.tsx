@@ -118,12 +118,6 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
   );
 };
 
-/**
- * Resolves the destination of the track-name link.
- * - Spotify URLs route to the playlist-preview endpoint (resolves track in Spotify).
- * - Deezer-origin tracks fall back to the album detail page (no Spotify URL exists).
- * - Tracks without enough metadata render as plain text (no link).
- */
 function resolveTrackLink(track: TrackListTrack): string | null {
   if (track.trackUrl && isSpotifyUrl(track.trackUrl)) {
     return `${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`;

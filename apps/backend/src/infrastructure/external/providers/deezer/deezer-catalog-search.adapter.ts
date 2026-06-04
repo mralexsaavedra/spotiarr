@@ -8,16 +8,6 @@ import { namesMatch } from "../normalize-name";
 import type { DeezerArtist, DeezerClient, DeezerTrack } from "./deezer.client";
 import { pickBestDeezerArtistPicture, upscaleDeezerImage } from "./picture";
 
-/**
- * Implements CatalogSearchPort using Deezer as the primary search provider.
- *
- * Artist ID resolution (Design D1):
- * - For each Deezer artist result, look up FollowedArtistCache by the Deezer numeric ID.
- * - If a cache hit exists, surface the Spotify ID (the stable internal PK).
- * - If no cache entry, surface the Deezer ID so the frontend can still navigate.
- *
- * Track results include albumId for download routing via album path (Design D4).
- */
 export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
   constructor(
     private readonly deezerClient: DeezerClient,
@@ -29,8 +19,6 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
     types: string[],
     limits: { track?: number; album?: number; artist?: number },
   ): Promise<CatalogSearchResult> {
-    // Fetch raw Deezer artists once and reuse across artist + track resolution
-    // to avoid a duplicate /search/artist round-trip (Bug 4 optimization).
     const needsArtistContext = types.includes("artist") || types.includes("track");
     const rawArtists = needsArtistContext
       ? await this.safeSearchArtistList(query, Math.max(limits.artist ?? 5, 1))
@@ -105,11 +93,8 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
     firstArtist: DeezerArtist | undefined,
   ): Promise<NormalizedTrack[]> {
     try {
-      // Bug 4: if the first artist result fuzzy-matches the query, use the dedicated
-      // /artist/{id}/top endpoint which ranks by play count and returns the artist's
-      // own tracks — avoids unrelated featuring tracks that generic /search/track returns.
-      // The first artist is fetched once in searchCatalog and passed in to avoid a
-      // duplicate /search/artist call.
+      // Artist name match → /artist/{id}/top returns the artist's own tracks
+      // ranked by plays; generic /search/track ranks globally and surfaces features.
       let rawTracks: DeezerTrack[];
       if (firstArtist && namesMatch(firstArtist.name, query)) {
         rawTracks = await this.deezerClient.getArtistTopTracks(firstArtist.id, limit);
@@ -123,14 +108,11 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
           name: track.title,
           artist: track.artist.name,
           artists: [{ name: track.artist.name, url: undefined }],
-          // primaryArtist is the Deezer artist ID, used by the frontend to route
-          // a Deezer-origin track click to the album detail page (no Spotify URL exists).
           primaryArtist: track.artist.id ? String(track.artist.id) : undefined,
-          // Deezer-opaque URL — not a Spotify URL, will be lazy-resolved by ExternalUrlResolver
           trackUrl: `https://api.deezer.com/track/${track.id}`,
           albumId: track.album?.id ? String(track.album.id) : undefined,
           albumCoverUrl: track.album?.cover_medium ?? track.album?.cover ?? undefined,
-          // Bug 2: Deezer returns duration in seconds; NormalizedTrack expects milliseconds
+          // Deezer returns seconds; NormalizedTrack expects milliseconds.
           durationMs: track.duration * 1000,
         }),
       );
@@ -140,11 +122,8 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
   }
 }
 
-/**
- * Maps a Deezer record_type string to the shared AlbumType enum.
- * Deezer uses "compile" for compilations; we normalize to "compilation".
- */
 function mapDeezerRecordType(recordType?: string): AlbumType | undefined {
+  // Deezer emits "compile"; the shared enum uses "compilation".
   switch (recordType) {
     case "album":
       return "album";
