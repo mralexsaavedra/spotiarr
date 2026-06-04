@@ -1,9 +1,9 @@
 import type {
   ArtworkBackfillCandidate,
-  ArtworkBackfillSpotifySourcePort,
+  ArtworkBackfillExternalSourcePort,
 } from "@/application/ports/artwork-backfill-sources.port";
 
-export class NoopSpotifyArtworkSourceService implements ArtworkBackfillSpotifySourcePort {
+export class NoopSpotifyArtworkSourceService implements ArtworkBackfillExternalSourcePort {
   async findArtistImageUrl(_candidate: ArtworkBackfillCandidate): Promise<string | null> {
     return null;
   }

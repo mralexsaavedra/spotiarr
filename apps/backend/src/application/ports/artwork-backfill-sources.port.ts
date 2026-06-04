@@ -40,7 +40,7 @@ export interface ArtworkBackfillCacheSourcePort {
   findAlbumCoverUrl(candidate: ArtworkBackfillCandidate): Promise<string | null>;
 }
 
-export interface ArtworkBackfillSpotifySourcePort {
+export interface ArtworkBackfillExternalSourcePort {
   findArtistImageUrl(candidate: ArtworkBackfillCandidate): Promise<string | null>;
   findAlbumCoverUrl(candidate: ArtworkBackfillCandidate): Promise<string | null>;
 }

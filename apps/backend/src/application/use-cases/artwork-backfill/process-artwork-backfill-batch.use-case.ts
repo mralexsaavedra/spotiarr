@@ -4,8 +4,8 @@ import type {
   ArtworkBackfillCandidate,
   ArtworkBackfillCandidateSourcePort,
   ArtworkBackfillEmbeddedSourcePort,
+  ArtworkBackfillExternalSourcePort,
   ArtworkBackfillFileSystemSourcePort,
-  ArtworkBackfillSpotifySourcePort,
 } from "@/application/ports/artwork-backfill-sources.port";
 import type { ArtworkBackfillPhase } from "@/domain/artwork-backfill.types";
 
@@ -33,7 +33,7 @@ export class ProcessArtworkBackfillBatchUseCase {
     private readonly fileSystemSource: ArtworkBackfillFileSystemSourcePort,
     private readonly cacheSource: ArtworkBackfillCacheSourcePort,
     private readonly embeddedSource: ArtworkBackfillEmbeddedSourcePort,
-    private readonly spotifySource: ArtworkBackfillSpotifySourcePort,
+    private readonly externalSources: ArtworkBackfillExternalSourcePort[],
     private readonly backfillRepository: ArtworkBackfillRepositoryPort,
   ) {}
 
@@ -125,14 +125,17 @@ export class ProcessArtworkBackfillBatchUseCase {
       }
 
       if (allowExternalFallback) {
-        const spotifyImage = await this.spotifySource.findArtistImageUrl(candidate);
-        if (!spotifyImage) return "failed";
+        for (const source of this.externalSources) {
+          const externalImage = await source.findArtistImageUrl(candidate);
+          if (!externalImage) continue;
 
-        const written = await this.fileSystemSource.writeArtistArtworkIfMissing(
-          candidate.artistName,
-          spotifyImage,
-        );
-        return written ? "external" : "failed";
+          const written = await this.fileSystemSource.writeArtistArtworkIfMissing(
+            candidate.artistName,
+            externalImage,
+          );
+          return written ? "external" : "failed";
+        }
+        return "failed";
       }
 
       return "failed";
@@ -173,15 +176,18 @@ export class ProcessArtworkBackfillBatchUseCase {
     }
 
     if (allowExternalFallback) {
-      const spotifyCover = await this.spotifySource.findAlbumCoverUrl(candidate);
-      if (!spotifyCover) return "failed";
+      for (const source of this.externalSources) {
+        const externalCover = await source.findAlbumCoverUrl(candidate);
+        if (!externalCover) continue;
 
-      const writtenSpotify = await this.fileSystemSource.writeAlbumArtworkIfMissing(
-        candidate.artistName,
-        candidate.albumName,
-        spotifyCover,
-      );
-      return writtenSpotify ? "external" : "failed";
+        const written = await this.fileSystemSource.writeAlbumArtworkIfMissing(
+          candidate.artistName,
+          candidate.albumName,
+          externalCover,
+        );
+        return written ? "external" : "failed";
+      }
+      return "failed";
     }
 
     return "failed";

@@ -1,13 +1,13 @@
 import type {
   ArtworkBackfillCandidate,
-  ArtworkBackfillSpotifySourcePort,
+  ArtworkBackfillExternalSourcePort,
 } from "@/application/ports/artwork-backfill-sources.port";
 import { AppError } from "@/domain/errors/app-error";
 import type { SpotifyAlbumClient } from "./spotify-album.client";
 import type { SpotifyArtistClient } from "./spotify-artist.client";
 import type { SpotifySearchClient } from "./spotify-search.client";
 
-export class SpotifyArtworkSourceService implements ArtworkBackfillSpotifySourcePort {
+export class SpotifyArtworkSourceService implements ArtworkBackfillExternalSourcePort {
   constructor(
     private readonly spotifyArtistClient: SpotifyArtistClient,
     private readonly spotifyAlbumClient: SpotifyAlbumClient,

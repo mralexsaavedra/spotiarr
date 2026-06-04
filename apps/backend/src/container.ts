@@ -56,6 +56,7 @@ import { PrismaSettingsRepository } from "./infrastructure/database/prisma-setti
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { PromiseCache } from "./infrastructure/external/promise-cache";
 import { DeezerArtistLookupAdapter } from "./infrastructure/external/providers/deezer/deezer-artist-lookup.adapter";
+import { DeezerArtworkSourceService } from "./infrastructure/external/providers/deezer/deezer-artwork-source.service";
 import { DeezerCatalogSearchAdapter } from "./infrastructure/external/providers/deezer/deezer-catalog-search.adapter";
 import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
@@ -488,12 +489,14 @@ const spotifyArtworkSourceService = new SpotifyArtworkSourceService(
   spotifyAlbumClient,
   spotifySearchClient,
 );
+const deezerArtworkSourceService = new DeezerArtworkSourceService(deezerClient);
+const externalArtworkSources = [deezerArtworkSourceService, spotifyArtworkSourceService];
 const processArtworkBackfillBatchUseCase = new ProcessArtworkBackfillBatchUseCase(
   cacheArtworkSourceService,
   fileSystemArtworkSourceService,
   cacheArtworkSourceService,
   embeddedArtworkSourceService,
-  spotifyArtworkSourceService,
+  externalArtworkSources,
   artworkBackfillRepository,
 );
 const startArtworkBackfillUseCase = new StartArtworkBackfillUseCase(
