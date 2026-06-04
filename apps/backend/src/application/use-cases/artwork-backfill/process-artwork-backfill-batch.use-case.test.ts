@@ -5,8 +5,8 @@ import type {
   ArtworkBackfillCandidate,
   ArtworkBackfillCandidateSourcePort,
   ArtworkBackfillEmbeddedSourcePort,
+  ArtworkBackfillExternalSourcePort,
   ArtworkBackfillFileSystemSourcePort,
-  ArtworkBackfillSpotifySourcePort,
 } from "@/application/ports/artwork-backfill-sources.port";
 import { ProcessArtworkBackfillBatchUseCase } from "./process-artwork-backfill-batch.use-case";
 
@@ -56,7 +56,11 @@ function build() {
   const embeddedSource: ArtworkBackfillEmbeddedSourcePort = {
     extractFromTracks: vi.fn().mockResolvedValue(null),
   };
-  const spotifySource: ArtworkBackfillSpotifySourcePort = {
+  const deezerSource: ArtworkBackfillExternalSourcePort = {
+    findArtistImageUrl: vi.fn().mockResolvedValue(null),
+    findAlbumCoverUrl: vi.fn().mockResolvedValue(null),
+  };
+  const spotifySource: ArtworkBackfillExternalSourcePort = {
     findArtistImageUrl: vi.fn().mockResolvedValue(null),
     findAlbumCoverUrl: vi.fn().mockResolvedValue(null),
   };
@@ -73,7 +77,7 @@ function build() {
     fileSystemSource,
     cacheSource,
     embeddedSource,
-    spotifySource,
+    [deezerSource, spotifySource],
     repository,
   );
 
@@ -83,6 +87,7 @@ function build() {
     fileSystemSource,
     cacheSource,
     embeddedSource,
+    deezerSource,
     spotifySource,
     repository,
   };
@@ -125,6 +130,7 @@ describe("ProcessArtworkBackfillBatchUseCase", () => {
       "Artist A",
       "https://img/artist.jpg",
     );
+    expect(ctx.deezerSource.findArtistImageUrl).not.toHaveBeenCalled();
     expect(ctx.spotifySource.findArtistImageUrl).not.toHaveBeenCalled();
   });
 
@@ -167,13 +173,15 @@ describe("ProcessArtworkBackfillBatchUseCase", () => {
         failed: 1,
       }),
     );
+    expect(ctx.deezerSource.findAlbumCoverUrl).not.toHaveBeenCalled();
     expect(ctx.spotifySource.findAlbumCoverUrl).not.toHaveBeenCalled();
   });
 
-  it("writes artist artwork from spotify fallback when local and cache miss", async () => {
+  it("ABF-2b: writes artist artwork from spotify fallback when deezer and local and cache miss", async () => {
     const ctx = build();
     vi.mocked(ctx.candidateSource.getArtistCandidates).mockResolvedValue([artistCandidate()]);
     vi.mocked(ctx.cacheSource.findArtistImageUrl).mockResolvedValue(null);
+    vi.mocked(ctx.deezerSource.findArtistImageUrl).mockResolvedValue(null);
     vi.mocked(ctx.spotifySource.findArtistImageUrl).mockResolvedValue(
       "https://img/spotify-artist.jpg",
     );
@@ -188,13 +196,15 @@ describe("ProcessArtworkBackfillBatchUseCase", () => {
 
     expect(result.externalCalls).toBe(1);
     expect(result.failed).toBe(0);
+    expect(ctx.deezerSource.findArtistImageUrl).toHaveBeenCalledWith(artistCandidate());
+    expect(ctx.spotifySource.findArtistImageUrl).toHaveBeenCalledWith(artistCandidate());
     expect(ctx.fileSystemSource.writeArtistArtworkIfMissing).toHaveBeenCalledWith(
       "Artist A",
       "https://img/spotify-artist.jpg",
     );
   });
 
-  it("uses local album artwork as artist fallback before spotify", async () => {
+  it("uses local album artwork as artist fallback before external sources", async () => {
     const ctx = build();
     vi.mocked(ctx.candidateSource.getArtistCandidates).mockResolvedValue([artistCandidate()]);
     vi.mocked(ctx.cacheSource.findArtistImageUrl).mockResolvedValue(null);
@@ -212,6 +222,7 @@ describe("ProcessArtworkBackfillBatchUseCase", () => {
 
     expect(result.written).toBe(1);
     expect(result.externalCalls).toBe(0);
+    expect(ctx.deezerSource.findArtistImageUrl).not.toHaveBeenCalled();
     expect(ctx.spotifySource.findArtistImageUrl).not.toHaveBeenCalled();
     expect(ctx.fileSystemSource.writeArtistArtworkIfMissing).toHaveBeenCalledWith(
       "Artist A",
@@ -219,11 +230,12 @@ describe("ProcessArtworkBackfillBatchUseCase", () => {
     );
   });
 
-  it("writes album artwork from spotify fallback when local embedded and cache miss", async () => {
+  it("writes album artwork from spotify fallback when local embedded deezer and cache miss", async () => {
     const ctx = build();
     vi.mocked(ctx.candidateSource.getAlbumCandidates).mockResolvedValue([albumCandidate()]);
     vi.mocked(ctx.embeddedSource.extractFromTracks).mockResolvedValue(null);
     vi.mocked(ctx.cacheSource.findAlbumCoverUrl).mockResolvedValue(null);
+    vi.mocked(ctx.deezerSource.findAlbumCoverUrl).mockResolvedValue(null);
     vi.mocked(ctx.spotifySource.findAlbumCoverUrl).mockResolvedValue(
       "https://img/spotify-cover.jpg",
     );
@@ -243,5 +255,74 @@ describe("ProcessArtworkBackfillBatchUseCase", () => {
       "Album One",
       "https://img/spotify-cover.jpg",
     );
+  });
+
+  it("ABF-2a: deezer resolves album cover — spotify source NOT called", async () => {
+    const ctx = build();
+    vi.mocked(ctx.candidateSource.getAlbumCandidates).mockResolvedValue([albumCandidate()]);
+    vi.mocked(ctx.embeddedSource.extractFromTracks).mockResolvedValue(null);
+    vi.mocked(ctx.cacheSource.findAlbumCoverUrl).mockResolvedValue(null);
+    vi.mocked(ctx.deezerSource.findAlbumCoverUrl).mockResolvedValue(
+      "https://cdn.deezer.com/album.jpg",
+    );
+    vi.mocked(ctx.fileSystemSource.writeAlbumArtworkIfMissing).mockResolvedValue(true);
+
+    const result = await ctx.useCase.execute({
+      runId: "run-abf-2a",
+      phase: "albums",
+      limit: 10,
+      allowExternalFallback: true,
+    });
+
+    expect(result.externalCalls).toBe(1);
+    expect(ctx.spotifySource.findAlbumCoverUrl).not.toHaveBeenCalled();
+    expect(ctx.fileSystemSource.writeAlbumArtworkIfMissing).toHaveBeenCalledWith(
+      "Artist A",
+      "Album One",
+      "https://cdn.deezer.com/album.jpg",
+    );
+  });
+
+  it("ABF-2a: deezer resolves artist image — spotify source NOT called", async () => {
+    const ctx = build();
+    vi.mocked(ctx.candidateSource.getArtistCandidates).mockResolvedValue([artistCandidate()]);
+    vi.mocked(ctx.cacheSource.findArtistImageUrl).mockResolvedValue(null);
+    vi.mocked(ctx.deezerSource.findArtistImageUrl).mockResolvedValue(
+      "https://cdn.deezer.com/artist.jpg",
+    );
+    vi.mocked(ctx.fileSystemSource.writeArtistArtworkIfMissing).mockResolvedValue(true);
+
+    const result = await ctx.useCase.execute({
+      runId: "run-abf-2a-artist",
+      phase: "artists",
+      limit: 10,
+      allowExternalFallback: true,
+    });
+
+    expect(result.externalCalls).toBe(1);
+    expect(ctx.spotifySource.findArtistImageUrl).not.toHaveBeenCalled();
+    expect(ctx.fileSystemSource.writeArtistArtworkIfMissing).toHaveBeenCalledWith(
+      "Artist A",
+      "https://cdn.deezer.com/artist.jpg",
+    );
+  });
+
+  it("ABF-2c: both external sources miss — candidate counted as failed, no crash", async () => {
+    const ctx = build();
+    vi.mocked(ctx.candidateSource.getAlbumCandidates).mockResolvedValue([albumCandidate()]);
+    vi.mocked(ctx.embeddedSource.extractFromTracks).mockResolvedValue(null);
+    vi.mocked(ctx.cacheSource.findAlbumCoverUrl).mockResolvedValue(null);
+    vi.mocked(ctx.deezerSource.findAlbumCoverUrl).mockResolvedValue(null);
+    vi.mocked(ctx.spotifySource.findAlbumCoverUrl).mockResolvedValue(null);
+
+    const result = await ctx.useCase.execute({
+      runId: "run-abf-2c",
+      phase: "albums",
+      limit: 10,
+      allowExternalFallback: true,
+    });
+
+    expect(result.failed).toBe(1);
+    expect(result.externalCalls).toBe(0);
   });
 });
