@@ -3,6 +3,7 @@ import {
   type NormalizedTrack,
   PlaylistTypeEnum,
   type IPlaylist,
+  extractDeezerTrackId,
 } from "@spotiarr/shared";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { SpotifyService } from "@/application/services/spotify.service";
@@ -14,6 +15,10 @@ import type { PlaylistRepository } from "@/domain/repositories/playlist.reposito
 import type { SettingsService } from "../../services/settings.service";
 import type { TrackService } from "../../services/track.service";
 import type { GetAlbumTracksUseCase } from "../artists/get-album-tracks.use-case";
+
+interface DeezerAlbumTracksPort {
+  getAlbumTracks(deezerAlbumId: string | number): Promise<NormalizedTrack[]>;
+}
 
 interface PlaylistDetail {
   tracks: NormalizedTrack[];
@@ -40,6 +45,7 @@ export class CreatePlaylistUseCase {
     private readonly eventBus: EventBus,
     private readonly getAlbumTracksUseCase?: GetAlbumTracksUseCase,
     private readonly feedRepository?: FeedRepositoryPort,
+    private readonly deezerClient?: DeezerAlbumTracksPort,
   ) {}
 
   async execute(input: CreatePlaylistRequest): Promise<IPlaylist> {
@@ -48,6 +54,9 @@ export class CreatePlaylistUseCase {
     }
     if (input.kind === "albumTrack") {
       return this.executeAlbumTrackRef(input.artistId, input.albumId, input.trackIndex);
+    }
+    if (input.kind === "deezerTrack") {
+      return this.executeDeezerTrack(input.deezerTrackId, input.deezerAlbumId);
     }
     return this.executeSpotifyUrl(input.spotifyUrl);
   }
@@ -234,6 +243,61 @@ export class CreatePlaylistUseCase {
       PlaylistTypeEnum.Track,
       coverUrl,
       artistImageUrl,
+      artistName,
+      undefined,
+    );
+
+    const autoSubscribe = await this.settingsService.getBoolean("AUTO_SUBSCRIBE_NEW_PLAYLISTS");
+    if (autoSubscribe) playlist.markAsSubscribed();
+
+    const savedPlaylistEntity = await this.playlistRepository.save(playlist);
+    const savedPlaylist = savedPlaylistEntity.toPrimitive();
+
+    await this.processTracks(savedPlaylist, [pickedTrack], PlaylistTypeEnum.Track);
+
+    this.eventBus.emit("playlists-updated");
+    return savedPlaylist;
+  }
+
+  private async executeDeezerTrack(
+    deezerTrackId: string,
+    deezerAlbumId: string,
+  ): Promise<IPlaylist> {
+    if (!this.deezerClient) {
+      throw new AppError(500, "internal_server_error", "Deezer client not configured");
+    }
+
+    const syntheticUrl = `spotiarr://deezer/track/${deezerTrackId}`;
+
+    const existing = await this.playlistRepository.findAll(false, { spotifyUrl: syntheticUrl });
+    if (existing.length > 0) {
+      throw new AppError(409, "playlist_already_exists");
+    }
+
+    const tracks = await this.deezerClient.getAlbumTracks(deezerAlbumId);
+
+    const pickedTrack = tracks.find(
+      (t) => extractDeezerTrackId(t.trackUrl ?? "") === deezerTrackId,
+    );
+
+    if (!pickedTrack) {
+      throw new AppError(404, "track_not_found", "Deezer track not found in album");
+    }
+
+    const trackName = pickedTrack.name ?? "Unknown Track";
+    const artistName = pickedTrack.primaryArtist ?? pickedTrack.artist ?? "Unknown Artist";
+    const coverUrl = pickedTrack.albumCoverUrl ?? undefined;
+
+    const playlist = new Playlist({
+      id: crypto.randomUUID(),
+      spotifyUrl: syntheticUrl,
+      type: PlaylistTypeEnum.Track,
+    });
+    playlist.updateDetails(
+      `${artistName} - ${trackName}`,
+      PlaylistTypeEnum.Track,
+      coverUrl,
+      pickedTrack.primaryArtistImage ?? undefined,
       artistName,
       undefined,
     );

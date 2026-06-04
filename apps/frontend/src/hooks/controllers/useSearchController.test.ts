@@ -109,15 +109,10 @@ describe("useSearchController", () => {
     /**
      * TST-1a — Deezer track URL + albumId present.
      *
-     * CURRENT BEHAVIOR (PR-4.1 / D4 workaround): dispatches `kind: "album"` using
-     * the track's primaryArtist + albumId. This is the Phase 3 fallback to avoid
-     * downloading the whole album via Deezer's album endpoint.
-     *
-     * EXPECTED AFTER PR-4.4: dispatch will change to
-     *   { kind: "deezerTrack", deezerTrackId: "12345", deezerAlbumId: "456" }
-     * Update this assertion when PR-4.4 lands.
+     * PR-4.4: D4 workaround removed. Now dispatches `kind: "deezerTrack"` with
+     * the extracted deezerTrackId and the albumId as deezerAlbumId.
      */
-    it("TST-1a: Deezer URL + albumId → dispatches kind:album (D4 workaround, regression guard for PR-4.4)", () => {
+    it("TST-1a: Deezer URL + albumId → dispatches kind:deezerTrack with deezerTrackId+deezerAlbumId", () => {
       const { result } = renderHook(() => useSearchController());
 
       act(() => {
@@ -126,9 +121,9 @@ describe("useSearchController", () => {
 
       expect(mockMutate).toHaveBeenCalledTimes(1);
       expect(mockMutate).toHaveBeenCalledWith({
-        kind: "album",
-        artistId: "artist-1",
-        albumId: "456",
+        kind: "deezerTrack",
+        deezerTrackId: "12345",
+        deezerAlbumId: "456",
       });
       expect(mockToast.error).not.toHaveBeenCalled();
     });
