@@ -286,7 +286,7 @@ export class CreatePlaylistUseCase {
 
     const trackName = pickedTrack.name ?? "Unknown Track";
     const artistName = pickedTrack.primaryArtist ?? pickedTrack.artist ?? "Unknown Artist";
-    const coverUrl = pickedTrack.albumCoverUrl;
+    const coverUrl = pickedTrack.albumCoverUrl ?? undefined;
 
     const playlist = new Playlist({
       id: crypto.randomUUID(),

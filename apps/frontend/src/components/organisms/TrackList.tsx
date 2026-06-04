@@ -14,7 +14,7 @@ import { VirtualList } from "../molecules/VirtualList";
 // Minimum shape required to render a TrackList item
 export interface TrackListTrack extends ITrack {
   id?: string;
-  albumCoverUrl?: string;
+  albumCoverUrl?: string | null;
 }
 
 interface TrackListItemProps {
