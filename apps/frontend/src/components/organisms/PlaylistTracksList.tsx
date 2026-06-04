@@ -18,6 +18,7 @@ interface PlaylistTrackItemProps {
   track: Track;
   index: number;
   status?: TrackStatusEnum;
+  isPlayable: boolean;
   onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
   onPlayTrack?: (trackId: string) => void;
@@ -31,6 +32,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
     track,
     index,
     status,
+    isPlayable,
     onRetryTrack,
     onDownloadTrack,
     onPlayTrack,
@@ -66,12 +68,13 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
     }, []);
 
     const isCurrent = currentTrackId === track.id;
+    const canPlayTrack = isPlayable && Boolean(onPlayTrack);
 
     const handleTogglePlayback = useCallback(
       (e: MouseEvent) => {
         e.stopPropagation();
 
-        if (!onPlayTrack) {
+        if (!canPlayTrack || !onPlayTrack) {
           return;
         }
 
@@ -82,7 +85,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
 
         onPlayTrack(track.id);
       },
-      [isCurrent, isPlaying, onPauseTrack, onPlayTrack, track.id],
+      [canPlayTrack, isCurrent, isPlaying, onPauseTrack, onPlayTrack, track.id],
     );
 
     return (
@@ -138,7 +141,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         {/* Duration & Actions */}
         <div className="flex items-center justify-end gap-4">
           <div className="text-text-secondary flex min-w-[40px] items-center justify-end gap-2 text-right text-sm tabular-nums">
-            {onPlayTrack ? (
+            {canPlayTrack ? (
               <button
                 type="button"
                 onClick={handleTogglePlayback}
@@ -176,6 +179,7 @@ interface PlaylistTracksListProps {
   isLoadingMoreTracks?: boolean;
   onPlayTrack?: (trackId: string) => void;
   onPauseTrack?: () => void;
+  canPlayTrack?: (track: Track) => boolean;
   currentTrackId?: string | null;
   isPlaying?: boolean;
 }
@@ -189,6 +193,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   isLoadingMoreTracks = false,
   onPlayTrack,
   onPauseTrack,
+  canPlayTrack,
   currentTrackId,
   isPlaying = false,
 }) => {
@@ -209,6 +214,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
           track={track}
           index={index + 1}
           status={status}
+          isPlayable={canPlayTrack ? canPlayTrack(track) : Boolean(track.trackUrl)}
           onRetryTrack={onRetryTrack}
           onDownloadTrack={onDownloadTrack}
           onPlayTrack={onPlayTrack}
@@ -223,6 +229,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
       onDownloadTrack,
       onPlayTrack,
       onPauseTrack,
+      canPlayTrack,
       currentTrackId,
       isPlaying,
       trackStatusesMap,

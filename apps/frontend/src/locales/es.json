@@ -199,6 +199,7 @@
     },
     "emptyTracksTitle": "Lista vacía",
     "emptyTracksDescription": "Las canciones que descargues o sincronices aparecerán aquí.",
+    "noPlayableTracks": "Descarga canciones de esta lista para iniciar la reproducción local.",
     "deleteModal": {
       "title": "¿Eliminar {{name}}?",
       "description": "Esto eliminará la lista de tu biblioteca. Los archivos descargados NO se borrarán."

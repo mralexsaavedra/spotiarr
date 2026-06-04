@@ -18,6 +18,7 @@ export interface ButtonProps {
   className?: string;
   type?: "button" | "submit" | "reset";
   title?: string;
+  ariaLabel?: string;
 }
 
 const VARIANT_STYLES: Record<ButtonVariant, string> = {
@@ -46,6 +47,7 @@ export const Button: FC<ButtonProps> = ({
   className = "",
   type = "button",
   title,
+  ariaLabel,
 }) => {
   const isDisabled = disabled || loading;
 
@@ -64,6 +66,7 @@ export const Button: FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={isDisabled}
+      aria-label={ariaLabel}
       className={cn(
         BASE_STYLES,
         VARIANT_STYLES[variant],

@@ -24,6 +24,7 @@ export interface AlbumPageLayoutProps {
   onLoadMoreTracks?: () => void;
   onPlayTrack?: (trackId: string) => void;
   onPauseTrack?: () => void;
+  canPlayTrack?: (track: Track) => boolean;
   currentTrackId?: string | null;
   isPlaying?: boolean;
 }
@@ -46,6 +47,7 @@ export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
   onLoadMoreTracks,
   onPlayTrack,
   onPauseTrack,
+  canPlayTrack,
   currentTrackId,
   isPlaying = false,
 }) => {
@@ -80,6 +82,7 @@ export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
             isLoadingMoreTracks={isLoadingMoreTracks}
             onPlayTrack={onPlayTrack}
             onPauseTrack={onPauseTrack}
+            canPlayTrack={canPlayTrack}
             currentTrackId={currentTrackId}
             isPlaying={isPlaying}
           />

@@ -1,10 +1,12 @@
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { PlaylistNotFound } from "@/components/molecules/PlaylistNotFound";
 import { Playlist } from "@/components/organisms/Playlist";
 import { PlaylistSkeleton } from "@/components/skeletons/PlaylistSkeleton";
 import { usePlaylistDetailController } from "@/hooks/controllers/usePlaylistDetailController";
 
 export const PlaylistDetail: FC = () => {
+  const { t } = useTranslation();
   const {
     playlist,
     tracks,
@@ -21,6 +23,18 @@ export const PlaylistDetail: FC = () => {
     handleRetryFailed,
     handleRetryTrack,
     handleGoHome,
+    playbackError,
+    setAudioElement,
+    onPlayTrack,
+    onPauseTrack,
+    onPlayPlaylist,
+    onPausePlaylist,
+    onAudioError,
+    onAudioPlay,
+    onAudioPause,
+    currentTrackId,
+    isPlaying,
+    hasPlayableTracks,
   } = usePlaylistDetailController();
 
   if (isPlaylistsLoading || isTracksLoading) {
@@ -32,24 +46,50 @@ export const PlaylistDetail: FC = () => {
   }
 
   return (
-    <Playlist
-      playlist={playlist}
-      tracks={tracks}
-      isDownloading={isDownloading}
-      isDownloaded={isDownloaded}
-      displayTitle={displayTitle}
-      completedCount={completedCount}
-      onRetryTrack={(trackId) => {
-        const track = tracks.find((t) => t.id === trackId);
-        if (track) handleRetryTrack(track);
-      }}
-      onConfirmDelete={handleDelete}
-      onRetryFailed={handleRetryFailed}
-      hasFailed={hasFailed}
-      isRetrying={retryFailedTracks.isPending}
-      onToggleSubscription={handleToggleSubscription}
-      onDownloadTrack={(track) => handleRetryTrack(track)}
-      onDownloadOrRetry={handleRetryFailed}
-    />
+    <main className="flex flex-1 flex-col">
+      <Playlist
+        playlist={playlist}
+        tracks={tracks}
+        isDownloading={isDownloading}
+        isDownloaded={isDownloaded}
+        displayTitle={displayTitle}
+        completedCount={completedCount}
+        onRetryTrack={(trackId) => {
+          const track = tracks.find((t) => t.id === trackId);
+          if (track) handleRetryTrack(track);
+        }}
+        onConfirmDelete={handleDelete}
+        onRetryFailed={handleRetryFailed}
+        hasFailed={hasFailed}
+        isRetrying={retryFailedTracks.isPending}
+        onToggleSubscription={handleToggleSubscription}
+        onDownloadTrack={(track) => handleRetryTrack(track)}
+        onDownloadOrRetry={handleRetryFailed}
+        onPlayTrack={onPlayTrack}
+        onPauseTrack={onPauseTrack}
+        onPlayPlaylist={onPlayPlaylist}
+        onPausePlaylist={onPausePlaylist}
+        currentTrackId={currentTrackId}
+        isPlaying={isPlaying}
+        hasPlayableTracks={hasPlayableTracks}
+      />
+      <audio
+        ref={setAudioElement}
+        className="sr-only"
+        onError={onAudioError}
+        onPlay={onAudioPlay}
+        onPause={onAudioPause}
+      />
+      {playbackError ? (
+        <p className="text-text-secondary px-6 py-3 text-sm" role="alert" aria-live="assertive">
+          {t(playbackError)}
+        </p>
+      ) : null}
+      {!hasPlayableTracks && tracks.length > 0 ? (
+        <p className="text-text-secondary px-6 py-3 text-sm" role="status" aria-live="polite">
+          {t("playlist.noPlayableTracks")}
+        </p>
+      ) : null}
+    </main>
   );
 };

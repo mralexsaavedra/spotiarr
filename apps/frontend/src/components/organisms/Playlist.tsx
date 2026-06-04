@@ -24,6 +24,13 @@ interface PlaylistProps {
   onRetryTrack?: (trackId: string) => void;
   onDownloadTrack?: (track: Track) => void;
   onLoadMoreTracks?: () => void;
+  onPlayTrack?: (trackId: string) => void;
+  onPauseTrack?: () => void;
+  onPlayPlaylist?: () => void;
+  onPausePlaylist?: () => void;
+  currentTrackId?: string | null;
+  isPlaying?: boolean;
+  hasPlayableTracks?: boolean;
   onConfirmDelete: (() => void) | undefined;
   onRetryFailed: () => void;
   onToggleSubscription: () => void;
@@ -45,6 +52,13 @@ export const Playlist: FC<PlaylistProps> = ({
   onRetryTrack,
   onDownloadTrack,
   onLoadMoreTracks,
+  onPlayTrack,
+  onPauseTrack,
+  onPlayPlaylist,
+  onPausePlaylist,
+  currentTrackId = null,
+  isPlaying = false,
+  hasPlayableTracks = false,
   onConfirmDelete,
   onRetryFailed,
   onToggleSubscription,
@@ -101,6 +115,10 @@ export const Playlist: FC<PlaylistProps> = ({
               isDownloading={isDownloading}
               isDownloaded={isDownloaded ?? false}
               isSaved={isSaved}
+              hasPlayableTracks={hasPlayableTracks}
+              isPlaying={isPlaying}
+              onPlayPlaylist={onPlayPlaylist}
+              onPausePlaylist={onPausePlaylist}
               onToggleSubscription={onToggleSubscription}
               onRetryFailed={onRetryFailed}
               onDelete={handleDelete}
@@ -120,6 +138,11 @@ export const Playlist: FC<PlaylistProps> = ({
         onLoadMoreTracks={onLoadMoreTracks}
         hasMoreTracks={hasMoreTracks}
         isLoadingMoreTracks={isLoadingMoreTracks}
+        onPlayTrack={onPlayTrack}
+        onPauseTrack={onPauseTrack}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+        currentTrackId={currentTrackId}
+        isPlaying={isPlaying}
       />
 
       <ConfirmModal
