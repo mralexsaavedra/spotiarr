@@ -17,3 +17,22 @@ export const isDeezerArtistId = (id: string): boolean => /^\d+$/.test(id);
 
 /** Alias for isSpotifyArtistId — albums share the same base62-22 format. */
 export const isSpotifyAlbumId = (id: string): boolean => /^[0-9A-Za-z]{22}$/.test(id);
+
+/**
+ * Returns true when the URL originates from the Deezer API or website.
+ * Matches both api.deezer.com and www.deezer.com origins.
+ * Safe to call with null or undefined — returns false for non-string values.
+ */
+export const isDeezerUrl = (url: string | null | undefined): boolean =>
+  typeof url === "string" && /^https?:\/\/(api|www)\.deezer\.com\//.test(url);
+
+/**
+ * Extracts the numeric track id from a Deezer track URL.
+ * Returns the id string (e.g. "12345") or null when the URL does not contain a /track/<id> segment.
+ *
+ * Example: "https://api.deezer.com/track/12345" → "12345"
+ */
+export const extractDeezerTrackId = (url: string): string | null => {
+  const match = url.match(/\/track\/(\d+)/);
+  return match ? match[1] : null;
+};
