@@ -86,7 +86,7 @@ export interface ITrack {
   audioUrl?: string;
   albumUrl?: string;
   /** Pre-fetched album cover URL. Present on Deezer-origin tracks; used to skip Spotify artwork resolution. */
-  albumCoverUrl?: string;
+  albumCoverUrl?: string | null;
   durationMs?: number;
   artists?: TrackArtist[];
   youtubeUrl?: string;
@@ -274,7 +274,7 @@ export interface FollowedArtist {
 export type NormalizedTrack = ITrack & {
   primaryArtist?: string;
   primaryArtistImage?: string | null;
-  albumCoverUrl?: string;
+  albumCoverUrl?: string | null;
   previewUrl?: string | null;
   artists: { name: string; url: string | undefined }[];
   unavailable?: boolean;
