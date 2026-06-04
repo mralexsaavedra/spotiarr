@@ -6,10 +6,6 @@ import type {
   CatalogIdentityInput,
 } from "@/application/ports/feed-repository.port";
 
-// Identity format detection — will move to packages/shared/src/identity.ts in PR-3.1a
-const isSpotifyArtistId = (id: string): boolean => /^[0-9A-Za-z]{22}$/.test(id);
-const isDeezerArtistId = (id: string): boolean => /^\d+$/.test(id);
-
 export class FollowedArtistRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
