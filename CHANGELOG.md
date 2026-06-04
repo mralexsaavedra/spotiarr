@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.0...v1.11.1) (2026-06-04)
+
+### Bug Fixes
+
+- **Deezer album downloads**: Albums downloaded from Deezer search results now show the correct artist and album name (previously saved as "Unknown Artist - Unknown Album" when the playlist metadata cache had no Spotify-keyed match). Switched the playlist metadata resolver to the dual-ID `getArtistByAnyId` helper and added a track-derived fallback when both cache lookups miss. ([#75](https://github.com/mralexsaavedra/spotiarr/pull/75))
+- **Album and artist artwork persistence**: `track.albumCoverUrl` is now written to the Track table on create and update, so `cover.jpg` and `folder.jpg` are written to disk for Deezer-origin downloads instead of being silently skipped. ([#75](https://github.com/mralexsaavedra/spotiarr/pull/75))
+
 ## [1.11.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.10.0...v1.11.0) (2026-06-04)
 
 ### Features
