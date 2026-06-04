@@ -520,7 +520,6 @@ const getAlbumTracksUseCase = new GetAlbumTracksUseCase(
   feedRepository,
   deezerClient,
   musicBrainzClient,
-  spotifyAlbumClient,
   noopAlbumTracksCache,
 );
 // Background use cases — use sync service to avoid starving interactive requests
