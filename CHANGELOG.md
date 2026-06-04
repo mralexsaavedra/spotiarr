@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.10.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.9.0...v1.10.0) (2026-06-04)
+
+### Features
+
+- **Deezer-first interactive paths** (Phase 3): Migrated artist detail, album tracks, and catalog search off Spotify to a Deezer-first cascade. Album track fallback no longer hits Spotify, the artist detail miss path resolves via Deezer, and search returns Deezer artists, albums, and tracks. ([#56](https://github.com/mralexsaavedra/spotiarr/pull/56), [#57](https://github.com/mralexsaavedra/spotiarr/pull/57), [#60](https://github.com/mralexsaavedra/spotiarr/pull/60))
+- **Lazy Spotify URL resolver**: New `GET /api/external-url` endpoint backed by a permanent `ExternalUrlCache` table resolves Spotify URLs on demand when the user clicks "Open in Spotify". Frontend `SpotifyLinkButton` lazy mode shows a spinner during the first lookup and reuses the cached URL on subsequent clicks. ([#65](https://github.com/mralexsaavedra/spotiarr/pull/65))
+- **Dead client cleanup**: Removed `SpotifyCatalogSearchAdapter`, `SpotifyAlbumTracksPort`, and the `SEARCH_PROVIDER` flag now that Deezer is the unconditional catalog source. ([#68](https://github.com/mralexsaavedra/spotiarr/pull/68))
+
+### Bug Fixes
+
+- **Search quality**: Deezer search now returns high-resolution artist pictures, correct track duration, real album types instead of "Lanzamiento" for everything, and the artist's own top tracks via `/artist/{id}/top` instead of unrelated featuring tracks. Cached low-resolution artist images are upscaled in place and overridden by fresh Deezer high-res when available. ([#69](https://github.com/mralexsaavedra/spotiarr/pull/69))
+- **Deezer-origin click routing**: Track and album clicks from search now navigate to the in-app album detail page when no Spotify URL is available, and downloads route through the `kind: "album"` path. The "Open in Spotify" button lazy-resolves the URL instead of opening a broken Deezer link. ([#69](https://github.com/mralexsaavedra/spotiarr/pull/69))
+
 ## [1.9.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.8.1...v1.9.0) (2026-06-04)
 
 ### Features
