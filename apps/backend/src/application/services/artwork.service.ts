@@ -1,4 +1,5 @@
 import type { ITrack } from "@spotiarr/shared";
+import { isDeezerUrl } from "@spotiarr/shared";
 import * as path from "path";
 import type { ArtworkAssetsPort } from "@/application/ports/artwork-assets.port";
 import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
@@ -41,13 +42,30 @@ export class ArtworkService {
     // Prefer the explicit track URL; keep spotifyUrl only as a legacy fallback for older rows.
     const urlToResolve = track.trackUrl || track.spotifyUrl;
     if (urlToResolve) {
-      try {
-        const resolvedTrackCoverUrl = await this.spotifyService.getCoverImage(urlToResolve);
-        if (resolvedTrackCoverUrl) {
-          trackCoverBuffer = await this.artworkAssets.downloadImage(resolvedTrackCoverUrl);
+      if (isDeezerUrl(urlToResolve)) {
+        // Deezer-origin track: use the pre-fetched albumCoverUrl from the DB row directly.
+        // Never call spotifyService.getCoverImage for a Deezer URL — it would return empty
+        // and mask the real cover that Deezer already provided at catalog ingestion time.
+        if (track.albumCoverUrl) {
+          try {
+            trackCoverBuffer = await this.artworkAssets.downloadImage(track.albumCoverUrl);
+          } catch (error) {
+            console.warn(
+              `Failed to download Deezer album cover for ${track.name}: ${toErrorMessage(error)}`,
+            );
+          }
         }
-      } catch (error) {
-        console.warn(`Failed to resolve track cover for ${track.name}: ${toErrorMessage(error)}`);
+        // If albumCoverUrl is absent, fall through — trackCoverBuffer stays null and
+        // playlistCoverBuffer is used as the fallback below.
+      } else {
+        try {
+          const resolvedTrackCoverUrl = await this.spotifyService.getCoverImage(urlToResolve);
+          if (resolvedTrackCoverUrl) {
+            trackCoverBuffer = await this.artworkAssets.downloadImage(resolvedTrackCoverUrl);
+          }
+        } catch (error) {
+          console.warn(`Failed to resolve track cover for ${track.name}: ${toErrorMessage(error)}`);
+        }
       }
     }
 

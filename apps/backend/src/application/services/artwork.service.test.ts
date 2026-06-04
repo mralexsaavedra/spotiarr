@@ -152,4 +152,65 @@ describe("ArtworkService", () => {
 
     expect(artworkAssets.clearCache).toHaveBeenCalledTimes(1);
   });
+
+  describe("Deezer URL skip-path (ATW-1)", () => {
+    const deezerTrackUrl = "https://api.deezer.com/track/123";
+
+    it("ATW-1a: returns albumCoverUrl directly and does NOT call spotifyService for a Deezer track with stored albumCoverUrl", async () => {
+      const deezerCoverUrl = "https://cdn.deezer.com/cover.jpg";
+      const service = new ArtworkService(
+        playlistRepository as never,
+        spotifyService as never,
+        pathService as never,
+        artworkAssets as never,
+      );
+
+      const artwork = await service.resolveTrackArtwork({
+        ...track,
+        trackUrl: deezerTrackUrl,
+        albumCoverUrl: deezerCoverUrl,
+      });
+
+      expect(spotifyService.getCoverImage).not.toHaveBeenCalled();
+      expect(artworkAssets.downloadImage).toHaveBeenCalledWith(deezerCoverUrl);
+      expect(artwork.tagCoverBuffer).toEqual(jpegBuffer);
+    });
+
+    it("ATW-1b: does NOT call spotifyService for a Deezer track when albumCoverUrl is absent, falls through to playlist cover", async () => {
+      const service = new ArtworkService(
+        playlistRepository as never,
+        spotifyService as never,
+        pathService as never,
+        artworkAssets as never,
+      );
+
+      const artwork = await service.resolveTrackArtwork({
+        ...track,
+        trackUrl: deezerTrackUrl,
+        albumCoverUrl: undefined,
+      });
+
+      expect(spotifyService.getCoverImage).not.toHaveBeenCalled();
+      // Falls through to playlistCoverBuffer from playlist.coverUrl
+      expect(artwork.tagCoverBuffer).toEqual(jpegBuffer);
+    });
+
+    it("ATW-1c: still calls spotifyService.getCoverImage for a Spotify track URL (regression guard)", async () => {
+      const service = new ArtworkService(
+        playlistRepository as never,
+        spotifyService as never,
+        pathService as never,
+        artworkAssets as never,
+      );
+
+      await service.resolveTrackArtwork({
+        ...track,
+        trackUrl: "https://open.spotify.com/track/abc",
+      });
+
+      expect(spotifyService.getCoverImage).toHaveBeenCalledWith(
+        "https://open.spotify.com/track/abc",
+      );
+    });
+  });
 });
