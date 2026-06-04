@@ -231,6 +231,107 @@ describe("CreatePlaylistUseCase — albumTrack branch", () => {
   });
 });
 
+describe("CreatePlaylistUseCase — deezerTrack branch (DTD-2)", () => {
+  let stubs: ReturnType<typeof makeStubs>;
+
+  beforeEach(() => {
+    stubs = makeStubs();
+  });
+
+  function makeDeezerUseCase(
+    deezerClient: { getAlbumTracks: ReturnType<typeof vi.fn> },
+    s: ReturnType<typeof makeStubs> = stubs,
+  ) {
+    return new CreatePlaylistUseCase(
+      s.playlistRepository as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      s.spotifyService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      s.trackService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      s.settingsService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      s.eventBus as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      s.getAlbumTracksUseCase as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      s.feedRepository as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      deezerClient as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    );
+  }
+
+  it("DTD-2a: deezerTrack kind — found in album → creates single-track playlist", async () => {
+    const deezerClient = {
+      getAlbumTracks: vi.fn().mockResolvedValue([
+        {
+          name: "Karma Police",
+          artist: "Radiohead",
+          artists: [{ name: "Radiohead", url: undefined }],
+          album: "OK Computer",
+          trackNumber: 3,
+          durationMs: 263000,
+          trackUrl: "https://api.deezer.com/track/12345",
+          albumUrl: "https://api.deezer.com/album/456",
+          albumCoverUrl: "https://cdn.deezer.com/cover.jpg",
+        },
+        {
+          name: "No Surprises",
+          artist: "Radiohead",
+          artists: [{ name: "Radiohead", url: undefined }],
+          album: "OK Computer",
+          trackNumber: 12,
+          durationMs: 228000,
+          trackUrl: "https://api.deezer.com/track/99999",
+          albumUrl: "https://api.deezer.com/album/456",
+          albumCoverUrl: "https://cdn.deezer.com/cover.jpg",
+        },
+      ]),
+    };
+
+    const useCase = makeDeezerUseCase(deezerClient);
+
+    const result = await useCase.execute({
+      kind: "deezerTrack",
+      deezerTrackId: "12345",
+      deezerAlbumId: "456",
+    });
+
+    expect(deezerClient.getAlbumTracks).toHaveBeenCalledWith("456");
+    expect(stubs.trackService.create).toHaveBeenCalledTimes(1);
+    expect(stubs.trackService.create).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Karma Police" }),
+    );
+    expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
+    expect(result).toBeDefined();
+  });
+
+  it("DTD-2b: deezerTrack kind — track NOT in album → throws 404", async () => {
+    const deezerClient = {
+      getAlbumTracks: vi.fn().mockResolvedValue([
+        {
+          name: "No Surprises",
+          artist: "Radiohead",
+          artists: [{ name: "Radiohead", url: undefined }],
+          album: "OK Computer",
+          trackNumber: 12,
+          durationMs: 228000,
+          trackUrl: "https://api.deezer.com/track/99999",
+          albumUrl: "https://api.deezer.com/album/456",
+          albumCoverUrl: "https://cdn.deezer.com/cover.jpg",
+        },
+      ]),
+    };
+
+    const useCase = makeDeezerUseCase(deezerClient);
+
+    const thrown = await useCase
+      .execute({
+        kind: "deezerTrack",
+        deezerTrackId: "99998",
+        deezerAlbumId: "456",
+      })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).statusCode).toBe(404);
+    expect((thrown as AppError).errorCode).toBe("track_not_found");
+  });
+});
+
 describe("CreatePlaylistUseCase — album branch", () => {
   let stubs: ReturnType<typeof makeStubs>;
 

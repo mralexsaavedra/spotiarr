@@ -1,4 +1,4 @@
-import { NormalizedTrack } from "@spotiarr/shared";
+import { NormalizedTrack, isDeezerUrl, extractDeezerTrackId } from "@spotiarr/shared";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TopResultItem } from "@/components/molecules/SearchTopResultCard";
@@ -42,6 +42,17 @@ export const useSearchController = () => {
 
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
+      if (isDeezerUrl(track.trackUrl) && track.albumId) {
+        const deezerTrackId = extractDeezerTrackId(track.trackUrl!);
+        if (deezerTrackId) {
+          createPlaylist.mutate({
+            kind: "deezerTrack",
+            deezerTrackId,
+            deezerAlbumId: track.albumId,
+          });
+          return;
+        }
+      }
       if (isSpotifyUrl(track.trackUrl)) {
         createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
       } else if (track.albumId) {

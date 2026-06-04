@@ -556,6 +556,7 @@ const createPlaylistUseCase = new CreatePlaylistUseCase(
   eventBus,
   getAlbumTracksUseCase,
   feedRepository,
+  deezerClient,
 );
 
 // Domain Services (Playlist)
