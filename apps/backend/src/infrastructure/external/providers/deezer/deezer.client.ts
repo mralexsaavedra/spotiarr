@@ -6,6 +6,10 @@ export interface DeezerArtist {
   id: number;
   name: string;
   picture?: string;
+  picture_small?: string;
+  picture_medium?: string;
+  picture_big?: string;
+  picture_xl?: string;
 }
 
 export interface DeezerAlbum {
@@ -259,6 +263,25 @@ export class DeezerClient {
       const encoded = encodeURIComponent(query);
       const result = await this.fetchJson<{ data: DeezerTrack[] }>(
         `${DEEZER_API_BASE}/search/track?q=${encoded}`,
+      );
+      return result?.data ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Fetch the top tracks for a given Deezer artist ID ordered by play count.
+   * Uses the dedicated /artist/{id}/top endpoint which returns tracks ranked
+   * by Deezer popularity, giving much better results than generic track search
+   * when the user is searching for a specific artist.
+   *
+   * Returns an empty array on any error or empty response.
+   */
+  async getArtistTopTracks(deezerId: string | number, limit: number): Promise<DeezerTrack[]> {
+    try {
+      const result = await this.fetchJson<{ data: DeezerTrack[] }>(
+        `${DEEZER_API_BASE}/artist/${deezerId}/top?limit=${limit}`,
       );
       return result?.data ?? [];
     } catch {

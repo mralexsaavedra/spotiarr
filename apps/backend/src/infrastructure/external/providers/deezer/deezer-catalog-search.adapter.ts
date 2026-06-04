@@ -1,10 +1,11 @@
-import type { ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
+import type { AlbumType, ArtistRelease, FollowedArtist, NormalizedTrack } from "@spotiarr/shared";
 import type {
   CatalogSearchPort,
   CatalogSearchResult,
 } from "@/application/ports/catalog-search.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
-import type { DeezerClient } from "./deezer.client";
+import { namesMatch } from "../normalize-name";
+import type { DeezerClient, DeezerTrack } from "./deezer.client";
 
 /**
  * Implements CatalogSearchPort using Deezer as the primary search provider.
@@ -57,7 +58,12 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
           return {
             id: String(deezerArtist.id),
             name: deezerArtist.name,
-            image: deezerArtist.picture ?? null,
+            image:
+              deezerArtist.picture_xl ??
+              deezerArtist.picture_big ??
+              deezerArtist.picture_medium ??
+              deezerArtist.picture ??
+              null,
             spotifyUrl: null,
           };
         }),
@@ -80,7 +86,7 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
           artistImageUrl: null,
           albumId: String(album.id),
           albumName: album.title,
-          albumType: undefined,
+          albumType: mapDeezerRecordType(album.record_type),
           releaseDate: album.release_date,
           coverUrl: album.cover_medium ?? album.cover ?? null,
           spotifyUrl: undefined,
@@ -93,10 +99,21 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
 
   private async searchTracks(query: string, limit: number): Promise<NormalizedTrack[]> {
     try {
-      const deezerTracks = await this.deezerClient.searchTrack(query);
-      const limitedTracks = deezerTracks.slice(0, limit);
+      // Bug 4: if the first artist result fuzzy-matches the query, use the dedicated
+      // /artist/{id}/top endpoint which ranks by play count and returns the artist's
+      // own tracks — avoids unrelated featuring tracks that generic /search/track returns.
+      const artistResults = await this.deezerClient.searchArtistList(query, 1);
+      const firstArtist = artistResults[0];
 
-      return limitedTracks.map(
+      let rawTracks: DeezerTrack[];
+      if (firstArtist && namesMatch(firstArtist.name, query)) {
+        rawTracks = await this.deezerClient.getArtistTopTracks(firstArtist.id, limit);
+      } else {
+        const allTracks = await this.deezerClient.searchTrack(query);
+        rawTracks = allTracks.slice(0, limit);
+      }
+
+      return rawTracks.map(
         (track): NormalizedTrack => ({
           name: track.title,
           artist: track.artist.name,
@@ -105,10 +122,31 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
           trackUrl: `https://api.deezer.com/track/${track.id}`,
           albumId: track.album?.id ? String(track.album.id) : undefined,
           albumCoverUrl: track.album?.cover_medium ?? track.album?.cover ?? undefined,
+          // Bug 2: Deezer returns duration in seconds; NormalizedTrack expects milliseconds
+          durationMs: track.duration * 1000,
         }),
       );
     } catch {
       return [];
     }
+  }
+}
+
+/**
+ * Maps a Deezer record_type string to the shared AlbumType enum.
+ * Deezer uses "compile" for compilations; we normalize to "compilation".
+ */
+function mapDeezerRecordType(recordType?: string): AlbumType | undefined {
+  switch (recordType) {
+    case "album":
+      return "album";
+    case "single":
+      return "single";
+    case "ep":
+      return "ep";
+    case "compile":
+      return "compilation";
+    default:
+      return undefined;
   }
 }
