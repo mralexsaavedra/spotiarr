@@ -49,6 +49,7 @@ import { ExternalUrlCacheRepository } from "./infrastructure/database/external-u
 import { FeedCacheEvictionRepository } from "./infrastructure/database/feed-cache-eviction.repository";
 import { FeedSyncStateRepository } from "./infrastructure/database/feed-sync-state.repository";
 import { FollowedArtistRepository } from "./infrastructure/database/followed-artist.repository";
+import { PlaylistCacheRepository } from "./infrastructure/database/playlist-cache.repository";
 import { PrismaConnectivityAdapter } from "./infrastructure/database/prisma-connectivity.adapter";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
@@ -452,9 +453,16 @@ const updateSettingUseCase = new UpdateSettingUseCase(
 );
 
 // Use Cases - Playlists
+const playlistCacheRepository = new PlaylistCacheRepository(prisma);
 const getSystemStatusUseCase = new GetSystemStatusUseCase(playlistRepository);
-const getPlaylistPreviewUseCase = new GetPlaylistPreviewUseCase(spotifyService);
-const getPlaylistPreviewTracksPageUseCase = new GetPlaylistPreviewTracksPageUseCase(spotifyService);
+const getPlaylistPreviewUseCase = new GetPlaylistPreviewUseCase(
+  spotifyService,
+  playlistCacheRepository,
+);
+const getPlaylistPreviewTracksPageUseCase = new GetPlaylistPreviewTracksPageUseCase(
+  spotifyService,
+  playlistCacheRepository,
+);
 const getPlaylistsUseCase = new GetPlaylistsUseCase(playlistRepository);
 const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
 const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
@@ -474,7 +482,7 @@ const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
   trackService,
 );
 
-const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService);
+const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService, playlistCacheRepository);
 
 // Library Services
 const fileSystemScannerService = new FileSystemScannerService();
