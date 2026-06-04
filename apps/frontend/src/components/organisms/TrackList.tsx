@@ -1,11 +1,12 @@
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ITrack, TrackStatusEnum } from "@spotiarr/shared";
+import { ITrack, NormalizedTrack, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
 import { Path } from "@/routes/routes";
 import { formatDuration } from "@/utils/date";
+import { isSpotifyUrl } from "@/utils/spotify";
 import { Image } from "../atoms/Image";
 import { TrackStatusIndicator } from "../molecules/TrackStatusIndicator";
 import { VirtualList } from "../molecules/VirtualList";
@@ -57,16 +58,19 @@ const TrackListItem: FC<TrackListItemProps> = memo(({ track, index, onDownload, 
           />
         </div>
         <div className="flex min-w-0 flex-col">
-          {track.trackUrl ? (
-            <Link
-              to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`}
-              className="truncate text-base font-medium text-white hover:underline"
-            >
-              {track.name}
-            </Link>
-          ) : (
-            <span className="truncate text-base font-medium text-white">{track.name}</span>
-          )}
+          {(() => {
+            const linkTo = resolveTrackLink(track);
+            return linkTo ? (
+              <Link
+                to={linkTo}
+                className="truncate text-base font-medium text-white hover:underline"
+              >
+                {track.name}
+              </Link>
+            ) : (
+              <span className="truncate text-base font-medium text-white">{track.name}</span>
+            );
+          })()}
           <span className="text-text-secondary truncate text-sm">{track.artist}</span>
         </div>
       </div>
@@ -113,3 +117,20 @@ export const TrackList: FC<TrackListProps> = ({ tracks, onDownload }) => {
     </div>
   );
 };
+
+/**
+ * Resolves the destination of the track-name link.
+ * - Spotify URLs route to the playlist-preview endpoint (resolves track in Spotify).
+ * - Deezer-origin tracks fall back to the album detail page (no Spotify URL exists).
+ * - Tracks without enough metadata render as plain text (no link).
+ */
+function resolveTrackLink(track: TrackListTrack): string | null {
+  if (track.trackUrl && isSpotifyUrl(track.trackUrl)) {
+    return `${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl)}`;
+  }
+  const t = track as NormalizedTrack;
+  if (t.primaryArtist && t.albumId) {
+    return Path.ALBUM_DETAIL.replace(":artistId", t.primaryArtist).replace(":albumId", t.albumId);
+  }
+  return null;
+}

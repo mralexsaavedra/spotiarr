@@ -132,6 +132,9 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
           name: track.title,
           artist: track.artist.name,
           artists: [{ name: track.artist.name, url: undefined }],
+          // primaryArtist is the Deezer artist ID, used by the frontend to route
+          // a Deezer-origin track click to the album detail page (no Spotify URL exists).
+          primaryArtist: track.artist.id ? String(track.artist.id) : undefined,
           // Deezer-opaque URL — not a Spotify URL, will be lazy-resolved by ExternalUrlResolver
           trackUrl: `https://api.deezer.com/track/${track.id}`,
           albumId: track.album?.id ? String(track.album.id) : undefined,
