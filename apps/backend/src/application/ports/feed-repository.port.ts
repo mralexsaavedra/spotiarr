@@ -72,6 +72,7 @@ export interface ArtistReleaseCacheWithArtist {
 
 export interface FeedRepositoryPort {
   getArtistBySpotifyId(spotifyId: string): Promise<FollowedArtist | null>;
+  getArtistByAnyId(id: string): Promise<FollowedArtist | null>;
   getArtistCatalogIdentities(spotifyIds: string[]): Promise<CatalogIdentity[]>;
   updateArtistCatalogIdentities(identities: CatalogIdentityInput[]): Promise<void>;
   getReleases(lookbackDays: number): Promise<ArtistRelease[]>;

@@ -5,6 +5,10 @@ import type {
   CatalogIdentityInput,
 } from "@/application/ports/feed-repository.port";
 
+// Identity format detection — will move to packages/shared/src/identity.ts in PR-3.1a
+const isSpotifyArtistId = (id: string): boolean => /^[0-9A-Za-z]{22}$/.test(id);
+const isDeezerArtistId = (id: string): boolean => /^\d+$/.test(id);
+
 export class FollowedArtistRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
@@ -17,6 +21,23 @@ export class FollowedArtistRepository {
       image: row.imageUrl ?? null,
       spotifyUrl: row.spotifyUrl ?? null,
     };
+  }
+
+  async getArtistByAnyId(id: string): Promise<FollowedArtist | null> {
+    if (isSpotifyArtistId(id)) {
+      return this.getArtistBySpotifyId(id);
+    }
+    if (isDeezerArtistId(id)) {
+      const row = await this.prisma.followedArtistCache.findFirst({ where: { deezerId: id } });
+      if (!row) return null;
+      return {
+        id: row.spotifyId,
+        name: row.name,
+        image: row.imageUrl ?? null,
+        spotifyUrl: row.spotifyUrl ?? null,
+      };
+    }
+    return null;
   }
 
   async getArtistCatalogIdentities(spotifyIds: string[]): Promise<CatalogIdentity[]> {
