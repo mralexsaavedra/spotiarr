@@ -66,7 +66,7 @@ function makeStubs() {
   };
 
   const feedRepository = {
-    getArtistBySpotifyId: vi.fn().mockResolvedValue({
+    getArtistByAnyId: vi.fn().mockResolvedValue({
       id: "artist-1",
       name: "Artist",
       image: "http://artist.jpg",
@@ -183,7 +183,7 @@ describe("CreatePlaylistUseCase — albumTrack branch", () => {
   });
 
   it("falls back to track artist image when cached artist image is unavailable", async () => {
-    stubs.feedRepository.getArtistBySpotifyId.mockResolvedValue({
+    stubs.feedRepository.getArtistByAnyId.mockResolvedValue({
       id: "artist-1",
       name: "Artist",
       image: null,

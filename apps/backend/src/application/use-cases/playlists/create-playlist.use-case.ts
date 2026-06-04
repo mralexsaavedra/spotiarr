@@ -160,7 +160,7 @@ export class CreatePlaylistUseCase {
     // Resolve tracks via existing Deezer-first cascade
     const tracks = await this.getAlbumTracksUseCase.execute(artistId, albumId);
 
-    const albumMetadata = await this.resolveAlbumMetadata(artistId, albumId);
+    const albumMetadata = await this.resolveAlbumMetadata(artistId, albumId, tracks);
     const albumName = albumMetadata.albumName;
     const artistName = albumMetadata.artistName;
     const coverUrl = albumMetadata.coverUrl;
@@ -314,8 +314,12 @@ export class CreatePlaylistUseCase {
     return savedPlaylist;
   }
 
-  private async resolveAlbumMetadata(artistId: string, albumId: string): Promise<AlbumMetadata> {
-    const artist = await this.feedRepository?.getArtistBySpotifyId(artistId);
+  private async resolveAlbumMetadata(
+    artistId: string,
+    albumId: string,
+    tracks?: NormalizedTrack[],
+  ): Promise<AlbumMetadata> {
+    const artist = await this.feedRepository?.getArtistByAnyId(artistId);
     const artistImageUrl = artist?.image ?? undefined;
 
     const albumCache = await this.feedRepository?.getArtistAlbumWithArtist(artistId, albumId);
@@ -335,6 +339,18 @@ export class CreatePlaylistUseCase {
         artistName: releaseCache.artistName,
         coverUrl: releaseCache.coverUrl ?? undefined,
         artistImageUrl,
+      };
+    }
+
+    // Cache miss (e.g. Deezer-origin album not yet persisted): derive from resolved tracks.
+    const firstTrack = tracks?.[0];
+    if (firstTrack) {
+      return {
+        albumName: firstTrack.album?.trim() || "Unknown Album",
+        artistName:
+          firstTrack.primaryArtist?.trim() || firstTrack.artist?.trim() || "Unknown Artist",
+        coverUrl: firstTrack.albumCoverUrl ?? undefined,
+        artistImageUrl: artistImageUrl ?? firstTrack.primaryArtistImage ?? undefined,
       };
     }
 
