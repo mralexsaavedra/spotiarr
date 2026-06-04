@@ -4,6 +4,7 @@ import type { DeezerArtistLookupPort } from "@/application/ports/deezer-artist-l
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import { AppError } from "@/domain/errors/app-error";
+import { upscaleDeezerImage } from "@/domain/helpers/deezer-image.helper";
 import {
   INTERACTIVE_CATALOG_TIMEOUT_MS,
   isArtistCacheFresh,
@@ -32,9 +33,10 @@ export class GetArtistDetailUseCase {
     };
 
     if (cachedArtist) {
+      const freshImage = await this.refreshArtistImage(cachedArtist.id);
       details = {
         name: cachedArtist.name,
-        image: cachedArtist.image,
+        image: freshImage ?? upscaleDeezerImage(cachedArtist.image) ?? cachedArtist.image,
         spotifyUrl: cachedArtist.spotifyUrl ?? null,
         followers: null,
         genres: [],
@@ -133,6 +135,17 @@ export class GetArtistDetailUseCase {
    *   then fall back to searchArtist if we have a name hint.
    * Returns an Unknown Artist placeholder when Deezer returns nothing.
    */
+  private async refreshArtistImage(spotifyArtistId: string): Promise<string | null> {
+    const [identity] = await this.feedRepository.getArtistCatalogIdentities([spotifyArtistId]);
+    if (!identity?.deezerId) return null;
+    try {
+      const fresh = await this.deezerArtistClient.getArtistById(identity.deezerId);
+      return fresh?.picture ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   private async resolveDeezerArtistDetails(artistId: string): Promise<{
     name: string;
     image: string | null;

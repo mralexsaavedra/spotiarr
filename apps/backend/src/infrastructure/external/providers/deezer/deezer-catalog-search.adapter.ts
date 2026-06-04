@@ -6,6 +6,7 @@ import type {
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import { namesMatch } from "../normalize-name";
 import type { DeezerArtist, DeezerClient, DeezerTrack } from "./deezer.client";
+import { pickBestDeezerArtistPicture, upscaleDeezerImage } from "./picture";
 
 /**
  * Implements CatalogSearchPort using Deezer as the primary search provider.
@@ -61,21 +62,11 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
   private async resolveArtists(deezerArtists: DeezerArtist[]): Promise<FollowedArtist[]> {
     return Promise.all(
       deezerArtists.map(async (deezerArtist): Promise<FollowedArtist> => {
-        // Prefer the fresh high-res Deezer picture over any cached low-res image
-        // persisted by earlier sync runs (Issue 1: cached images were saved using
-        // the small `picture` field; new search result carries `picture_xl`).
-        const freshImage =
-          deezerArtist.picture_xl ??
-          deezerArtist.picture_big ??
-          deezerArtist.picture_medium ??
-          deezerArtist.picture ??
-          null;
-
+        const freshImage = pickBestDeezerArtistPicture(deezerArtist);
         const cached = await this.feedRepository.getArtistByAnyId(String(deezerArtist.id));
         if (cached) {
-          return { ...cached, image: freshImage ?? cached.image ?? null };
+          return { ...cached, image: freshImage ?? upscaleDeezerImage(cached.image) };
         }
-        // Artist not in cache — surface the Deezer ID as the identifier
         return {
           id: String(deezerArtist.id),
           name: deezerArtist.name,
