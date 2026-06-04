@@ -6,7 +6,7 @@ interface ArtistCardProps {
   id: string;
   name: string;
   image: string | null;
-  spotifyUrl: string | null;
+  spotifyUrl?: string | null;
   onClick: (id: string) => void;
 }
 

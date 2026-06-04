@@ -11,4 +11,5 @@ export const ApiRoutes = {
   HEALTH: "/health",
   LIBRARY: "/library",
   SEARCH: "/search",
+  EXTERNAL_URL: "/external-url",
 } as const;

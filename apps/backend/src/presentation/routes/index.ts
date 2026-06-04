@@ -3,6 +3,7 @@ import { Router, type Router as ExpressRouter } from "express";
 import artistRoutes from "./artist.routes";
 import authRoutes from "./auth.routes";
 import eventsRoutes from "./events.routes";
+import externalUrlRoutes from "./external-url.routes";
 import feedRoutes from "./feed.routes";
 import healthRoutes from "./health.routes";
 import historyRoutes from "./history.routes";
@@ -25,5 +26,6 @@ router.use(ApiRoutes.ARTIST, artistRoutes);
 router.use(ApiRoutes.AUTH, authRoutes);
 router.use(ApiRoutes.LIBRARY, libraryRoutes);
 router.use(ApiRoutes.SEARCH, searchRoutes);
+router.use(ApiRoutes.EXTERNAL_URL, externalUrlRoutes);
 
 export default router;

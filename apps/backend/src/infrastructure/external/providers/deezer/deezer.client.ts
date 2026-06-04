@@ -33,6 +33,7 @@ export interface DeezerTrack {
     id?: number;
   };
   album?: {
+    id?: number;
     title: string;
     cover?: string;
     cover_xl?: string;
@@ -246,6 +247,23 @@ export class DeezerClient {
       albumUrl: `${DEEZER_API_BASE}/album/${deezerAlbumId}`,
       albumCoverUrl: (track.album && pickBestCover(track.album)) ?? albumCover,
     }));
+  }
+
+  /**
+   * Search for tracks by query string.
+   * Returns a list of DeezerTrack results via the /search/track endpoint.
+   * Returns an empty array on any error or empty response.
+   */
+  async searchTrack(query: string): Promise<DeezerTrack[]> {
+    try {
+      const encoded = encodeURIComponent(query);
+      const result = await this.fetchJson<{ data: DeezerTrack[] }>(
+        `${DEEZER_API_BASE}/search/track?q=${encoded}`,
+      );
+      return result?.data ?? [];
+    } catch {
+      return [];
+    }
   }
 }
 

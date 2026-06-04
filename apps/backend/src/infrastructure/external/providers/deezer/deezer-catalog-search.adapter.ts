@@ -14,7 +14,7 @@ import type { DeezerClient } from "./deezer.client";
  * - If a cache hit exists, surface the Spotify ID (the stable internal PK).
  * - If no cache entry, surface the Deezer ID so the frontend can still navigate.
  *
- * Track search is deferred to PR-3.1b. This adapter always returns an empty tracks array.
+ * Track results include albumId for download routing via album path (Design D4).
  */
 export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
   constructor(
@@ -27,17 +27,17 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
     types: string[],
     limits: { track?: number; album?: number; artist?: number },
   ): Promise<CatalogSearchResult> {
-    const [artists, albums] = await Promise.all([
+    const [artists, albums, tracks] = await Promise.all([
       types.includes("artist")
         ? this.searchArtists(query, limits.artist ?? 5)
         : Promise.resolve<FollowedArtist[]>([]),
       types.includes("album")
         ? this.searchAlbums(query, limits.album ?? 10)
         : Promise.resolve<ArtistRelease[]>([]),
+      types.includes("track")
+        ? this.searchTracks(query, limits.track ?? 10)
+        : Promise.resolve<NormalizedTrack[]>([]),
     ]);
-
-    // Track search deferred to PR-3.1b
-    const tracks: NormalizedTrack[] = [];
 
     return { tracks, albums, artists };
   }
@@ -84,6 +84,27 @@ export class DeezerCatalogSearchAdapter implements CatalogSearchPort {
           releaseDate: album.release_date,
           coverUrl: album.cover_medium ?? album.cover ?? null,
           spotifyUrl: undefined,
+        }),
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  private async searchTracks(query: string, limit: number): Promise<NormalizedTrack[]> {
+    try {
+      const deezerTracks = await this.deezerClient.searchTrack(query);
+      const limitedTracks = deezerTracks.slice(0, limit);
+
+      return limitedTracks.map(
+        (track): NormalizedTrack => ({
+          name: track.title,
+          artist: track.artist.name,
+          artists: [{ name: track.artist.name, url: undefined }],
+          // Deezer-opaque URL — not a Spotify URL, will be lazy-resolved by ExternalUrlResolver
+          trackUrl: `https://api.deezer.com/track/${track.id}`,
+          albumId: track.album?.id ? String(track.album.id) : undefined,
+          albumCoverUrl: track.album?.cover_medium ?? track.album?.cover ?? undefined,
         }),
       );
     } catch {
