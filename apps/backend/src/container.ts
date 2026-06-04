@@ -59,7 +59,6 @@ import { DeezerArtistLookupAdapter } from "./infrastructure/external/providers/d
 import { DeezerCatalogSearchAdapter } from "./infrastructure/external/providers/deezer/deezer-catalog-search.adapter";
 import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
-import { SpotifyCatalogSearchAdapter } from "./infrastructure/external/providers/spotify/spotify-catalog-search.adapter";
 import { SpotifyUrlLookupClient } from "./infrastructure/external/providers/spotify/spotify-url-lookup.client";
 import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
@@ -347,20 +346,9 @@ spotifyUserLibrarySyncService = {
 const deezerClient = new DeezerClient();
 const deezerArtistLookupAdapter = new DeezerArtistLookupAdapter(deezerClient);
 
-// Catalog search provider — controlled by SEARCH_PROVIDER env var.
-// "deezer": Deezer-first search (no Spotify search API calls). Default target.
-// "spotify" (default): legacy Spotify search path kept until PR-3.4 cleanup.
-function resolveSearchProvider(): "spotify" | "deezer" {
-  try {
-    return getEnv().SEARCH_PROVIDER;
-  } catch {
-    return "spotify";
-  }
-}
-const catalogSearchPort =
-  resolveSearchProvider() === "deezer"
-    ? new DeezerCatalogSearchAdapter(deezerClient, feedRepository)
-    : new SpotifyCatalogSearchAdapter(spotifySearchClient);
+// Catalog search is Deezer-first after PR-3.4 cleanup.
+// SpotifyCatalogSearchAdapter and SEARCH_PROVIDER=spotify branch removed (CLN-1).
+const catalogSearchPort = new DeezerCatalogSearchAdapter(deezerClient, feedRepository);
 const musicBrainzClient = new MusicBrainzClient();
 const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
 
@@ -545,7 +533,6 @@ const healthService = new HealthService(connectivityAdapter);
 const getArtistDetailUseCase = new GetArtistDetailUseCase(
   feedRepository,
   releaseFeedService,
-  spotifyArtistClient,
   deezerArtistLookupAdapter,
 );
 const getArtistAlbumsUseCase = new GetArtistAlbumsUseCase(feedRepository, releaseFeedService);

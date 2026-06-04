@@ -1,6 +1,5 @@
 import type { ArtistDetail, ArtistRelease } from "@spotiarr/shared";
 import { isDeezerArtistId } from "@spotiarr/shared";
-import type { SpotifyArtistLookupPort } from "@/application/ports/artist-lookup.port";
 import type { DeezerArtistLookupPort } from "@/application/ports/deezer-artist-lookup.port";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
@@ -15,7 +14,6 @@ export class GetArtistDetailUseCase {
   constructor(
     private readonly feedRepository: FeedRepositoryPort,
     private readonly releaseFeedService: ReleaseFeedPort,
-    private readonly spotifyArtistClient: SpotifyArtistLookupPort,
     private readonly deezerArtistClient: DeezerArtistLookupPort,
   ) {}
 
