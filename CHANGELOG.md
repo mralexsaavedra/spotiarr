@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.10.0...v1.11.0) (2026-06-04)
+
+### Features
+
+- **Single-track Deezer downloads**: Clicking a Deezer-origin track in search now downloads only that track instead of the entire parent album. New `kind: "deezerTrack"` dispatch resolves the Deezer track inside its album and creates a single-track playlist. ([#73](https://github.com/mralexsaavedra/spotiarr/pull/73))
+- **Playlist 24h cache**: `My Playlists`, playlist previews, and paginated playlist tracks are now served from a local `PlaylistCache` table with a 24-hour TTL. Reduces Spotify API pressure on repeat visits; cache is keyed per playlist URL and pagination window. ([#74](https://github.com/mralexsaavedra/spotiarr/pull/74))
+- **Deezer-first artwork backfill**: The artwork backfill worker now tries Deezer first (artist images and album covers via Deezer search) and falls back to Spotify only when Deezer misses. Removes the last interactive Spotify dependency from the backfill cycle. ([#72](https://github.com/mralexsaavedra/spotiarr/pull/72))
+
+### Bug Fixes
+
+- **Artwork resolution skips dead Spotify calls for Deezer tracks**: `ArtworkService.resolveTrackArtwork` now detects Deezer track URLs and reads the pre-fetched `albumCoverUrl` directly instead of issuing a no-op Spotify lookup. ([#71](https://github.com/mralexsaavedra/spotiarr/pull/71))
+
 ## [1.10.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.9.0...v1.10.0) (2026-06-04)
 
 ### Features
