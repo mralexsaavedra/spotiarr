@@ -117,7 +117,14 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </div>
       </Button>
 
-      {spotifyUrl && <SpotifyLinkButton url={spotifyUrl} />}
+      {spotifyUrl && (
+        <SpotifyLinkButton
+          provider="spotify"
+          entityType="album"
+          id={spotifyUrl}
+          eagerUrl={spotifyUrl}
+        />
+      )}
 
       <div className="flex-1" />
 

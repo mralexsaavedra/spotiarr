@@ -22,6 +22,8 @@
     "duration": "Duración",
     "status": "Estado",
     "openInSpotify": "Abrir en Spotify",
+    "spotifyUnavailable": "Spotify no está disponible temporalmente. Por favor, inténtelo más tarde.",
+    "openInSpotifyFailed": "No se pudo abrir en Spotify. Por favor, inténtelo de nuevo.",
     "errors": {
       "pageNotFound": "Página no encontrada",
       "pageNotFoundDesc": "La página que buscas no existe o ha sido movida.",

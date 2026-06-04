@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TopResultItem } from "@/components/molecules/SearchTopResultCard";
 import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
+import { useToast } from "@/contexts/ToastContext";
 import { useCreatePlaylistMutation } from "@/hooks/mutations/useCreatePlaylistMutation";
 import { useSearchQuery } from "@/hooks/queries/useSearchQuery";
 import { Path } from "@/routes/routes";
@@ -29,6 +30,7 @@ export const useSearchController = () => {
   const query = searchParams.get("q") ?? "";
   const navigate = useNavigate();
   const createPlaylist = useCreatePlaylistMutation();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
   const { data: results, isLoading } = useSearchQuery(query, TYPES[activeTab], 20);
@@ -40,10 +42,21 @@ export const useSearchController = () => {
 
   const handleDownloadTrack = useCallback(
     (track: NormalizedTrack) => {
-      if (!isSpotifyUrl(track.trackUrl)) return;
-      createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
+      if (isSpotifyUrl(track.trackUrl)) {
+        // Spotify-origin track: use direct URL path
+        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
+      } else if (track.albumId) {
+        // Deezer-origin track: route via album path (D4)
+        createPlaylist.mutate({
+          kind: "album",
+          artistId: track.primaryArtist ?? "",
+          albumId: track.albumId,
+        });
+      } else {
+        toast.error("Track cannot be downloaded");
+      }
     },
-    [createPlaylist],
+    [createPlaylist, toast],
   );
 
   const handleAlbumClick = useCallback(

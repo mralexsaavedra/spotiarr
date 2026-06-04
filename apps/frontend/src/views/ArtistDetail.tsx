@@ -81,7 +81,14 @@ export const ArtistDetail: FC = () => {
             )}
           </Button>
 
-          {artist?.spotifyUrl && <SpotifyLinkButton url={artist.spotifyUrl} />}
+          {artist?.spotifyUrl && (
+            <SpotifyLinkButton
+              provider="spotify"
+              entityType="artist"
+              id={artist.spotifyUrl}
+              eagerUrl={artist.spotifyUrl}
+            />
+          )}
         </div>
 
         {/* Discography Section */}
