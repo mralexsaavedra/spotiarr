@@ -122,10 +122,13 @@
     "emptyTitle": "Library is empty",
     "emptyDescription": "Scan or rescan your downloads folder to populate your library and artwork.",
     "scanNow": "Scan Now",
+    "searchPlaceholder": "Search playlists and artists...",
+    "playlistsSection": "Playlists",
     "artistNotFound": "Artist not found",
     "artistNotFoundDescription": "Could not load artist details.",
     "artistCardAriaLabel": "Artist {{name}}, {{albums}} albums, {{tracks}} tracks",
     "albumCardAriaLabel": "Album {{name}} by {{artist}}, {{year}}, {{tracks}} tracks",
+    "playlistCardAriaLabel": "Playlist {{name}}, {{downloaded}} of {{total}} downloaded",
     "album": {
       "notFound": "Album not found",
       "notFoundDescription": "Could not find this album in your library.",
