@@ -38,14 +38,6 @@ function resetStore() {
   });
 }
 
-// jsdom does not implement HTMLMediaElement; stub the imperative API.
-function mockAudioElement(): HTMLAudioElement {
-  const el = document.createElement("audio");
-  el.play = vi.fn().mockResolvedValue(undefined);
-  el.pause = vi.fn();
-  return el;
-}
-
 beforeEach(() => {
   vi.useFakeTimers();
   resetStore();
@@ -130,11 +122,8 @@ describe("track metadata", () => {
 
     render(<GlobalPlayerBar />);
 
-    // The Image atom renders a FontAwesome icon placeholder when src is absent
-    // Confirm no broken img element (img with src would not be rendered)
-    const imgEl = screen.queryByRole("img", { name: /Track a/i });
-    // Either it's a placeholder div or the img is not rendered — either is correct
-    // What matters is no throw and the artwork container is present
+    // The Image atom renders a FontAwesome icon placeholder when src is absent.
+    // What matters is no throw and the artwork container is present.
     const region = screen.getByRole("region", { name: "Now playing" });
     expect(region).not.toBeNull();
   });

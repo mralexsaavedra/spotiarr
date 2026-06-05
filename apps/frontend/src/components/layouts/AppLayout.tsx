@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Path } from "@/routes/routes";
 import { usePreferencesStore } from "@/store/usePreferencesStore";
 import { cn } from "@/utils/cn";
+import { GlobalPlayerBar } from "../organisms/GlobalPlayerBar";
 import { AppHeader } from "./AppHeader";
 import { BottomNavigation } from "./BottomNavigation";
 import { Sidebar } from "./Sidebar";
@@ -21,7 +22,9 @@ export const AppLayout: FC<AppLayoutProps> = ({ pathname, version }) => {
 
       <main
         className={cn(
-          "bg-background ml-0 flex flex-1 flex-col pb-20 transition-[margin-left] duration-300 md:pb-0",
+          // Mobile: pb-36 clears bottom-nav (h-16 = 64px) + player bar (~80px).
+          // Desktop: pb-24 clears player bar (~80px); no bottom nav on md+.
+          "bg-background ml-0 flex flex-1 flex-col pb-36 transition-[margin-left] duration-300 md:pb-24",
           isSidebarCollapsed ? "md:ml-20" : "md:ml-64",
         )}
       >
@@ -31,6 +34,10 @@ export const AppLayout: FC<AppLayoutProps> = ({ pathname, version }) => {
       </main>
 
       <BottomNavigation pathname={pathname} />
+
+      {/* GlobalPlayerBar is always mounted above BottomNavigation on mobile (bottom-16),
+          at bottom-0 on desktop. z-40 places it below z-50 nav. */}
+      <GlobalPlayerBar />
     </div>
   );
 };
