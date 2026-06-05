@@ -9,6 +9,8 @@ import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
 import { ConfirmModal } from "../organisms/ConfirmModal";
 
+export type PlaylistMode = "library" | "managed";
+
 interface PlaylistProps {
   playlist: PlaylistWithStats;
   tracks: Track[];
@@ -36,6 +38,7 @@ interface PlaylistProps {
   onRetryFailed: () => void;
   onToggleSubscription: () => void;
   onDownloadOrRetry: () => void;
+  mode?: PlaylistMode;
 }
 
 export const Playlist: FC<PlaylistProps> = ({
@@ -65,6 +68,7 @@ export const Playlist: FC<PlaylistProps> = ({
   onRetryFailed,
   onToggleSubscription,
   onDownloadOrRetry,
+  mode = "managed",
 }) => {
   const { t } = useTranslation();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -132,6 +136,7 @@ export const Playlist: FC<PlaylistProps> = ({
               }
               playlistId={playlist?.id}
               playlistName={playlist?.name}
+              mode={mode}
             />
           </div>
         }
