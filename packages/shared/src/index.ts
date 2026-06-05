@@ -134,7 +134,8 @@ export type CreatePlaylistRequest =
   | { kind: "spotifyUrl"; spotifyUrl: string }
   | { kind: "album"; artistId: string; albumId: string }
   | { kind: "albumTrack"; artistId: string; albumId: string; trackIndex: number }
-  | { kind: "deezerTrack"; deezerTrackId: string; deezerAlbumId: string };
+  | { kind: "deezerTrack"; deezerTrackId: string; deezerAlbumId: string }
+  | { kind: "playlistTrack"; parentSpotifyUrl: string; trackUrl: string };
 
 export type ApiErrorCode =
   | "missing_user_access_token"

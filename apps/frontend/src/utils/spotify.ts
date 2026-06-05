@@ -56,6 +56,17 @@ export const isSpotifyUrl = (url: string | null | undefined): boolean => {
   }
 };
 
+export const isSpotifyPlaylistUrl = (url: string | null | undefined): boolean => {
+  if (!isSpotifyUrl(url)) return false;
+  try {
+    const parts = new URL(url!).pathname.split("/").filter(Boolean);
+    // Pathname is /playlist/{id} — type segment is always the first non-empty segment
+    return parts[0] === "playlist" && Boolean(parts[1]);
+  } catch {
+    return false;
+  }
+};
+
 export const getSpotifyIdFromUrl = (url: string): string | null => {
   try {
     const urlObj = new URL(url);

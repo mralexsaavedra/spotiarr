@@ -22,6 +22,8 @@ model Playlist {
   ownerUrl         String?
   tracks           Track[]
   downloadHistory  DownloadHistory[]
+
+  @@unique([spotifyUrl])
 }
 
 model Track {

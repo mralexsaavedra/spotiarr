@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getSpotifyIdFromUrl, isSpotifyUrl, mapApiError, normalizeSpotifyUrl } from "./spotify";
+import {
+  getSpotifyIdFromUrl,
+  isSpotifyPlaylistUrl,
+  isSpotifyUrl,
+  mapApiError,
+  normalizeSpotifyUrl,
+} from "./spotify";
 
 describe("normalizeSpotifyUrl", () => {
   it("normalizes a valid open.spotify.com URL", () => {
@@ -75,6 +81,30 @@ describe("getSpotifyIdFromUrl", () => {
 
   it("returns null when path has fewer than 3 segments", () => {
     expect(getSpotifyIdFromUrl("https://open.spotify.com/playlist")).toBeNull();
+  });
+});
+
+describe("isSpotifyPlaylistUrl", () => {
+  it("returns true for a Spotify playlist URL", () => {
+    expect(isSpotifyPlaylistUrl("https://open.spotify.com/playlist/abc")).toBe(true);
+  });
+
+  it("returns false for a Spotify album URL", () => {
+    expect(isSpotifyPlaylistUrl("https://open.spotify.com/album/abc")).toBe(false);
+  });
+
+  it("returns false for a Spotify track URL", () => {
+    expect(isSpotifyPlaylistUrl("https://open.spotify.com/track/abc")).toBe(false);
+  });
+
+  it("returns false for null, undefined, or empty string", () => {
+    expect(isSpotifyPlaylistUrl(null)).toBe(false);
+    expect(isSpotifyPlaylistUrl(undefined)).toBe(false);
+    expect(isSpotifyPlaylistUrl("")).toBe(false);
+  });
+
+  it("returns false for a non-Spotify host with playlist path", () => {
+    expect(isSpotifyPlaylistUrl("https://google.com/playlist/abc")).toBe(false);
   });
 });
 

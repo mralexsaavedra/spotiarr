@@ -218,6 +218,16 @@ export class SpotifyService {
     }
   }
 
+  async getPlaylistMetadata(spotifyUrl: string): Promise<{
+    name: string;
+    image: string;
+    owner?: string;
+    ownerUrl?: string;
+    totalTracks?: number;
+  }> {
+    return this.deps.playlistClient.getPlaylistMetadata(spotifyUrl);
+  }
+
   async getMyPlaylists(): Promise<SpotifyPlaylist[]> {
     return this.deps.userLibraryService.getMyPlaylists();
   }
