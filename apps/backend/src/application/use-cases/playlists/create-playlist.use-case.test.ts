@@ -1,16 +1,16 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import { AppError } from "@/domain/errors/app-error";
 import { CreatePlaylistUseCase } from "./create-playlist.use-case";
 
 // Minimal in-memory stubs
-function makePlaylistEntity() {
+function makePlaylistEntity(overrides: Partial<{ id: string; spotifyUrl: string; type: PlaylistTypeEnum; name: string }> = {}) {
   return new Playlist({
-    id: "playlist-id",
-    spotifyUrl: "spotiarr://album/artist-1/album-1",
-    type: PlaylistTypeEnum.Album,
-    name: "Artist - Album",
+    id: overrides.id ?? "playlist-id",
+    spotifyUrl: overrides.spotifyUrl ?? "spotiarr://album/artist-1/album-1",
+    type: overrides.type ?? PlaylistTypeEnum.Album,
+    name: overrides.name ?? "Artist - Album",
   });
 }
 
@@ -32,6 +32,12 @@ function makeStubs() {
       name: "Playlist",
       image: "",
       type: "playlist",
+    }),
+    getPlaylistMetadata: vi.fn().mockResolvedValue({
+      name: "Parent Playlist",
+      image: "https://image.test/cover.jpg",
+      owner: "user1",
+      ownerUrl: "https://open.spotify.com/user/user1",
     }),
   };
 
@@ -521,5 +527,210 @@ describe("CreatePlaylistUseCase — album branch", () => {
       albumUrl: "https://open.spotify.com/album/album-1",
     });
     expect(createdTrack).not.toHaveProperty("spotifyUrl");
+  });
+});
+
+describe("CreatePlaylistUseCase — executePlaylistTrack branch", () => {
+  const PARENT_URL = "https://open.spotify.com/playlist/parent-id";
+  const TRACK_URL = "https://open.spotify.com/track/track-id";
+
+  let stubs: ReturnType<typeof makeStubs>;
+
+  beforeEach(() => {
+    stubs = makeStubs();
+
+    // Default: no existing parent found
+    stubs.playlistRepository.findAll.mockResolvedValue([]);
+
+    // Default: getPlaylistMetadata returns playlist metadata
+    stubs.spotifyService.getPlaylistMetadata.mockResolvedValue({
+      name: "Parent Playlist",
+      image: "https://image.test/cover.jpg",
+      owner: "user1",
+      ownerUrl: "https://open.spotify.com/user/user1",
+    });
+
+    // Default: getPlaylistDetail for track returns one track
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "My Track",
+          artist: "Artist",
+          artists: [{ name: "Artist", url: "https://open.spotify.com/artist/art1" }],
+          album: "My Album",
+          trackUrl: TRACK_URL,
+          durationMs: 200000,
+        },
+      ],
+      name: "My Track",
+      image: "https://image.test/track.jpg",
+      type: "track",
+    });
+
+    // Default: savedEntity is a proper playlist entity
+    const parentEntity = makePlaylistEntity({
+      id: "parent-entity-id",
+      spotifyUrl: PARENT_URL,
+      type: PlaylistTypeEnum.Playlist,
+      name: "Parent Playlist",
+    });
+    stubs.playlistRepository.save.mockResolvedValue(parentEntity);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("PT-1: creates parent on findAll cache miss — calls getPlaylistMetadata and saves with type=Playlist", async () => {
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "playlistTrack",
+      parentSpotifyUrl: PARENT_URL,
+      trackUrl: TRACK_URL,
+    });
+
+    expect(stubs.playlistRepository.findAll).toHaveBeenCalledWith(false, {
+      spotifyUrl: PARENT_URL,
+    });
+    expect(stubs.spotifyService.getPlaylistMetadata).toHaveBeenCalledWith(PARENT_URL);
+    expect(stubs.playlistRepository.save).toHaveBeenCalled();
+
+    const savedArg = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedArg.toPrimitive()).toMatchObject({
+      spotifyUrl: PARENT_URL,
+      type: PlaylistTypeEnum.Playlist,
+      name: "Parent Playlist",
+      coverUrl: "https://image.test/cover.jpg",
+      owner: "user1",
+      ownerUrl: "https://open.spotify.com/user/user1",
+    });
+  });
+
+  it("PT-2: reuses existing parent on cache hit — skips getPlaylistMetadata and save", async () => {
+    const existingParent = makePlaylistEntity({
+      id: "existing-parent-id",
+      spotifyUrl: PARENT_URL,
+      type: PlaylistTypeEnum.Playlist,
+      name: "Existing Parent",
+    });
+    stubs.playlistRepository.findAll.mockResolvedValue([existingParent]);
+
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "playlistTrack",
+      parentSpotifyUrl: PARENT_URL,
+      trackUrl: TRACK_URL,
+    });
+
+    expect(stubs.spotifyService.getPlaylistMetadata).not.toHaveBeenCalled();
+    expect(stubs.playlistRepository.save).not.toHaveBeenCalled();
+  });
+
+  it("PT-3: links the track to the parent via processTracks with correct playlistId", async () => {
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "playlistTrack",
+      parentSpotifyUrl: PARENT_URL,
+      trackUrl: TRACK_URL,
+    });
+
+    expect(stubs.trackService.create).toHaveBeenCalledOnce();
+    expect(stubs.trackService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playlistId: "parent-entity-id",
+        name: "My Track",
+      }),
+    );
+  });
+
+  it("PT-4: P2002 race recovery — returns winner parent when save throws P2002 and re-read finds it", async () => {
+    const p2002Err = Object.assign(new Error("Unique constraint failed"), { code: "P2002" });
+    const winnerParent = makePlaylistEntity({
+      id: "winner-parent-id",
+      spotifyUrl: PARENT_URL,
+      type: PlaylistTypeEnum.Playlist,
+      name: "Winner Parent",
+    });
+
+    // First call: no existing parent
+    // After P2002: re-read returns winner
+    stubs.playlistRepository.findAll
+      .mockResolvedValueOnce([]) // initial find
+      .mockResolvedValueOnce([winnerParent]); // re-read after P2002
+
+    stubs.playlistRepository.save.mockRejectedValueOnce(p2002Err);
+
+    const useCase = makeUseCase(stubs);
+
+    const result = await useCase.execute({
+      kind: "playlistTrack",
+      parentSpotifyUrl: PARENT_URL,
+      trackUrl: TRACK_URL,
+    });
+
+    expect(result).toMatchObject({ id: "winner-parent-id" });
+    // Should not throw
+  });
+
+  it("PT-5: P2002 with no row on re-read — re-throws the original error", async () => {
+    const p2002Err = Object.assign(new Error("Unique constraint failed"), { code: "P2002" });
+
+    stubs.playlistRepository.findAll
+      .mockResolvedValueOnce([]) // initial find
+      .mockResolvedValueOnce([]); // re-read after P2002 — still empty
+
+    stubs.playlistRepository.save.mockRejectedValueOnce(p2002Err);
+
+    const useCase = makeUseCase(stubs);
+
+    const thrown = await useCase
+      .execute({
+        kind: "playlistTrack",
+        parentSpotifyUrl: PARENT_URL,
+        trackUrl: TRACK_URL,
+      })
+      .catch((e) => e);
+
+    expect(thrown).toBe(p2002Err);
+  });
+
+  it("PT-6: track not found — throws track_not_found when getPlaylistDetail returns empty tracks", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [],
+      name: "",
+      image: "",
+      type: "track",
+    });
+
+    const useCase = makeUseCase(stubs);
+
+    const thrown = await useCase
+      .execute({
+        kind: "playlistTrack",
+        parentSpotifyUrl: PARENT_URL,
+        trackUrl: TRACK_URL,
+      })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).errorCode).toBe("track_not_found");
+  });
+
+  it("PT-7: auto-subscribe respected — new parent is marked subscribed when AUTO_SUBSCRIBE_NEW_PLAYLISTS=true", async () => {
+    stubs.settingsService.getBoolean.mockResolvedValue(true);
+
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "playlistTrack",
+      parentSpotifyUrl: PARENT_URL,
+      trackUrl: TRACK_URL,
+    });
+
+    const savedArg = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedArg.toPrimitive().subscribed).toBe(true);
   });
 });

@@ -110,6 +110,93 @@ describe("SpotifyService", () => {
     expect(result.tracks[1]?.primaryArtistImage).toBe("https://image.test/artist.jpg");
   });
 
+  describe("getPlaylistMetadata", () => {
+    it("delegates to playlistClient.getPlaylistMetadata with the same URL", async () => {
+      const metadata = {
+        name: "My Playlist",
+        image: "https://image.test/cover.jpg",
+        owner: "alex",
+        ownerUrl: "https://open.spotify.com/user/alex",
+        totalTracks: 20,
+      };
+      const playlistClient = {
+        getPlaylistMetadata: vi.fn().mockResolvedValue(metadata),
+        getAllPlaylistTracks: vi.fn(),
+        getPlaylistTracksPage: vi.fn(),
+      };
+      const service = new SpotifyService({
+        artistClient: { getArtistDetails: vi.fn() },
+        trackClient: { getTrackDetails: vi.fn() },
+        albumClient: { getAlbumTracks: vi.fn(), getAlbumDetails: vi.fn() },
+        playlistClient,
+        searchClient: { searchCatalog: vi.fn() },
+        userLibraryService: { getMyPlaylists: vi.fn() },
+      });
+
+      const url = "https://open.spotify.com/playlist/abc123";
+      const result = await service.getPlaylistMetadata(url);
+
+      expect(playlistClient.getPlaylistMetadata).toHaveBeenCalledWith(url);
+      expect(result).toEqual(metadata);
+    });
+
+    it("returns the metadata shape unchanged (name, image, owner, ownerUrl, totalTracks)", async () => {
+      const metadata = {
+        name: "Radio Alexander",
+        image: "https://image.test/playlist.jpg",
+        owner: "user1",
+        ownerUrl: "https://open.spotify.com/user/user1",
+        totalTracks: 75,
+      };
+      const playlistClient = {
+        getPlaylistMetadata: vi.fn().mockResolvedValue(metadata),
+        getAllPlaylistTracks: vi.fn(),
+        getPlaylistTracksPage: vi.fn(),
+      };
+      const service = new SpotifyService({
+        artistClient: { getArtistDetails: vi.fn() },
+        trackClient: { getTrackDetails: vi.fn() },
+        albumClient: { getAlbumTracks: vi.fn(), getAlbumDetails: vi.fn() },
+        playlistClient,
+        searchClient: { searchCatalog: vi.fn() },
+        userLibraryService: { getMyPlaylists: vi.fn() },
+      });
+
+      const result = await service.getPlaylistMetadata(
+        "https://open.spotify.com/playlist/xyz",
+      );
+
+      expect(result).toMatchObject({
+        name: "Radio Alexander",
+        image: "https://image.test/playlist.jpg",
+        owner: "user1",
+        ownerUrl: "https://open.spotify.com/user/user1",
+        totalTracks: 75,
+      });
+    });
+
+    it("propagates errors from the client", async () => {
+      const clientError = new Error("Spotify API error");
+      const playlistClient = {
+        getPlaylistMetadata: vi.fn().mockRejectedValue(clientError),
+        getAllPlaylistTracks: vi.fn(),
+        getPlaylistTracksPage: vi.fn(),
+      };
+      const service = new SpotifyService({
+        artistClient: { getArtistDetails: vi.fn() },
+        trackClient: { getTrackDetails: vi.fn() },
+        albumClient: { getAlbumTracks: vi.fn(), getAlbumDetails: vi.fn() },
+        playlistClient,
+        searchClient: { searchCatalog: vi.fn() },
+        userLibraryService: { getMyPlaylists: vi.fn() },
+      });
+
+      await expect(
+        service.getPlaylistMetadata("https://open.spotify.com/playlist/err"),
+      ).rejects.toThrow("Spotify API error");
+    });
+  });
+
   it("returns playlist totalTracks from metadata even when preview tracks are paged", async () => {
     const service = new SpotifyService({
       artistClient: {

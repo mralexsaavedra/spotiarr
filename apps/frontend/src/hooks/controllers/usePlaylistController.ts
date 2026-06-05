@@ -5,7 +5,7 @@ import { usePlaylistDownloaded, usePlaylistDownloading } from "@/contexts/Downlo
 import { Playlist, PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
 import { formatPlaylistTitle } from "@/utils/playlist";
-import { isSpotifyUrl } from "@/utils/spotify";
+import { isSpotifyPlaylistUrl, isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";
 import { useDeletePlaylistMutation } from "../mutations/useDeletePlaylistMutation";
 import { useRetryFailedTracksMutation } from "../mutations/useRetryFailedTracksMutation";
@@ -83,10 +83,18 @@ export const usePlaylistController = ({
 
     tracks.forEach((track) => {
       if (track.status === TrackStatusEnum.Error && isSpotifyUrl(track.trackUrl)) {
-        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
+        if (isSpotifyPlaylistUrl(spotifyUrl)) {
+          createPlaylist.mutate({
+            kind: "playlistTrack",
+            parentSpotifyUrl: spotifyUrl!,
+            trackUrl: track.trackUrl!,
+          });
+        } else {
+          createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
+        }
       }
     });
-  }, [id, hasFailed, tracks, retryFailedTracks, createPlaylist]);
+  }, [id, hasFailed, tracks, retryFailedTracks, createPlaylist, spotifyUrl]);
 
   const handleRetryTrack = useCallback(
     (track: Track) => {
@@ -104,10 +112,18 @@ export const usePlaylistController = ({
       // Synthetic ids have no DB row yet. Only Spotify trackUrls can be
       // resolved via createPlaylist; Deezer/MB urls have no single-track path.
       if (isSpotifyUrl(track.trackUrl)) {
-        createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
+        if (isSpotifyPlaylistUrl(spotifyUrl)) {
+          createPlaylist.mutate({
+            kind: "playlistTrack",
+            parentSpotifyUrl: spotifyUrl!,
+            trackUrl: track.trackUrl!,
+          });
+        } else {
+          createPlaylist.mutate({ kind: "spotifyUrl", spotifyUrl: track.trackUrl! });
+        }
       }
     },
-    [retryTrack, createPlaylist],
+    [retryTrack, createPlaylist, spotifyUrl],
   );
 
   const completedCount = useMemo(() => {

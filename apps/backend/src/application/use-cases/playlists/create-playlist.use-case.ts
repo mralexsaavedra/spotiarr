@@ -16,6 +16,11 @@ import type { SettingsService } from "../../services/settings.service";
 import type { TrackService } from "../../services/track.service";
 import type { GetAlbumTracksUseCase } from "../artists/get-album-tracks.use-case";
 
+// Inline type guard: keeps application layer free of infrastructure imports.
+// Same guard exists in infrastructure/database/prisma-errors.ts for infra-layer use.
+const isUniqueConstraintViolation = (e: unknown): boolean =>
+  e instanceof Error && "code" in e && (e as { code?: string }).code === "P2002";
+
 interface DeezerAlbumTracksPort {
   getAlbumTracks(deezerAlbumId: string | number): Promise<NormalizedTrack[]>;
 }
@@ -57,6 +62,9 @@ export class CreatePlaylistUseCase {
     }
     if (input.kind === "deezerTrack") {
       return this.executeDeezerTrack(input.deezerTrackId, input.deezerAlbumId);
+    }
+    if (input.kind === "playlistTrack") {
+      return this.executePlaylistTrack(input.parentSpotifyUrl, input.trackUrl);
     }
     return this.executeSpotifyUrl(input.spotifyUrl);
   }
@@ -312,6 +320,63 @@ export class CreatePlaylistUseCase {
 
     this.eventBus.emit("playlists-updated");
     return savedPlaylist;
+  }
+
+  private async executePlaylistTrack(
+    parentSpotifyUrl: string,
+    trackUrl: string,
+  ): Promise<IPlaylist> {
+    // 1. Find-or-create parent playlist (race-safe via unique constraint + P2002 recovery)
+    let parentRow = (await this.playlistRepository.findAll(false, { spotifyUrl: parentSpotifyUrl }))[0];
+
+    if (!parentRow) {
+      const meta = await this.spotifyService.getPlaylistMetadata(parentSpotifyUrl);
+
+      const newParent = new Playlist({
+        id: crypto.randomUUID(),
+        spotifyUrl: parentSpotifyUrl,
+        type: PlaylistTypeEnum.Playlist,
+      });
+      newParent.updateDetails(
+        meta.name,
+        PlaylistTypeEnum.Playlist,
+        meta.image,
+        undefined,
+        meta.owner,
+        meta.ownerUrl,
+      );
+
+      const autoSubscribe = await this.settingsService.getBoolean("AUTO_SUBSCRIBE_NEW_PLAYLISTS");
+      if (autoSubscribe) newParent.markAsSubscribed();
+
+      try {
+        parentRow = await this.playlistRepository.save(newParent);
+      } catch (e) {
+        if (isUniqueConstraintViolation(e)) {
+          // Another concurrent request won the race — re-read the winner
+          parentRow = (
+            await this.playlistRepository.findAll(false, { spotifyUrl: parentSpotifyUrl })
+          )[0];
+          if (!parentRow) throw e; // truly unexpected: P2002 but no row found
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    // 2. Resolve the single track using the existing single-track Spotify path
+    const detail = await this.spotifyService.getPlaylistDetail(trackUrl);
+    const singleTrack = detail.tracks[0];
+    if (!singleTrack) {
+      throw new AppError(404, "track_not_found", "Spotify track resolution returned no track");
+    }
+
+    // 3. Link the track to the parent playlist
+    const parentPrimitive = parentRow.toPrimitive();
+    await this.processTracks(parentPrimitive, [singleTrack], PlaylistTypeEnum.Track);
+
+    this.eventBus.emit("playlists-updated");
+    return parentPrimitive;
   }
 
   private async resolveAlbumMetadata(

@@ -14,6 +14,16 @@ const discriminatedBody = z.discriminatedUnion("kind", [
     albumId: z.string().min(1),
     trackIndex: z.number().int().min(0),
   }),
+  z.object({
+    kind: z.literal("deezerTrack"),
+    deezerTrackId: z.string().min(1),
+    deezerAlbumId: z.string().min(1),
+  }),
+  z.object({
+    kind: z.literal("playlistTrack"),
+    parentSpotifyUrl: z.string().min(1),
+    trackUrl: z.string().min(1),
+  }),
 ]);
 
 const legacyBody = z
