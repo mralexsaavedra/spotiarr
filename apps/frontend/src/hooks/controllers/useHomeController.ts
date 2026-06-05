@@ -133,7 +133,7 @@ export const useHomeController = () => {
 
   const handlePlaylistClick = useCallback(
     (id: string) => {
-      navigate(Path.PLAYLIST_DETAIL.replace(":id", id));
+      navigate(`${Path.PLAYLIST_DETAIL.replace(":id", id)}?mode=library`);
     },
     [navigate],
   );

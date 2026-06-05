@@ -35,6 +35,7 @@ export const PlaylistDetail: FC = () => {
     currentTrackId,
     isPlaying,
     hasPlayableTracks,
+    mode,
   } = usePlaylistDetailController();
 
   if (isPlaylistsLoading || isTracksLoading) {
@@ -72,6 +73,7 @@ export const PlaylistDetail: FC = () => {
         currentTrackId={currentTrackId}
         isPlaying={isPlaying}
         hasPlayableTracks={hasPlayableTracks}
+        mode={mode}
       />
       <audio
         ref={setAudioElement}

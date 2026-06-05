@@ -422,7 +422,7 @@ describe("useHomeController", () => {
         result.current.handlePlaylistClick("playlist-nav");
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith("/playlist/playlist-nav");
+      expect(mockNavigate).toHaveBeenCalledWith("/playlist/playlist-nav?mode=library");
     });
   });
 });

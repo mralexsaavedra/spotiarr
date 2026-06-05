@@ -16,6 +16,8 @@ import { isSpotifyUrl } from "@/utils/spotify";
 import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
 
+export type PlaylistActionsMode = "library" | "managed";
+
 interface PlaylistActionsProps {
   spotifyUrl?: string;
   playlistId?: string;
@@ -34,6 +36,7 @@ interface PlaylistActionsProps {
   onRetryFailed: () => void;
   onDelete: () => void;
   onDownload: () => void;
+  mode?: PlaylistActionsMode;
 }
 
 export const PlaylistActions: FC<PlaylistActionsProps> = ({
@@ -54,10 +57,12 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   spotifyUrl,
   playlistId,
   playlistName,
+  mode = "managed",
 }) => {
   const hasEagerSpotifyUrl = spotifyUrl && isSpotifyUrl(spotifyUrl);
   const canLazyResolve = !hasEagerSpotifyUrl && Boolean(playlistName);
   const { t } = useTranslation();
+  const isManaged = mode === "managed";
 
   return (
     <div className="flex items-center gap-3 md:gap-4">
@@ -77,52 +82,56 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </Button>
       ) : null}
 
-      <Button
-        variant="primary"
-        size="lg"
-        className={cn(
-          "!h-12 !w-12 justify-center !rounded-full !p-0 shadow-lg transition-transform md:!h-14 md:!w-14",
-          isDownloaded
-            ? "cursor-default bg-green-500 hover:bg-green-600"
-            : "bg-green-500 hover:scale-105 hover:bg-green-600",
-        )}
-        onClick={onDownload}
-        loading={isDownloading}
-        disabled={isDownloaded || isDownloading}
-        title={
-          isDownloaded
-            ? t("playlist.downloaded")
-            : isDownloading
-              ? t("playlist.actions.downloading")
-              : t("playlist.actions.download")
-        }
-      >
-        {isDownloaded ? (
-          <FontAwesomeIcon icon={faCheck} className="text-xl text-black" />
-        ) : !isDownloading ? (
-          <FontAwesomeIcon icon={faDownload} className="text-xl text-black" />
-        ) : null}
-      </Button>
+      {isManaged && (
+        <Button
+          variant="primary"
+          size="lg"
+          className={cn(
+            "!h-12 !w-12 justify-center !rounded-full !p-0 shadow-lg transition-transform md:!h-14 md:!w-14",
+            isDownloaded
+              ? "cursor-default bg-green-500 hover:bg-green-600"
+              : "bg-green-500 hover:scale-105 hover:bg-green-600",
+          )}
+          onClick={onDownload}
+          loading={isDownloading}
+          disabled={isDownloaded || isDownloading}
+          title={
+            isDownloaded
+              ? t("playlist.downloaded")
+              : isDownloading
+                ? t("playlist.actions.downloading")
+                : t("playlist.actions.download")
+          }
+        >
+          {isDownloaded ? (
+            <FontAwesomeIcon icon={faCheck} className="text-xl text-black" />
+          ) : !isDownloading ? (
+            <FontAwesomeIcon icon={faDownload} className="text-xl text-black" />
+          ) : null}
+        </Button>
+      )}
 
-      <Button
-        variant="secondary"
-        size="md"
-        className={cn(
-          "!h-9 !w-9 justify-center !rounded-full border-2 px-0 shadow-lg md:!h-10 md:!w-36 md:px-0",
-          isSubscribed
-            ? "border-green-500 bg-green-500 text-black hover:border-green-400 hover:bg-green-400"
-            : "border-white/30 bg-transparent text-white hover:border-white hover:bg-white/10",
-        )}
-        onClick={onToggleSubscription}
-        title={isSubscribed ? t("playlist.actions.unsubscribe") : t("playlist.actions.subscribe")}
-      >
-        <div className="flex items-center justify-center gap-2">
-          <FontAwesomeIcon icon={isSubscribed ? faBell : faBellRegular} className="text-sm" />
-          <span className="hidden text-xs font-bold tracking-wide uppercase md:inline">
-            {isSubscribed ? t("playlist.actions.subscribed") : t("playlist.actions.subscribe")}
-          </span>
-        </div>
-      </Button>
+      {isManaged && (
+        <Button
+          variant="secondary"
+          size="md"
+          className={cn(
+            "!h-9 !w-9 justify-center !rounded-full border-2 px-0 shadow-lg md:!h-10 md:!w-36 md:px-0",
+            isSubscribed
+              ? "border-green-500 bg-green-500 text-black hover:border-green-400 hover:bg-green-400"
+              : "border-white/30 bg-transparent text-white hover:border-white hover:bg-white/10",
+          )}
+          onClick={onToggleSubscription}
+          title={isSubscribed ? t("playlist.actions.unsubscribe") : t("playlist.actions.subscribe")}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <FontAwesomeIcon icon={isSubscribed ? faBell : faBellRegular} className="text-sm" />
+            <span className="hidden text-xs font-bold tracking-wide uppercase md:inline">
+              {isSubscribed ? t("playlist.actions.subscribed") : t("playlist.actions.subscribe")}
+            </span>
+          </div>
+        </Button>
+      )}
 
       {hasEagerSpotifyUrl && (
         <SpotifyLinkButton
@@ -157,22 +166,24 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </Button>
       )}
 
-      <Button
-        variant="ghost"
-        size="lg"
-        icon={faTrash}
-        className={cn(
-          "text-text-secondary",
-          !isSaved ? "cursor-not-allowed opacity-30" : "hover:bg-red-500/10 hover:text-red-400",
-        )}
-        onClick={onDelete}
-        disabled={!isSaved}
-        title={
-          !isSaved ? t("playlist.actions.downloadToEnable") : t("playlist.actions.deleteTooltip")
-        }
-      >
-        <span className="hidden sm:inline">{t("playlist.actions.delete")}</span>
-      </Button>
+      {isManaged && (
+        <Button
+          variant="ghost"
+          size="lg"
+          icon={faTrash}
+          className={cn(
+            "text-text-secondary",
+            !isSaved ? "cursor-not-allowed opacity-30" : "hover:bg-red-500/10 hover:text-red-400",
+          )}
+          onClick={onDelete}
+          disabled={!isSaved}
+          title={
+            !isSaved ? t("playlist.actions.downloadToEnable") : t("playlist.actions.deleteTooltip")
+          }
+        >
+          <span className="hidden sm:inline">{t("playlist.actions.delete")}</span>
+        </Button>
+      )}
     </div>
   );
 };

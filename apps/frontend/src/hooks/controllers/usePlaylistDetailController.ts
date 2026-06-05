@@ -1,5 +1,7 @@
 import { useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
+
+export type PlaylistDetailMode = "library" | "managed";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useTracksQuery } from "../queries/useTracksQuery";
 import { useNavigationHelpers } from "../useNavigationHelpers";
@@ -14,6 +16,8 @@ export type PlaylistPlaybackErrorKey = LocalTrackPlaybackErrorKey<"library.album
 export const usePlaylistDetailController = () => {
   const { handleGoHome } = useNavigationHelpers();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const mode: PlaylistDetailMode = searchParams.get("mode") === "library" ? "library" : "managed";
 
   const { data: playlists = [], isLoading: isPlaylistsLoading } = usePlaylistsQuery();
   const { data: tracks = [], isLoading: isTracksLoading } = useTracksQuery(id);
@@ -102,5 +106,6 @@ export const usePlaylistDetailController = () => {
     onAudioPause,
     onAudioError,
     hasPlayableTracks,
+    mode,
   };
 };
