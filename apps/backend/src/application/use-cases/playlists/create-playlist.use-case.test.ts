@@ -204,6 +204,54 @@ describe("CreatePlaylistUseCase — albumTrack branch", () => {
     expect(savedPlaylist.toPrimitive().artistImageUrl).toBe("http://track-artist.jpg");
   });
 
+  it("derives metadata from tracks when both album and release caches miss (Deezer-origin album)", async () => {
+    stubs.feedRepository.getArtistAlbumWithArtist.mockResolvedValue(null);
+    stubs.feedRepository.getArtistReleaseWithArtist.mockResolvedValue(null);
+    stubs.feedRepository.getArtistByAnyId.mockResolvedValue(null);
+    stubs.getAlbumTracksUseCase.execute.mockResolvedValue([
+      {
+        name: "Track 1",
+        artist: "Deezer Artist",
+        primaryArtist: "Deezer Artist",
+        primaryArtistImage: "http://deezer-artist.jpg",
+        artists: [{ name: "Deezer Artist", url: undefined }],
+        album: "Deezer Album",
+        albumCoverUrl: "http://deezer-cover.jpg",
+        trackNumber: 1,
+        durationMs: 200000,
+      },
+      {
+        name: "Track 2",
+        artist: "Deezer Artist",
+        primaryArtist: "Deezer Artist",
+        primaryArtistImage: "http://deezer-artist.jpg",
+        artists: [{ name: "Deezer Artist", url: undefined }],
+        album: "Deezer Album",
+        albumCoverUrl: "http://deezer-cover.jpg",
+        trackNumber: 2,
+        durationMs: 220000,
+      },
+    ]);
+
+    const useCase = makeUseCase(stubs);
+
+    await useCase.execute({
+      kind: "albumTrack",
+      artistId: "deezer-artist-1",
+      albumId: "deezer-album-1",
+      trackIndex: 1,
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+
+    expect(savedPlaylist.toPrimitive()).toMatchObject({
+      name: "Deezer Artist - Track 2",
+      coverUrl: "http://deezer-cover.jpg",
+      artistImageUrl: "http://deezer-artist.jpg",
+      owner: "Deezer Artist",
+    });
+  });
+
   it("throws 404 when trackIndex is out of range", async () => {
     const useCase = makeUseCase(stubs);
 
