@@ -1,13 +1,11 @@
-import { PlaylistTypeEnum, SpotifyPlaylist } from "@spotiarr/shared";
+import { SpotifyPlaylist } from "@spotiarr/shared";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Path } from "@/routes/routes";
-import { PlaylistWithStats } from "@/types";
 import { useMyPlaylistsController } from "./useMyPlaylistsController";
 
 const mockNavigate = vi.fn();
 const mockUseMyPlaylistsQuery = vi.fn();
-const mockUsePlaylistsQuery = vi.fn();
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -20,10 +18,6 @@ vi.mock("react-router-dom", async () => {
 
 vi.mock("@/hooks/queries/useMyPlaylistsQuery", () => ({
   useMyPlaylistsQuery: () => mockUseMyPlaylistsQuery(),
-}));
-
-vi.mock("@/hooks/queries/usePlaylistsQuery", () => ({
-  usePlaylistsQuery: () => mockUsePlaylistsQuery(),
 }));
 
 vi.mock("../useDebounce", () => ({
@@ -39,28 +33,6 @@ const spotifyPlaylist: SpotifyPlaylist = {
   spotifyUrl: "https://open.spotify.com/playlist/road-trip",
 };
 
-const savedPlaylist: PlaylistWithStats = {
-  id: "saved-playlist-1",
-  name: "Road Trip",
-  type: PlaylistTypeEnum.Playlist,
-  spotifyUrl: spotifyPlaylist.spotifyUrl,
-  subscribed: true,
-  tracks: [],
-  stats: {
-    completedCount: 0,
-    downloadingCount: 0,
-    searchingCount: 0,
-    queuedCount: 0,
-    activeCount: 0,
-    errorCount: 0,
-    totalCount: 0,
-    progress: 0,
-    isDownloading: false,
-    hasErrors: false,
-    isCompleted: false,
-  },
-};
-
 describe("useMyPlaylistsController", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -69,30 +41,9 @@ describe("useMyPlaylistsController", () => {
       isLoading: false,
       error: null,
     });
-    mockUsePlaylistsQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-    });
   });
 
-  it("navigates to saved playlist detail when the playlist already exists", () => {
-    mockUsePlaylistsQuery.mockReturnValue({
-      data: [savedPlaylist],
-      isLoading: false,
-    });
-
-    const { result } = renderHook(() => useMyPlaylistsController());
-
-    act(() => {
-      result.current.handlePlaylistClick(spotifyPlaylist.id);
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Path.PLAYLIST_DETAIL.replace(":id", savedPlaylist.id),
-    );
-  });
-
-  it("falls back to playlist preview when the playlist is not saved", () => {
+  it("navigates to playlist preview regardless of saved/subscribed state", () => {
     const { result } = renderHook(() => useMyPlaylistsController());
 
     act(() => {

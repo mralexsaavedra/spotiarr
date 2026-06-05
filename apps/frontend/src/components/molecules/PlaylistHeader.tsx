@@ -59,7 +59,7 @@ export const PlaylistHeader: FC<PlaylistHeaderProps> = ({
 
           <div className="text-text-primary mt-2 flex flex-wrap items-center justify-start gap-1 text-sm font-medium">
             {metadata}
-            <span className="text-text-secondary">•</span>
+            {metadata ? <span className="text-text-secondary">•</span> : null}
             <span className="text-text-secondary">
               {totalCount} {t("playlist.songs")}
             </span>

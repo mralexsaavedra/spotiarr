@@ -2,13 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { APP_CONFIG } from "@/config/app";
 import { useMyPlaylistsQuery } from "@/hooks/queries/useMyPlaylistsQuery";
-import { usePlaylistsQuery } from "@/hooks/queries/usePlaylistsQuery";
 import { Path } from "@/routes/routes";
 import { useDebounce } from "../useDebounce";
 
 export const useMyPlaylistsController = () => {
   const { data: playlists = [], isLoading, error } = useMyPlaylistsQuery();
-  const { data: savedPlaylists = [] } = usePlaylistsQuery();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, APP_CONFIG.DEBOUNCE.SEARCH_DELAY);
   const navigate = useNavigate();
@@ -20,18 +18,14 @@ export const useMyPlaylistsController = () => {
   const handlePlaylistClick = useCallback(
     (id: string) => {
       const playlist = playlists.find((p) => p.id === id);
-      if (playlist) {
-        const savedPlaylist = savedPlaylists.find((p) => p.spotifyUrl === playlist.spotifyUrl);
-
-        if (savedPlaylist) {
-          navigate(Path.PLAYLIST_DETAIL.replace(":id", savedPlaylist.id));
-          return;
-        }
-
-        navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(playlist.spotifyUrl)}`);
-      }
+      if (!playlist) return;
+      // Always show the live Spotify catalogue (PlaylistPreview) when coming
+      // from MyPlaylists. The DB row (savedPlaylist) only contains downloaded
+      // tracks, which would misrepresent the playlist when partially saved.
+      // PlaylistDetail (managed/library views) is reachable from Home Playlists.
+      navigate(`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(playlist.spotifyUrl)}`);
     },
-    [navigate, playlists, savedPlaylists],
+    [navigate, playlists],
   );
 
   const filteredPlaylists = useMemo(

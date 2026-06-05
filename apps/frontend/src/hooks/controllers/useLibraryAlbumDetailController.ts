@@ -1,5 +1,5 @@
 import { ApiRoutes, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { generatePath, useParams } from "react-router-dom";
 import { Path } from "@/routes/routes";
 import { Track } from "@/types";
@@ -70,6 +70,19 @@ export const useLibraryAlbumDetailController = () => {
     getAudioUrl: (track) => track.trackUrl,
   });
 
+  const firstPlayableTrackId = useMemo(
+    () => tracks.find((track) => track.trackUrl)?.id ?? null,
+    [tracks],
+  );
+
+  const hasPlayableTracks = firstPlayableTrackId !== null;
+
+  const onPlayPlaylist = useCallback(() => {
+    const targetTrackId = currentTrackId ?? firstPlayableTrackId;
+    if (!targetTrackId) return;
+    onPlayTrack(targetTrackId);
+  }, [currentTrackId, firstPlayableTrackId, onPlayTrack]);
+
   const coverUrl = album?.image
     ? `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/image?path=${encodeURIComponent(album.image)}`
     : undefined;
@@ -99,5 +112,8 @@ export const useLibraryAlbumDetailController = () => {
     onAudioPlay,
     onAudioPause,
     onAudioError,
+    hasPlayableTracks,
+    onPlayPlaylist,
+    onPausePlaylist: onPauseTrack,
   };
 };
