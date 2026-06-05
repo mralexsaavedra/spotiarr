@@ -6,6 +6,7 @@ interface PlaylistDescriptionProps {
   completedCount: number;
   totalCount: number;
   isDownloading?: boolean;
+  mode?: "library" | "managed";
 }
 
 export const PlaylistDescription: FC<PlaylistDescriptionProps> = ({
@@ -13,10 +14,11 @@ export const PlaylistDescription: FC<PlaylistDescriptionProps> = ({
   completedCount,
   totalCount,
   isDownloading,
+  mode = "managed",
 }) => {
   const { t } = useTranslation();
 
-  if (completedCount > 0 || (isDownloading && totalCount > 0)) {
+  if (mode !== "library" && (completedCount > 0 || (isDownloading && totalCount > 0))) {
     return (
       <div className="mt-4 w-full">
         <div className="text-text-secondary mb-1.5 flex items-center justify-between text-xs font-bold tracking-wider uppercase">

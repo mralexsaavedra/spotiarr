@@ -141,6 +141,8 @@
       "pause": "Pause",
       "playTrack": "Play track",
       "pauseTrack": "Pause track",
+      "playAlbum": "Play album",
+      "pauseAlbum": "Pause album",
       "playbackBlocked": "Your browser blocked playback. Try pressing play again or checking autoplay permissions.",
       "playbackFailed": "Playback failed for this track. Try again.",
       "playbackUnavailable": "This track could not be loaded for playback. The source may be unavailable or unsupported.",

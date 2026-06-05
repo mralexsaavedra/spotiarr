@@ -141,6 +141,8 @@
       "pause": "Pausar",
       "playTrack": "Reproducir canción",
       "pauseTrack": "Pausar canción",
+      "playAlbum": "Reproducir álbum",
+      "pauseAlbum": "Pausar álbum",
       "playbackBlocked": "Tu navegador bloqueó la reproducción. Probá reproducir de nuevo o revisá los permisos de autoplay.",
       "playbackFailed": "La reproducción falló para esta canción. Probá de nuevo.",
       "playbackUnavailable": "No se pudo cargar esta canción para reproducirla. La fuente puede no estar disponible o no ser compatible.",

@@ -22,6 +22,10 @@ vi.mock("react-i18next", async (importOriginal) => {
   };
 });
 
+vi.mock("@/components/molecules/SpotifyLinkButton", () => ({
+  SpotifyLinkButton: () => null,
+}));
+
 vi.mock("@/components/molecules/VirtualList", () => ({
   VirtualList: ({
     items,

@@ -100,6 +100,7 @@ export const Playlist: FC<PlaylistProps> = ({
             completedCount={completedCount}
             totalCount={resolvedTotalCount}
             isDownloading={isDownloading}
+            mode={mode}
           />
         }
         metadata={
