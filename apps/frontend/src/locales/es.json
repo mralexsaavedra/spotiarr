@@ -122,10 +122,13 @@
     "emptyTitle": "La biblioteca está vacía",
     "emptyDescription": "Escanea o vuelve a escanear tu carpeta de descargas para rellenar tu biblioteca y las carátulas.",
     "scanNow": "Escanear Ahora",
+    "searchPlaceholder": "Buscar listas y artistas...",
+    "playlistsSection": "Listas",
     "artistNotFound": "Artista no encontrado",
     "artistNotFoundDescription": "No se pudieron cargar los detalles del artista.",
     "artistCardAriaLabel": "Artista {{name}}, {{albums}} álbumes, {{tracks}} canciones",
     "albumCardAriaLabel": "Álbum {{name}} de {{artist}}, {{year}}, {{tracks}} canciones",
+    "playlistCardAriaLabel": "Lista {{name}}, {{downloaded}} de {{total}} descargadas",
     "album": {
       "notFound": "Álbum no encontrado",
       "notFoundDescription": "No se pudo encontrar este álbum en tu biblioteca.",

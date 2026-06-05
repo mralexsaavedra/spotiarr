@@ -1,15 +1,19 @@
-import { ArtworkBackfillRunStatus, LibraryArtist } from "@spotiarr/shared";
+import { ArtworkBackfillRunStatus, LibraryArtist, PlaylistTypeEnum } from "@spotiarr/shared";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/contexts/ToastContext";
 import { Path } from "@/routes/routes";
 import { ApiError } from "@/services/httpClient";
+import { PlaylistWithStats } from "@/types";
 import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
 import { useStartArtworkBackfillMutation } from "../mutations/useStartArtworkBackfillMutation";
 import { useArtworkBackfillStatusQuery } from "../queries/useArtworkBackfillStatusQuery";
 import { useLibraryArtistsQuery } from "../queries/useLibraryArtistsQuery";
 import { useLibraryStatsQuery } from "../queries/useLibraryStatsQuery";
+import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
+import { useDebounce } from "../useDebounce";
+import { APP_CONFIG } from "@/config/app";
 
 const ACTIVE_BACKFILL_STATUSES = new Set<ArtworkBackfillRunStatus>([
   "running",
@@ -24,9 +28,12 @@ export const useHomeController = () => {
   const toast = useToast();
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [isRetryBackfillOnly, setIsRetryBackfillOnly] = useState(false);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, APP_CONFIG.DEBOUNCE.SEARCH_DELAY);
   const { data: stats, isLoading: isStatsLoading } = useLibraryStatsQuery();
   const { data: artists, isLoading: isArtistsLoading } = useLibraryArtistsQuery();
   const { data: artworkBackfillStatus } = useArtworkBackfillStatusQuery();
+  const { data: playlists = [] } = usePlaylistsQuery();
   const { mutateAsync: scanLibrary, isPending: isScanning } = useScanLibraryMutation();
   const { mutateAsync: startArtworkBackfill, isPending: isStartingArtworkBackfill } =
     useStartArtworkBackfillMutation();
@@ -111,11 +118,22 @@ export const useHomeController = () => {
     [handleBackfillStartError, isRetryBackfillOnly, scanLibrary, startArtworkBackfill, t, toast],
   );
 
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+  }, []);
+
   const handleArtistClick = useCallback(
     (artist: LibraryArtist) => {
       if (artist.name) {
         navigate(Path.LIBRARY_ARTIST.replace(":name", encodeURIComponent(artist.name)));
       }
+    },
+    [navigate],
+  );
+
+  const handlePlaylistClick = useCallback(
+    (id: string) => {
+      navigate(Path.PLAYLIST_DETAIL.replace(":id", id));
     },
     [navigate],
   );
@@ -141,6 +159,35 @@ export const useHomeController = () => {
     return [...artists].sort((a, b) => a.name.localeCompare(b.name));
   }, [artists]);
 
+  // Playlists that have at least one completed track, enriched with counts
+  const downloadedPlaylists = useMemo(() => {
+    return playlists
+      .filter(
+        (p: PlaylistWithStats) =>
+          p.type === PlaylistTypeEnum.Playlist && p.stats.completedCount > 0,
+      )
+      .map((p: PlaylistWithStats) => ({
+        playlist: p,
+        downloadedCount: p.stats.completedCount,
+        totalCount: p.stats.totalCount,
+      }));
+  }, [playlists]);
+
+  // Filtered by debounced search
+  const filteredPlaylists = useMemo(() => {
+    if (!debouncedSearch) return downloadedPlaylists;
+    const lower = debouncedSearch.toLowerCase();
+    return downloadedPlaylists.filter((item) =>
+      (item.playlist.name ?? "").toLowerCase().includes(lower),
+    );
+  }, [downloadedPlaylists, debouncedSearch]);
+
+  const filteredArtists = useMemo(() => {
+    if (!debouncedSearch) return sortedArtists;
+    const lower = debouncedSearch.toLowerCase();
+    return sortedArtists.filter((a) => a.name.toLowerCase().includes(lower));
+  }, [sortedArtists, debouncedSearch]);
+
   return {
     t,
     stats: statsData,
@@ -154,6 +201,12 @@ export const useHomeController = () => {
     handleCloseScanModal,
     handleConfirmScan,
     handleArtistClick,
+    handlePlaylistClick,
+    handleSearchChange,
     formatSize,
+    search,
+    downloadedPlaylists,
+    filteredPlaylists,
+    filteredArtists,
   };
 };
