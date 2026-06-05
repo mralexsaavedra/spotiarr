@@ -11,7 +11,10 @@
     "lint": "oxlint src --fix --ignore-path ../../.gitignore",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:runtime": "vitest run --config vitest.playwright.config.ts",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
@@ -34,6 +37,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@spotiarr/tsconfig": "workspace:*",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query-devtools": "^5.91.1",

@@ -153,6 +153,9 @@ importers:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.1)(use-sync-external-store@1.6.0(react@19.2.1))
     devDependencies:
+      "@playwright/test":
+        specifier: ^1.56.1
+        version: 1.60.0
       "@spotiarr/tsconfig":
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -1017,6 +1020,14 @@ packages:
     engines: { node: ^20.19.0 || >=22.12.0 }
     cpu: [x64]
     os: [win32]
+
+  "@playwright/test@1.60.0":
+    resolution:
+      {
+        integrity: sha512-O71yZIbAh/PxDMNGns37GHBIfrVkEVyn+AXyIa5dOTfb4/xNvRWV+Vv/NMbNCtODB/pO7vLlF2OTmMVLhmr7Ag==,
+      }
+    engines: { node: ">=18" }
+    hasBin: true
 
   "@prisma/client@5.22.0":
     resolution:
@@ -2313,6 +2324,14 @@ packages:
       }
     engines: { node: ">= 0.8" }
 
+  fsevents@2.3.2:
+    resolution:
+      {
+        integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==,
+      }
+    engines: { node: ^8.16.0 || ^10.6.0 || >=11.0.0 }
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution:
       {
@@ -3094,6 +3113,22 @@ packages:
         integrity: sha512-eG2dWTVw5bzqGRztnHExczNxt5VGsE6OwTeCG3fdUf9KBsZzO3R5OIIIzWR+iZA0NtZ+RDVdaoE2dK1cn6jH4g==,
       }
     engines: { node: ">=0.10" }
+    hasBin: true
+
+  playwright-core@1.60.0:
+    resolution:
+      {
+        integrity: sha512-9bW6zvX/m0lEbgTKJ6YppOKx8H3VOPBMOCFh2irXFOT4BbHgrx5hPjwJYLT40Lu+4qtD36qKc/Hn56StUW57IA==,
+      }
+    engines: { node: ">=18" }
+    hasBin: true
+
+  playwright@1.60.0:
+    resolution:
+      {
+        integrity: sha512-hheHdokM8cdqCb0lcE3s+zT4t4W+vvjpGxsZlDnikarzx8tSzMebh3UiFtgqwFwnTnjYQcsyMF8ei2mCO/tpeA==,
+      }
+    engines: { node: ">=18" }
     hasBin: true
 
   plimit-lit@1.6.1:
@@ -4488,6 +4523,10 @@ snapshots:
   "@oxlint/binding-win32-x64-msvc@1.66.0":
     optional: true
 
+  "@playwright/test@1.60.0":
+    dependencies:
+      playwright: 1.60.0
+
   "@prisma/client@5.22.0(prisma@5.22.0)":
     optionalDependencies:
       prisma: 5.22.0
@@ -5249,6 +5288,9 @@ snapshots:
 
   fresh@2.0.0: {}
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -5677,6 +5719,14 @@ snapshots:
   picomatch@4.0.3: {}
 
   pidtree@0.6.0: {}
+
+  playwright-core@1.60.0: {}
+
+  playwright@1.60.0:
+    dependencies:
+      playwright-core: 1.60.0
+    optionalDependencies:
+      fsevents: 2.3.2
 
   plimit-lit@1.6.1:
     dependencies:
