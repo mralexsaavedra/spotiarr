@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.1...v1.11.2) (2026-06-05)
+
+### Bug Fixes
+
+- **Playlists**: Reconcile Spotify preview totals by ensuring the track count in previews matches the actual tracks fetched. This fixes discrepancies where the "Total tracks" badge showed more items than the track list. ([#77](https://github.com/mralexsaavedra/spotiarr/pull/77))
+
 ## [1.11.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.0...v1.11.1) (2026-06-04)
 
 ### Bug Fixes
