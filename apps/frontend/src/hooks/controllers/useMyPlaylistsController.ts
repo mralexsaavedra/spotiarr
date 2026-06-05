@@ -23,7 +23,17 @@ export const useMyPlaylistsController = () => {
       if (playlist) {
         const savedPlaylist = savedPlaylists.find((p) => p.spotifyUrl === playlist.spotifyUrl);
 
-        if (savedPlaylist) {
+        // Only route to PlaylistDetail when the user has explicitly committed
+        // to the playlist (subscribed or fully downloaded). Otherwise the saved
+        // row may only contain a few orphan single-track downloads, in which
+        // case the preview gives the complete Spotify catalogue with per-track
+        // download buttons.
+        if (
+          savedPlaylist &&
+          (savedPlaylist.subscribed ||
+            (savedPlaylist.stats.totalCount > 0 &&
+              savedPlaylist.stats.completedCount === savedPlaylist.stats.totalCount))
+        ) {
           navigate(Path.PLAYLIST_DETAIL.replace(":id", savedPlaylist.id));
           return;
         }

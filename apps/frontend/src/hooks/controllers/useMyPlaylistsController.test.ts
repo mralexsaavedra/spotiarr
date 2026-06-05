@@ -92,6 +92,44 @@ describe("useMyPlaylistsController", () => {
     );
   });
 
+  it("routes partially-downloaded unsubscribed saved playlists to the preview, not detail", () => {
+    const partial: PlaylistWithStats = {
+      ...savedPlaylist,
+      subscribed: false,
+      stats: { ...savedPlaylist.stats, completedCount: 1, totalCount: 187 },
+    };
+    mockUsePlaylistsQuery.mockReturnValue({ data: [partial], isLoading: false });
+
+    const { result } = renderHook(() => useMyPlaylistsController());
+
+    act(() => {
+      result.current.handlePlaylistClick(spotifyPlaylist.id);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(spotifyPlaylist.spotifyUrl)}`,
+    );
+  });
+
+  it("routes fully-downloaded saved playlists to detail even when unsubscribed", () => {
+    const full: PlaylistWithStats = {
+      ...savedPlaylist,
+      subscribed: false,
+      stats: { ...savedPlaylist.stats, completedCount: 12, totalCount: 12 },
+    };
+    mockUsePlaylistsQuery.mockReturnValue({ data: [full], isLoading: false });
+
+    const { result } = renderHook(() => useMyPlaylistsController());
+
+    act(() => {
+      result.current.handlePlaylistClick(spotifyPlaylist.id);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Path.PLAYLIST_DETAIL.replace(":id", savedPlaylist.id),
+    );
+  });
+
   it("falls back to playlist preview when the playlist is not saved", () => {
     const { result } = renderHook(() => useMyPlaylistsController());
 
