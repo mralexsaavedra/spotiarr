@@ -225,7 +225,7 @@ export class CreatePlaylistUseCase {
 
     const pickedTrack = tracks[trackIndex];
 
-    const albumMetadata = await this.resolveAlbumMetadata(artistId, albumId);
+    const albumMetadata = await this.resolveAlbumMetadata(artistId, albumId, tracks);
     const artistName = albumMetadata.artistName;
     const coverUrl = albumMetadata.coverUrl;
     const artistImageUrl =
