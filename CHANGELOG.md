@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.12.0...v1.12.1) (2026-06-05)
+
+### Bug Fixes
+
+- **MyPlaylists routing**: Clicking a playlist in MyPlaylists now always opens the live Spotify preview, even when some of its tracks are already saved locally. Previously, the parent-playlist persistence introduced in v1.12.0 made partially-downloaded playlists open in the read-only detail view showing only the saved tracks. ([#82](https://github.com/mralexsaavedra/spotiarr/pull/82))
+- **PlaylistDetail (library mode)**: The "X / Y descargado" progress bar is no longer rendered when the view comes from the Home Playlists section — the view already represents what is downloaded. ([#82](https://github.com/mralexsaavedra/spotiarr/pull/82))
+- **LibraryAlbumDetail**: Removed the duplicated track count ("1 canciones · 1 canciones") and the orphan bullet separator that appeared when the metadata slot was empty. ([#82](https://github.com/mralexsaavedra/spotiarr/pull/82))
+
+### Features
+
+- **LibraryAlbumDetail**: Adds a Play/Pause album button and a lazy "Open in Spotify" link to the album detail view reached from Home → Artist → Album, matching the affordances of the playlist detail view. ([#82](https://github.com/mralexsaavedra/spotiarr/pull/82))
+
 ## [1.12.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.3...v1.12.0) (2026-06-05)
 
 ### Features
