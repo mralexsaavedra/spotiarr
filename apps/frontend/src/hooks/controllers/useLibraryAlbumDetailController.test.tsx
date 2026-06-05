@@ -1,4 +1,4 @@
-import { LibraryArtist, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
+import { ApiRoutes, LibraryArtist, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { act, renderHook } from "@testing-library/react";
 import { generatePath } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
@@ -7,6 +7,7 @@ import { useLibraryAlbumDetailController } from "./useLibraryAlbumDetailControll
 
 const mockUseParams = vi.fn();
 const mockUseLibraryArtistQuery = vi.fn();
+const mockPlayQueue = vi.fn();
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -19,6 +20,23 @@ vi.mock("react-router-dom", async () => {
 
 vi.mock("@/hooks/queries/useLibraryArtistQuery", () => ({
   useLibraryArtistQuery: (name: string) => mockUseLibraryArtistQuery(name),
+}));
+
+vi.mock("@/store/usePlayerStore", () => ({
+  usePlayerStore: Object.assign(
+    vi.fn(
+      (
+        selector: (state: {
+          isPlaying: boolean;
+          currentIndex: number | null;
+          queue: Array<{ id: string }>;
+        }) => unknown,
+      ) => selector({ isPlaying: false, currentIndex: null, queue: [] }),
+    ),
+    {
+      getState: vi.fn(() => ({ playQueue: mockPlayQueue, togglePlay: vi.fn() })),
+    },
+  ),
 }));
 
 const makeArtist = (): LibraryArtist => ({
@@ -139,10 +157,7 @@ describe("useLibraryAlbumDetailController", () => {
     expect(result.current.tracks).toEqual([]);
   });
 
-  it("pauses and resets playback when route params change without unmount", () => {
-    const pause = vi.fn();
-    const audioElement = { pause } as unknown as HTMLAudioElement;
-
+  it("dispatches playQueue to usePlayerStore with normalized QueueItems when onPlayTrack is called", () => {
     mockUseParams.mockReturnValue({
       name: "Sigur%20R%C3%B3s",
       albumName: "%28%20%29",
@@ -154,52 +169,81 @@ describe("useLibraryAlbumDetailController", () => {
       error: null,
     });
 
-    const { result, rerender } = renderHook(() => useLibraryAlbumDetailController());
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
 
     act(() => {
-      result.current.setAudioElement(audioElement);
-      result.current.onPlayTrack(result.current.tracks[0]!.id);
-      result.current.onAudioPlay();
-      result.current.onAudioError();
+      result.current.onPlayTrack(result.current.tracks[1]!.id);
     });
 
-    expect(result.current.currentTrackId).toBe(result.current.tracks[0]!.id);
-    expect(result.current.isPlaying).toBe(false);
-    expect(result.current.playbackError).toBe("library.album.playbackFailed");
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
 
+    const [items, startIndex] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; audioUrl: string; name: string; artist: string }>,
+      number,
+    ];
+
+    expect(startIndex).toBe(1);
+    expect(items).toHaveLength(2);
+
+    // audioUrl is normalized from track.trackUrl
+    expect(items[0]!.audioUrl).toBe(
+      `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/audio?path=${encodeURIComponent("/tmp/01.mp3")}`,
+    );
+    expect(items[1]!.audioUrl).toBe(
+      `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/audio?path=${encodeURIComponent("/tmp/02.mp3")}`,
+    );
+
+    // QueueItem fields
+    expect(items[0]!.name).toBe("Vaka");
+    expect(items[0]!.artist).toBe("Sigur Rós");
+  });
+
+  it("dispatches playQueue starting at index 0 when onPlayPlaylist is called with no current track", () => {
     mockUseParams.mockReturnValue({
       name: "Sigur%20R%C3%B3s",
-      albumName: "Different%20Album",
+      albumName: "%28%20%29",
     });
 
     mockUseLibraryArtistQuery.mockReturnValue({
-      data: {
-        ...makeArtist(),
-        albums: [
-          {
-            ...makeArtist().albums[0]!,
-            name: "Different Album",
-            path: "/library/sigur-ros/different-album",
-            tracks: [
-              {
-                ...makeArtist().albums[0]!.tracks[0]!,
-                filePath: "/tmp/different.mp3",
-                name: "Different Track",
-                album: "Different Album",
-              },
-            ],
-          },
-        ],
-      },
+      data: makeArtist(),
       isLoading: false,
       error: null,
     });
 
-    rerender();
+    mockPlayQueue.mockClear();
 
-    expect(pause).toHaveBeenCalledTimes(1);
-    expect(result.current.currentTrackId).toBeNull();
-    expect(result.current.isPlaying).toBe(false);
-    expect(result.current.playbackError).toBeNull();
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onPlayPlaylist();
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    const [, startIndex] = mockPlayQueue.mock.calls[0] as [unknown[], number];
+    expect(startIndex).toBe(0);
+  });
+
+  it("does not expose audioRef, audioSrc, or playbackError in return shape", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    expect("audioSrc" in result.current).toBe(false);
+    expect("playbackError" in result.current).toBe(false);
+    expect("setAudioElement" in result.current).toBe(false);
+    expect("onAudioPlay" in result.current).toBe(false);
+    expect("onAudioPause" in result.current).toBe(false);
+    expect("onAudioError" in result.current).toBe(false);
   });
 });

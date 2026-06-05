@@ -4,10 +4,12 @@ import { describe, expect, it, vi } from "vitest";
 import { usePlaylistDetailController } from "./usePlaylistDetailController";
 
 const mockUseParams = vi.fn();
+const mockUseSearchParams = vi.fn();
 const mockUsePlaylistsQuery = vi.fn();
 const mockUseTracksQuery = vi.fn();
 const mockUseNavigationHelpers = vi.fn();
 const mockUsePlaylistController = vi.fn();
+const mockPlayQueue = vi.fn();
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -15,7 +17,7 @@ vi.mock("react-router-dom", async () => {
   return {
     ...actual,
     useParams: () => mockUseParams(),
-    useSearchParams: () => [new URLSearchParams(), vi.fn()],
+    useSearchParams: () => mockUseSearchParams(),
   };
 });
 
@@ -33,6 +35,23 @@ vi.mock("../useNavigationHelpers", () => ({
 
 vi.mock("./usePlaylistController", () => ({
   usePlaylistController: (params: unknown) => mockUsePlaylistController(params),
+}));
+
+vi.mock("@/store/usePlayerStore", () => ({
+  usePlayerStore: Object.assign(
+    vi.fn(
+      (
+        selector: (state: {
+          isPlaying: boolean;
+          currentIndex: number | null;
+          queue: Array<{ id: string }>;
+        }) => unknown,
+      ) => selector({ isPlaying: false, currentIndex: null, queue: [] }),
+    ),
+    {
+      getState: vi.fn(() => ({ playQueue: mockPlayQueue, togglePlay: vi.fn() })),
+    },
+  ),
 }));
 
 const playlist = {
@@ -83,24 +102,129 @@ const tracks = [
   },
 ];
 
+const defaultPlaylistController = {
+  isDownloading: false,
+  isDownloaded: true,
+  hasFailed: false,
+  completedCount: 2,
+  displayTitle: "Road Trip",
+  handleToggleSubscription: vi.fn(),
+  handleDelete: vi.fn(),
+  handleRetryFailed: vi.fn(),
+  handleRetryTrack: vi.fn(),
+  mutations: { retryFailedTracks: { isPending: false } },
+};
+
+const setupDefaults = (mode = "managed") => {
+  mockUseParams.mockReturnValue({ id: "playlist-1" });
+  mockUseSearchParams.mockReturnValue([
+    new URLSearchParams(mode === "library" ? "mode=library" : ""),
+    vi.fn(),
+  ]);
+  mockUseNavigationHelpers.mockReturnValue({ handleGoHome: vi.fn() });
+  mockUsePlaylistsQuery.mockReturnValue({ data: [playlist], isLoading: false });
+  mockUseTracksQuery.mockReturnValue({ data: tracks, isLoading: false });
+  mockUsePlaylistController.mockReturnValue(defaultPlaylistController);
+};
+
 describe("usePlaylistDetailController", () => {
-  it("starts playlist playback from the first playable track and exposes local playback state", () => {
-    mockUseParams.mockReturnValue({ id: "playlist-1" });
-    mockUseNavigationHelpers.mockReturnValue({ handleGoHome: vi.fn() });
-    mockUsePlaylistsQuery.mockReturnValue({ data: [playlist], isLoading: false });
-    mockUseTracksQuery.mockReturnValue({ data: tracks, isLoading: false });
-    mockUsePlaylistController.mockReturnValue({
-      isDownloading: false,
-      isDownloaded: true,
-      hasFailed: false,
-      completedCount: 2,
-      displayTitle: "Road Trip",
-      handleToggleSubscription: vi.fn(),
-      handleDelete: vi.fn(),
-      handleRetryFailed: vi.fn(),
-      handleRetryTrack: vi.fn(),
-      mutations: { retryFailedTracks: { isPending: false } },
+  it("dispatches playQueue to usePlayerStore with normalized QueueItems when in library mode", () => {
+    setupDefaults("library");
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onPlayTrack("track-2");
     });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+
+    const [items, startIndex] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; audioUrl: string; name: string; artist: string }>,
+      number,
+    ];
+
+    // Only tracks with truthy audioUrl are dispatched — track-1 is excluded
+    expect(items.length).toBe(2); // track-2 and track-3
+    items.forEach((item) => {
+      expect(item.audioUrl).toBeTruthy();
+    });
+
+    // startIndex should correspond to track-2 in the filtered queue
+    expect(startIndex).toBe(0); // track-2 is first in the audioUrl-filtered list
+    expect(items[0]!.id).toBe("track-2");
+    expect(items[0]!.audioUrl).toBe("/api/library/audio?path=%2Fmusic%2Fmain-theme.mp3");
+  });
+
+  it("does NOT dispatch to store when mode is managed (default)", () => {
+    setupDefaults("managed");
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onPlayTrack("track-2");
+    });
+
+    // managed mode → never dispatches to global store
+    expect(mockPlayQueue).not.toHaveBeenCalled();
+  });
+
+  it("does NOT dispatch to store for tracks without audioUrl even in library mode", () => {
+    setupDefaults("library");
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    // track-1 has no audioUrl — should be a no-op
+    act(() => {
+      result.current.onPlayTrack("track-1");
+    });
+
+    expect(mockPlayQueue).not.toHaveBeenCalled();
+  });
+
+  it("dispatches with correct queue for track-3 in library mode", () => {
+    setupDefaults("library");
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onPlayTrack("track-3");
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+
+    const [items, startIndex] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; audioUrl: string }>,
+      number,
+    ];
+
+    expect(startIndex).toBe(1); // track-3 is at index 1 in the filtered queue
+    expect(items[1]!.id).toBe("track-3");
+  });
+
+  it("exposes currentTrackId and isPlaying from store selectors, not local audio state", () => {
+    setupDefaults();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    expect(result.current.currentTrackId).toBeNull();
+    expect(result.current.isPlaying).toBe(false);
+    // Does not expose old local-audio properties
+    expect("audioSrc" in result.current).toBe(false);
+    expect("setAudioElement" in result.current).toBe(false);
+    expect("onAudioPlay" in result.current).toBe(false);
+    expect("onAudioPause" in result.current).toBe(false);
+    expect("onAudioError" in result.current).toBe(false);
+    expect("playbackError" in result.current).toBe(false);
+  });
+
+  it("onPlayPlaylist in library mode dispatches starting from first playable track", () => {
+    setupDefaults("library");
+    mockPlayQueue.mockClear();
 
     const { result } = renderHook(() => usePlaylistDetailController());
 
@@ -108,56 +232,22 @@ describe("usePlaylistDetailController", () => {
       result.current.onPlayPlaylist();
     });
 
-    expect(result.current.hasPlayableTracks).toBe(true);
-    expect(result.current.currentTrackId).toBe("track-2");
-    expect(result.current.audioSrc).toBe(tracks[1]?.audioUrl);
-    expect(typeof result.current.onPlayTrack).toBe("function");
-    expect(typeof result.current.onPauseTrack).toBe("function");
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    const [items, startIndex] = mockPlayQueue.mock.calls[0] as [Array<unknown>, number];
+    expect(startIndex).toBe(0);
+    expect(items.length).toBe(2); // only tracks with audioUrl
   });
 
-  it("resets scoped playback when the playlist route changes", () => {
-    mockUseNavigationHelpers.mockReturnValue({ handleGoHome: vi.fn() });
-    mockUsePlaylistsQuery.mockReturnValue({ data: [playlist], isLoading: false });
-    mockUseTracksQuery.mockReturnValue({ data: tracks, isLoading: false });
-    mockUsePlaylistController.mockReturnValue({
-      isDownloading: false,
-      isDownloaded: true,
-      hasFailed: false,
-      completedCount: 2,
-      displayTitle: "Road Trip",
-      handleToggleSubscription: vi.fn(),
-      handleDelete: vi.fn(),
-      handleRetryFailed: vi.fn(),
-      handleRetryTrack: vi.fn(),
-      mutations: { retryFailedTracks: { isPending: false } },
-    });
+  it("onPlayPlaylist in managed mode is a no-op", () => {
+    setupDefaults("managed");
+    mockPlayQueue.mockClear();
 
-    const pause = vi.fn();
-    const audioElement = { pause } as unknown as HTMLAudioElement;
-
-    mockUseParams.mockReturnValue({ id: "playlist-1" });
-    const { result, rerender } = renderHook(() => usePlaylistDetailController());
+    const { result } = renderHook(() => usePlaylistDetailController());
 
     act(() => {
-      result.current.setAudioElement(audioElement);
-      result.current.onPlayTrack("track-2");
-      result.current.onAudioPlay();
+      result.current.onPlayPlaylist();
     });
 
-    expect(result.current.currentTrackId).toBe("track-2");
-    expect(result.current.isPlaying).toBe(true);
-
-    mockUseParams.mockReturnValue({ id: "playlist-2" });
-    mockUsePlaylistsQuery.mockReturnValue({
-      data: [{ ...playlist, id: "playlist-2", name: "Night Drive" }],
-      isLoading: false,
-    });
-    mockUseTracksQuery.mockReturnValue({ data: tracks.slice(1), isLoading: false });
-
-    rerender();
-
-    expect(pause).toHaveBeenCalledTimes(1);
-    expect(result.current.currentTrackId).toBeNull();
-    expect(result.current.isPlaying).toBe(false);
+    expect(mockPlayQueue).not.toHaveBeenCalled();
   });
 });
