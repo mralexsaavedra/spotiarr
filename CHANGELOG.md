@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.12.1...v1.12.2) (2026-06-05)
+
+### Maintenance
+
+- **Frontend E2E testing**: Added a Playwright smoke-test foundation for the frontend, including preview-backed Search and NotFound route checks, explicit mocked API/SSE bootstrap handling, runtime startup validation, and a dedicated `CI / E2E` workflow job. ([#83](https://github.com/mralexsaavedra/spotiarr/pull/83))
+
 ## [1.12.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.12.0...v1.12.1) (2026-06-05)
 
 ### Bug Fixes
