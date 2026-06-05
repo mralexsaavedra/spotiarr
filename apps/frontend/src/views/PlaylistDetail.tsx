@@ -23,15 +23,10 @@ export const PlaylistDetail: FC = () => {
     handleRetryFailed,
     handleRetryTrack,
     handleGoHome,
-    playbackError,
-    setAudioElement,
     onPlayTrack,
     onPauseTrack,
     onPlayPlaylist,
     onPausePlaylist,
-    onAudioError,
-    onAudioPlay,
-    onAudioPause,
     currentTrackId,
     isPlaying,
     hasPlayableTracks,
@@ -75,18 +70,6 @@ export const PlaylistDetail: FC = () => {
         hasPlayableTracks={hasPlayableTracks}
         mode={mode}
       />
-      <audio
-        ref={setAudioElement}
-        className="sr-only"
-        onError={onAudioError}
-        onPlay={onAudioPlay}
-        onPause={onAudioPause}
-      />
-      {playbackError ? (
-        <p className="text-text-secondary px-6 py-3 text-sm" role="alert" aria-live="assertive">
-          {t(playbackError)}
-        </p>
-      ) : null}
       {!hasPlayableTracks && tracks.length > 0 ? (
         <p className="text-text-secondary px-6 py-3 text-sm" role="status" aria-live="polite">
           {t("playlist.noPlayableTracks")}

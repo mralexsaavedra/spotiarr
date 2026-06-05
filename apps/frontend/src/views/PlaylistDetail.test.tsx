@@ -24,7 +24,7 @@ vi.mock("@/components/organisms/Playlist", () => ({
 }));
 
 describe("PlaylistDetail", () => {
-  it("renders local playback audio element and assertive playback errors for saved playlists", () => {
+  it("renders playlist view without page-local audio element (global player bar owns audio)", () => {
     mockUsePlaylistDetailController.mockReturnValue({
       playlist: { id: "playlist-1", name: "Road Trip" },
       tracks: [],
@@ -41,26 +41,23 @@ describe("PlaylistDetail", () => {
       handleRetryFailed: vi.fn(),
       handleRetryTrack: vi.fn(),
       handleGoHome: vi.fn(),
-      audioSrc: "/api/library/audio?path=%2Fmusic%2Ftrack.mp3",
-      playbackError: "library.album.playbackUnavailable",
-      setAudioElement: vi.fn(),
       onPlayTrack: vi.fn(),
       onPauseTrack: vi.fn(),
       onPlayPlaylist: vi.fn(),
       onPausePlaylist: vi.fn(),
-      onAudioError: vi.fn(),
-      onAudioPlay: vi.fn(),
-      onAudioPause: vi.fn(),
       currentTrackId: "track-1",
       isPlaying: true,
       hasPlayableTracks: true,
+      mode: "library",
     });
 
     const { container } = render(<PlaylistDetail />);
 
     expect(screen.getByTestId("playlist-view")).toBeTruthy();
-    expect(container.querySelector("audio")).toBeTruthy();
-    expect(screen.getByRole("alert").textContent).toBe("library.album.playbackUnavailable");
+    // No page-local <audio> — global player bar owns it
+    expect(container.querySelector("audio")).toBeNull();
+    // No page-local playback error paragraph
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("renders a passive no-playable-tracks message when tracks exist but none are playable yet", () => {
@@ -80,18 +77,14 @@ describe("PlaylistDetail", () => {
       handleRetryFailed: vi.fn(),
       handleRetryTrack: vi.fn(),
       handleGoHome: vi.fn(),
-      playbackError: null,
-      setAudioElement: vi.fn(),
       onPlayTrack: vi.fn(),
       onPauseTrack: vi.fn(),
       onPlayPlaylist: vi.fn(),
       onPausePlaylist: vi.fn(),
-      onAudioError: vi.fn(),
-      onAudioPlay: vi.fn(),
-      onAudioPause: vi.fn(),
       currentTrackId: null,
       isPlaying: false,
       hasPlayableTracks: false,
+      mode: "managed",
     });
 
     render(<PlaylistDetail />);

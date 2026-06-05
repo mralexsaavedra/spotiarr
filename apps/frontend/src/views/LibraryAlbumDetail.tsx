@@ -23,13 +23,8 @@ export const LibraryAlbumDetail: FC = () => {
     backToArtistPath,
     currentTrackId,
     isPlaying,
-    playbackError,
-    setAudioElement,
     onPlayTrack,
     onPauseTrack,
-    onAudioError,
-    onAudioPlay,
-    onAudioPause,
     hasPlayableTracks,
     onPlayPlaylist,
     onPausePlaylist,
@@ -131,18 +126,6 @@ export const LibraryAlbumDetail: FC = () => {
           </div>
         }
       />
-      <audio
-        ref={setAudioElement}
-        className="sr-only"
-        onError={onAudioError}
-        onPlay={onAudioPlay}
-        onPause={onAudioPause}
-      />
-      {playbackError ? (
-        <p className="text-text-secondary px-6 py-3 text-sm" role="alert" aria-live="assertive">
-          {t(playbackError)}
-        </p>
-      ) : null}
     </main>
   );
 };

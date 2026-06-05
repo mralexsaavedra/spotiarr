@@ -1,11 +1,12 @@
 import { LibraryArtist } from "@spotiarr/shared";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LibraryAlbumDetail } from "./LibraryAlbumDetail";
 
 const mockUseLibraryArtistQuery = vi.fn();
+const mockPlayQueue = vi.fn();
 
 vi.mock("@/hooks/queries/useLibraryArtistQuery", () => ({
   useLibraryArtistQuery: (name: string) => mockUseLibraryArtistQuery(name),
@@ -39,6 +40,23 @@ vi.mock("@/components/molecules/VirtualList", () => ({
         <div key={item.id}>{renderItem(item, index)}</div>
       ))}
     </div>
+  ),
+}));
+
+vi.mock("@/store/usePlayerStore", () => ({
+  usePlayerStore: Object.assign(
+    vi.fn(
+      (
+        selector: (state: {
+          isPlaying: boolean;
+          currentIndex: number | null;
+          queue: Array<{ id: string }>;
+        }) => unknown,
+      ) => selector({ isPlaying: false, currentIndex: null, queue: [] }),
+    ),
+    {
+      getState: vi.fn(() => ({ playQueue: mockPlayQueue, togglePlay: vi.fn() })),
+    },
   ),
 }));
 
@@ -97,40 +115,10 @@ const renderLibraryAlbumDetail = () =>
     </MemoryRouter>,
   );
 
-const instrumentAudioElement = (audio: HTMLAudioElement) => {
-  let srcValue = "";
-  let currentTimeValue = 0;
-  let mediaError: MediaError | null = null;
-
-  Object.defineProperty(audio, "src", {
-    configurable: true,
-    get: () => srcValue,
-    set: (value: string) => {
-      srcValue = value;
-      currentTimeValue = 0;
-    },
-  });
-
-  Object.defineProperty(audio, "currentTime", {
-    configurable: true,
-    get: () => currentTimeValue,
-    set: (value: number) => {
-      currentTimeValue = value;
-    },
-  });
-
-  Object.defineProperty(audio, "error", {
-    configurable: true,
-    get: () => mediaError,
-    set: (value: MediaError | null) => {
-      mediaError = value;
-    },
-  });
-};
-
 afterEach(() => {
   vi.restoreAllMocks();
   mockUseLibraryArtistQuery.mockReset();
+  mockPlayQueue.mockReset();
 });
 
 describe("LibraryAlbumDetail", () => {
@@ -147,10 +135,7 @@ describe("LibraryAlbumDetail", () => {
     expect(screen.getByRole("link", { name: "library.album.backToArtist" })).toBeTruthy();
   });
 
-  it("starts playback and resumes same track after pause", async () => {
-    const playMock = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
-    const pauseMock = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
-
+  it("renders track list and play button when album has tracks", () => {
     mockUseLibraryArtistQuery.mockReturnValue({
       data: makeArtist(),
       isLoading: false,
@@ -158,114 +143,15 @@ describe("LibraryAlbumDetail", () => {
     });
 
     const { container } = renderLibraryAlbumDetail();
-    const audio = container.querySelector("audio");
 
-    instrumentAudioElement(audio!);
+    expect(screen.getByText("Vaka")).toBeTruthy();
+    expect(screen.getByText("Fyrsta")).toBeTruthy();
 
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-
-    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(1));
-    expect(audio?.src ?? "").toContain("/api/library/audio?path=");
-
-    fireEvent.play(audio!);
-    audio!.currentTime = 73;
-    fireEvent.click(screen.getByRole("button", { name: "library.album.pauseTrack" }));
-
-    expect(pauseMock).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-
-    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(2));
-    expect(audio?.currentTime).toBe(73);
+    // No page-local <audio> element — global player bar owns it
+    expect(container.querySelector("audio")).toBeNull();
   });
 
-  it("switches tracks and pauses active audio on unmount", async () => {
-    const playMock = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
-    const pauseMock = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
-    const { container, unmount } = renderLibraryAlbumDetail();
-    const audio = container.querySelector("audio");
-
-    instrumentAudioElement(audio!);
-
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(1));
-    fireEvent.play(audio!);
-
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-
-    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(2));
-    expect(audio?.src ?? "").toContain("%2Ftmp%2F02.mp3");
-
-    unmount();
-
-    expect(pauseMock).toHaveBeenCalled();
-  });
-
-  it("shows truthful assertive playback feedback for blocked play and generic media errors", async () => {
-    const playMock = vi
-      .spyOn(HTMLMediaElement.prototype, "play")
-      .mockRejectedValueOnce(new DOMException("Playback blocked", "NotAllowedError"))
-      .mockResolvedValue(undefined);
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
-    const { container } = renderLibraryAlbumDetail();
-    const audio = container.querySelector("audio");
-
-    instrumentAudioElement(audio!);
-
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-
-    const rejectionAlert = await screen.findByRole("alert");
-    expect(rejectionAlert.textContent).toBe("library.album.playbackBlocked");
-
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(2));
-
-    Object.defineProperty(audio, "error", {
-      configurable: true,
-      value: { code: 2 } as MediaError,
-    });
-    fireEvent.error(audio!);
-
-    const mediaErrorAlert = await screen.findByRole("alert");
-    expect(mediaErrorAlert.textContent).toBe("library.album.playbackFailed");
-  });
-
-  it("shows unsupported playback feedback for NotSupportedError rejections", async () => {
-    vi.spyOn(HTMLMediaElement.prototype, "play").mockRejectedValueOnce(
-      new DOMException("Unsupported", "NotSupportedError"),
-    );
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
-    const { container } = renderLibraryAlbumDetail();
-    const audio = container.querySelector("audio");
-
-    instrumentAudioElement(audio!);
-
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-
-    const unsupportedAlert = await screen.findByRole("alert");
-    expect(unsupportedAlert.textContent).toBe("library.album.playbackUnsupported");
-  });
-
-  it("treats media element source support errors as unavailable playback sources", async () => {
+  it("dispatches playQueue to store when a track play button is clicked", () => {
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
 
     mockUseLibraryArtistQuery.mockReturnValue({
@@ -274,57 +160,44 @@ describe("LibraryAlbumDetail", () => {
       error: null,
     });
 
-    const { container } = renderLibraryAlbumDetail();
-    const audio = container.querySelector("audio");
+    renderLibraryAlbumDetail();
 
-    instrumentAudioElement(audio!);
+    const playButtons = screen.getAllByRole("button", { name: "library.album.playTrack" });
+    playButtons[0]!.click();
 
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-    Object.defineProperty(audio, "error", {
-      configurable: true,
-      value: { code: 4 } as MediaError,
-    });
-    fireEvent.error(audio!);
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
 
-    const failureAlert = await screen.findByRole("alert");
-    expect(failureAlert.textContent).toBe("library.album.playbackUnavailable");
+    const [items, startIndex] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; audioUrl: string }>,
+      number,
+    ];
+
+    expect(startIndex).toBe(0);
+    expect(items).toHaveLength(2);
+    expect(items[0]!.audioUrl).toContain("/api/library/audio?path=");
   });
 
-  it("ignores stale AbortError rejections from an interrupted prior track", async () => {
-    const firstPlayController: { reject: null | ((reason?: unknown) => void) } = { reject: null };
-
-    const playMock = vi
-      .spyOn(HTMLMediaElement.prototype, "play")
-      .mockImplementationOnce(
-        () =>
-          new Promise<void>((_, reject) => {
-            firstPlayController.reject = reject;
-          }),
-      )
-      .mockResolvedValue(undefined);
-
+  it("renders play album button when album has playable tracks", () => {
     mockUseLibraryArtistQuery.mockReturnValue({
       data: makeArtist(),
       isLoading: false,
       error: null,
     });
 
-    const { container } = renderLibraryAlbumDetail();
-    const audio = container.querySelector("audio");
+    renderLibraryAlbumDetail();
 
-    instrumentAudioElement(audio!);
+    expect(screen.getByRole("button", { name: "library.album.playAlbum" })).toBeTruthy();
+  });
 
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[0]!);
-    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(1));
+  it("renders loading state", () => {
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: null,
+      isLoading: true,
+      error: null,
+    });
 
-    fireEvent.click(screen.getAllByRole("button", { name: "library.album.playTrack" })[1]!);
-    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(2));
+    renderLibraryAlbumDetail();
 
-    if (firstPlayController.reject) {
-      firstPlayController.reject(new DOMException("Interrupted", "AbortError"));
-    }
-    await waitFor(() => expect(audio?.src ?? "").toContain("%2Ftmp%2F02.mp3"));
-
-    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByText("library.album.loading")).toBeTruthy();
   });
 });
