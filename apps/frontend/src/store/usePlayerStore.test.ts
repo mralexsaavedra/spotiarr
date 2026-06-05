@@ -180,6 +180,40 @@ describe("prev", () => {
     usePlayerStore.getState().prev();
     expect(usePlayerStore.getState().isPlaying).toBe(true);
   });
+
+  it("seeks to 0 and does not change currentIndex when currentTime > 3", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({ currentTime: 5, duration: 200 });
+    const wasPlaying = usePlayerStore.getState().isPlaying;
+
+    usePlayerStore.getState().prev();
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(2);
+    expect(state.currentTime).toBe(0);
+    expect(state.isPlaying).toBe(wasPlaying);
+  });
+
+  it("decrements currentIndex when currentTime <= 3", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({ currentTime: 3, duration: 200 });
+
+    usePlayerStore.getState().prev();
+
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+  });
+
+  it("stays at index 0 when currentTime <= 3 and already at first track", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ currentTime: 2, duration: 200 });
+
+    usePlayerStore.getState().prev();
+
+    expect(usePlayerStore.getState().currentIndex).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------

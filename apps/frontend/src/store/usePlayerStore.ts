@@ -143,8 +143,17 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       prev() {
-        const { currentIndex } = get();
-        if (currentIndex === null || currentIndex === 0) return;
+        const { currentIndex, currentTime } = get();
+        if (currentIndex === null) return;
+        if (currentTime > 3) {
+          // Seek to start of current track without changing index
+          set({ currentTime: 0 });
+          if (_audioElement) {
+            _audioElement.currentTime = 0;
+          }
+          return;
+        }
+        if (currentIndex === 0) return;
         set({ currentIndex: currentIndex - 1, currentTime: 0 });
       },
 

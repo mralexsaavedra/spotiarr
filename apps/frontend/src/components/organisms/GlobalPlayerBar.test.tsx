@@ -316,6 +316,38 @@ describe("error state", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Keyboard Space toggle (REQ-PLAYER-BAR-009)
+// ---------------------------------------------------------------------------
+
+describe("keyboard space toggle", () => {
+  it("pressing Space on the region root toggles play", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: false });
+
+    render(<GlobalPlayerBar />);
+
+    const region = screen.getByRole("region", { name: "Now playing" });
+    fireEvent.keyDown(region, { key: " " });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+
+  it("pressing Space on the play button does NOT double-toggle", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: false });
+
+    render(<GlobalPlayerBar />);
+
+    const playBtn = screen.getByRole("button", { name: "Play" });
+    fireEvent.keyDown(playBtn, { key: " " });
+
+    // The region onKeyDown should be a no-op when target is BUTTON
+    // so isPlaying remains unchanged from before the keyDown
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Volume control
 // ---------------------------------------------------------------------------
 

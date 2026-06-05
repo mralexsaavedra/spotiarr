@@ -17,7 +17,7 @@ import {
   faVolumeXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useEffect, useRef } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
@@ -236,6 +236,14 @@ export const GlobalPlayerBar: FC = () => {
   const isAtFirst = currentIndex === 0;
   const isAtLast = currentIndex !== null && currentIndex === queue.length - 1;
 
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== " ") return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === "BUTTON" || tag === "INPUT") return;
+    e.preventDefault();
+    togglePlay();
+  };
+
   return (
     <>
       {/* Audio element lives outside the conditional section so it is never
@@ -247,6 +255,7 @@ export const GlobalPlayerBar: FC = () => {
         <section
           role="region"
           aria-label="Now playing"
+          onKeyDown={onKeyDown}
           className={cn(
             "bg-surface/95 border-t border-white/10 backdrop-blur-lg",
             "fixed right-0 bottom-16 left-0 z-40 md:bottom-0",
