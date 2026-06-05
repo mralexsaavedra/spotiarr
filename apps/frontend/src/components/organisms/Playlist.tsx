@@ -12,6 +12,7 @@ import { ConfirmModal } from "../organisms/ConfirmModal";
 interface PlaylistProps {
   playlist: PlaylistWithStats;
   tracks: Track[];
+  totalCount?: number;
   isDownloading: boolean;
   isDownloaded: boolean;
   hasFailed: boolean;
@@ -40,6 +41,7 @@ interface PlaylistProps {
 export const Playlist: FC<PlaylistProps> = ({
   playlist,
   tracks,
+  totalCount,
   isDownloading,
   isDownloaded,
   hasFailed,
@@ -80,7 +82,7 @@ export const Playlist: FC<PlaylistProps> = ({
     setIsDeleteModalOpen(false);
   }, []);
 
-  const totalCount = tracks.length;
+  const resolvedTotalCount = totalCount ?? tracks.length;
 
   return (
     <>
@@ -92,7 +94,7 @@ export const Playlist: FC<PlaylistProps> = ({
           <PlaylistDescription
             description={playlist.description}
             completedCount={completedCount}
-            totalCount={totalCount}
+            totalCount={resolvedTotalCount}
             isDownloading={isDownloading}
           />
         }
@@ -104,7 +106,7 @@ export const Playlist: FC<PlaylistProps> = ({
             ownerUrl={playlist.ownerUrl}
           />
         }
-        totalCount={totalCount}
+        totalCount={resolvedTotalCount}
         tracks={tracks}
         actions={
           <div className="to-background bg-gradient-to-b from-black/20 px-6 py-6 md:px-8">

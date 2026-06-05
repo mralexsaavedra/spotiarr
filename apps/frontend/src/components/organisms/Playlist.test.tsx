@@ -124,6 +124,7 @@ describe("Playlist", () => {
         isSaved={true}
         displayTitle="Playlist Title"
         completedCount={0}
+        totalCount={99}
         onDownloadOrRetry={onDownloadOrRetry}
         onDownloadTrack={onDownloadTrack}
         onRetryTrack={onRetryTrack}
@@ -168,6 +169,7 @@ describe("Playlist", () => {
     expect(albumPageLayoutSpy).toHaveBeenCalled();
     expect(albumPageLayoutSpy).toHaveBeenCalledWith(
       expect.objectContaining({
+        totalCount: 99,
         onPlayTrack: expect.any(Function),
         onPauseTrack: expect.any(Function),
         currentTrackId: "track-1",

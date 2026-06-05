@@ -175,13 +175,16 @@ export const usePlaylistPreviewController = () => {
     tracks,
     spotifyUrl,
     id: savedPlaylistId,
+    expectedTrackCount: previewData?.totalTracks,
   });
 
   const isSaved = !!savedPlaylistId || tracks.some((t) => t.status === TrackStatusEnum.Completed);
+  const totalCount = previewData?.totalTracks ?? accumulatedPreviewTracks.length;
 
   return {
     playlist,
     tracks,
+    totalCount,
     isLoading,
     error,
     isButtonLoading,

@@ -17,6 +17,7 @@ interface UsePlaylistControllerProps {
   tracks: Track[];
   spotifyUrl?: string | null;
   id?: string;
+  expectedTrackCount?: number;
 }
 
 export const usePlaylistController = ({
@@ -24,6 +25,7 @@ export const usePlaylistController = ({
   tracks,
   spotifyUrl,
   id,
+  expectedTrackCount,
 }: UsePlaylistControllerProps) => {
   const navigate = useNavigate();
 
@@ -34,7 +36,8 @@ export const usePlaylistController = ({
   const { mutate: retryTrack } = useRetryTrackMutation(id || "");
 
   const isDownloading = usePlaylistDownloading(spotifyUrl);
-  const isDownloaded = usePlaylistDownloaded(spotifyUrl, tracks.length);
+  const resolvedTrackCount = expectedTrackCount ?? tracks.length;
+  const isDownloaded = usePlaylistDownloaded(spotifyUrl, resolvedTrackCount);
 
   const hasFailed = useMemo(() => {
     return tracks.some((t) => t.status === TrackStatusEnum.Error);

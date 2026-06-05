@@ -38,6 +38,24 @@ export const needsPlaylistItemsAccessCheck = (
   currentUserId: string,
 ) => !isOwnedPlaylist(item, currentUserId);
 
+const resolvePlaylistTrackTotal = ({
+  playlistTrackTotal,
+  probedTrackTotal,
+}: {
+  playlistTrackTotal?: number;
+  probedTrackTotal?: number;
+}): number => {
+  if (typeof playlistTrackTotal === "number" && Number.isFinite(playlistTrackTotal)) {
+    if (playlistTrackTotal === 0 && (probedTrackTotal ?? 0) > 0) {
+      return probedTrackTotal ?? 0;
+    }
+
+    return playlistTrackTotal;
+  }
+
+  return probedTrackTotal ?? 0;
+};
+
 export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
   private readonly playlistAccessCache = new Map<string, PlaylistAccessCacheEntry>();
   private playlistAccessProbeCooldownUntil = 0;
@@ -199,7 +217,32 @@ export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
     item: SpotifyUserPlaylistItem,
     currentUserId: string,
   ): Promise<PlaylistAccessResult> {
-    if (isOwnedPlaylist(item, currentUserId)) return { status: "allowed" };
+    if (isOwnedPlaylist(item, currentUserId)) {
+      const playlistTrackTotal = item.tracks?.total;
+
+      if (
+        typeof playlistTrackTotal === "number" &&
+        Number.isFinite(playlistTrackTotal) &&
+        playlistTrackTotal > 0
+      ) {
+        return { status: "allowed", trackTotal: playlistTrackTotal };
+      }
+
+      const visibility = await this.canAccessPlaylistItems(item.id);
+
+      if (visibility.status === "allowed") {
+        return visibility;
+      }
+
+      return {
+        status: "allowed",
+        trackTotal:
+          typeof playlistTrackTotal === "number" && Number.isFinite(playlistTrackTotal)
+            ? playlistTrackTotal
+            : undefined,
+      };
+    }
+
     return this.canAccessPlaylistItems(item.id);
   }
 
@@ -249,10 +292,11 @@ export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
 
         const mapped = accessibleItems.map(({ item, trackTotal }) => {
           const playlistTrackTotal = item.tracks?.total;
-          const tracks =
-            typeof playlistTrackTotal === "number" && Number.isFinite(playlistTrackTotal)
-              ? playlistTrackTotal
-              : (trackTotal ?? 0);
+          const tracks = resolvePlaylistTrackTotal({
+            playlistTrackTotal,
+            probedTrackTotal: trackTotal,
+          });
+
           return {
             id: item.id,
             name: item.name,

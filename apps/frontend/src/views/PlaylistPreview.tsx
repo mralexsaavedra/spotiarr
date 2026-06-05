@@ -9,6 +9,7 @@ export const PlaylistPreview: FC = () => {
   const {
     playlist,
     tracks,
+    totalCount,
     isLoading,
     error,
     isButtonLoading,
@@ -42,12 +43,13 @@ export const PlaylistPreview: FC = () => {
   }
 
   return (
-    <Playlist
-      playlist={playlist}
-      tracks={tracks}
-      hasFailed={hasFailed}
-      isRetrying={false}
-      isDownloading={isButtonLoading}
+      <Playlist
+        playlist={playlist}
+        tracks={tracks}
+        totalCount={totalCount}
+        hasFailed={hasFailed}
+        isRetrying={false}
+        isDownloading={isButtonLoading}
       isDownloaded={isDownloaded}
       isSaved={isSaved}
       displayTitle={displayTitle}

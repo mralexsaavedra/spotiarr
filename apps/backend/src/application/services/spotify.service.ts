@@ -22,6 +22,7 @@ type SpotifyPlaylistClientLike = {
     image: string;
     owner?: string;
     ownerUrl?: string;
+    totalTracks?: number;
   }>;
   getAllPlaylistTracks(url: string, previewOnly?: boolean): Promise<NormalizedTrack[]>;
   getPlaylistTracksPage(
@@ -74,6 +75,7 @@ export class SpotifyService {
     type: string;
     owner?: string;
     ownerUrl?: string;
+    totalTracks?: number;
   }> {
     const urlType = SpotifyUrlHelper.getUrlType(spotifyUrl);
     const type = urlType.toString();
@@ -114,6 +116,7 @@ export class SpotifyService {
           type,
           owner: metadata.owner,
           ownerUrl: metadata.ownerUrl,
+          totalTracks: metadata.totalTracks,
         };
       }
 
