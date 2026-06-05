@@ -36,7 +36,13 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
 
   async getPlaylistMetadata(
     spotifyUrl: string,
-  ): Promise<{ name: string; image: string; owner: string; ownerUrl?: string }> {
+  ): Promise<{
+    name: string;
+    image: string;
+    owner: string;
+    ownerUrl?: string;
+    totalTracks?: number;
+  }> {
     const playlistId = SpotifyUrlHelper.extractId(spotifyUrl);
     const market = await this.getMarket();
     const cacheKey = `playlist-metadata:${playlistId}:${market}`;
@@ -93,6 +99,7 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
           name: string;
           images?: SpotifyImage[];
           owner?: { display_name: string; external_urls?: { spotify: string } };
+          tracks?: { total?: number };
         };
 
         return {
@@ -100,6 +107,10 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
           image: data.images?.[0]?.url ?? "",
           owner: data.owner?.display_name ?? "Unknown",
           ownerUrl: data.owner?.external_urls?.spotify,
+          totalTracks:
+            typeof data.tracks?.total === "number" && Number.isFinite(data.tracks.total)
+              ? data.tracks.total
+              : undefined,
         };
       } catch (error) {
         this.log(`Failed to get playlist metadata: ${getErrorMessage(error)}`, "error");

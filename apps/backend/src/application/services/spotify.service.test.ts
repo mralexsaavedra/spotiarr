@@ -109,4 +109,47 @@ describe("SpotifyService", () => {
     expect(result.tracks[0]?.primaryArtistImage).not.toBe(result.tracks[0]?.albumCoverUrl);
     expect(result.tracks[1]?.primaryArtistImage).toBe("https://image.test/artist.jpg");
   });
+
+  it("returns playlist totalTracks from metadata even when preview tracks are paged", async () => {
+    const service = new SpotifyService({
+      artistClient: {
+        getArtistDetails: vi.fn(),
+      },
+      trackClient: {
+        getTrackDetails: vi.fn(),
+      },
+      albumClient: {
+        getAlbumTracks: vi.fn(),
+        getAlbumDetails: vi.fn(),
+      },
+      playlistClient: {
+        getPlaylistMetadata: vi.fn().mockResolvedValue({
+          name: "Radio Alexander",
+          image: "https://image.test/playlist.jpg",
+          owner: "alex",
+          ownerUrl: "https://open.spotify.com/user/alex",
+          totalTracks: 75,
+        }),
+        getAllPlaylistTracks: vi.fn().mockResolvedValue([
+          { name: "Track 1", artist: "Artist", artists: [] },
+          { name: "Track 2", artist: "Artist", artists: [] },
+        ]),
+        getPlaylistTracksPage: vi.fn(),
+      },
+      searchClient: {
+        searchCatalog: vi.fn(),
+      },
+      userLibraryService: {
+        getMyPlaylists: vi.fn(),
+      },
+    });
+
+    const result = await service.getPlaylistDetail(
+      "https://open.spotify.com/playlist/playlist123",
+      true,
+    );
+
+    expect(result.totalTracks).toBe(75);
+    expect(result.tracks).toHaveLength(2);
+  });
 });

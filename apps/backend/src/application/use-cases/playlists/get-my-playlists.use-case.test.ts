@@ -1,28 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
+import type { SpotifyService } from "@/application/services/spotify.service";
 import { GetMyPlaylistsUseCase } from "./get-my-playlists.use-case";
 
 const makeDeps = () => {
   const spotifyService = {
     getMyPlaylists: vi.fn(),
   };
-  const playlistCache = {
-    get: vi.fn(),
-    set: vi.fn(),
-    invalidate: vi.fn(),
-  };
-  return { spotifyService, playlistCache };
+  return { spotifyService };
 };
 
-const cachedPlaylists = [
-  {
-    id: "p1",
-    name: "Cached",
-    image: null,
-    owner: "me",
-    tracks: 10,
-    spotifyUrl: "https://open.spotify.com/playlist/p1",
-  },
-];
+const makeUseCase = (spotifyService: Pick<SpotifyService, "getMyPlaylists">) =>
+  new GetMyPlaylistsUseCase(spotifyService as unknown as SpotifyService);
+
 const freshPlaylists = [
   {
     id: "p2",
@@ -35,44 +24,50 @@ const freshPlaylists = [
 ];
 
 describe("GetMyPlaylistsUseCase", () => {
-  it("PLC-3a: returns cached payload without calling Spotify on cache hit", async () => {
-    const { spotifyService, playlistCache } = makeDeps();
-    playlistCache.get.mockResolvedValue(cachedPlaylists);
-    const useCase = new GetMyPlaylistsUseCase(spotifyService as any, playlistCache as any);
-
-    const result = await useCase.execute();
-
-    expect(result).toEqual(cachedPlaylists);
-    expect(spotifyService.getMyPlaylists).not.toHaveBeenCalled();
-  });
-
-  it("PLC-3b: calls Spotify and writes to cache on cache miss", async () => {
-    const { spotifyService, playlistCache } = makeDeps();
-    playlistCache.get.mockResolvedValue(null);
+  it("calls Spotify and returns the remote playlists", async () => {
+    const { spotifyService } = makeDeps();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     spotifyService.getMyPlaylists.mockResolvedValue(freshPlaylists);
-    const useCase = new GetMyPlaylistsUseCase(spotifyService as any, playlistCache as any);
-
-    const result = await useCase.execute();
-
-    expect(spotifyService.getMyPlaylists).toHaveBeenCalledOnce();
-    expect(playlistCache.set).toHaveBeenCalledWith(
-      "my-playlists:default",
-      freshPlaylists,
-      86_400_000,
-    );
-    expect(result).toEqual(freshPlaylists);
-  });
-
-  it("PLC-3c: treats expired entry as miss (cache.get returns null for expired)", async () => {
-    const { spotifyService, playlistCache } = makeDeps();
-    // cache.get already returns null for expired entries (handled in repository)
-    playlistCache.get.mockResolvedValue(null);
-    spotifyService.getMyPlaylists.mockResolvedValue(freshPlaylists);
-    const useCase = new GetMyPlaylistsUseCase(spotifyService as any, playlistCache as any);
+    const useCase = makeUseCase(spotifyService);
 
     const result = await useCase.execute();
 
     expect(spotifyService.getMyPlaylists).toHaveBeenCalledOnce();
     expect(result).toEqual(freshPlaylists);
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it("does not swallow Spotify errors behind cache fallbacks", async () => {
+    const { spotifyService } = makeDeps();
+    const failure = new Error("spotify exploded");
+    spotifyService.getMyPlaylists.mockRejectedValue(failure);
+    const useCase = makeUseCase(spotifyService);
+
+    await expect(useCase.execute()).rejects.toThrow(failure);
+  });
+
+  it("returns the latest Spotify payload on consecutive executions", async () => {
+    const { spotifyService } = makeDeps();
+    spotifyService.getMyPlaylists.mockResolvedValue(freshPlaylists);
+    const useCase = makeUseCase(spotifyService);
+
+    const first = await useCase.execute();
+    spotifyService.getMyPlaylists.mockResolvedValue([
+      ...freshPlaylists,
+      {
+        id: "p3",
+        name: "Newest",
+        image: null,
+        owner: "me",
+        tracks: 2,
+        spotifyUrl: "https://open.spotify.com/playlist/p3",
+      },
+    ]);
+    const second = await useCase.execute();
+
+    expect(first).toEqual(freshPlaylists);
+    expect(second).toHaveLength(2);
+    expect(spotifyService.getMyPlaylists).toHaveBeenCalledTimes(2);
   });
 });

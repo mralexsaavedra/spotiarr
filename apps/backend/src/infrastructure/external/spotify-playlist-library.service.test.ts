@@ -219,6 +219,77 @@ describe("SpotifyPlaylistLibraryService.getMyPlaylists", () => {
     expect(playlists[0]?.tracks).toBe(42);
   });
 
+  it("uses probe total when a non-owned playlist summary reports zero tracks", async () => {
+    const accessiblePlaylist = buildPlaylist({
+      id: "accessible",
+      name: "Accessible",
+      tracks: { total: 0 },
+      external_urls: { spotify: "https://open.spotify.com/playlist/accessible" },
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+
+      if (url === "https://api.spotify.com/v1/me") {
+        return jsonResponse({ id: "current-user" });
+      }
+
+      if (url === "https://api.spotify.com/v1/me/playlists?limit=50") {
+        return jsonResponse({ items: [accessiblePlaylist], next: null });
+      }
+
+      if (url.includes("/playlists/accessible/items")) {
+        return jsonResponse({ total: 42 });
+      }
+
+      throw new Error(`Unexpected Spotify URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const playlists = await buildService().getMyPlaylists();
+
+    expect(playlists).toHaveLength(1);
+    expect(playlists[0]?.tracks).toBe(42);
+  });
+
+  it("probes owned playlists when the /me summary incorrectly reports zero tracks", async () => {
+    const ownedPlaylist = buildPlaylist({
+      id: "owned-zero",
+      name: "Owned Zero",
+      owner: { ...buildPlaylist().owner, id: "current-user", display_name: "Me" },
+      tracks: { total: 0 },
+      external_urls: { spotify: "https://open.spotify.com/playlist/owned-zero" },
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+
+      if (url === "https://api.spotify.com/v1/me") {
+        return jsonResponse({ id: "current-user" });
+      }
+
+      if (url === "https://api.spotify.com/v1/me/playlists?limit=50") {
+        return jsonResponse({ items: [ownedPlaylist], next: null });
+      }
+
+      if (url.includes("/playlists/owned-zero/items")) {
+        return jsonResponse({ total: 100 });
+      }
+
+      throw new Error(`Unexpected Spotify URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const playlists = await buildService().getMyPlaylists();
+
+    expect(playlists).toHaveLength(1);
+    expect(playlists[0]?.tracks).toBe(100);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/playlists/owned-zero/items"),
+      expect.anything(),
+    );
+  });
+
   it("expires cached access probe results and re-probes deterministically", async () => {
     const accessiblePlaylist = buildPlaylist({
       id: "accessible",
