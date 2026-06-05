@@ -1,0 +1,321 @@
+/**
+ * GlobalPlayerBar — Persistent global audio player mounted in AppLayout.
+ *
+ * Owns the single <audio> element for the application. Subscribes to
+ * usePlayerStore via selectors to minimise re-renders on the ~4Hz currentTime
+ * tick. Never unmounts (returns null instead of being conditionally mounted)
+ * so the audio element survives client-side navigation.
+ *
+ * REQ-PLAYER-BAR-001, 002, 003, 004, 005, 007, 009, 010.
+ */
+import {
+  faBackwardStep,
+  faForwardStep,
+  faPause,
+  faPlay,
+  faVolumeHigh,
+  faVolumeXmark,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FC, useEffect, useRef } from "react";
+import { usePlayerStore } from "@/store/usePlayerStore";
+import type { QueueItem } from "@/store/usePlayerStore";
+import { cn } from "@/utils/cn";
+import { Image } from "../atoms/Image";
+
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+/** Format seconds as m:ss (e.g. 75 → "1:15"). */
+function formatSeconds(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${m}:${rem.toString().padStart(2, "0")}`;
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components (selector-scoped for perf)
+// ---------------------------------------------------------------------------
+
+/** Only re-renders when currentTime or duration change. */
+const ProgressSection: FC = () => {
+  const currentTime = usePlayerStore((s) => s.currentTime);
+  const duration = usePlayerStore((s) => s.duration);
+  const seek = usePlayerStore((s) => s.seek);
+
+  const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  return (
+    <div className="flex w-full items-center gap-2">
+      <span className="text-text-secondary w-8 shrink-0 text-right text-xs tabular-nums">
+        {formatSeconds(currentTime)}
+      </span>
+      <input
+        type="range"
+        role="slider"
+        aria-label="Seek"
+        aria-valuemin={0}
+        aria-valuemax={duration}
+        aria-valuenow={currentTime}
+        aria-valuetext={`${formatSeconds(currentTime)} of ${formatSeconds(duration)}`}
+        min={0}
+        max={duration || 1}
+        step={1}
+        value={currentTime}
+        onChange={(e) => seek(Number(e.target.value))}
+        className="h-1 flex-1 cursor-pointer accent-white"
+        style={{
+          background: `linear-gradient(to right, white ${pct}%, rgba(255,255,255,0.2) ${pct}%)`,
+        }}
+      />
+      <span className="text-text-secondary w-8 shrink-0 text-xs tabular-nums">
+        {formatSeconds(duration)}
+      </span>
+    </div>
+  );
+};
+
+/** Only re-renders when volume or isMuted change. */
+const VolumeSection: FC = () => {
+  const volume = usePlayerStore((s) => s.volume);
+  const isMuted = usePlayerStore((s) => s.isMuted);
+  const setVolume = usePlayerStore((s) => s.setVolume);
+  const toggleMute = usePlayerStore((s) => s.toggleMute);
+
+  return (
+    <div className="hidden items-center gap-2 md:flex">
+      <button
+        type="button"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+        aria-pressed={isMuted}
+        onClick={toggleMute}
+        className="text-text-secondary hover:text-text-primary flex h-8 w-8 items-center justify-center rounded-full transition-colors"
+      >
+        <FontAwesomeIcon icon={isMuted ? faVolumeXmark : faVolumeHigh} className="text-sm" />
+      </button>
+      <input
+        type="range"
+        role="slider"
+        aria-label="Volume"
+        aria-valuemin={0}
+        aria-valuemax={1}
+        aria-valuenow={volume}
+        aria-valuetext={`${Math.round(volume * 100)}%`}
+        min={0}
+        max={1}
+        step={0.05}
+        value={isMuted ? 0 : volume}
+        onChange={(e) => setVolume(Number(e.target.value))}
+        className="h-1 w-20 cursor-pointer accent-white"
+      />
+    </div>
+  );
+};
+
+/** Track metadata — re-renders when the current queue item changes. */
+const TrackMeta: FC<{ item: QueueItem }> = ({ item }) => (
+  <div className="flex min-w-0 items-center gap-3">
+    <div className="h-10 w-10 shrink-0 overflow-hidden rounded shadow-sm">
+      <Image src={item.artworkUrl} alt={item.name} className="rounded" />
+    </div>
+    <div className="flex min-w-0 flex-col">
+      <span className="truncate text-sm font-semibold text-white">{item.name}</span>
+      <span className="text-text-secondary truncate text-xs">{item.artist}</span>
+    </div>
+  </div>
+);
+
+// ---------------------------------------------------------------------------
+// GlobalPlayerBar
+// ---------------------------------------------------------------------------
+
+export const GlobalPlayerBar: FC = () => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Selector subscriptions
+  const queue = usePlayerStore((s) => s.queue);
+  const currentIndex = usePlayerStore((s) => s.currentIndex);
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const error = usePlayerStore((s) => s.error);
+
+  // Store actions
+  const setAudioElement = usePlayerStore((s) => s.setAudioElement);
+  const togglePlay = usePlayerStore((s) => s.togglePlay);
+  const next = usePlayerStore((s) => s.next);
+  const prev = usePlayerStore((s) => s.prev);
+  const _onLoadedMetadata = usePlayerStore((s) => s._onLoadedMetadata);
+  const _onTimeUpdate = usePlayerStore((s) => s._onTimeUpdate);
+  const _onEnded = usePlayerStore((s) => s._onEnded);
+  const _onError = usePlayerStore((s) => s._onError);
+
+  const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
+
+  // --------------------------------------------------------------------------
+  // Effect 1: Bind / unbind audio element to store
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    setAudioElement(el);
+    return () => {
+      setAudioElement(null);
+    };
+  }, [setAudioElement]);
+
+  // --------------------------------------------------------------------------
+  // Effect 2: Subscribe to audio events
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+
+    const onTimeUpdate = () => _onTimeUpdate(el.currentTime);
+    const onLoadedMetadata = () => _onLoadedMetadata(el.duration);
+    const onEnded = () => _onEnded();
+    const onError = () => {
+      const msg = el.error?.message ?? "Playback error";
+      _onError(msg);
+    };
+
+    el.addEventListener("timeupdate", onTimeUpdate);
+    el.addEventListener("loadedmetadata", onLoadedMetadata);
+    el.addEventListener("ended", onEnded);
+    el.addEventListener("error", onError);
+
+    return () => {
+      el.removeEventListener("timeupdate", onTimeUpdate);
+      el.removeEventListener("loadedmetadata", onLoadedMetadata);
+      el.removeEventListener("ended", onEnded);
+      el.removeEventListener("error", onError);
+    };
+  }, [_onTimeUpdate, _onLoadedMetadata, _onEnded, _onError]);
+
+  // --------------------------------------------------------------------------
+  // Effect 3: Sync audio src when current item changes
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !currentItem) return;
+    if (el.src !== currentItem.audioUrl) {
+      el.src = currentItem.audioUrl;
+    }
+  }, [currentItem]);
+
+  // --------------------------------------------------------------------------
+  // Effect 4: Sync isPlaying → play()/pause()
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !currentItem) return;
+    if (isPlaying) {
+      const playPromise = el.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        void playPromise.catch(() => {
+          // AbortError from rapid src changes is expected — swallow silently
+        });
+      }
+    } else {
+      el.pause();
+    }
+  }, [isPlaying, currentItem]);
+
+  // --------------------------------------------------------------------------
+  // Effect 5: Auto-clear error after 3 s
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => {
+      usePlayerStore.setState({ error: null });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
+  const isVisible = currentIndex !== null || !!error;
+  const isAtFirst = currentIndex === 0;
+  const isAtLast = currentIndex !== null && currentIndex === queue.length - 1;
+
+  return (
+    <>
+      {/* Audio element lives outside the conditional section so it is never
+          recreated when the bar toggles between hidden and visible states.
+          This is the load-bearing "never unmount" guarantee for navigation survivability. */}
+      <audio ref={audioRef} aria-label="Audio player" preload="metadata" className="hidden" />
+
+      {isVisible && (
+        <section
+          role="region"
+          aria-label="Now playing"
+          className={cn(
+            "bg-surface/95 border-t border-white/10 backdrop-blur-lg",
+            "fixed right-0 bottom-16 left-0 z-40 md:bottom-0",
+            "px-4 py-2",
+          )}
+        >
+          {/* Mobile layout: two-row stack | Desktop: three-column flex */}
+          <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
+            {/* Row 1 / Col 1: Track meta or error */}
+            <div className="flex min-w-0 flex-1 items-center">
+              {error ? (
+                <span className="text-sm text-red-400">{error}</span>
+              ) : currentItem ? (
+                <TrackMeta item={currentItem} />
+              ) : null}
+            </div>
+
+            {/* Row 2 / Col 2: Transport + progress */}
+            <div className="flex flex-1 flex-col items-center gap-1">
+              {/* Transport buttons */}
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  aria-label="Previous track"
+                  disabled={isAtFirst}
+                  onClick={prev}
+                  className={cn(
+                    "text-text-secondary hover:text-text-primary flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    isAtFirst && "cursor-not-allowed opacity-40",
+                  )}
+                >
+                  <FontAwesomeIcon icon={faBackwardStep} className="text-base" />
+                </button>
+
+                <button
+                  type="button"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                  aria-pressed={isPlaying}
+                  onClick={togglePlay}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow transition-transform hover:scale-105"
+                >
+                  <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className="text-sm" />
+                </button>
+
+                <button
+                  type="button"
+                  aria-label="Next track"
+                  disabled={isAtLast}
+                  onClick={next}
+                  className={cn(
+                    "text-text-secondary hover:text-text-primary flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    isAtLast && "cursor-not-allowed opacity-40",
+                  )}
+                >
+                  <FontAwesomeIcon icon={faForwardStep} className="text-base" />
+                </button>
+              </div>
+
+              {/* Progress bar */}
+              <ProgressSection />
+            </div>
+
+            {/* Col 3 (desktop only): Volume */}
+            <div className="hidden flex-1 justify-end md:flex">
+              <VolumeSection />
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  );
+};
