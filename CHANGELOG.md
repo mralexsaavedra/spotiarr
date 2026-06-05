@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.3...v1.12.0) (2026-06-05)
+
+### Features
+
+- **Home Playlists section**: Home/Library now lists Spotify playlists from your local DB that have at least one downloaded track. Cards show cover, name, owner, and a `downloaded/total` badge; click opens the playlist detail. The Home header gets a search bar that filters both the new Playlists section and the artists list in-memory with a debounce. ([#79](https://github.com/mralexsaavedra/spotiarr/pull/79))
+- **Parent playlist persistence on single-track download**: Downloading a single track from a Spotify playlist preview now find-or-creates the parent Playlist row (`type=playlist`) with name, owner, and cover from Spotify metadata, and links the track via `Track.playlistId`. Subsequent tracks downloaded from the same preview accumulate under the same parent. Idempotency is enforced by a new `@@unique([spotifyUrl])` constraint with race-safe P2002 recovery. ([#80](https://github.com/mralexsaavedra/spotiarr/pull/80))
+- **Library vs managed mode for PlaylistDetail**: Opening a playlist from the Home Playlists section now hides the download-sync, subscribe, and delete actions (those still appear when entering from MyPlaylists). New `?mode=library` URL param drives the distinction. ([#81](https://github.com/mralexsaavedra/spotiarr/pull/81))
+
 ## [1.11.3](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.2...v1.11.3) (2026-06-05)
 
 ### Bug Fixes
