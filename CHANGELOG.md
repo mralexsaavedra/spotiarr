@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.3](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.2...v1.11.3) (2026-06-05)
+
+### Bug Fixes
+
+- **Single-track downloads from Deezer albums**: Downloading a single track from a Deezer-origin album detail view no longer creates a playlist labelled "Unknown Artist - <track>" with no cover. The `albumTrack` branch now derives metadata from the resolved tracks when both album and release caches miss, matching the behaviour already applied to full-album downloads in v1.11.1. ([#78](https://github.com/mralexsaavedra/spotiarr/pull/78))
+
 ## [1.11.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.11.1...v1.11.2) (2026-06-05)
 
 ### Bug Fixes
