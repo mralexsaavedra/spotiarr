@@ -19,7 +19,6 @@ export const usePlaylistDetailController = () => {
 
   const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
 
-  // Build queue from tracks that have a truthy audioUrl (library-mode dispatch only)
   const queueItems: QueueItem[] = useMemo(() => {
     if (mode !== "library") return [];
 
@@ -48,7 +47,7 @@ export const usePlaylistDetailController = () => {
       if (mode !== "library") return;
 
       const startIndex = queueItems.findIndex((item) => item.id === trackId);
-      if (startIndex === -1) return; // track has no audioUrl or not found
+      if (startIndex === -1) return;
 
       usePlayerStore.getState().playQueue(queueItems, startIndex);
     },

@@ -51,7 +51,6 @@ export const useLibraryAlbumDetailController = () => {
     ? `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/image?path=${encodeURIComponent(album.image)}`
     : undefined;
 
-  // Build QueueItem snapshot for dispatch — normalize track.trackUrl → QueueItem.audioUrl
   const queueItems: QueueItem[] = useMemo(() => {
     if (!album) return [];
 
@@ -73,7 +72,6 @@ export const useLibraryAlbumDetailController = () => {
 
   const isPlaying = usePlayerStore((state) => state.isPlaying);
 
-  // Derive currentTrackId from store queue
   const currentTrackId = usePlayerStore((state) => {
     if (state.currentIndex === null) return null;
     return state.queue[state.currentIndex]?.id ?? null;
@@ -90,14 +88,13 @@ export const useLibraryAlbumDetailController = () => {
 
   const firstPlayableIndex = useMemo(() => {
     if (queueItems.length === 0) return -1;
-    return 0; // all tracks in album have audioUrl
+    return 0;
   }, [queueItems]);
 
   const hasPlayableTracks = queueItems.length > 0;
 
   const onPlayPlaylist = useCallback(() => {
     if (!hasPlayableTracks) return;
-    // If currently playing a track in this album, resume; otherwise start from first
     const resolvedIndex = currentIndex !== null ? currentIndex : firstPlayableIndex;
     if (resolvedIndex === -1) return;
     usePlayerStore.getState().playQueue(queueItems, resolvedIndex);
