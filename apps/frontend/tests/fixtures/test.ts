@@ -1,8 +1,17 @@
 import { expect, test as base, type Page } from "@playwright/test";
-import { installAppShellMocks, type AppShellMockGuard } from "../helpers/api-mocks";
+import {
+  installAppShellMocks,
+  type AppShellMockGuard,
+  type AppShellMockOptions,
+} from "../helpers/api-mocks";
 
 interface MockedFixtures {
   appShell: AppShellMockGuard;
+}
+
+interface MockedFixtureOptions {
+  allowUnhandledRequests: boolean;
+  appShellOptions: AppShellMockOptions;
 }
 
 const ALLOWED_HOSTS = new Set(["127.0.0.1", "localhost"]);
@@ -24,9 +33,11 @@ async function blockExternalNetwork(page: Page): Promise<void> {
   });
 }
 
-export const test = base.extend<MockedFixtures>({
+export const test = base.extend<MockedFixtures & MockedFixtureOptions>({
+  allowUnhandledRequests: [false, { option: true }],
+  appShellOptions: [{}, { option: true }],
   appShell: [
-    async ({ page }, applyFixture) => {
+    async ({ allowUnhandledRequests, appShellOptions, page }, applyFixture) => {
       const consoleErrors: string[] = [];
       const pageErrors: string[] = [];
 
@@ -42,11 +53,13 @@ export const test = base.extend<MockedFixtures>({
 
       await blockExternalNetwork(page);
 
-      const appShell = await installAppShellMocks(page);
+      const appShell = await installAppShellMocks(page, appShellOptions);
 
       await applyFixture(appShell);
 
-      await appShell.assertNoUnhandledRequests(500);
+      if (!allowUnhandledRequests) {
+        await appShell.assertNoUnhandledRequests(500);
+      }
       expect(consoleErrors, "Unexpected browser console errors").toEqual([]);
       expect(pageErrors, "Unexpected uncaught page errors").toEqual([]);
     },
