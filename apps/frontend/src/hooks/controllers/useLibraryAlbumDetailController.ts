@@ -68,7 +68,7 @@ export const useLibraryAlbumDetailController = () => {
         albumName: selectedAlbumName,
       }),
     }));
-  }, [album, artistName, coverUrl]);
+  }, [album, artistName, coverUrl, selectedAlbumName]);
 
   const {
     currentIndex,

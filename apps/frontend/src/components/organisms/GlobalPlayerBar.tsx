@@ -9,6 +9,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { FC, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
@@ -143,12 +144,27 @@ export const GlobalPlayerBar: FC = () => {
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
+  const seek = usePlayerStore((s) => s.seek);
   const _onLoadedMetadata = usePlayerStore((s) => s._onLoadedMetadata);
   const _onTimeUpdate = usePlayerStore((s) => s._onTimeUpdate);
   const _onEnded = usePlayerStore((s) => s._onEnded);
   const _onError = usePlayerStore((s) => s._onError);
 
   const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
+
+  // Media Session API integration — delegates to store actions
+  const mediaSessionActions = {
+    play: () => {
+      if (!usePlayerStore.getState().isPlaying) usePlayerStore.getState().togglePlay();
+    },
+    pause: () => {
+      if (usePlayerStore.getState().isPlaying) usePlayerStore.getState().togglePlay();
+    },
+    next,
+    previous: prev,
+    seek,
+  };
+  useMediaSession(currentItem, isPlaying, mediaSessionActions);
 
   useEffect(() => {
     const el = audioRef.current;
