@@ -47,13 +47,11 @@ export const NowPlayingFullscreen: FC = () => {
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // drag state for touch reorder
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const draggingIndexRef = useRef<number | null>(null);
   const dragOverIndexRef = useRef<number | null>(null);
 
-  // swipe-down state
   const swipeStartYRef = useRef<number | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
 
@@ -323,7 +321,7 @@ export const NowPlayingFullscreen: FC = () => {
 
               <button
                 type="button"
-                aria-label={t("player.nowPlaying.dragHandle", { name: item.name })}
+                aria-label={t("player.nowPlaying.moveUp", { name: item.name })}
                 disabled={index === 0}
                 onClick={() => index > 0 && reorderQueue(index, index - 1)}
                 className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"
@@ -332,7 +330,7 @@ export const NowPlayingFullscreen: FC = () => {
               </button>
               <button
                 type="button"
-                aria-label={t("player.nowPlaying.dragHandle", { name: item.name })}
+                aria-label={t("player.nowPlaying.moveDown", { name: item.name })}
                 disabled={index === queue.length - 1}
                 onClick={() => index < queue.length - 1 && reorderQueue(index, index + 1)}
                 className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"

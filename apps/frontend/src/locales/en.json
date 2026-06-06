@@ -382,7 +382,9 @@
       "open": "Open Now Playing",
       "close": "Close",
       "queueLabel": "Queue",
-      "dragHandle": "Drag to reorder {{name}}"
+      "dragHandle": "Drag to reorder {{name}}",
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down"
     }
   }
 }

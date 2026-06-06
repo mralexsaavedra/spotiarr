@@ -382,7 +382,9 @@
       "open": "Abrir reproduciendo ahora",
       "close": "Cerrar",
       "queueLabel": "Cola",
-      "dragHandle": "Arrastrá para reordenar {{name}}"
+      "dragHandle": "Arrastrá para reordenar {{name}}",
+      "moveUp": "Subir {{name}}",
+      "moveDown": "Bajar {{name}}"
     }
   }
 }
