@@ -9,7 +9,6 @@
     "close": "Cerrar",
     "unknownError": "Error desconocido",
     "downloadAll": "Descargar todo",
-    "downloaded": "Descargado",
     "popular": "Populares",
     "title": "Título",
     "album": "Álbum",
@@ -226,7 +225,8 @@
       "retryFailedTooltip": "Reintentar descargas fallidas",
       "delete": "Eliminar",
       "deleteTooltip": "Eliminar lista",
-      "downloadToEnable": "Descargar para habilitar acciones"
+      "downloadToEnable": "Descargar para habilitar acciones",
+      "shufflePlay": "Reproducción aleatoria"
     }
   },
   "artist": {

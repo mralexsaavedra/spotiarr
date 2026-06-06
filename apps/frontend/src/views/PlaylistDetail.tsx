@@ -30,6 +30,8 @@ export const PlaylistDetail: FC = () => {
     currentTrackId,
     isPlaying,
     hasPlayableTracks,
+    isShuffleActive,
+    onShufflePlay,
     mode,
   } = usePlaylistDetailController();
 
@@ -68,6 +70,8 @@ export const PlaylistDetail: FC = () => {
         currentTrackId={currentTrackId}
         isPlaying={isPlaying}
         hasPlayableTracks={hasPlayableTracks}
+        onShufflePlay={onShufflePlay}
+        isShuffleActive={isShuffleActive}
         mode={mode}
       />
       {!hasPlayableTracks && tracks.length > 0 ? (

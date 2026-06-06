@@ -133,7 +133,9 @@ export const LibraryAlbumDetail: FC = () => {
                       ? "text-green-500"
                       : "text-text-secondary hover:text-text-primary",
                   )}
-                />
+                >
+                  <span className="sr-only">{t("playlist.actions.shufflePlay")}</span>
+                </Button>
               ) : null}
               <SpotifyLinkButton
                 provider="spotify"

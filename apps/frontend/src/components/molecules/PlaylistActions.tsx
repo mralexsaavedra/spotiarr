@@ -99,7 +99,9 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
             "!h-10 !w-10 justify-center !rounded-full !p-0 transition-transform hover:scale-105",
             isShuffleActive ? "text-green-500" : "text-text-secondary hover:text-text-primary",
           )}
-        />
+        >
+          <span className="sr-only">{t("playlist.actions.shufflePlay")}</span>
+        </Button>
       ) : null}
 
       {isManaged && (
