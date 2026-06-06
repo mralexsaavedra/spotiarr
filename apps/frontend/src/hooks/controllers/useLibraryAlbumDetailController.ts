@@ -2,9 +2,10 @@ import { ApiRoutes, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { generatePath, useParams } from "react-router-dom";
 import { Path } from "@/routes/routes";
-import { usePlayerStore, type QueueItem } from "@/store/usePlayerStore";
+import { type QueueItem } from "@/store/usePlayerStore";
 import { Track } from "@/types";
 import { useLibraryArtistQuery } from "../queries/useLibraryArtistQuery";
+import { usePlayerQueueBinding } from "../usePlayerQueueBinding";
 
 const safeDecodeURIComponent = (value: string | undefined): string => {
   if (!value) {
@@ -65,44 +66,20 @@ export const useLibraryAlbumDetailController = () => {
     }));
   }, [album, artistName, coverUrl]);
 
-  const currentIndex = usePlayerStore((state) => {
-    if (state.currentIndex === null) return null;
-    return state.currentIndex;
-  });
-
-  const isPlaying = usePlayerStore((state) => state.isPlaying);
-
-  const currentTrackId = usePlayerStore((state) => {
-    if (state.currentIndex === null) return null;
-    return state.queue[state.currentIndex]?.id ?? null;
-  });
-
-  const onPlayTrack = useCallback(
-    (trackId: string) => {
-      const startIndex = queueItems.findIndex((item) => item.id === trackId);
-      if (startIndex === -1) return;
-      usePlayerStore.getState().playQueue(queueItems, startIndex);
-    },
-    [queueItems],
-  );
-
-  const firstPlayableIndex = useMemo(() => {
-    if (queueItems.length === 0) return -1;
-    return 0;
-  }, [queueItems]);
-
-  const hasPlayableTracks = queueItems.length > 0;
+  const {
+    currentIndex,
+    currentTrackId,
+    isPlaying,
+    hasPlayableTracks,
+    playFromIndex,
+    onPlayTrack,
+    onPauseTrack,
+  } = usePlayerQueueBinding(queueItems);
 
   const onPlayPlaylist = useCallback(() => {
     if (!hasPlayableTracks) return;
-    const resolvedIndex = currentIndex !== null ? currentIndex : firstPlayableIndex;
-    if (resolvedIndex === -1) return;
-    usePlayerStore.getState().playQueue(queueItems, resolvedIndex);
-  }, [currentIndex, firstPlayableIndex, hasPlayableTracks, queueItems]);
-
-  const onPauseTrack = useCallback(() => {
-    usePlayerStore.getState().togglePlay();
-  }, []);
+    playFromIndex(currentIndex ?? 0);
+  }, [currentIndex, hasPlayableTracks, playFromIndex]);
 
   const backToArtistPath = generatePath(Path.LIBRARY_ARTIST, {
     name: artistName,

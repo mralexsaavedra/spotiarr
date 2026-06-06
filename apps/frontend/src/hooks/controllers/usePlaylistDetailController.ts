@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { usePlayerStore, type QueueItem } from "@/store/usePlayerStore";
+import { type QueueItem } from "@/store/usePlayerStore";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useTracksQuery } from "../queries/useTracksQuery";
 import { useNavigationHelpers } from "../useNavigationHelpers";
+import { usePlayerQueueBinding } from "../usePlayerQueueBinding";
 import { usePlaylistController } from "./usePlaylistController";
 
 export type PlaylistDetailMode = "library" | "managed";
@@ -35,40 +36,13 @@ export const usePlaylistDetailController = () => {
       }));
   }, [mode, tracks]);
 
-  const firstPlayableTrackId = useMemo(
-    () => tracks.find((track) => track.audioUrl)?.id ?? null,
-    [tracks],
-  );
-
-  const hasPlayableTracks = firstPlayableTrackId !== null;
-
-  const onPlayTrack = useCallback(
-    (trackId: string) => {
-      if (mode !== "library") return;
-
-      const startIndex = queueItems.findIndex((item) => item.id === trackId);
-      if (startIndex === -1) return;
-
-      usePlayerStore.getState().playQueue(queueItems, startIndex);
-    },
-    [mode, queueItems],
-  );
-
-  const onPauseTrack = useCallback(() => {
-    usePlayerStore.getState().togglePlay();
-  }, []);
+  const { currentTrackId, isPlaying, hasPlayableTracks, playFromIndex, onPlayTrack, onPauseTrack } =
+    usePlayerQueueBinding(queueItems);
 
   const onPlayPlaylist = useCallback(() => {
-    if (mode !== "library" || queueItems.length === 0) return;
-    usePlayerStore.getState().playQueue(queueItems, 0);
-  }, [mode, queueItems]);
-
-  const currentTrackId = usePlayerStore((state) => {
-    if (state.currentIndex === null) return null;
-    return state.queue[state.currentIndex]?.id ?? null;
-  });
-
-  const isPlaying = usePlayerStore((state) => state.isPlaying);
+    if (!hasPlayableTracks) return;
+    playFromIndex(0);
+  }, [hasPlayableTracks, playFromIndex]);
 
   const {
     isDownloading,
