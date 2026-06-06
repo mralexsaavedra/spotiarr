@@ -1,14 +1,28 @@
 import { type Page } from "@playwright/test";
 import {
   ApiRoutes,
+  type ArtistDetail,
+  type ArtistRelease,
+  type ArtworkBackfillStatusResponse,
+  type DownloadHistoryItem,
+  type FollowedArtist,
+  type LibraryAlbum,
+  type LibraryArtist,
+  type LibraryStats,
+  type LibraryTrack,
+  type PlaylistHistory,
+  PlaylistStatusEnum,
+  PlaylistTypeEnum,
   type SettingItem,
   type SettingMetadata,
   type SpotifySearchResults,
+  TrackStatusEnum,
   UI_SUPPORTED_AUDIO_FORMATS,
   type SupportedAudioFormat,
 } from "@spotiarr/shared";
+import type { Playlist, Track } from "../../src/types";
 
-interface AppShellMockOptions {
+export interface AppShellMockOptions {
   mockPlaylistStatus?: boolean;
   settings?: SettingItem[];
   settingsMetadata?: Record<string, SettingMetadata>;
@@ -39,7 +53,76 @@ interface MockSearchResultsOptions {
   types?: string[];
 }
 
+interface MockLibraryOptions {
+  stats?: LibraryStats;
+  artists?: LibraryArtist[];
+  artistDetail?: LibraryArtist;
+  artworkBackfillStatus?: ArtworkBackfillStatusResponse;
+}
+
+interface MockPlaylistOptions {
+  playlists?: Playlist[];
+  myPlaylists?: Array<{
+    id: string;
+    image: string | null;
+    name: string;
+    owner: string;
+    ownerUrl?: string;
+    spotifyUrl: string;
+    tracks: number;
+  }>;
+  preview?: {
+    coverUrl: string | null;
+    description: string | null;
+    name: string;
+    owner?: string;
+    ownerUrl?: string;
+    totalTracks: number;
+    tracks: Array<{
+      album: string;
+      artists: { name: string; url?: string }[];
+      duration: number;
+      name: string;
+      albumUrl?: string;
+      trackUrl?: string;
+    }>;
+    type: string;
+  };
+  previewTracksPage?: {
+    hasMore: boolean;
+    nextOffset: number | null;
+    total: number;
+    tracks: Array<{
+      album: string;
+      artists: { name: string; url?: string }[];
+      duration: number;
+      name: string;
+      albumUrl?: string;
+      trackUrl?: string;
+    }>;
+  };
+}
+
+interface MockHistoryOptions {
+  downloads?: PlaylistHistory[];
+  tracks?: DownloadHistoryItem[];
+}
+
+interface MockFeedOptions {
+  followedArtists?: FollowedArtist[];
+  releases?: ArtistRelease[];
+}
+
+interface MockArtistOptions {
+  artistId: string;
+  detail: ArtistDetail;
+  albums?: ArtistRelease[];
+  tracks?: SpotifySearchResults["tracks"];
+}
+
 const DEFAULT_TIMESTAMP = new Date(0).toISOString();
+
+const DEFAULT_COMPLETED_AT = 1_700_000_000_000;
 
 const SETTINGS_PAYLOAD = {
   data: [
@@ -78,9 +161,9 @@ const SUPPORTED_FORMATS_PAYLOAD = {
 };
 
 const DOWNLOAD_STATUS_PAYLOAD = {
-  playlistStatusMap: {},
-  trackStatusMap: {},
-  albumTrackCountMap: {},
+  playlistStatusMap: {} as Record<string, PlaylistStatusEnum>,
+  trackStatusMap: {} as Record<string, TrackStatusEnum>,
+  albumTrackCountMap: {} as Record<string, number>,
 };
 
 const SSE_PAYLOAD = ": connected\n\n";
@@ -88,6 +171,33 @@ const SSE_PAYLOAD = ": connected\n\n";
 const SPOTIFY_AUTH_STATUS_PAYLOAD: SpotifyAuthStatus = {
   authenticated: false,
   hasRefreshToken: false,
+};
+
+const ARTWORK_BACKFILL_STATUS_PAYLOAD: { data: ArtworkBackfillStatusResponse } = {
+  data: {
+    runId: null,
+    status: "idle",
+    phase: null,
+    totals: 0,
+    processed: 0,
+    skippedExisting: 0,
+    written: 0,
+    failed: 0,
+    externalCalls: 0,
+    lastCheckpoint: null,
+    rateLimitUntil: null,
+    updatedAt: null,
+  },
+};
+
+const LIBRARY_STATS_PAYLOAD: { data: LibraryStats } = {
+  data: {
+    totalArtists: 1,
+    totalAlbums: 1,
+    totalTracks: 1,
+    totalSize: 4_096,
+    lastScannedAt: null,
+  },
 };
 
 const buildApiUrl = (pathname: string): string => `${ApiRoutes.BASE}${pathname}`;
@@ -110,6 +220,135 @@ const fulfillJson = async (
     body: JSON.stringify(body),
   });
 };
+
+const registerJsonRoute = async (page: Page, pathname: string, body: unknown): Promise<void> => {
+  await page.route(`**${buildApiUrl(pathname)}`, async (route) => {
+    await fulfillJson(route, body);
+  });
+};
+
+function buildPlaylistTrack(overrides: Partial<Track> = {}): Track {
+  return {
+    id: "track-1",
+    name: "Mock Track",
+    artist: "Mock Artist",
+    album: "Mock Album",
+    status: TrackStatusEnum.Completed,
+    spotifyUrl: "https://open.spotify.com/track/track-1",
+    trackUrl: "https://open.spotify.com/track/track-1",
+    durationMs: 180_000,
+    ...overrides,
+  };
+}
+
+function buildLibraryTrack(overrides: Partial<LibraryTrack> = {}): LibraryTrack {
+  return {
+    fileName: "01 Mock Track.mp3",
+    filePath: "/library/artists/library-artist/library-album/01 Mock Track.mp3",
+    trackNumber: 1,
+    discNumber: 1,
+    name: "Mock Track",
+    artist: "Library Artist",
+    album: "Library Album",
+    duration: 180,
+    format: "mp3",
+    size: 4_096,
+    modifiedAt: DEFAULT_COMPLETED_AT,
+    ...overrides,
+  };
+}
+
+function buildLibraryAlbum(overrides: Partial<LibraryAlbum> = {}): LibraryAlbum {
+  const tracks = overrides.tracks ?? [buildLibraryTrack()];
+
+  return {
+    name: "Library Album",
+    path: "/library/artists/library-artist/library-album",
+    artist: "Library Artist",
+    trackCount: tracks.length,
+    totalSize: tracks.reduce((total, track) => total + track.size, 0),
+    year: 2001,
+    image: "/artwork/library-album.jpg",
+    tracks,
+    ...overrides,
+  };
+}
+
+export function buildLibraryArtist(overrides: Partial<LibraryArtist> = {}): LibraryArtist {
+  const albums = overrides.albums ?? [buildLibraryAlbum()];
+
+  return {
+    name: "Library Artist",
+    path: "/library/artists/library-artist",
+    albumCount: albums.length,
+    trackCount: albums.reduce((total, album) => total + album.trackCount, 0),
+    totalSize: albums.reduce((total, album) => total + album.totalSize, 0),
+    image: "/artwork/library-artist.jpg",
+    albums,
+    ...overrides,
+  };
+}
+
+export function buildPlaylist(overrides: Partial<Playlist> = {}): Playlist {
+  return {
+    id: "playlist-1",
+    name: "Mock Playlist",
+    type: PlaylistTypeEnum.Playlist,
+    spotifyUrl: "https://open.spotify.com/playlist/playlist-1",
+    subscribed: false,
+    owner: "Spotiarr",
+    ownerUrl: "https://open.spotify.com/user/spotiarr",
+    coverUrl: "/artwork/mock-playlist.jpg",
+    description: "Mock playlist used for route coverage.",
+    tracks: [buildPlaylistTrack({ playlistId: "playlist-1" })],
+    ...overrides,
+  };
+}
+
+export function buildHistoryItem(overrides: Partial<PlaylistHistory> = {}): PlaylistHistory {
+  return {
+    playlistId: "playlist-1",
+    playlistName: "History Playlist",
+    playlistSpotifyUrl: "https://open.spotify.com/playlist/playlist-1",
+    trackCount: 12,
+    lastCompletedAt: DEFAULT_COMPLETED_AT,
+    ...overrides,
+  };
+}
+
+function buildDownloadHistoryTrack(
+  overrides: Partial<DownloadHistoryItem> = {},
+): DownloadHistoryItem {
+  return {
+    id: "download-history-1",
+    playlistId: "playlist-1",
+    playlistName: "History Playlist",
+    playlistSpotifyUrl: "https://open.spotify.com/playlist/playlist-1",
+    trackId: "track-1",
+    trackName: "Mock Track",
+    artist: "Mock Artist",
+    album: "Mock Album",
+    trackUrl: "https://open.spotify.com/track/track-1",
+    completedAt: DEFAULT_COMPLETED_AT,
+    ...overrides,
+  };
+}
+
+export function buildRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
+  return {
+    artistId: "release-artist-1",
+    artistName: "Release Artist",
+    artistImageUrl: null,
+    albumId: "release-album-1",
+    albumName: "Release Album",
+    albumType: "album",
+    releaseDate: "2024-01-01",
+    coverUrl: null,
+    spotifyUrl: "https://open.spotify.com/album/release-album-1",
+    totalTracks: 10,
+    ...overrides,
+  };
+}
 
 export async function mockSettingsPageData(
   page: Page,
@@ -163,6 +402,96 @@ export async function mockSearchResults(
     await waitForDelay(delayMs);
     await fulfillJson(route, { data: results });
   });
+}
+
+export async function installLibraryMocks(
+  page: Page,
+  {
+    stats = LIBRARY_STATS_PAYLOAD.data,
+    artists = [buildLibraryArtist()],
+    artistDetail = artists[0] ?? buildLibraryArtist(),
+    artworkBackfillStatus = ARTWORK_BACKFILL_STATUS_PAYLOAD.data,
+  }: MockLibraryOptions = {},
+): Promise<void> {
+  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/stats`, { data: stats });
+  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/artists`, { data: artists });
+  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/artists/**`, { data: artistDetail });
+  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/artwork-backfill/status`, {
+    data: artworkBackfillStatus,
+  });
+}
+
+export async function installPlaylistMocks(
+  page: Page,
+  {
+    playlists = [buildPlaylist()],
+    myPlaylists = [],
+    preview = {
+      name: "Preview Playlist",
+      type: "playlist",
+      description: null,
+      coverUrl: null,
+      totalTracks: 1,
+      tracks: [
+        {
+          name: "Preview Track",
+          artists: [
+            { name: "Preview Artist", url: "https://open.spotify.com/artist/preview-artist" },
+          ],
+          album: "Preview Album",
+          duration: 180_000,
+          trackUrl: "https://open.spotify.com/track/preview-track",
+          albumUrl: "https://open.spotify.com/album/preview-album",
+        },
+      ],
+    },
+    previewTracksPage = {
+      tracks: preview.tracks,
+      total: preview.totalTracks,
+      hasMore: false,
+      nextOffset: null,
+    },
+  }: MockPlaylistOptions = {},
+): Promise<void> {
+  await registerJsonRoute(page, ApiRoutes.PLAYLIST, { data: playlists });
+  await registerJsonRoute(page, `${ApiRoutes.PLAYLIST}/me`, myPlaylists);
+  await registerJsonRoute(page, `${ApiRoutes.PLAYLIST}/preview**`, preview);
+  await registerJsonRoute(page, `${ApiRoutes.PLAYLIST}/preview/tracks**`, previewTracksPage);
+}
+
+export async function installHistoryMocks(
+  page: Page,
+  {
+    downloads = [buildHistoryItem()],
+    tracks = [buildDownloadHistoryTrack()],
+  }: MockHistoryOptions = {},
+): Promise<void> {
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/downloads`, { data: downloads });
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/tracks`, { data: tracks });
+}
+
+export async function installFeedMocks(
+  page: Page,
+  { followedArtists = [], releases = [buildRelease()] }: MockFeedOptions = {},
+): Promise<void> {
+  await registerJsonRoute(page, `${ApiRoutes.FEED}/releases`, releases);
+  await registerJsonRoute(page, `${ApiRoutes.FEED}/artists`, followedArtists);
+}
+
+export async function installArtistMocks(
+  page: Page,
+  { artistId, detail, albums = detail.albums, tracks = [] }: MockArtistOptions,
+): Promise<void> {
+  await registerJsonRoute(page, `${ApiRoutes.ARTIST}/${artistId}**`, detail);
+  await registerJsonRoute(page, `${ApiRoutes.ARTIST}/${artistId}/albums**`, albums);
+  await registerJsonRoute(page, `${ApiRoutes.ARTIST}/${artistId}/albums/**/tracks`, tracks);
+}
+
+export async function installExternalUrlMock(
+  page: Page,
+  resolved: { url: string } = { url: "https://open.spotify.com" },
+): Promise<void> {
+  await registerJsonRoute(page, `${ApiRoutes.EXTERNAL_URL}**`, resolved);
 }
 
 export async function installAppShellMocks(
