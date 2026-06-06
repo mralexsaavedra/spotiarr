@@ -150,7 +150,6 @@ export const NowPlayingFullscreen: FC = () => {
           : undefined
       }
     >
-      {/* blurred backdrop */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         {currentItem?.artworkUrl && (
           <img
@@ -163,7 +162,6 @@ export const NowPlayingFullscreen: FC = () => {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      {/* top bar + hero zone (swipe area) */}
       <div
         data-swipe-zone
         onPointerDown={onSwipePointerDown}
@@ -188,21 +186,18 @@ export const NowPlayingFullscreen: FC = () => {
           <span className="sr-only">{t("player.nowPlaying.title")}</span>
         </header>
 
-        {/* hero artwork */}
         <div className="flex flex-1 items-center justify-center px-6 py-4">
           <div className="aspect-square w-[70vw] max-w-[280px] overflow-hidden rounded-lg shadow-2xl">
             <Image src={currentItem?.artworkUrl} alt={currentItem?.name ?? ""} />
           </div>
         </div>
 
-        {/* track meta */}
         <div className="px-6 text-center">
           <div className="truncate text-lg font-semibold text-white">{currentItem?.name}</div>
           <div className="text-text-secondary truncate text-sm">{currentItem?.artist}</div>
         </div>
       </div>
 
-      {/* seek scrubber */}
       <div className="px-6 py-3">
         <div className="group flex w-full items-center gap-2">
           <span className="text-text-secondary w-8 shrink-0 text-right text-xs tabular-nums">
@@ -232,7 +227,6 @@ export const NowPlayingFullscreen: FC = () => {
         </div>
       </div>
 
-      {/* transport row */}
       <div className="flex items-center justify-center gap-6 px-6 pb-4">
         <button
           type="button"
@@ -290,7 +284,6 @@ export const NowPlayingFullscreen: FC = () => {
         </button>
       </div>
 
-      {/* inline queue */}
       <section
         className="pb-safe flex-1 overflow-y-auto px-4"
         aria-label={t("player.nowPlaying.queueLabel")}
