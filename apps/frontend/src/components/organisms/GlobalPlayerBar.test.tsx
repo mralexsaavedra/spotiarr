@@ -27,6 +27,10 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+vi.mock("./QueueSidePanel", () => ({
+  QueueSidePanel: () => null,
+}));
+
 vi.mock("react-i18next", async () => {
   const actual = await vi.importActual<typeof import("react-i18next")>("react-i18next");
   return {

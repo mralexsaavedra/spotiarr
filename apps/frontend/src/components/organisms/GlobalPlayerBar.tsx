@@ -19,6 +19,7 @@ import type { QueueItem } from "@/store/usePlayerStore";
 import { usePreferencesStore } from "@/store/usePreferencesStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
+import { QueueSidePanel } from "./QueueSidePanel";
 
 function formatSeconds(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds));
@@ -287,6 +288,7 @@ export const GlobalPlayerBar: FC = () => {
   return (
     <>
       <audio ref={audioRef} aria-label="Audio player" preload="metadata" className="hidden" />
+      <QueueSidePanel />
 
       {isVisible && (
         <section
