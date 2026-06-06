@@ -55,7 +55,7 @@ export const usePlaylistDetailController = () => {
 
   const {
     isDownloading,
-    isDownloaded: isDownloadedFromStatus,
+    isDownloaded,
     hasFailed,
     completedCount,
     displayTitle,
@@ -69,12 +69,8 @@ export const usePlaylistDetailController = () => {
     tracks,
     spotifyUrl: playlist?.spotifyUrl,
     id,
+    expectedTrackCount: playlist && "stats" in playlist ? playlist.stats.totalCount : undefined,
   });
-
-  const isDownloaded =
-    playlist && "stats" in playlist
-      ? playlist.stats.totalCount > 0 && playlist.stats.completedCount >= playlist.stats.totalCount
-      : isDownloadedFromStatus;
 
   return {
     playlist,

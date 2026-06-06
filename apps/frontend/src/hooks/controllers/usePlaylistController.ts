@@ -37,7 +37,17 @@ export const usePlaylistController = ({
 
   const isDownloading = usePlaylistDownloading(spotifyUrl);
   const resolvedTrackCount = expectedTrackCount ?? tracks.length;
-  const isDownloaded = usePlaylistDownloaded(spotifyUrl, resolvedTrackCount);
+  const isDownloadedFromStore = usePlaylistDownloaded(spotifyUrl, resolvedTrackCount);
+
+  const completedTrackCount = useMemo(
+    () => tracks.filter((t) => t.status === TrackStatusEnum.Completed).length,
+    [tracks],
+  );
+
+  const isDownloaded =
+    expectedTrackCount != null && expectedTrackCount > 0
+      ? completedTrackCount >= expectedTrackCount
+      : isDownloadedFromStore;
 
   const hasFailed = useMemo(() => {
     return tracks.some((t) => t.status === TrackStatusEnum.Error);
