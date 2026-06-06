@@ -19,6 +19,7 @@ import type { QueueItem } from "@/store/usePlayerStore";
 import { usePreferencesStore } from "@/store/usePreferencesStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
+import { NowPlayingFullscreen } from "./NowPlayingFullscreen";
 import { QueueSidePanel } from "./QueueSidePanel";
 
 function formatSeconds(seconds: number): string {
@@ -151,6 +152,8 @@ export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
+  const nowPlayingTriggerRef = useRef<HTMLButtonElement>(null);
+  const wasNowPlayingOpenRef = useRef(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
@@ -159,6 +162,8 @@ export const GlobalPlayerBar: FC = () => {
   const currentIndex = usePlayerStore((s) => s.currentIndex);
   const isQueuePanelOpen = usePlayerStore((s) => s.isQueuePanelOpen);
   const setQueuePanelOpen = usePlayerStore((s) => s.setQueuePanelOpen);
+  const isNowPlayingOpen = usePlayerStore((s) => s.isNowPlayingOpen);
+  const setNowPlayingOpen = usePlayerStore((s) => s.setNowPlayingOpen);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const error = usePlayerStore((s) => s.error);
   const shuffleMode = usePlayerStore((s) => s.shuffleMode);
@@ -264,6 +269,13 @@ export const GlobalPlayerBar: FC = () => {
     wasOpenRef.current = isQueuePanelOpen;
   }, [isQueuePanelOpen]);
 
+  useEffect(() => {
+    if (wasNowPlayingOpenRef.current && !isNowPlayingOpen) {
+      nowPlayingTriggerRef.current?.focus();
+    }
+    wasNowPlayingOpenRef.current = isNowPlayingOpen;
+  }, [isNowPlayingOpen]);
+
   const isVisible = currentIndex !== null || !!error;
   const isAtFirst =
     !shuffleMode && repeatMode !== "all" && (currentIndex === null || currentIndex <= 0);
@@ -289,6 +301,7 @@ export const GlobalPlayerBar: FC = () => {
     <>
       <audio ref={audioRef} aria-label="Audio player" preload="metadata" className="hidden" />
       <QueueSidePanel />
+      <NowPlayingFullscreen />
 
       {isVisible && (
         <section
@@ -307,7 +320,21 @@ export const GlobalPlayerBar: FC = () => {
               {error ? (
                 <span className="text-sm text-red-400">{error}</span>
               ) : currentItem ? (
-                <TrackMeta item={currentItem} onNavigate={navigate} />
+                <>
+                  <button
+                    type="button"
+                    ref={nowPlayingTriggerRef}
+                    aria-label={t("player.nowPlaying.open")}
+                    aria-pressed={isNowPlayingOpen}
+                    onClick={() => setNowPlayingOpen(true)}
+                    className="flex min-w-0 items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:hidden"
+                  >
+                    <TrackMetaContent item={currentItem} />
+                  </button>
+                  <div className="hidden min-w-0 md:flex">
+                    <TrackMeta item={currentItem} onNavigate={navigate} />
+                  </div>
+                </>
               ) : null}
             </div>
 

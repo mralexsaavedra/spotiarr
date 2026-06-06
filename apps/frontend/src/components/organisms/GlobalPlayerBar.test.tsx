@@ -31,6 +31,10 @@ vi.mock("./QueueSidePanel", () => ({
   QueueSidePanel: () => null,
 }));
 
+vi.mock("./NowPlayingFullscreen", () => ({
+  NowPlayingFullscreen: () => null,
+}));
+
 vi.mock("react-i18next", async () => {
   const actual = await vi.importActual<typeof import("react-i18next")>("react-i18next");
   return {
@@ -46,6 +50,10 @@ vi.mock("react-i18next", async () => {
           "player.queue.repeatAll": "Repeat all",
           "player.queue.repeatOne": "Repeat one",
           "player.queue.shuffleOn": "Shuffle on",
+          "player.nowPlaying.open": "Open Now Playing",
+          "player.nowPlaying.close": "Close",
+          "player.nowPlaying.title": "Now Playing",
+          "player.nowPlaying.queueLabel": "Queue",
         };
         return map[key] ?? key;
       },
@@ -148,8 +156,8 @@ describe("track metadata", () => {
 
     render(<GlobalPlayerBar />);
 
-    expect(screen.getByText("Track a")).not.toBeNull();
-    expect(screen.getByText("Artist a")).not.toBeNull();
+    expect(screen.getAllByText("Track a").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Artist a").length).toBeGreaterThan(0);
   });
 
   it("shows artwork when artworkUrl is provided", () => {
@@ -157,8 +165,8 @@ describe("track metadata", () => {
 
     render(<GlobalPlayerBar />);
 
-    const img = screen.queryByRole("img", { name: /Track a/i });
-    expect(img).not.toBeNull();
+    const imgs = screen.queryAllByRole("img", { name: /Track a/i });
+    expect(imgs.length).toBeGreaterThan(0);
   });
 
   it("shows placeholder when artworkUrl is missing", () => {
@@ -454,16 +462,16 @@ describe("TrackMeta navigation", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/playlist/abc?mode=library");
   });
 
-  it("[T2.7] renders as non-interactive div when contextPath is absent", () => {
+  it("[T2.7] desktop TrackMeta renders as non-interactive div when contextPath is absent", () => {
     const item = makeItem("y"); // no contextPath
     usePlayerStore.getState().playQueue([item], 0);
 
     render(<GlobalPlayerBar />);
 
-    // No button with navigate aria-label
-    expect(screen.queryByRole("button", { name: /Open Track y/ })).toBeNull();
-    // Track name still visible
-    expect(screen.getByText("Track y")).not.toBeNull();
+    // No navigate button (contextPath-based) — only the mobile now-playing trigger
+    expect(screen.queryByRole("button", { name: /Open Track y by Artist y/ })).toBeNull();
+    // Track name still visible (rendered in mobile button)
+    expect(screen.getAllByText("Track y").length).toBeGreaterThan(0);
   });
 });
 
@@ -760,5 +768,66 @@ describe("isAtFirst / isAtLast with modes", () => {
 
     const prevBtn = screen.getByRole("button", { name: "Previous track" });
     expect(prevBtn).toHaveProperty("disabled", true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mobile now-playing trigger (Tasks 2 / S2 / S6)
+// ---------------------------------------------------------------------------
+
+describe("mobile now-playing trigger", () => {
+  it("renders mobile trigger button with aria-label 'Open Now Playing'", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    render(<GlobalPlayerBar />);
+
+    expect(screen.getByRole("button", { name: "Open Now Playing" })).not.toBeNull();
+  });
+
+  it("mobile trigger button has md:hidden class", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Open Now Playing" });
+    expect(btn.className).toContain("md:hidden");
+  });
+
+  it("clicking mobile trigger calls setNowPlayingOpen(true)", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    render(<GlobalPlayerBar />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Now Playing" }));
+    expect(usePlayerStore.getState().isNowPlayingOpen).toBe(true);
+  });
+
+  it("aria-pressed on mobile trigger reflects isNowPlayingOpen", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isNowPlayingOpen: true });
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Open Now Playing" });
+    expect(btn.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("desktop TrackMeta wrapper has hidden md:flex classes", () => {
+    const item = makeItemWithContext("x", "/playlist/abc?mode=library");
+    usePlayerStore.getState().playQueue([item], 0);
+    render(<GlobalPlayerBar />);
+
+    const navBtn = screen.getByRole("button", { name: /Open Track x by Artist x/ });
+    const wrapper = navBtn.closest("div");
+    expect(wrapper?.className).toContain("hidden");
+    expect(wrapper?.className).toContain("md:flex");
+  });
+
+  it("focus returns to mobile trigger when isNowPlayingOpen transitions true → false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isNowPlayingOpen: true });
+    const { rerender } = render(<GlobalPlayerBar />);
+
+    usePlayerStore.setState({ isNowPlayingOpen: false });
+    rerender(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Open Now Playing" });
+    expect(document.activeElement).toBe(btn);
   });
 });
