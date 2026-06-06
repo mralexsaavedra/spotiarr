@@ -2,7 +2,7 @@ import { ApiRoutes, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { generatePath, useParams } from "react-router-dom";
 import { Path } from "@/routes/routes";
-import { type QueueItem } from "@/store/usePlayerStore";
+import { type QueueItem, usePlayerStore } from "@/store/usePlayerStore";
 import { Track } from "@/types";
 import { useLibraryArtistQuery } from "../queries/useLibraryArtistQuery";
 import { usePlayerQueueBinding } from "../usePlayerQueueBinding";
@@ -80,10 +80,18 @@ export const useLibraryAlbumDetailController = () => {
     onPauseTrack,
   } = usePlayerQueueBinding(queueItems);
 
+  const isShuffleActive = usePlayerStore((s) => s.shuffleMode);
+
   const onPlayPlaylist = useCallback(() => {
     if (!hasPlayableTracks) return;
     playFromIndex(currentIndex ?? 0);
   }, [currentIndex, hasPlayableTracks, playFromIndex]);
+
+  const onShufflePlay = useCallback(() => {
+    if (!hasPlayableTracks) return;
+    usePlayerStore.setState({ shuffleMode: true });
+    playFromIndex(0);
+  }, [hasPlayableTracks, playFromIndex]);
 
   const backToArtistPath = generatePath(Path.LIBRARY_ARTIST, {
     name: artistName,
@@ -107,5 +115,7 @@ export const useLibraryAlbumDetailController = () => {
     hasPlayableTracks,
     onPlayPlaylist,
     onPausePlaylist: onPauseTrack,
+    isShuffleActive,
+    onShufflePlay,
   };
 };

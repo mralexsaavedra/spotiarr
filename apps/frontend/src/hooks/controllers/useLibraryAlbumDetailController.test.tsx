@@ -5,9 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import { Path } from "@/routes/routes";
 import { useLibraryAlbumDetailController } from "./useLibraryAlbumDetailController";
 
-const mockUseParams = vi.fn();
-const mockUseLibraryArtistQuery = vi.fn();
-const mockPlayQueue = vi.fn();
+const { mockUseParams, mockUseLibraryArtistQuery, mockPlayQueue, mockSetState } = vi.hoisted(
+  () => ({
+    mockUseParams: vi.fn(),
+    mockUseLibraryArtistQuery: vi.fn(),
+    mockPlayQueue: vi.fn(),
+    mockSetState: vi.fn(),
+  }),
+);
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -30,11 +35,13 @@ vi.mock("@/store/usePlayerStore", () => ({
           isPlaying: boolean;
           currentIndex: number | null;
           queue: Array<{ id: string }>;
+          shuffleMode: boolean;
         }) => unknown,
-      ) => selector({ isPlaying: false, currentIndex: null, queue: [] }),
+      ) => selector({ isPlaying: false, currentIndex: null, queue: [], shuffleMode: false }),
     ),
     {
       getState: vi.fn(() => ({ playQueue: mockPlayQueue, togglePlay: vi.fn() })),
+      setState: mockSetState,
     },
   ),
 }));
@@ -296,6 +303,97 @@ describe("useLibraryAlbumDetailController", () => {
     items.forEach((item) => {
       expect(item.contextPath).toBe(expectedPath);
     });
+  });
+
+  it("exposes onShufflePlay and isShuffleActive in return value", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    expect(typeof result.current.onShufflePlay).toBe("function");
+    expect(typeof result.current.isShuffleActive).toBe("boolean");
+  });
+
+  it("onShufflePlay calls setState({shuffleMode:true}) BEFORE playFromIndex(0)", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    mockSetState.mockClear();
+    mockPlayQueue.mockClear();
+
+    const callOrder: string[] = [];
+    mockSetState.mockImplementation(() => {
+      callOrder.push("setState");
+    });
+    mockPlayQueue.mockImplementation(() => {
+      callOrder.push("playQueue");
+    });
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onShufflePlay();
+    });
+
+    expect(mockSetState).toHaveBeenCalledWith({ shuffleMode: true });
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    expect(callOrder[0]).toBe("setState");
+    expect(callOrder[1]).toBe("playQueue");
+  });
+
+  it("onShufflePlay is a no-op when hasPlayableTracks is false", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "missing",
+    });
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    mockSetState.mockClear();
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onShufflePlay();
+    });
+
+    expect(mockSetState).not.toHaveBeenCalled();
+    expect(mockPlayQueue).not.toHaveBeenCalled();
+  });
+
+  it("isShuffleActive is false when store shuffleMode is false", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    expect(result.current.isShuffleActive).toBe(false);
   });
 
   it("does not expose audioRef, audioSrc, or playbackError in return shape", () => {

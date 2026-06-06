@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { type QueueItem } from "@/store/usePlayerStore";
+import { type QueueItem, usePlayerStore } from "@/store/usePlayerStore";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useTracksQuery } from "../queries/useTracksQuery";
 import { useNavigationHelpers } from "../useNavigationHelpers";
@@ -40,8 +40,16 @@ export const usePlaylistDetailController = () => {
   const { currentTrackId, isPlaying, hasPlayableTracks, playFromIndex, onPlayTrack, onPauseTrack } =
     usePlayerQueueBinding(queueItems);
 
+  const isShuffleActive = usePlayerStore((s) => s.shuffleMode);
+
   const onPlayPlaylist = useCallback(() => {
     if (!hasPlayableTracks) return;
+    playFromIndex(0);
+  }, [hasPlayableTracks, playFromIndex]);
+
+  const onShufflePlay = useCallback(() => {
+    if (!hasPlayableTracks) return;
+    usePlayerStore.setState({ shuffleMode: true });
     playFromIndex(0);
   }, [hasPlayableTracks, playFromIndex]);
 
@@ -86,6 +94,8 @@ export const usePlaylistDetailController = () => {
     onPlayPlaylist,
     onPausePlaylist: onPauseTrack,
     hasPlayableTracks,
+    isShuffleActive,
+    onShufflePlay,
     mode,
   };
 };

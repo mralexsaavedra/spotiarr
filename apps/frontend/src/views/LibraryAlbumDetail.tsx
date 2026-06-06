@@ -1,4 +1,4 @@
-import { faMusic, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faMusic, faPause, faPlay, faShuffle } from "@fortawesome/free-solid-svg-icons";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -8,6 +8,7 @@ import { AlbumPageLayout } from "@/components/molecules/AlbumPageLayout";
 import { EmptyState } from "@/components/molecules/EmptyState";
 import { SpotifyLinkButton } from "@/components/molecules/SpotifyLinkButton";
 import { useLibraryAlbumDetailController } from "@/hooks/controllers/useLibraryAlbumDetailController";
+import { cn } from "@/utils/cn";
 
 export const LibraryAlbumDetail: FC = () => {
   const { t } = useTranslation();
@@ -28,6 +29,8 @@ export const LibraryAlbumDetail: FC = () => {
     hasPlayableTracks,
     onPlayPlaylist,
     onPausePlaylist,
+    isShuffleActive,
+    onShufflePlay,
   } = useLibraryAlbumDetailController();
 
   if (isLoading) {
@@ -115,6 +118,22 @@ export const LibraryAlbumDetail: FC = () => {
                     {isPlaying ? t("library.album.pause") : t("library.album.play")}
                   </span>
                 </Button>
+              ) : null}
+              {hasPlayableTracks && onShufflePlay ? (
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={onShufflePlay}
+                  title={t("playlist.actions.shufflePlay")}
+                  ariaLabel={t("playlist.actions.shufflePlay")}
+                  icon={faShuffle}
+                  className={cn(
+                    "!h-10 !w-10 justify-center !rounded-full !p-0 transition-transform hover:scale-105",
+                    isShuffleActive
+                      ? "text-green-500"
+                      : "text-text-secondary hover:text-text-primary",
+                  )}
+                />
               ) : null}
               <SpotifyLinkButton
                 provider="spotify"
