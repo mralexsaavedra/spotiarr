@@ -6,7 +6,6 @@ export interface MediaSessionActions {
   pause: () => void;
   next: () => void;
   previous: () => void;
-  /** Seek to position in seconds from the start of the current track. */
   seek: (timeSec: number) => void;
 }
 
@@ -14,22 +13,11 @@ function isMediaSessionSupported(): boolean {
   return typeof navigator !== "undefined" && navigator.mediaSession != null;
 }
 
-/**
- * Thin imperative bridge between player store state and the browser's
- * Media Session API. No-ops silently when the API is unavailable (e.g. jsdom,
- * older browsers). Three separate effects keep metadata, playback state, and
- * action handlers independently updated.
- *
- * @param currentItem - The currently playing queue item, or null when idle.
- * @param isPlaying   - Whether playback is active.
- * @param actions     - Stable references to store transport actions.
- */
 export function useMediaSession(
   currentItem: QueueItem | null,
   isPlaying: boolean,
   actions: MediaSessionActions,
 ): void {
-  // Effect 1: metadata — keyed on currentItem identity
   useEffect(() => {
     if (!isMediaSessionSupported()) return;
 
@@ -48,7 +36,6 @@ export function useMediaSession(
     });
   }, [currentItem]);
 
-  // Effect 2: playbackState — keyed on isPlaying + currentItem presence
   useEffect(() => {
     if (!isMediaSessionSupported()) return;
 
@@ -59,7 +46,6 @@ export function useMediaSession(
     }
   }, [isPlaying, currentItem]);
 
-  // Effect 3: action handlers — keyed on actions identity; cleanup clears all on unmount
   useEffect(() => {
     if (!isMediaSessionSupported()) return;
 
@@ -90,12 +76,11 @@ export function useMediaSession(
 
     return () => {
       if (!isMediaSessionSupported()) return;
-      // Cleanup: clear all handlers and nullify metadata
       handlers.forEach(([name]) => {
         try {
           navigator.mediaSession.setActionHandler(name, null);
         } catch {
-          // Silently ignore on cleanup
+          // ignore
         }
       });
       navigator.mediaSession.metadata = null;
