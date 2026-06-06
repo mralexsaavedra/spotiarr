@@ -7,7 +7,7 @@ import {
   faVolumeXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
@@ -152,18 +152,20 @@ export const GlobalPlayerBar: FC = () => {
 
   const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
 
-  // Media Session API integration — delegates to store actions
-  const mediaSessionActions = {
-    play: () => {
-      if (!usePlayerStore.getState().isPlaying) usePlayerStore.getState().togglePlay();
-    },
-    pause: () => {
-      if (usePlayerStore.getState().isPlaying) usePlayerStore.getState().togglePlay();
-    },
-    next,
-    previous: prev,
-    seek,
-  };
+  const mediaSessionActions = useMemo(
+    () => ({
+      play: () => {
+        if (!usePlayerStore.getState().isPlaying) usePlayerStore.getState().togglePlay();
+      },
+      pause: () => {
+        if (usePlayerStore.getState().isPlaying) usePlayerStore.getState().togglePlay();
+      },
+      next,
+      previous: prev,
+      seek,
+    }),
+    [next, prev, seek],
+  );
   useMediaSession(currentItem, isPlaying, mediaSessionActions);
 
   useEffect(() => {
