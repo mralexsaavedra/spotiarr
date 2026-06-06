@@ -875,6 +875,167 @@ describe("playFromIndex", () => {
 });
 
 // ---------------------------------------------------------------------------
+// reorderQueue
+// ---------------------------------------------------------------------------
+
+describe("reorderQueue", () => {
+  const makeQueue = () => [
+    makeItem("a"),
+    makeItem("b"),
+    makeItem("c"),
+    makeItem("d"),
+    makeItem("e"),
+  ];
+
+  it("moves current track forward → currentIndex equals toIndex", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.getState().reorderQueue(1, 3);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(3);
+    expect(state.queue[3]!.id).toBe("b");
+  });
+
+  it("moves current track backward → currentIndex equals toIndex", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 3);
+    usePlayerStore.getState().reorderQueue(3, 1);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.queue[1]!.id).toBe("d");
+  });
+
+  it("moves track from before current to after current → currentIndex decreases by 1", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.getState().reorderQueue(0, 3);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.queue[1]!.id).toBe("c");
+  });
+
+  it("moves track from before current to exactly currentIndex → currentIndex decreases by 1", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.getState().reorderQueue(0, 2);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.queue[1]!.id).toBe("c");
+  });
+
+  it("moves track from after current to before current → currentIndex increases by 1", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.getState().reorderQueue(3, 0);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(2);
+    expect(state.queue[2]!.id).toBe("b");
+  });
+
+  it("moves track from after current to exactly currentIndex → currentIndex increases by 1", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.getState().reorderQueue(3, 1);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(2);
+    expect(state.queue[2]!.id).toBe("b");
+  });
+
+  it("moves track within before-current segment only → currentIndex unchanged", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 3);
+    usePlayerStore.getState().reorderQueue(0, 1);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(3);
+    expect(state.queue[3]!.id).toBe("d");
+  });
+
+  it("moves track within after-current segment only → currentIndex unchanged", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.getState().reorderQueue(3, 4);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.queue[1]!.id).toBe("b");
+  });
+
+  it("no-op when fromIndex equals toIndex → queue reference unchanged", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    const queueBefore = usePlayerStore.getState().queue;
+    usePlayerStore.getState().reorderQueue(2, 2);
+
+    expect(usePlayerStore.getState().queue).toBe(queueBefore);
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+  });
+
+  it("no-op when fromIndex out of range → queue reference unchanged", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    const queueBefore = usePlayerStore.getState().queue;
+    usePlayerStore.getState().reorderQueue(-1, 0);
+
+    expect(usePlayerStore.getState().queue).toBe(queueBefore);
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+  });
+
+  it("no-op when toIndex out of range → queue reference unchanged", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    const queueBefore = usePlayerStore.getState().queue;
+    usePlayerStore.getState().reorderQueue(0, 10);
+
+    expect(usePlayerStore.getState().queue).toBe(queueBefore);
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+  });
+
+  it("shuffleMode true: shuffleOrder pinned at new currentIndex, shuffleOrderIndex reset to 0", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ shuffleMode: true });
+    usePlayerStore.getState().reorderQueue(3, 0);
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrder).toHaveLength(5);
+    expect(state.shuffleOrder[0]).toBe(state.currentIndex);
+    expect(state.shuffleOrderIndex).toBe(0);
+  });
+
+  it("shuffleMode false: shuffleOrder untouched after reorder", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ shuffleOrder: [1, 3, 0, 4, 2], shuffleOrderIndex: 1 });
+    const orderBefore = usePlayerStore.getState().shuffleOrder.slice();
+    usePlayerStore.getState().reorderQueue(0, 3);
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrder).toEqual(orderBefore);
+    expect(state.shuffleOrderIndex).toBe(1);
+  });
+
+  it("isPlaying, currentTime, duration unchanged after valid reorder", () => {
+    const items = makeQueue();
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({ currentTime: 42, duration: 200 });
+
+    usePlayerStore.getState().reorderQueue(0, 4);
+
+    const state = usePlayerStore.getState();
+    expect(state.isPlaying).toBe(true);
+    expect(state.currentTime).toBe(42);
+    expect(state.duration).toBe(200);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // playQueue() with shuffle (S3-1, S3-2)
 // ---------------------------------------------------------------------------
 

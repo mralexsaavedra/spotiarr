@@ -55,6 +55,8 @@ export interface PlayerState {
   setQueuePanelOpen: (open: boolean) => void;
   playFromIndex: (index: number) => void;
 
+  reorderQueue: (fromIndex: number, toIndex: number) => void;
+
   setAudioElement: (el: HTMLAudioElement | null) => void;
   _onLoadedMetadata: (duration: number) => void;
   _onTimeUpdate: (currentTime: number) => void;
@@ -320,6 +322,39 @@ export const usePlayerStore = create<PlayerState>()(
           if (_audioElement) _audioElement.currentTime = 0;
           if (shuffleMode) {
             const order = shuffleIndices(queue.length, index);
+            set({ shuffleOrder: order, shuffleOrderIndex: 0 });
+          }
+        },
+
+        reorderQueue(fromIndex, toIndex) {
+          const { queue, currentIndex, shuffleMode } = get();
+          const len = queue.length;
+
+          if (fromIndex === toIndex) return;
+          if (fromIndex < 0 || fromIndex >= len) return;
+          if (toIndex < 0 || toIndex >= len) return;
+
+          const nextQueue = queue.slice();
+          const [moved] = nextQueue.splice(fromIndex, 1);
+          nextQueue.splice(toIndex, 0, moved!);
+
+          // ADR-1: 4-scenario currentIndex arithmetic
+          let nextCurrentIndex = currentIndex;
+          if (currentIndex !== null) {
+            if (fromIndex === currentIndex) {
+              nextCurrentIndex = toIndex; // (1) moved the current track
+            } else if (fromIndex < currentIndex && toIndex >= currentIndex) {
+              nextCurrentIndex = currentIndex - 1; // (2) before → at/after current
+            } else if (fromIndex > currentIndex && toIndex <= currentIndex) {
+              nextCurrentIndex = currentIndex + 1; // (3) after → at/before current
+            }
+            // (4) both on same side → unchanged
+          }
+
+          set({ queue: nextQueue, currentIndex: nextCurrentIndex });
+
+          if (shuffleMode && nextCurrentIndex !== null) {
+            const order = shuffleIndices(nextQueue.length, nextCurrentIndex);
             set({ shuffleOrder: order, shuffleOrderIndex: 0 });
           }
         },
