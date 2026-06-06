@@ -69,6 +69,7 @@ export const usePlaylistDetailController = () => {
     tracks,
     spotifyUrl: playlist?.spotifyUrl,
     id,
+    expectedTrackCount: playlist && "stats" in playlist ? playlist.stats.totalCount : undefined,
   });
 
   return {
