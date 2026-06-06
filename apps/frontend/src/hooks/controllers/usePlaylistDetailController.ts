@@ -1,17 +1,13 @@
 import { useCallback, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-
-export type PlaylistDetailMode = "library" | "managed";
+import { type QueueItem } from "@/store/usePlayerStore";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useTracksQuery } from "../queries/useTracksQuery";
 import { useNavigationHelpers } from "../useNavigationHelpers";
-import {
-  LocalTrackPlaybackErrorKey,
-  useLocalTrackPlaybackController,
-} from "./useLocalTrackPlaybackController";
+import { usePlayerQueueBinding } from "../usePlayerQueueBinding";
 import { usePlaylistController } from "./usePlaylistController";
 
-export type PlaylistPlaybackErrorKey = LocalTrackPlaybackErrorKey<"library.album">;
+export type PlaylistDetailMode = "library" | "managed";
 
 export const usePlaylistDetailController = () => {
   const { handleGoHome } = useNavigationHelpers();
@@ -24,40 +20,29 @@ export const usePlaylistDetailController = () => {
 
   const playlist = useMemo(() => playlists.find((p) => p.id === id), [playlists, id]);
 
-  const {
-    audioSrc,
-    currentTrackId,
-    isPlaying,
-    playbackError,
-    setAudioElement,
-    onPlayTrack,
-    onPauseTrack,
-    onAudioPlay,
-    onAudioPause,
-    onAudioError,
-  } = useLocalTrackPlaybackController({
-    tracks,
-    scopeKey: id ?? "playlist-detail",
-    errorKeyPrefix: "library.album",
-    getAudioUrl: (track) => track.audioUrl,
-  });
+  const queueItems: QueueItem[] = useMemo(() => {
+    if (mode !== "library") return [];
 
-  const firstPlayableTrackId = useMemo(
-    () => tracks.find((track) => track.audioUrl)?.id ?? null,
-    [tracks],
-  );
+    return tracks
+      .filter((track) => Boolean(track.audioUrl))
+      .map((track) => ({
+        id: track.id,
+        name: track.name,
+        artist: track.artist ?? "",
+        album: track.album,
+        artworkUrl: undefined,
+        audioUrl: track.audioUrl!,
+        durationMs: track.durationMs,
+      }));
+  }, [mode, tracks]);
 
-  const hasPlayableTracks = firstPlayableTrackId !== null;
+  const { currentTrackId, isPlaying, hasPlayableTracks, playFromIndex, onPlayTrack, onPauseTrack } =
+    usePlayerQueueBinding(queueItems);
 
   const onPlayPlaylist = useCallback(() => {
-    const targetTrackId = currentTrackId ?? firstPlayableTrackId;
-
-    if (!targetTrackId) {
-      return;
-    }
-
-    onPlayTrack(targetTrackId);
-  }, [currentTrackId, firstPlayableTrackId, onPlayTrack]);
+    if (!hasPlayableTracks) return;
+    playFromIndex(0);
+  }, [hasPlayableTracks, playFromIndex]);
 
   const {
     isDownloading,
@@ -93,18 +78,12 @@ export const usePlaylistDetailController = () => {
     handleRetryFailed,
     handleRetryTrack,
     handleGoHome,
-    audioSrc,
     currentTrackId,
     isPlaying,
-    playbackError: playbackError as PlaylistPlaybackErrorKey | null,
-    setAudioElement,
     onPlayTrack,
     onPauseTrack,
     onPlayPlaylist,
     onPausePlaylist: onPauseTrack,
-    onAudioPlay,
-    onAudioPause,
-    onAudioError,
     hasPlayableTracks,
     mode,
   };

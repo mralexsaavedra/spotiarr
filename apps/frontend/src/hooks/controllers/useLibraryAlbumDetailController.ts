@@ -2,14 +2,10 @@ import { ApiRoutes, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { generatePath, useParams } from "react-router-dom";
 import { Path } from "@/routes/routes";
+import { type QueueItem } from "@/store/usePlayerStore";
 import { Track } from "@/types";
 import { useLibraryArtistQuery } from "../queries/useLibraryArtistQuery";
-import {
-  LocalTrackPlaybackErrorKey,
-  useLocalTrackPlaybackController,
-} from "./useLocalTrackPlaybackController";
-
-export type LibraryPlaybackErrorKey = LocalTrackPlaybackErrorKey<"library.album">;
+import { usePlayerQueueBinding } from "../usePlayerQueueBinding";
 
 const safeDecodeURIComponent = (value: string | undefined): string => {
   if (!value) {
@@ -52,40 +48,38 @@ export const useLibraryAlbumDetailController = () => {
     }));
   }, [album, artistName]);
 
-  const {
-    audioSrc,
-    currentTrackId,
-    isPlaying,
-    playbackError,
-    setAudioElement,
-    onPlayTrack,
-    onPauseTrack,
-    onAudioPlay,
-    onAudioPause,
-    onAudioError,
-  } = useLocalTrackPlaybackController({
-    tracks,
-    scopeKey: `${artistName}::${selectedAlbumName}`,
-    errorKeyPrefix: "library.album",
-    getAudioUrl: (track) => track.trackUrl,
-  });
-
-  const firstPlayableTrackId = useMemo(
-    () => tracks.find((track) => track.trackUrl)?.id ?? null,
-    [tracks],
-  );
-
-  const hasPlayableTracks = firstPlayableTrackId !== null;
-
-  const onPlayPlaylist = useCallback(() => {
-    const targetTrackId = currentTrackId ?? firstPlayableTrackId;
-    if (!targetTrackId) return;
-    onPlayTrack(targetTrackId);
-  }, [currentTrackId, firstPlayableTrackId, onPlayTrack]);
-
   const coverUrl = album?.image
     ? `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/image?path=${encodeURIComponent(album.image)}`
     : undefined;
+
+  const queueItems: QueueItem[] = useMemo(() => {
+    if (!album) return [];
+
+    return album.tracks.map((track, index) => ({
+      id: `${artistName}-${album.name}-${index}`,
+      name: track.name,
+      artist: track.artist,
+      album: track.album,
+      artworkUrl: coverUrl,
+      audioUrl: `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/audio?path=${encodeURIComponent(track.filePath)}`,
+      durationMs: track.duration ? track.duration * 1000 : undefined,
+    }));
+  }, [album, artistName, coverUrl]);
+
+  const {
+    currentIndex,
+    currentTrackId,
+    isPlaying,
+    hasPlayableTracks,
+    playFromIndex,
+    onPlayTrack,
+    onPauseTrack,
+  } = usePlayerQueueBinding(queueItems);
+
+  const onPlayPlaylist = useCallback(() => {
+    if (!hasPlayableTracks) return;
+    playFromIndex(currentIndex ?? 0);
+  }, [currentIndex, hasPlayableTracks, playFromIndex]);
 
   const backToArtistPath = generatePath(Path.LIBRARY_ARTIST, {
     name: artistName,
@@ -102,16 +96,10 @@ export const useLibraryAlbumDetailController = () => {
     isNotFound: !isLoading && !error && (!artist || !album),
     playlistType: PlaylistTypeEnum.Album,
     backToArtistPath,
-    audioSrc,
     currentTrackId,
     isPlaying,
-    playbackError: playbackError as LibraryPlaybackErrorKey | null,
-    setAudioElement,
     onPlayTrack,
     onPauseTrack,
-    onAudioPlay,
-    onAudioPause,
-    onAudioError,
     hasPlayableTracks,
     onPlayPlaylist,
     onPausePlaylist: onPauseTrack,
