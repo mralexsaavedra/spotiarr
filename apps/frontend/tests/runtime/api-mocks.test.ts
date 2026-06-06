@@ -4,16 +4,21 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 import {
+  buildLibraryAlbum,
   buildHistoryItem,
   buildLibraryArtist,
+  buildLibraryTrack,
   buildPlaylist,
+  buildTrack,
   buildRelease,
   installArtistMocks,
   installExternalUrlMock,
   installFeedMocks,
   installHistoryMocks,
+  installLibraryAudioMocks,
   installLibraryMocks,
   installPlaylistMocks,
+  installTrackMocks,
 } from "../helpers/api-mocks";
 
 type RoutePattern = string | RegExp;
@@ -127,6 +132,32 @@ describe("api mock builders", () => {
     expect(playlist).toMatchObject({ id: "playlist-42", tracks: [] });
     expect(historyItem).toMatchObject({ playlistSpotifyUrl: null, trackCount: 0 });
     expect(release).toMatchObject({ albumType: "single", totalTracks: 2 });
+  });
+
+  test("builds reusable library album, library track, and managed track defaults", () => {
+    const libraryTrack = buildLibraryTrack();
+    const libraryAlbum = buildLibraryAlbum();
+    const track = buildTrack();
+
+    expect(libraryTrack).toMatchObject({
+      album: "Library Album",
+      artist: "Library Artist",
+      filePath: "/library/artists/library-artist/library-album/01 Mock Track.mp3",
+      format: "mp3",
+      name: "Mock Track",
+    });
+    expect(libraryAlbum).toMatchObject({
+      artist: "Library Artist",
+      name: "Library Album",
+      path: "/library/artists/library-artist/library-album",
+      trackCount: 1,
+    });
+    expect(track).toMatchObject({
+      artist: "Mock Artist",
+      id: "track-1",
+      name: "Mock Track",
+      status: "completed",
+    });
   });
 });
 
@@ -261,6 +292,39 @@ describe("api mock installers", () => {
     await expect(
       invokeJsonRoute(routes[5]!.handler, "http://127.0.0.1:4173/api/external-url?id=artist-1"),
     ).resolves.toEqual({ url: "https://open.spotify.com/artist/artist-1" });
+  });
+
+  test("installs track routes keyed by playlist id for detail views", async () => {
+    const { page, routes } = createRouteRecorder();
+    const track = buildTrack({ id: "detail-track-1", playlistId: "playlist-detail-1" });
+
+    await installTrackMocks(page, {
+      tracksByPlaylistId: {
+        "playlist-detail-1": [track],
+      },
+    });
+
+    expect(routes).toHaveLength(1);
+    expect(String(routes[0]!.pattern)).toBe("**/api/track/playlist/**");
+
+    await expect(
+      invokeJsonRoute(
+        routes[0]!.handler,
+        "http://127.0.0.1:4173/api/track/playlist/playlist-detail-1",
+      ),
+    ).resolves.toMatchObject({ data: [track] });
+    await expect(
+      invokeJsonRoute(routes[0]!.handler, "http://127.0.0.1:4173/api/track/playlist/missing"),
+    ).resolves.toMatchObject({ data: [] });
+  });
+
+  test("installs a hermetic library audio route for playback-capable specs", async () => {
+    const { page, routes } = createRouteRecorder();
+
+    await installLibraryAudioMocks(page);
+
+    expect(routes).toHaveLength(1);
+    expect(String(routes[0]!.pattern)).toBe("**/api/library/audio**");
   });
 });
 
