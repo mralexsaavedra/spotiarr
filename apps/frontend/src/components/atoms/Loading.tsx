@@ -10,9 +10,14 @@ interface LoadingProps {
 
 export const Loading: FC<LoadingProps> = ({ message, className = "" }) => {
   return (
-    <div className={cn("flex min-h-[50vh] flex-1 items-center justify-center", className)}>
+    <div
+      className={cn("flex min-h-[50vh] flex-1 items-center justify-center", className)}
+      role="status"
+      aria-label={message ?? "Loading"}
+    >
       <div className="space-y-3 text-center">
         <FontAwesomeIcon icon={faCircleNotch} spin className="text-primary text-4xl" />
+        {!message && <span className="sr-only">Loading</span>}
         {message && <p className="text-text-secondary animate-pulse">{message}</p>}
       </div>
     </div>

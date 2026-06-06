@@ -13,6 +13,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:mocked": "PLAYWRIGHT_TARGET=mocked playwright test --project=mocked",
+    "test:e2e:real": "PLAYWRIGHT_TARGET=real playwright test --project=real",
     "test:e2e:runtime": "vitest run --config vitest.playwright.config.ts",
     "test:e2e:ui": "playwright test --ui"
   },

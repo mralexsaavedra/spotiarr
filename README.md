@@ -166,6 +166,17 @@ pnpm dev
 # Backend:  http://localhost:3000 (API)
 ```
 
+### Frontend E2E Commands
+
+Build the shared package before running Playwright in a fresh checkout:
+
+```bash
+pnpm --filter @spotiarr/shared run build
+pnpm --filter frontend run test:e2e:mocked
+pnpm --filter frontend run test:e2e:real
+pnpm --filter frontend run test:e2e
+```
+
 ## ⚙️ Configuration
 
 ### Environment Variables
