@@ -3,6 +3,8 @@ import {
   faForwardStep,
   faPause,
   faPlay,
+  faRepeat,
+  faShuffle,
   faVolumeHigh,
   faVolumeXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -139,12 +141,16 @@ export const GlobalPlayerBar: FC = () => {
   const currentIndex = usePlayerStore((s) => s.currentIndex);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const error = usePlayerStore((s) => s.error);
+  const shuffleMode = usePlayerStore((s) => s.shuffleMode);
+  const repeatMode = usePlayerStore((s) => s.repeatMode);
 
   const setAudioElement = usePlayerStore((s) => s.setAudioElement);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
   const seek = usePlayerStore((s) => s.seek);
+  const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
+  const cycleRepeat = usePlayerStore((s) => s.cycleRepeat);
   const _onLoadedMetadata = usePlayerStore((s) => s._onLoadedMetadata);
   const _onTimeUpdate = usePlayerStore((s) => s._onTimeUpdate);
   const _onEnded = usePlayerStore((s) => s._onEnded);
@@ -232,8 +238,17 @@ export const GlobalPlayerBar: FC = () => {
   }, [error]);
 
   const isVisible = currentIndex !== null || !!error;
-  const isAtFirst = currentIndex === 0;
-  const isAtLast = currentIndex !== null && currentIndex === queue.length - 1;
+  const isAtFirst =
+    !shuffleMode && repeatMode !== "all" && (currentIndex === null || currentIndex <= 0);
+  const isAtLast =
+    !shuffleMode &&
+    repeatMode !== "all" &&
+    (currentIndex === null || currentIndex >= queue.length - 1);
+
+  const shuffleAriaLabel = shuffleMode ? "Disable shuffle" : "Enable shuffle";
+  const repeatAriaLabel =
+    repeatMode === "off" ? "Enable repeat" : repeatMode === "all" ? "Repeat all" : "Repeat one";
+  const isRepeatActive = repeatMode !== "off";
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== " ") return;
@@ -271,6 +286,18 @@ export const GlobalPlayerBar: FC = () => {
               <div className="flex items-center gap-4">
                 <button
                   type="button"
+                  aria-label={shuffleAriaLabel}
+                  onClick={toggleShuffle}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    shuffleMode ? "text-green-500" : "text-text-secondary hover:text-text-primary",
+                  )}
+                >
+                  <FontAwesomeIcon icon={faShuffle} className="text-sm" />
+                </button>
+
+                <button
+                  type="button"
                   aria-label="Previous track"
                   disabled={isAtFirst}
                   onClick={prev}
@@ -303,6 +330,25 @@ export const GlobalPlayerBar: FC = () => {
                   )}
                 >
                   <FontAwesomeIcon icon={faForwardStep} className="text-base" />
+                </button>
+
+                <button
+                  type="button"
+                  aria-label={repeatAriaLabel}
+                  onClick={cycleRepeat}
+                  className={cn(
+                    "relative flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    isRepeatActive
+                      ? "text-green-500"
+                      : "text-text-secondary hover:text-text-primary",
+                  )}
+                >
+                  <FontAwesomeIcon icon={faRepeat} className="text-sm" />
+                  {repeatMode === "one" && (
+                    <sup className="absolute -top-1 -right-1 text-[0.55rem] leading-none font-bold">
+                      1
+                    </sup>
+                  )}
                 </button>
               </div>
 
