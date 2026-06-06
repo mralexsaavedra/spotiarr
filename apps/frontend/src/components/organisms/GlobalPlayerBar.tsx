@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
+import { usePreferencesStore } from "@/store/usePreferencesStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
 
@@ -136,6 +137,7 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const navigate = useNavigate();
+  const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
 
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
@@ -269,7 +271,8 @@ export const GlobalPlayerBar: FC = () => {
           onKeyDown={onKeyDown}
           className={cn(
             "bg-surface/95 border-t border-white/10 backdrop-blur-lg",
-            "fixed right-0 bottom-16 left-0 z-40 md:bottom-0",
+            "fixed right-0 bottom-16 left-0 z-40 transition-[left] duration-300 md:bottom-0",
+            isSidebarCollapsed ? "md:left-20" : "md:left-64",
             "px-4 py-2",
           )}
         >
