@@ -112,7 +112,7 @@ export const QueueSidePanel: FC = () => {
                     }}
                     onDragOver={(e) => {
                       e.preventDefault();
-                      e.dataTransfer.dropEffect = "move";
+                      if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
                       if (dragOverIndex !== index) setDragOverIndex(index);
                     }}
                     onDragLeave={(e) => {
