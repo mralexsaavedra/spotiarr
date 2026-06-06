@@ -40,6 +40,8 @@ export interface PlayerState {
   shuffleOrder: number[];
   shuffleOrderIndex: number;
 
+  isQueuePanelOpen: boolean;
+
   playQueue: (items: QueueItem[], startIndex: number) => void;
   togglePlay: () => void;
   next: () => void;
@@ -50,6 +52,8 @@ export interface PlayerState {
   clear: () => void;
   toggleShuffle: () => void;
   cycleRepeat: () => void;
+  setQueuePanelOpen: (open: boolean) => void;
+  playFromIndex: (index: number) => void;
 
   setAudioElement: (el: HTMLAudioElement | null) => void;
   _onLoadedMetadata: (duration: number) => void;
@@ -101,6 +105,7 @@ const INITIAL_STATE = {
   repeatMode: "off" as RepeatMode,
   shuffleOrder: [] as number[],
   shuffleOrderIndex: -1,
+  isQueuePanelOpen: false,
 };
 
 type AdvanceSource = "user" | "ended";
@@ -261,6 +266,7 @@ export const usePlayerStore = create<PlayerState>()(
             currentTime: 0,
             duration: 0,
             error: null,
+            isQueuePanelOpen: false,
           });
         },
 
@@ -301,6 +307,21 @@ export const usePlayerStore = create<PlayerState>()(
 
         _onError(message) {
           set({ error: message, isPlaying: false });
+        },
+
+        setQueuePanelOpen(open) {
+          set({ isQueuePanelOpen: open });
+        },
+
+        playFromIndex(index) {
+          const { queue, shuffleMode } = get();
+          if (index < 0 || index >= queue.length) return;
+          set({ currentIndex: index, isPlaying: true, currentTime: 0 });
+          if (_audioElement) _audioElement.currentTime = 0;
+          if (shuffleMode) {
+            const order = shuffleIndices(queue.length, index);
+            set({ shuffleOrder: order, shuffleOrderIndex: 0 });
+          }
         },
       };
     },

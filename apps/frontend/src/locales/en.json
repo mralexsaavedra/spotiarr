@@ -365,5 +365,17 @@
     "detail": {
       "title": "Album"
     }
+  },
+  "player": {
+    "queue": {
+      "title": "Queue",
+      "empty": "No tracks in queue",
+      "toggleOpen": "Open queue",
+      "toggleClose": "Close queue",
+      "close": "Close",
+      "repeatAll": "Repeat all",
+      "repeatOne": "Repeat one",
+      "shuffleOn": "Shuffle on"
+    }
   }
 }
