@@ -225,6 +225,79 @@ describe("useLibraryAlbumDetailController", () => {
     expect(startIndex).toBe(0);
   });
 
+  // T1.3 — artworkUrl regression: library album controller is unaffected
+  it("[T1.3] dispatched QueueItems carry artworkUrl equal to coverUrl", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onPlayTrack(result.current.tracks[0]!.id);
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+
+    const [items] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; artworkUrl?: string }>,
+      number,
+    ];
+
+    // All items should carry artworkUrl equal to the album's coverUrl
+    const expectedCoverUrl = result.current.coverUrl;
+    items.forEach((item) => {
+      expect(item.artworkUrl).toBe(expectedCoverUrl);
+    });
+  });
+
+  // T2.4 — contextPath on library album queue items
+  it("[T2.4] every dispatched QueueItem carries contextPath equal to the library album route", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onPlayTrack(result.current.tracks[0]!.id);
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+
+    const [items] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; contextPath?: string }>,
+      number,
+    ];
+
+    const expectedPath = generatePath(Path.LIBRARY_ALBUM, {
+      name: "Sigur Rós",
+      albumName: "( )",
+    });
+
+    items.forEach((item) => {
+      expect(item.contextPath).toBe(expectedPath);
+    });
+  });
+
   it("does not expose audioRef, audioSrc, or playbackError in return shape", () => {
     mockUseParams.mockReturnValue({
       name: "Sigur%20R%C3%B3s",

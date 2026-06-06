@@ -30,11 +30,12 @@ export const usePlaylistDetailController = () => {
         name: track.name,
         artist: track.artist ?? "",
         album: track.album,
-        artworkUrl: undefined,
+        artworkUrl: track.albumCoverUrl ?? playlist?.coverUrl ?? undefined,
         audioUrl: track.audioUrl!,
         durationMs: track.durationMs,
+        contextPath: `/playlist/${id}?mode=library`,
       }));
-  }, [mode, tracks]);
+  }, [mode, tracks, playlist, id]);
 
   const { currentTrackId, isPlaying, hasPlayableTracks, playFromIndex, onPlayTrack, onPauseTrack } =
     usePlayerQueueBinding(queueItems);

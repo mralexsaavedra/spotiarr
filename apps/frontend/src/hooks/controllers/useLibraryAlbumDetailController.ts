@@ -63,8 +63,12 @@ export const useLibraryAlbumDetailController = () => {
       artworkUrl: coverUrl,
       audioUrl: `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/audio?path=${encodeURIComponent(track.filePath)}`,
       durationMs: track.duration ? track.duration * 1000 : undefined,
+      contextPath: generatePath(Path.LIBRARY_ALBUM, {
+        name: artistName,
+        albumName: selectedAlbumName,
+      }),
     }));
-  }, [album, artistName, coverUrl]);
+  }, [album, artistName, coverUrl, selectedAlbumName]);
 
   const {
     currentIndex,
