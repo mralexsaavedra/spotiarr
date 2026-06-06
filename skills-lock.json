@@ -36,6 +36,14 @@
       "sourceType": "autoskills-registry",
       "computedHash": "b15b3e6dda23d3f3c230285a122de9df3aabae6408dc2bd52038445e60ba745e"
     },
+    "oxlint": {
+      "source": "local",
+      "sourceType": "local"
+    },
+    "playwright-best-practices": {
+      "source": "local",
+      "sourceType": "local"
+    },
     "prisma-cli": {
       "source": "prisma/skills",
       "sourceType": "autoskills-registry",
@@ -91,6 +99,10 @@
       "sourceType": "local"
     },
     "spotiarr-workflow": {
+      "source": "local",
+      "sourceType": "local"
+    },
+    "vitest": {
       "source": "local",
       "sourceType": "local"
     },
