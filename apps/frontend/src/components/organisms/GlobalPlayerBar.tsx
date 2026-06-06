@@ -8,6 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { FC, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
@@ -93,8 +94,8 @@ const VolumeSection: FC = () => {
   );
 };
 
-const TrackMeta: FC<{ item: QueueItem }> = ({ item }) => (
-  <div className="flex min-w-0 items-center gap-3">
+const TrackMetaContent: FC<{ item: QueueItem }> = ({ item }) => (
+  <>
     <div className="h-10 w-10 shrink-0 overflow-hidden rounded shadow-sm">
       <Image src={item.artworkUrl} alt={item.name} className="rounded" />
     </div>
@@ -102,11 +103,36 @@ const TrackMeta: FC<{ item: QueueItem }> = ({ item }) => (
       <span className="truncate text-sm font-semibold text-white">{item.name}</span>
       <span className="text-text-secondary truncate text-xs">{item.artist}</span>
     </div>
-  </div>
+  </>
 );
+
+const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = ({
+  item,
+  onNavigate,
+}) => {
+  if (item.contextPath) {
+    return (
+      <button
+        type="button"
+        aria-label={`Open ${item.name} by ${item.artist}`}
+        onClick={() => onNavigate(item.contextPath!)}
+        className="flex min-w-0 cursor-pointer items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+      >
+        <TrackMetaContent item={item} />
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <TrackMetaContent item={item} />
+    </div>
+  );
+};
 
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const navigate = useNavigate();
 
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
@@ -219,7 +245,7 @@ export const GlobalPlayerBar: FC = () => {
               {error ? (
                 <span className="text-sm text-red-400">{error}</span>
               ) : currentItem ? (
-                <TrackMeta item={currentItem} />
+                <TrackMeta item={currentItem} onNavigate={navigate} />
               ) : null}
             </div>
 

@@ -33,6 +33,7 @@ export const usePlaylistDetailController = () => {
         artworkUrl: track.albumCoverUrl ?? playlist?.coverUrl ?? undefined,
         audioUrl: track.audioUrl!,
         durationMs: track.durationMs,
+        contextPath: `/playlist/${id}?mode=library`,
       }));
   }, [mode, tracks]);
 

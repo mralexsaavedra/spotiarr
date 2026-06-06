@@ -323,4 +323,26 @@ describe("usePlaylistDetailController", () => {
     const track3Item = items.find((i) => i.id === "track-3");
     expect(track3Item?.artworkUrl).toBeUndefined();
   });
+
+  // T2.2 — contextPath on playlist queue items
+  it("[T2.2] every dispatched QueueItem carries contextPath equal to /playlist/id?mode=library", () => {
+    setupDefaults("library");
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onPlayTrack("track-2");
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    const [items] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; contextPath?: string }>,
+      number,
+    ];
+
+    items.forEach((item) => {
+      expect(item.contextPath).toBe("/playlist/playlist-1?mode=library");
+    });
+  });
 });

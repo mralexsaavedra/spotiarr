@@ -3,7 +3,8 @@
  *
  * Covers: null render, track meta render, transport interactions,
  * ARIA assertions, keyboard Space toggle, error state auto-clear,
- * single audio element in DOM.
+ * single audio element in DOM, TrackMeta navigation (Win 2),
+ * MediaSession integration (Win 3).
  *
  * REQ-PLAYER-BAR-001, 002, 003, 005, 007, 009, 011.
  */
@@ -11,6 +12,20 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { GlobalPlayerBar } from "./GlobalPlayerBar";
+
+// ---------------------------------------------------------------------------
+// react-router-dom mock (useNavigate)
+// ---------------------------------------------------------------------------
+
+const mockNavigate = vi.fn();
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -370,5 +385,117 @@ describe("volume control", () => {
     fireEvent.change(volumeSlider, { target: { value: "0.5" } });
 
     expect(usePlayerStore.getState().volume).toBe(0.5);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TrackMeta navigation (Win 2 — T2.6 / T2.7)
+// ---------------------------------------------------------------------------
+
+const makeItemWithContext = (id: string, contextPath: string) => ({
+  ...makeItem(id),
+  contextPath,
+});
+
+describe("TrackMeta navigation", () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
+
+  it("[T2.6] renders as button with aria-label when contextPath is set", () => {
+    const item = makeItemWithContext("x", "/playlist/abc?mode=library");
+    usePlayerStore.getState().playQueue([item], 0);
+
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: /Open Track x by Artist x/ });
+    expect(btn).not.toBeNull();
+  });
+
+  it("[T2.6] clicking the TrackMeta button calls navigate with contextPath", () => {
+    const item = makeItemWithContext("x", "/playlist/abc?mode=library");
+    usePlayerStore.getState().playQueue([item], 0);
+
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: /Open Track x by Artist x/ });
+    fireEvent.click(btn);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/playlist/abc?mode=library");
+  });
+
+  it("[T2.7] renders as non-interactive div when contextPath is absent", () => {
+    const item = makeItem("y"); // no contextPath
+    usePlayerStore.getState().playQueue([item], 0);
+
+    render(<GlobalPlayerBar />);
+
+    // No button with navigate aria-label
+    expect(screen.queryByRole("button", { name: /Open Track y/ })).toBeNull();
+    // Track name still visible
+    expect(screen.getByText("Track y")).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// MediaSession integration (Win 3 — T3.10)
+// ---------------------------------------------------------------------------
+
+function setupMediaSessionStub() {
+  const setActionHandler = vi.fn();
+  const stub = {
+    metadata: null as unknown,
+    playbackState: "none" as string,
+    setActionHandler,
+  };
+  Object.defineProperty(navigator, "mediaSession", {
+    value: stub,
+    configurable: true,
+    writable: true,
+  });
+  vi.stubGlobal(
+    "MediaMetadata",
+    class {
+      title: string;
+      artist: string;
+      album: string;
+      artwork: unknown[];
+      constructor(init: { title: string; artist: string; album: string; artwork: unknown[] }) {
+        this.title = init.title;
+        this.artist = init.artist;
+        this.album = init.album;
+        this.artwork = init.artwork;
+      }
+    },
+  );
+
+  function restore() {
+    Object.defineProperty(navigator, "mediaSession", {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+    vi.unstubAllGlobals();
+  }
+
+  return { stub, setActionHandler, restore };
+}
+
+describe("MediaSession integration", () => {
+  it("[T3.10] GlobalPlayerBar sets navigator.mediaSession.metadata when a track is playing", () => {
+    const { stub, restore } = setupMediaSessionStub();
+
+    const item = { ...makeItem("z"), album: "Album Z" };
+    usePlayerStore.getState().playQueue([item], 0);
+
+    render(<GlobalPlayerBar />);
+
+    // After render the metadata effect should have run
+    const meta = stub.metadata as { title: string; artist: string };
+    expect(meta).not.toBeNull();
+    expect(meta.title).toBe("Track z");
+    expect(meta.artist).toBe("Artist z");
+
+    restore();
   });
 });

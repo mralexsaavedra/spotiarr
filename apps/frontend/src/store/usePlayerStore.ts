@@ -15,6 +15,13 @@ export interface QueueItem {
   artworkUrl?: string;
   audioUrl: string;
   durationMs?: number;
+  /**
+   * Pre-built absolute route to the surface that queued this track
+   * (e.g. `/playlist/abc?mode=library`). When present, GlobalPlayerBar
+   * renders track meta as a navigable button. Each controller is responsible
+   * for building the canonical path for its own page.
+   */
+  contextPath?: string;
 }
 
 export interface PlayerState {

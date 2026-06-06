@@ -260,6 +260,44 @@ describe("useLibraryAlbumDetailController", () => {
     });
   });
 
+  // T2.4 — contextPath on library album queue items
+  it("[T2.4] every dispatched QueueItem carries contextPath equal to the library album route", () => {
+    mockUseParams.mockReturnValue({
+      name: "Sigur%20R%C3%B3s",
+      albumName: "%28%20%29",
+    });
+
+    mockUseLibraryArtistQuery.mockReturnValue({
+      data: makeArtist(),
+      isLoading: false,
+      error: null,
+    });
+
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onPlayTrack(result.current.tracks[0]!.id);
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+
+    const [items] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; contextPath?: string }>,
+      number,
+    ];
+
+    const expectedPath = generatePath(Path.LIBRARY_ALBUM, {
+      name: "Sigur Rós",
+      albumName: "( )",
+    });
+
+    items.forEach((item) => {
+      expect(item.contextPath).toBe(expectedPath);
+    });
+  });
+
   it("does not expose audioRef, audioSrc, or playbackError in return shape", () => {
     mockUseParams.mockReturnValue({
       name: "Sigur%20R%C3%B3s",
