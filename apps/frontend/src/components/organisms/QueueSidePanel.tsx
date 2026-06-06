@@ -94,13 +94,12 @@ export const QueueSidePanel: FC = () => {
                     key={item.id}
                     ref={isCurrent ? activeRowRef : undefined}
                     aria-current={isCurrent ? "true" : undefined}
-                    className={cn("px-4 py-0", isCurrent && "bg-white/5")}
                   >
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full flex-col items-start rounded py-2 text-left transition-colors hover:bg-white/5",
-                        isCurrent ? "text-green-400" : "text-white",
+                        "flex w-full flex-col items-start px-4 py-2 text-left transition-colors hover:bg-white/5",
+                        isCurrent ? "bg-white/5 text-green-400" : "text-white",
                       )}
                       onClick={() => playFromIndex(index)}
                       onKeyDown={(e) => {
