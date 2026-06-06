@@ -58,6 +58,12 @@ interface MockLibraryOptions {
   artists?: LibraryArtist[];
   artistDetail?: LibraryArtist;
   artworkBackfillStatus?: ArtworkBackfillStatusResponse;
+  gates?: {
+    stats?: Promise<void>;
+    artists?: Promise<void>;
+    artistDetail?: Promise<void>;
+    artworkBackfillStatus?: Promise<void>;
+  };
 }
 
 interface MockPlaylistOptions {
@@ -221,8 +227,14 @@ const fulfillJson = async (
   });
 };
 
-const registerJsonRoute = async (page: Page, pathname: string, body: unknown): Promise<void> => {
+const registerJsonRoute = async (
+  page: Page,
+  pathname: string,
+  body: unknown,
+  gate?: Promise<void>,
+): Promise<void> => {
   await page.route(`**${buildApiUrl(pathname)}`, async (route) => {
+    await gate;
     await fulfillJson(route, body);
   });
 };
@@ -411,14 +423,25 @@ export async function installLibraryMocks(
     artists = [buildLibraryArtist()],
     artistDetail = artists[0] ?? buildLibraryArtist(),
     artworkBackfillStatus = ARTWORK_BACKFILL_STATUS_PAYLOAD.data,
+    gates = {},
   }: MockLibraryOptions = {},
 ): Promise<void> {
-  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/stats`, { data: stats });
-  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/artists`, { data: artists });
-  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/artists/**`, { data: artistDetail });
-  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/artwork-backfill/status`, {
-    data: artworkBackfillStatus,
-  });
+  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/stats`, { data: stats }, gates.stats);
+  await registerJsonRoute(page, `${ApiRoutes.LIBRARY}/artists`, { data: artists }, gates.artists);
+  await registerJsonRoute(
+    page,
+    `${ApiRoutes.LIBRARY}/artists/**`,
+    { data: artistDetail },
+    gates.artistDetail,
+  );
+  await registerJsonRoute(
+    page,
+    `${ApiRoutes.LIBRARY}/artwork-backfill/status`,
+    {
+      data: artworkBackfillStatus,
+    },
+    gates.artworkBackfillStatus,
+  );
 }
 
 export async function installPlaylistMocks(

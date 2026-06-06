@@ -156,6 +156,50 @@ describe("api mock installers", () => {
     ).resolves.toMatchObject({ data: artist });
   });
 
+  test("waits for explicit gate release before fulfilling selected library routes", async () => {
+    const { page, routes } = createRouteRecorder();
+    const releaseGate = Promise.withResolvers<void>();
+
+    await installLibraryMocks(page, {
+      gates: {
+        artists: releaseGate.promise,
+        stats: releaseGate.promise,
+      },
+    });
+
+    const statsResponse = invokeJsonRoute(
+      routes[0]!.handler,
+      "http://127.0.0.1:4173/api/library/stats",
+    );
+
+    const artistsResponse = invokeJsonRoute(
+      routes[1]!.handler,
+      "http://127.0.0.1:4173/api/library/artists",
+    );
+
+    await expect(
+      Promise.race([
+        statsResponse.then(() => "settled"),
+        new Promise((resolve) => setTimeout(() => resolve("pending"), 10)),
+      ]),
+    ).resolves.toBe("pending");
+    await expect(
+      Promise.race([
+        artistsResponse.then(() => "settled"),
+        new Promise((resolve) => setTimeout(() => resolve("pending"), 10)),
+      ]),
+    ).resolves.toBe("pending");
+
+    releaseGate.resolve();
+
+    await expect(statsResponse).resolves.toMatchObject({
+      data: { totalAlbums: 1, totalArtists: 1, totalTracks: 1 },
+    });
+    await expect(artistsResponse).resolves.toMatchObject({
+      data: [expect.objectContaining({ name: "Library Artist" })],
+    });
+  });
+
   test("installs playlist and history routes with the exact response envelopes", async () => {
     const { page, routes } = createRouteRecorder();
     const playlist = buildPlaylist();
