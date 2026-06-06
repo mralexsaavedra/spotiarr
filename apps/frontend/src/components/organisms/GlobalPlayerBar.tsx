@@ -3,6 +3,8 @@ import {
   faForwardStep,
   faPause,
   faPlay,
+  faRepeat,
+  faShuffle,
   faVolumeHigh,
   faVolumeXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -12,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
+import { usePreferencesStore } from "@/store/usePreferencesStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
 
@@ -134,17 +137,22 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const navigate = useNavigate();
+  const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
 
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const error = usePlayerStore((s) => s.error);
+  const shuffleMode = usePlayerStore((s) => s.shuffleMode);
+  const repeatMode = usePlayerStore((s) => s.repeatMode);
 
   const setAudioElement = usePlayerStore((s) => s.setAudioElement);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
   const seek = usePlayerStore((s) => s.seek);
+  const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
+  const cycleRepeat = usePlayerStore((s) => s.cycleRepeat);
   const _onLoadedMetadata = usePlayerStore((s) => s._onLoadedMetadata);
   const _onTimeUpdate = usePlayerStore((s) => s._onTimeUpdate);
   const _onEnded = usePlayerStore((s) => s._onEnded);
@@ -232,8 +240,17 @@ export const GlobalPlayerBar: FC = () => {
   }, [error]);
 
   const isVisible = currentIndex !== null || !!error;
-  const isAtFirst = currentIndex === 0;
-  const isAtLast = currentIndex !== null && currentIndex === queue.length - 1;
+  const isAtFirst =
+    !shuffleMode && repeatMode !== "all" && (currentIndex === null || currentIndex <= 0);
+  const isAtLast =
+    !shuffleMode &&
+    repeatMode !== "all" &&
+    (currentIndex === null || currentIndex >= queue.length - 1);
+
+  const shuffleAriaLabel = shuffleMode ? "Disable shuffle" : "Enable shuffle";
+  const repeatAriaLabel =
+    repeatMode === "off" ? "Enable repeat" : repeatMode === "all" ? "Repeat all" : "Repeat one";
+  const isRepeatActive = repeatMode !== "off";
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== " ") return;
@@ -254,7 +271,8 @@ export const GlobalPlayerBar: FC = () => {
           onKeyDown={onKeyDown}
           className={cn(
             "bg-surface/95 border-t border-white/10 backdrop-blur-lg",
-            "fixed right-0 bottom-16 left-0 z-40 md:bottom-0",
+            "fixed right-0 bottom-16 left-0 z-40 transition-[left] duration-300 md:bottom-0",
+            isSidebarCollapsed ? "md:left-20" : "md:left-64",
             "px-4 py-2",
           )}
         >
@@ -269,6 +287,18 @@ export const GlobalPlayerBar: FC = () => {
 
             <div className="flex flex-1 flex-col items-center gap-1">
               <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  aria-label={shuffleAriaLabel}
+                  onClick={toggleShuffle}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    shuffleMode ? "text-green-500" : "text-text-secondary hover:text-text-primary",
+                  )}
+                >
+                  <FontAwesomeIcon icon={faShuffle} className="text-sm" />
+                </button>
+
                 <button
                   type="button"
                   aria-label="Previous track"
@@ -303,6 +333,25 @@ export const GlobalPlayerBar: FC = () => {
                   )}
                 >
                   <FontAwesomeIcon icon={faForwardStep} className="text-base" />
+                </button>
+
+                <button
+                  type="button"
+                  aria-label={repeatAriaLabel}
+                  onClick={cycleRepeat}
+                  className={cn(
+                    "relative flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    isRepeatActive
+                      ? "text-green-500"
+                      : "text-text-secondary hover:text-text-primary",
+                  )}
+                >
+                  <FontAwesomeIcon icon={faRepeat} className="text-sm" />
+                  {repeatMode === "one" && (
+                    <sup className="absolute -top-1 -right-1 text-[0.55rem] leading-none font-bold">
+                      1
+                    </sup>
+                  )}
                 </button>
               </div>
 

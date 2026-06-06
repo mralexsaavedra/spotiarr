@@ -16,10 +16,16 @@ beforeEach(async () => {
   vi.resetModules();
   const mod = await import("./usePlayerStore");
   usePlayerStore = mod.usePlayerStore;
-  // Reset to initial state before each test
   usePlayerStore.getState().clear();
-  // Also reset volume/isMuted to defaults (clear preserves them, so set explicitly)
-  usePlayerStore.setState({ volume: 1, isMuted: false, error: null });
+  usePlayerStore.setState({
+    volume: 1,
+    isMuted: false,
+    error: null,
+    shuffleMode: false,
+    repeatMode: "off",
+    shuffleOrder: [],
+    shuffleOrderIndex: -1,
+  });
 });
 
 const makeItem = (id: string, audioUrl = `/api/library/audio?id=${id}`) => ({
@@ -385,11 +391,11 @@ describe("_onError", () => {
 });
 
 // ---------------------------------------------------------------------------
-// persist partialize: only volume and isMuted survive
+// persist partialize: only volume, isMuted, shuffleMode, repeatMode survive
 // ---------------------------------------------------------------------------
 
 describe("persist partialize", () => {
-  it("only serializes volume and isMuted", async () => {
+  it("serializes volume, isMuted, shuffleMode, repeatMode", async () => {
     const mod = await import("./usePlayerStore");
     const partialize = mod.__partialize;
 
@@ -402,6 +408,10 @@ describe("persist partialize", () => {
       currentTime: 55,
       duration: 200,
       error: null,
+      shuffleMode: true,
+      repeatMode: "one" as const,
+      shuffleOrder: [2, 0, 1],
+      shuffleOrderIndex: 1,
       playQueue: vi.fn(),
       togglePlay: vi.fn(),
       next: vi.fn(),
@@ -410,6 +420,8 @@ describe("persist partialize", () => {
       setVolume: vi.fn(),
       toggleMute: vi.fn(),
       clear: vi.fn(),
+      toggleShuffle: vi.fn(),
+      cycleRepeat: vi.fn(),
       setAudioElement: vi.fn(),
       _onLoadedMetadata: vi.fn(),
       _onTimeUpdate: vi.fn(),
@@ -420,9 +432,353 @@ describe("persist partialize", () => {
     const persisted = partialize(state as unknown as Parameters<typeof partialize>[0]);
     const roundTripped = JSON.parse(JSON.stringify(persisted));
 
-    expect(roundTripped).toEqual({ volume: 0.6, isMuted: true });
+    expect(roundTripped).toEqual({
+      volume: 0.6,
+      isMuted: true,
+      shuffleMode: true,
+      repeatMode: "one",
+    });
     expect("queue" in roundTripped).toBe(false);
     expect("currentTime" in roundTripped).toBe(false);
     expect("isPlaying" in roundTripped).toBe(false);
+    expect("shuffleOrder" in roundTripped).toBe(false);
+    expect("shuffleOrderIndex" in roundTripped).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// shuffle state (S1-1, S1-3, S1-4, S5-1, S5-2)
+// ---------------------------------------------------------------------------
+
+describe("shuffle state", () => {
+  it("S1-1: initial defaults", () => {
+    const state = usePlayerStore.getState();
+    expect(state.shuffleMode).toBe(false);
+    expect(state.repeatMode).toBe("off");
+    expect(state.shuffleOrder).toEqual([]);
+    expect(state.shuffleOrderIndex).toBe(-1);
+  });
+
+  it("S1-3: toggleShuffle on builds order with currentIndex pinned at position 0", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.getState().toggleShuffle();
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleMode).toBe(true);
+    expect(state.shuffleOrder).toHaveLength(5);
+    expect(state.shuffleOrder[0]).toBe(2);
+    expect(state.shuffleOrderIndex).toBe(0);
+  });
+
+  it("S1-4: toggleShuffle off clears order and leaves currentIndex unchanged", () => {
+    usePlayerStore.setState({
+      shuffleMode: true,
+      shuffleOrder: [2, 0, 4, 1, 3],
+      shuffleOrderIndex: 2,
+      currentIndex: 4,
+    });
+    usePlayerStore.getState().toggleShuffle();
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleMode).toBe(false);
+    expect(state.shuffleOrder).toEqual([]);
+    expect(state.shuffleOrderIndex).toBe(-1);
+    expect(state.currentIndex).toBe(4);
+  });
+
+  it("S5-1: toggle on mid-queue pins current and discards old history", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({ shuffleOrder: [0, 3, 2, 1], shuffleOrderIndex: 2 });
+    usePlayerStore.getState().toggleShuffle();
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrder[0]).toBe(2);
+    expect(state.shuffleOrderIndex).toBe(0);
+  });
+
+  it("S5-2: toggle off leaves currentIndex intact", () => {
+    usePlayerStore.setState({
+      shuffleMode: true,
+      currentIndex: 3,
+      shuffleOrder: [3, 1, 0, 2],
+      shuffleOrderIndex: 0,
+    });
+    usePlayerStore.getState().toggleShuffle();
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(3);
+    expect(state.shuffleOrder).toEqual([]);
+    expect(state.shuffleOrderIndex).toBe(-1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// repeat state (S1-5, S5-3)
+// ---------------------------------------------------------------------------
+
+describe("repeat state", () => {
+  it("S1-5: cycleRepeat rotates off → all → one → off", () => {
+    usePlayerStore.getState().cycleRepeat();
+    expect(usePlayerStore.getState().repeatMode).toBe("all");
+
+    usePlayerStore.getState().cycleRepeat();
+    expect(usePlayerStore.getState().repeatMode).toBe("one");
+
+    usePlayerStore.getState().cycleRepeat();
+    expect(usePlayerStore.getState().repeatMode).toBe("off");
+  });
+
+  it("S5-3: cycleRepeat does not touch audio state", () => {
+    usePlayerStore.setState({
+      isPlaying: true,
+      currentTime: 42,
+      currentIndex: 1,
+      repeatMode: "off",
+    });
+    usePlayerStore.getState().cycleRepeat();
+
+    const state = usePlayerStore.getState();
+    expect(state.isPlaying).toBe(true);
+    expect(state.currentTime).toBe(42);
+    expect(state.currentIndex).toBe(1);
+    expect(state.repeatMode).toBe("all");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// partialize — S1-6 rehydration
+// ---------------------------------------------------------------------------
+
+describe("partialize S1-6", () => {
+  it("shuffleOrder and shuffleOrderIndex reset to defaults on rehydration", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fakeState = {
+      shuffleMode: true,
+      repeatMode: "one" as const,
+      shuffleOrder: [2, 0, 1],
+      shuffleOrderIndex: 1,
+      volume: 1,
+      isMuted: false,
+    } as unknown as Parameters<typeof p>[0];
+
+    const persisted = p(fakeState);
+    expect("shuffleOrder" in persisted).toBe(false);
+    expect("shuffleOrderIndex" in persisted).toBe(false);
+    expect(persisted.shuffleMode).toBe(true);
+    expect(persisted.repeatMode).toBe("one");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// next() with modes (S2-1 to S2-6)
+// ---------------------------------------------------------------------------
+
+describe("next() with modes", () => {
+  it("S2-1: stops at last track with repeat off", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.getState().next();
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(2);
+    expect(state.isPlaying).toBe(false);
+  });
+
+  it("S2-2: wraps to 0 with repeat all", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({ repeatMode: "all" });
+    usePlayerStore.getState().next();
+
+    expect(usePlayerStore.getState().currentIndex).toBe(0);
+  });
+
+  it("S2-3: repeat-one still advances (user-triggered next)", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ repeatMode: "one" });
+    usePlayerStore.getState().next();
+
+    expect(usePlayerStore.getState().currentIndex).toBe(2);
+  });
+
+  it("S2-4: shuffle on advances shuffleOrderIndex and sets currentIndex", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({
+      shuffleMode: true,
+      shuffleOrder: [2, 0, 4, 1, 3],
+      shuffleOrderIndex: 1,
+    });
+    usePlayerStore.getState().next();
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrderIndex).toBe(2);
+    expect(state.currentIndex).toBe(4);
+  });
+
+  it("S2-5: shuffle wraps cursor with repeat all", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({
+      shuffleMode: true,
+      shuffleOrder: [2, 0, 4, 1, 3],
+      shuffleOrderIndex: 4,
+      repeatMode: "all",
+    });
+    usePlayerStore.getState().next();
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrderIndex).toBe(0);
+    expect(state.currentIndex).toBe(2);
+  });
+
+  it("S2-6: shuffle stops at end with repeat off", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({
+      shuffleMode: true,
+      shuffleOrder: [2, 0, 4, 1, 3],
+      shuffleOrderIndex: 4,
+      repeatMode: "off",
+    });
+    usePlayerStore.getState().next();
+
+    const state = usePlayerStore.getState();
+    expect(state.isPlaying).toBe(false);
+    expect(state.shuffleOrderIndex).toBe(4);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// prev() with modes (S2-7, S2-8, Decision #10)
+// ---------------------------------------------------------------------------
+
+describe("prev() with modes", () => {
+  it("S2-7: repeat all wraps at index 0", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ currentTime: 1, repeatMode: "all" });
+    usePlayerStore.getState().prev();
+
+    expect(usePlayerStore.getState().currentIndex).toBe(3);
+  });
+
+  it("S2-8: shuffle walks cursor back", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 4);
+    usePlayerStore.setState({
+      shuffleMode: true,
+      shuffleOrder: [2, 0, 4],
+      shuffleOrderIndex: 2,
+      currentTime: 1,
+      repeatMode: "off",
+    });
+    usePlayerStore.getState().prev();
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrderIndex).toBe(1);
+    expect(state.currentIndex).toBe(0);
+  });
+
+  it("Decision #10: shuffle on + shuffleOrderIndex=0 + repeat off is a no-op", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({
+      shuffleMode: true,
+      shuffleOrder: [2, 0, 1],
+      shuffleOrderIndex: 0,
+      currentIndex: 2,
+      currentTime: 1,
+      repeatMode: "off",
+    });
+    usePlayerStore.getState().prev();
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrderIndex).toBe(0);
+    expect(state.currentIndex).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// _onEnded() with modes (S2-9 to S2-12)
+// ---------------------------------------------------------------------------
+
+describe("_onEnded() with modes", () => {
+  it("S2-9: repeat one replays (seek 0 + play), does not advance", () => {
+    const mockAudio = { currentTime: 5, play: vi.fn().mockResolvedValue(undefined) };
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ repeatMode: "one", isPlaying: true });
+    usePlayerStore.getState().setAudioElement(mockAudio as unknown as HTMLAudioElement);
+
+    usePlayerStore.getState()._onEnded();
+
+    expect(mockAudio.currentTime).toBe(0);
+    expect(mockAudio.play).toHaveBeenCalledOnce();
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+
+  it("S2-10: repeat off at last track stops playback", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.setState({ repeatMode: "off" });
+    usePlayerStore.getState()._onEnded();
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+    expect(usePlayerStore.getState().currentIndex).toBe(2);
+  });
+
+  it("S2-11: single-track repeat one replays", () => {
+    const mockAudio = { currentTime: 5, play: vi.fn().mockResolvedValue(undefined) };
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ repeatMode: "one", isPlaying: true });
+    usePlayerStore.getState().setAudioElement(mockAudio as unknown as HTMLAudioElement);
+
+    usePlayerStore.getState()._onEnded();
+
+    expect(mockAudio.currentTime).toBe(0);
+    expect(mockAudio.play).toHaveBeenCalledOnce();
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+
+  it("S2-12: single-track repeat off stops", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ repeatMode: "off" });
+    usePlayerStore.getState()._onEnded();
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// playQueue() with shuffle (S3-1, S3-2)
+// ---------------------------------------------------------------------------
+
+describe("playQueue() with shuffle", () => {
+  it("S3-1: rebuilds shuffleOrder when shuffle on, pins startIndex at 0", () => {
+    usePlayerStore.setState({ shuffleMode: true });
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 1);
+
+    const state = usePlayerStore.getState();
+    expect(state.shuffleOrder).toHaveLength(3);
+    expect(state.shuffleOrder[0]).toBe(1);
+    expect(state.shuffleOrderIndex).toBe(0);
+    expect(state.currentIndex).toBe(1);
+  });
+
+  it("S3-2: no shuffleOrder side effects when shuffle off", () => {
+    usePlayerStore.setState({ shuffleMode: false });
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 1);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.shuffleOrder).toEqual([]);
+    expect(state.shuffleOrderIndex).toBe(-1);
   });
 });

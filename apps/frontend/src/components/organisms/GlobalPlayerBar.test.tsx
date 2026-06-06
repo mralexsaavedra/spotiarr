@@ -50,6 +50,10 @@ function resetStore() {
     currentTime: 0,
     duration: 180,
     error: null,
+    shuffleMode: false,
+    repeatMode: "off",
+    shuffleOrder: [],
+    shuffleOrderIndex: -1,
   });
 }
 
@@ -490,12 +494,137 @@ describe("MediaSession integration", () => {
 
     render(<GlobalPlayerBar />);
 
-    // After render the metadata effect should have run
     const meta = stub.metadata as { title: string; artist: string };
     expect(meta).not.toBeNull();
     expect(meta.title).toBe("Track z");
     expect(meta.artist).toBe("Artist z");
 
     restore();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// shuffle button (S4-1, S4-2, S4-7)
+// ---------------------------------------------------------------------------
+
+describe("shuffle button", () => {
+  it("S4-1: renders with aria-label 'Enable shuffle' when shuffleMode is false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    render(<GlobalPlayerBar />);
+
+    expect(screen.getByRole("button", { name: "Enable shuffle" })).not.toBeNull();
+  });
+
+  it("S4-2: renders with aria-label 'Disable shuffle' when shuffleMode is true", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ shuffleMode: true });
+    render(<GlobalPlayerBar />);
+
+    expect(screen.getByRole("button", { name: "Disable shuffle" })).not.toBeNull();
+  });
+
+  it("S4-7: shuffle control element is a BUTTON", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Enable shuffle" });
+    expect(btn.tagName).toBe("BUTTON");
+  });
+
+  it("clicking shuffle button calls toggleShuffle", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Enable shuffle" });
+    fireEvent.click(btn);
+
+    expect(usePlayerStore.getState().shuffleMode).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// repeat button (S4-3)
+// ---------------------------------------------------------------------------
+
+describe("repeat button", () => {
+  it("S4-3: cycles aria-label across 3 clicks", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Enable repeat" });
+
+    fireEvent.click(btn);
+    expect(screen.getByRole("button", { name: "Repeat all" })).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Repeat all" }));
+    expect(screen.getByRole("button", { name: "Repeat one" })).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Repeat one" }));
+    expect(screen.getByRole("button", { name: "Enable repeat" })).not.toBeNull();
+  });
+
+  it("badge <sup>1</sup> is visible when repeatMode is 'one'", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ repeatMode: "one" });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const sup = container.querySelector("sup");
+    expect(sup).not.toBeNull();
+    expect(sup?.textContent).toBe("1");
+  });
+
+  it("badge is absent when repeatMode is 'all'", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ repeatMode: "all" });
+    const { container } = render(<GlobalPlayerBar />);
+
+    expect(container.querySelector("sup")).toBeNull();
+  });
+
+  it("badge is absent when repeatMode is 'off'", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    const { container } = render(<GlobalPlayerBar />);
+
+    expect(container.querySelector("sup")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isAtFirst / isAtLast with modes (S4-4, S4-5, S4-6)
+// ---------------------------------------------------------------------------
+
+describe("isAtFirst / isAtLast with modes", () => {
+  it("S4-4: prev and next NOT disabled when shuffleMode is true", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ shuffleMode: true });
+    render(<GlobalPlayerBar />);
+
+    const prevBtn = screen.getByRole("button", { name: "Previous track" });
+    const nextBtn = screen.getByRole("button", { name: "Next track" });
+    expect(prevBtn).toHaveProperty("disabled", false);
+    expect(nextBtn).toHaveProperty("disabled", false);
+  });
+
+  it("S4-5: prev and next NOT disabled when repeatMode is 'all'", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ shuffleMode: false, repeatMode: "all" });
+    render(<GlobalPlayerBar />);
+
+    const prevBtn = screen.getByRole("button", { name: "Previous track" });
+    const nextBtn = screen.getByRole("button", { name: "Next track" });
+    expect(prevBtn).toHaveProperty("disabled", false);
+    expect(nextBtn).toHaveProperty("disabled", false);
+  });
+
+  it("S4-6: prev IS disabled with repeat off and shuffle off at index 0", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ shuffleMode: false, repeatMode: "off" });
+    render(<GlobalPlayerBar />);
+
+    const prevBtn = screen.getByRole("button", { name: "Previous track" });
+    expect(prevBtn).toHaveProperty("disabled", true);
   });
 });
