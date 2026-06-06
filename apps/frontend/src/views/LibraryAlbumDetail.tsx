@@ -92,6 +92,7 @@ export const LibraryAlbumDetail: FC = () => {
         coverUrl={coverUrl}
         description={artistName}
         totalCount={tracks.length}
+        showDownloadedBadge
         tracks={tracks}
         onPlayTrack={onPlayTrack}
         onPauseTrack={onPauseTrack}

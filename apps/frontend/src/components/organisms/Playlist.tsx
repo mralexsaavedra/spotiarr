@@ -98,6 +98,7 @@ export const Playlist: FC<PlaylistProps> = ({
         title={displayTitle}
         type={playlist.type || PlaylistTypeEnum.Playlist}
         coverUrl={playlist.coverUrl || null}
+        showDownloadedBadge={mode === "library"}
         description={
           <PlaylistDescription
             description={playlist.description}

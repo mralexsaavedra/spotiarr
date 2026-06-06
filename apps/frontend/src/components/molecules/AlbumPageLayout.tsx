@@ -27,6 +27,7 @@ export interface AlbumPageLayoutProps {
   canPlayTrack?: (track: Track) => boolean;
   currentTrackId?: string | null;
   isPlaying?: boolean;
+  showDownloadedBadge?: boolean;
 }
 
 export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
@@ -50,6 +51,7 @@ export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
   canPlayTrack,
   currentTrackId,
   isPlaying = false,
+  showDownloadedBadge = false,
 }) => {
   return (
     <div className="bg-background text-text-primary flex-1">
@@ -85,6 +87,7 @@ export const AlbumPageLayout: FC<AlbumPageLayoutProps> = ({
             canPlayTrack={canPlayTrack}
             currentTrackId={currentTrackId}
             isPlaying={isPlaying}
+            showDownloadedBadge={showDownloadedBadge}
           />
         )}
       </div>

@@ -1,4 +1,5 @@
 import { faClock } from "@fortawesome/free-regular-svg-icons";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
@@ -24,6 +25,7 @@ interface PlaylistTrackItemProps {
   onPauseTrack?: () => void;
   currentTrackId?: string | null;
   isPlaying?: boolean;
+  showDownloadedBadge?: boolean;
 }
 
 const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
@@ -38,6 +40,7 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
     onPauseTrack,
     currentTrackId,
     isPlaying,
+    showDownloadedBadge,
   }) => {
     const { t } = useTranslation();
     const artists = track.artists || [{ name: track.artist }];
@@ -143,6 +146,13 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         {/* Duration & Actions */}
         <div className="flex items-center justify-end gap-4">
           <div className="text-text-secondary flex min-w-[40px] items-center justify-end gap-2 text-right text-sm tabular-nums">
+            {showDownloadedBadge && (status ?? track.status) === TrackStatusEnum.Completed && (
+              <FontAwesomeIcon
+                icon={faCircleCheck}
+                title={t("playlist.downloaded")}
+                className="text-green-500"
+              />
+            )}
             {track.durationMs ? formatDuration(track.durationMs) : "--:--"}
           </div>
         </div>
@@ -163,6 +173,7 @@ interface PlaylistTracksListProps {
   canPlayTrack?: (track: Track) => boolean;
   currentTrackId?: string | null;
   isPlaying?: boolean;
+  showDownloadedBadge?: boolean;
 }
 
 export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
@@ -177,6 +188,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
   canPlayTrack,
   currentTrackId,
   isPlaying = false,
+  showDownloadedBadge = false,
 }) => {
   const { t } = useTranslation();
 
@@ -202,6 +214,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
           onPauseTrack={onPauseTrack}
           currentTrackId={currentTrackId}
           isPlaying={isPlaying}
+          showDownloadedBadge={showDownloadedBadge}
         />
       );
     },
@@ -213,6 +226,7 @@ export const PlaylistTracksList: FC<PlaylistTracksListProps> = ({
       canPlayTrack,
       currentTrackId,
       isPlaying,
+      showDownloadedBadge,
       trackStatusesMap,
     ],
   );
