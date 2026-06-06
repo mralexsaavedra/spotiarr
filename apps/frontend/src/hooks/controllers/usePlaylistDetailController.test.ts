@@ -3,13 +3,25 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { usePlaylistDetailController } from "./usePlaylistDetailController";
 
-const mockUseParams = vi.fn();
-const mockUseSearchParams = vi.fn();
-const mockUsePlaylistsQuery = vi.fn();
-const mockUseTracksQuery = vi.fn();
-const mockUseNavigationHelpers = vi.fn();
-const mockUsePlaylistController = vi.fn();
-const mockPlayQueue = vi.fn();
+const {
+  mockUseParams,
+  mockUseSearchParams,
+  mockUsePlaylistsQuery,
+  mockUseTracksQuery,
+  mockUseNavigationHelpers,
+  mockUsePlaylistController,
+  mockPlayQueue,
+  mockSetState,
+} = vi.hoisted(() => ({
+  mockUseParams: vi.fn(),
+  mockUseSearchParams: vi.fn(),
+  mockUsePlaylistsQuery: vi.fn(),
+  mockUseTracksQuery: vi.fn(),
+  mockUseNavigationHelpers: vi.fn(),
+  mockUsePlaylistController: vi.fn(),
+  mockPlayQueue: vi.fn(),
+  mockSetState: vi.fn(),
+}));
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -45,11 +57,13 @@ vi.mock("@/store/usePlayerStore", () => ({
           isPlaying: boolean;
           currentIndex: number | null;
           queue: Array<{ id: string }>;
+          shuffleMode: boolean;
         }) => unknown,
-      ) => selector({ isPlaying: false, currentIndex: null, queue: [] }),
+      ) => selector({ isPlaying: false, currentIndex: null, queue: [], shuffleMode: false }),
     ),
     {
       getState: vi.fn(() => ({ playQueue: mockPlayQueue, togglePlay: vi.fn() })),
+      setState: mockSetState,
     },
   ),
 }));
@@ -325,6 +339,63 @@ describe("usePlaylistDetailController", () => {
   });
 
   // T2.2 — contextPath on playlist queue items
+  it("exposes onShufflePlay and isShuffleActive in return value", () => {
+    setupDefaults("library");
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    expect(typeof result.current.onShufflePlay).toBe("function");
+    expect(typeof result.current.isShuffleActive).toBe("boolean");
+  });
+
+  it("onShufflePlay calls setState({shuffleMode:true}) BEFORE playFromIndex(0)", () => {
+    setupDefaults("library");
+    mockSetState.mockClear();
+    mockPlayQueue.mockClear();
+
+    const callOrder: string[] = [];
+    mockSetState.mockImplementation(() => {
+      callOrder.push("setState");
+    });
+    mockPlayQueue.mockImplementation(() => {
+      callOrder.push("playQueue");
+    });
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onShufflePlay();
+    });
+
+    expect(mockSetState).toHaveBeenCalledWith({ shuffleMode: true });
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    expect(callOrder[0]).toBe("setState");
+    expect(callOrder[1]).toBe("playQueue");
+  });
+
+  it("onShufflePlay is a no-op when !hasPlayableTracks (managed mode)", () => {
+    setupDefaults("managed");
+    mockSetState.mockClear();
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onShufflePlay();
+    });
+
+    expect(mockSetState).not.toHaveBeenCalled();
+    expect(mockPlayQueue).not.toHaveBeenCalled();
+  });
+
+  it("isShuffleActive is false when store shuffleMode is false", () => {
+    setupDefaults("library");
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    expect(result.current.isShuffleActive).toBe(false);
+  });
+
   it("[T2.2] every dispatched QueueItem carries contextPath equal to /playlist/id?mode=library", () => {
     setupDefaults("library");
     mockPlayQueue.mockClear();

@@ -1,5 +1,4 @@
 import { faClock } from "@fortawesome/free-regular-svg-icons";
-import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
@@ -97,6 +96,9 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
             index={index}
             onRetry={onRetryTrack ? handleRetry : undefined}
             onDownload={onDownloadTrack ? handleDownload : undefined}
+            onPlay={canPlayTrack ? handleTogglePlayback : undefined}
+            isCurrentTrack={isCurrent}
+            isPlaying={isPlaying}
           />
         </div>
 
@@ -141,27 +143,6 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
         {/* Duration & Actions */}
         <div className="flex items-center justify-end gap-4">
           <div className="text-text-secondary flex min-w-[40px] items-center justify-end gap-2 text-right text-sm tabular-nums">
-            {canPlayTrack ? (
-              <button
-                type="button"
-                onClick={handleTogglePlayback}
-                className="text-primary hover:text-primary/80 focus-visible:ring-primary rounded px-2 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                aria-label={
-                  isCurrent && isPlaying
-                    ? t("library.album.pauseTrack")
-                    : t("library.album.playTrack")
-                }
-              >
-                {isCurrent && isPlaying ? t("library.album.pause") : t("library.album.play")}
-              </button>
-            ) : null}
-            {(status ?? track.status) === "completed" && (
-              <FontAwesomeIcon
-                icon={faCircleCheck}
-                className="text-base text-green-500"
-                title={t("common.downloaded")}
-              />
-            )}
             {track.durationMs ? formatDuration(track.durationMs) : "--:--"}
           </div>
         </div>

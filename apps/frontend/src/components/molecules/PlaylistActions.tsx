@@ -6,6 +6,7 @@ import {
   faPause,
   faPlay,
   faRepeat,
+  faShuffle,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -36,6 +37,8 @@ interface PlaylistActionsProps {
   onRetryFailed: () => void;
   onDelete: () => void;
   onDownload: () => void;
+  onShufflePlay?: () => void;
+  isShuffleActive?: boolean;
   mode?: PlaylistActionsMode;
 }
 
@@ -54,6 +57,8 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   onRetryFailed,
   onDelete,
   onDownload,
+  onShufflePlay,
+  isShuffleActive = false,
   spotifyUrl,
   playlistId,
   playlistName,
@@ -79,6 +84,23 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
           <span className="sr-only">
             {isPlaying ? t("library.album.pause") : t("library.album.play")}
           </span>
+        </Button>
+      ) : null}
+
+      {hasPlayableTracks && onShufflePlay ? (
+        <Button
+          variant="ghost"
+          size="md"
+          onClick={onShufflePlay}
+          title={t("playlist.actions.shufflePlay")}
+          ariaLabel={t("playlist.actions.shufflePlay")}
+          icon={faShuffle}
+          className={cn(
+            "!h-10 !w-10 justify-center !rounded-full !p-0 transition-transform hover:scale-105",
+            isShuffleActive ? "text-green-500" : "text-text-secondary hover:text-text-primary",
+          )}
+        >
+          <span className="sr-only">{t("playlist.actions.shufflePlay")}</span>
         </Button>
       ) : null}
 

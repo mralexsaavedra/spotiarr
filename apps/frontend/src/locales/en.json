@@ -9,7 +9,6 @@
     "close": "Close",
     "unknownError": "Unknown error",
     "downloadAll": "Download All",
-    "downloaded": "Downloaded",
     "popular": "Popular",
     "title": "Title",
     "album": "Album",
@@ -226,7 +225,8 @@
       "retryFailedTooltip": "Retry Failed Downloads",
       "delete": "Delete",
       "deleteTooltip": "Delete Playlist",
-      "downloadToEnable": "Download to enable actions"
+      "downloadToEnable": "Download to enable actions",
+      "shufflePlay": "Shuffle play"
     }
   },
   "artist": {

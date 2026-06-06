@@ -64,7 +64,7 @@ describe("PlaylistTracksList playback", () => {
     expect(screen.getByRole("button", { name: "library.album.pauseTrack" })).toBeTruthy();
   });
 
-  it("calls onPlayTrack when play is pressed", () => {
+  it("calls onPlayTrack when number cell play button is pressed", () => {
     const onPlayTrack = vi.fn();
 
     render(
@@ -99,5 +99,65 @@ describe("PlaylistTracksList playback", () => {
     );
 
     expect(screen.queryByRole("button", { name: "library.album.playTrack" })).toBeNull();
+  });
+
+  it("does not render faCircleCheck downloaded badge in any row", () => {
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId={null}
+        isPlaying={false}
+        onPlayTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+      />,
+    );
+
+    expect(document.querySelector("[data-icon='circle-check']")).toBeNull();
+  });
+
+  it("does not render Reproducir text button", () => {
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId={null}
+        isPlaying={false}
+        onPlayTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+      />,
+    );
+
+    expect(screen.queryByText("library.album.play")).toBeNull();
+    expect(screen.queryByText("library.album.pause")).toBeNull();
+  });
+
+  it("shows pause button in number cell for current playing track", () => {
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId="track-1"
+        isPlaying={true}
+        onPlayTrack={vi.fn()}
+        onPauseTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "library.album.pauseTrack" })).toBeTruthy();
+    expect(screen.queryByText("library.album.pause")).toBeNull();
+  });
+
+  it("shows play button in number cell for current paused track", () => {
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId="track-1"
+        isPlaying={false}
+        onPlayTrack={vi.fn()}
+        onPauseTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "library.album.playTrack" })).toBeTruthy();
   });
 });

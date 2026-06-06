@@ -2,6 +2,8 @@ import { faClock } from "@fortawesome/free-regular-svg-icons";
 import {
   faDownload,
   faMagnifyingGlass,
+  faPause,
+  faPlay,
   faRotateRight,
   faSpinner,
   faTriangleExclamation,
@@ -16,11 +18,14 @@ interface TrackStatusIndicatorProps {
   index: number;
   onRetry?: (e: MouseEvent) => void;
   onDownload?: (e: MouseEvent) => void;
+  onPlay?: (e: MouseEvent) => void;
+  isCurrentTrack?: boolean;
+  isPlaying?: boolean;
 }
 
 export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
   const { t } = useTranslation();
-  const { status, index, onDownload } = props;
+  const { status, index, onDownload, onPlay, isCurrentTrack, isPlaying } = props;
 
   const getStatusRenderer = () => {
     switch (status) {
@@ -69,7 +74,41 @@ export const TrackStatusIndicator: FC<TrackStatusIndicatorProps> = (props) => {
     return <Renderer {...props} />;
   }
 
-  const showDownloadAction = !!onDownload && status !== TrackStatusEnum.Completed;
+  const showPlayCell = !!onPlay;
+  const showDownloadAction = !showPlayCell && !!onDownload && status !== TrackStatusEnum.Completed;
+
+  if (showPlayCell && isCurrentTrack) {
+    const icon = isPlaying ? faPause : faPlay;
+    const label = isPlaying ? t("library.album.pauseTrack") : t("library.album.playTrack");
+    return (
+      <button
+        type="button"
+        onClick={onPlay}
+        aria-label={label}
+        className="text-white transition-colors"
+      >
+        <FontAwesomeIcon icon={icon} />
+      </button>
+    );
+  }
+
+  if (showPlayCell) {
+    return (
+      <>
+        <span className="hidden md:block md:group-focus-within:hidden md:group-hover:hidden">
+          {index}
+        </span>
+        <button
+          type="button"
+          onClick={onPlay}
+          aria-label={t("library.album.playTrack")}
+          className="block text-white transition-colors md:hidden md:group-focus-within:block md:group-hover:block"
+        >
+          <FontAwesomeIcon icon={faPlay} />
+        </button>
+      </>
+    );
+  }
 
   return (
     <>
