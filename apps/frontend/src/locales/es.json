@@ -376,6 +376,13 @@
       "repeatAll": "Repetir todo",
       "repeatOne": "Repetir una",
       "shuffleOn": "Aleatorio activado"
+    },
+    "nowPlaying": {
+      "title": "Reproduciendo ahora",
+      "open": "Abrir reproduciendo ahora",
+      "close": "Cerrar",
+      "queueLabel": "Cola",
+      "dragHandle": "Arrastrá para reordenar {{name}}"
     }
   }
 }
