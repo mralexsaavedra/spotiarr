@@ -1,10 +1,10 @@
 ---
 name: spotiarr-zustand
-description: "Trigger: Zustand, store, client state, useDownloadStatusStore, usePreferencesStore, ephemeral state, persist middleware. spotiarr Zustand rules: exactly 2 stores, patterns for selectors and bulk hooks."
+description: "Trigger: Zustand, store, client state, useDownloadStatusStore, usePreferencesStore, usePlayerStore, ephemeral state, persist middleware. spotiarr Zustand rules: exactly 3 stores, patterns for selectors and bulk hooks."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "1.1"
 ---
 
 ## Activation Contract
@@ -13,12 +13,12 @@ Load when adding client-side state, touching Zustand stores, or deciding whether
 
 ## Hard Rules
 
-- **Exactly 2 stores.** Do not create new stores without explicit architectural decision.
+- **Exactly 3 stores.** `usePreferencesStore`, `useDownloadStatusStore`, `usePlayerStore`. Do not create a 4th without explicit architectural decision documented in a proposal.
 - Server state → TanStack Query. UI/client-only state → Zustand. Never mix.
 - `useServerEvents` invalidates TanStack Query caches — it does NOT write to Zustand stores.
 - No inline store creation inside components. Stores are singletons in `apps/frontend/src/store/`.
 
-## The Two Stores
+## The Three Stores
 
 ### `useDownloadStatusStore` — ephemeral
 
@@ -46,13 +46,23 @@ Use bulk hooks in list components to avoid per-item store subscriptions.
 - Holds durable UI preferences that survive page refresh.
 - Current state: `isSidebarCollapsed`, `toggleSidebar`, `setSidebarCollapsed`.
 
+### `usePlayerStore` — partially persisted (approved exception)
+
+- **File**: `apps/frontend/src/store/usePlayerStore.ts`
+- Uses `persist` middleware with `name: "spotiarr-player"`, `partialize` keeps only `{ volume, isMuted }`.
+- Holds global audio playback state: `queue`, `currentIndex`, `isPlaying`, `currentTime`, `duration`, `error`, plus volume/mute.
+- The single `<audio>` element is owned by `GlobalPlayerBar` and bound via `setAudioElement`; internal handlers (`_onTimeUpdate`, `_onEnded`, etc.) are wired by the bar and not called from controllers.
+- **Dispatch pattern**: page controllers build a `QueueItem[]` snapshot from their domain data (normalizing source DTO fields like `trackUrl` or `audioUrl` to `QueueItem.audioUrl`) and call `playQueue(items, startIndex)`.
+- **Shared binding hook**: use `usePlayerQueueBinding(queueItems)` (`apps/frontend/src/hooks/usePlayerQueueBinding.ts`) to read `{ currentTrackId, isPlaying, hasPlayableTracks, playFromIndex, onPlayTrack, onPauseTrack }`. Do not subscribe to the same selectors manually in new controllers.
+- **Approved exception** to the 2-store convention; rationale recorded in the store file header and the `sdd/global-player-bar/proposal` SDD artifact.
+
 ## Adding State
 
 **To `useDownloadStatusStore`:** Add field to `DownloadStatusState` interface + initial value + update action. If the field maps URLs to values, add a typed selector hook (follow `usePlaylistDownloaded` pattern).
 
 **To `usePreferencesStore`:** Add field to `PreferencesState` interface + initial value + setter/toggle. No extra config — `persist` covers all fields automatically.
 
-**New store (discouraged):** Requires architectural justification. Must be either fully ephemeral or fully persisted — no mixed strategy in a single store.
+**New store (discouraged):** Requires architectural justification recorded in an SDD proposal. Mixed strategy (partial persist via `partialize`) is permitted when the store covers state with different lifetimes — see `usePlayerStore` for the canonical example.
 
 ## Selector Performance
 
@@ -64,4 +74,6 @@ Use bulk hooks in list components to avoid per-item store subscriptions.
 
 - Stores: `apps/frontend/src/store/`
 - Bulk hooks source: `useDownloadStatusStore.ts` — `useBulkPlaylistStatus`, `useBulkTrackStatus`
+- Player binding hook: `apps/frontend/src/hooks/usePlayerQueueBinding.ts`
+- Global player bar: `apps/frontend/src/components/organisms/GlobalPlayerBar.tsx`
 - Shared enums: `packages/shared/src/index.ts` — `PlaylistStatusEnum`, `TrackStatusEnum`
