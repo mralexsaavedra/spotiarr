@@ -1,13 +1,3 @@
-/**
- * GlobalPlayerBar — Persistent global audio player mounted in AppLayout.
- *
- * Owns the single <audio> element for the application. Subscribes to
- * usePlayerStore via selectors to minimise re-renders on the ~4Hz currentTime
- * tick. Never unmounts (returns null instead of being conditionally mounted)
- * so the audio element survives client-side navigation.
- *
- * REQ-PLAYER-BAR-001, 002, 003, 004, 005, 007, 009, 010.
- */
 import {
   faBackwardStep,
   faForwardStep,
@@ -23,11 +13,6 @@ import type { QueueItem } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
 
-// ---------------------------------------------------------------------------
-// Utilities
-// ---------------------------------------------------------------------------
-
-/** Format seconds as m:ss (e.g. 75 → "1:15"). */
 function formatSeconds(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds));
   const m = Math.floor(s / 60);
@@ -35,11 +20,6 @@ function formatSeconds(seconds: number): string {
   return `${m}:${rem.toString().padStart(2, "0")}`;
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components (selector-scoped for perf)
-// ---------------------------------------------------------------------------
-
-/** Only re-renders when currentTime or duration change. */
 const ProgressSection: FC = () => {
   const currentTime = usePlayerStore((s) => s.currentTime);
   const duration = usePlayerStore((s) => s.duration);
@@ -77,7 +57,6 @@ const ProgressSection: FC = () => {
   );
 };
 
-/** Only re-renders when volume or isMuted change. */
 const VolumeSection: FC = () => {
   const volume = usePlayerStore((s) => s.volume);
   const isMuted = usePlayerStore((s) => s.isMuted);
@@ -114,7 +93,6 @@ const VolumeSection: FC = () => {
   );
 };
 
-/** Track metadata — re-renders when the current queue item changes. */
 const TrackMeta: FC<{ item: QueueItem }> = ({ item }) => (
   <div className="flex min-w-0 items-center gap-3">
     <div className="h-10 w-10 shrink-0 overflow-hidden rounded shadow-sm">
@@ -127,20 +105,14 @@ const TrackMeta: FC<{ item: QueueItem }> = ({ item }) => (
   </div>
 );
 
-// ---------------------------------------------------------------------------
-// GlobalPlayerBar
-// ---------------------------------------------------------------------------
-
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Selector subscriptions
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const error = usePlayerStore((s) => s.error);
 
-  // Store actions
   const setAudioElement = usePlayerStore((s) => s.setAudioElement);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
@@ -152,9 +124,6 @@ export const GlobalPlayerBar: FC = () => {
 
   const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
 
-  // --------------------------------------------------------------------------
-  // Effect 1: Bind / unbind audio element to store
-  // --------------------------------------------------------------------------
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
@@ -164,9 +133,6 @@ export const GlobalPlayerBar: FC = () => {
     };
   }, [setAudioElement]);
 
-  // --------------------------------------------------------------------------
-  // Effect 2: Subscribe to audio events
-  // --------------------------------------------------------------------------
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
@@ -192,9 +158,6 @@ export const GlobalPlayerBar: FC = () => {
     };
   }, [_onTimeUpdate, _onLoadedMetadata, _onEnded, _onError]);
 
-  // --------------------------------------------------------------------------
-  // Effect 3: Sync audio src when current item changes
-  // --------------------------------------------------------------------------
   useEffect(() => {
     const el = audioRef.current;
     if (!el || !currentItem) return;
@@ -203,27 +166,19 @@ export const GlobalPlayerBar: FC = () => {
     }
   }, [currentItem]);
 
-  // --------------------------------------------------------------------------
-  // Effect 4: Sync isPlaying → play()/pause()
-  // --------------------------------------------------------------------------
   useEffect(() => {
     const el = audioRef.current;
     if (!el || !currentItem) return;
     if (isPlaying) {
       const playPromise = el.play();
       if (playPromise && typeof playPromise.catch === "function") {
-        void playPromise.catch(() => {
-          // AbortError from rapid src changes is expected — swallow silently
-        });
+        void playPromise.catch(() => {});
       }
     } else {
       el.pause();
     }
   }, [isPlaying, currentItem]);
 
-  // --------------------------------------------------------------------------
-  // Effect 5: Auto-clear error after 3 s
-  // --------------------------------------------------------------------------
   useEffect(() => {
     if (!error) return;
     const timer = setTimeout(() => {
@@ -246,9 +201,6 @@ export const GlobalPlayerBar: FC = () => {
 
   return (
     <>
-      {/* Audio element lives outside the conditional section so it is never
-          recreated when the bar toggles between hidden and visible states.
-          This is the load-bearing "never unmount" guarantee for navigation survivability. */}
       <audio ref={audioRef} aria-label="Audio player" preload="metadata" className="hidden" />
 
       {isVisible && (
@@ -262,9 +214,7 @@ export const GlobalPlayerBar: FC = () => {
             "px-4 py-2",
           )}
         >
-          {/* Mobile layout: two-row stack | Desktop: three-column flex */}
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
-            {/* Row 1 / Col 1: Track meta or error */}
             <div className="flex min-w-0 flex-1 items-center">
               {error ? (
                 <span className="text-sm text-red-400">{error}</span>
@@ -273,9 +223,7 @@ export const GlobalPlayerBar: FC = () => {
               ) : null}
             </div>
 
-            {/* Row 2 / Col 2: Transport + progress */}
             <div className="flex flex-1 flex-col items-center gap-1">
-              {/* Transport buttons */}
               <div className="flex items-center gap-4">
                 <button
                   type="button"
@@ -314,11 +262,9 @@ export const GlobalPlayerBar: FC = () => {
                 </button>
               </div>
 
-              {/* Progress bar */}
               <ProgressSection />
             </div>
 
-            {/* Col 3 (desktop only): Volume */}
             <div className="hidden flex-1 justify-end md:flex">
               <VolumeSection />
             </div>
