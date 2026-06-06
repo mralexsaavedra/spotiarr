@@ -376,6 +376,15 @@
       "repeatAll": "Repeat all",
       "repeatOne": "Repeat one",
       "shuffleOn": "Shuffle on"
+    },
+    "nowPlaying": {
+      "title": "Now Playing",
+      "open": "Open Now Playing",
+      "close": "Close",
+      "queueLabel": "Queue",
+      "dragHandle": "Drag to reorder {{name}}",
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down"
     }
   }
 }

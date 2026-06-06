@@ -1036,6 +1036,46 @@ describe("reorderQueue", () => {
 });
 
 // ---------------------------------------------------------------------------
+// isNowPlayingOpen + setNowPlayingOpen
+// ---------------------------------------------------------------------------
+
+describe("isNowPlayingOpen", () => {
+  it("initial value is false", () => {
+    expect(usePlayerStore.getState().isNowPlayingOpen).toBe(false);
+  });
+
+  it("setNowPlayingOpen(true) sets flag to true", () => {
+    usePlayerStore.getState().setNowPlayingOpen(true);
+    expect(usePlayerStore.getState().isNowPlayingOpen).toBe(true);
+  });
+
+  it("setNowPlayingOpen(false) sets flag to false", () => {
+    usePlayerStore.getState().setNowPlayingOpen(true);
+    usePlayerStore.getState().setNowPlayingOpen(false);
+    expect(usePlayerStore.getState().isNowPlayingOpen).toBe(false);
+  });
+
+  it("clear() resets isNowPlayingOpen to false", () => {
+    usePlayerStore.getState().setNowPlayingOpen(true);
+    usePlayerStore.getState().clear();
+    expect(usePlayerStore.getState().isNowPlayingOpen).toBe(false);
+  });
+
+  it("__partialize does NOT include isNowPlayingOpen in returned keys", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fakeState = {
+      isNowPlayingOpen: true,
+      volume: 1,
+      isMuted: false,
+      shuffleMode: false,
+      repeatMode: "off" as const,
+    } as unknown as Parameters<typeof p>[0];
+    const persisted = p(fakeState);
+    expect("isNowPlayingOpen" in persisted).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // playQueue() with shuffle (S3-1, S3-2)
 // ---------------------------------------------------------------------------
 

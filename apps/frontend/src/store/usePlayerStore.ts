@@ -41,6 +41,7 @@ export interface PlayerState {
   shuffleOrderIndex: number;
 
   isQueuePanelOpen: boolean;
+  isNowPlayingOpen: boolean;
 
   playQueue: (items: QueueItem[], startIndex: number) => void;
   togglePlay: () => void;
@@ -53,6 +54,7 @@ export interface PlayerState {
   toggleShuffle: () => void;
   cycleRepeat: () => void;
   setQueuePanelOpen: (open: boolean) => void;
+  setNowPlayingOpen: (open: boolean) => void;
   playFromIndex: (index: number) => void;
 
   reorderQueue: (fromIndex: number, toIndex: number) => void;
@@ -108,6 +110,7 @@ const INITIAL_STATE = {
   shuffleOrder: [] as number[],
   shuffleOrderIndex: -1,
   isQueuePanelOpen: false,
+  isNowPlayingOpen: false,
 };
 
 type AdvanceSource = "user" | "ended";
@@ -269,6 +272,7 @@ export const usePlayerStore = create<PlayerState>()(
             duration: 0,
             error: null,
             isQueuePanelOpen: false,
+            isNowPlayingOpen: false,
           });
         },
 
@@ -313,6 +317,10 @@ export const usePlayerStore = create<PlayerState>()(
 
         setQueuePanelOpen(open) {
           set({ isQueuePanelOpen: open });
+        },
+
+        setNowPlayingOpen(open) {
+          set({ isNowPlayingOpen: open });
         },
 
         playFromIndex(index) {
