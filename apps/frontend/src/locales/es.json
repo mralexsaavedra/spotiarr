@@ -365,5 +365,17 @@
     "detail": {
       "title": "Álbum"
     }
+  },
+  "player": {
+    "queue": {
+      "title": "Cola",
+      "empty": "No hay pistas en la cola",
+      "toggleOpen": "Abrir cola",
+      "toggleClose": "Cerrar cola",
+      "close": "Cerrar",
+      "repeatAll": "Repetir todo",
+      "repeatOne": "Repetir una",
+      "shuffleOn": "Aleatorio activado"
+    }
   }
 }

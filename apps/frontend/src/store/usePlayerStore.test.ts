@@ -755,6 +755,126 @@ describe("_onEnded() with modes", () => {
 });
 
 // ---------------------------------------------------------------------------
+// isQueuePanelOpen + setQueuePanelOpen (S1-1 through S1-6)
+// ---------------------------------------------------------------------------
+
+describe("isQueuePanelOpen", () => {
+  it("S1-1: initial value is false", () => {
+    expect(usePlayerStore.getState().isQueuePanelOpen).toBe(false);
+  });
+
+  it("S1-2: setQueuePanelOpen(true) sets flag to true", () => {
+    usePlayerStore.getState().setQueuePanelOpen(true);
+    expect(usePlayerStore.getState().isQueuePanelOpen).toBe(true);
+  });
+
+  it("S1-3: setQueuePanelOpen(false) sets flag to false", () => {
+    usePlayerStore.getState().setQueuePanelOpen(true);
+    usePlayerStore.getState().setQueuePanelOpen(false);
+    expect(usePlayerStore.getState().isQueuePanelOpen).toBe(false);
+  });
+
+  it("S1-4: setQueuePanelOpen(true) when already true remains true (idempotent)", () => {
+    usePlayerStore.getState().setQueuePanelOpen(true);
+    usePlayerStore.getState().setQueuePanelOpen(true);
+    expect(usePlayerStore.getState().isQueuePanelOpen).toBe(true);
+  });
+
+  it("S1-5: clear() resets isQueuePanelOpen to false", () => {
+    usePlayerStore.getState().setQueuePanelOpen(true);
+    usePlayerStore.getState().clear();
+    expect(usePlayerStore.getState().isQueuePanelOpen).toBe(false);
+  });
+
+  it("S1-6: __partialize does NOT include isQueuePanelOpen in returned keys", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fakeState = {
+      isQueuePanelOpen: true,
+      volume: 1,
+      isMuted: false,
+      shuffleMode: false,
+      repeatMode: "off" as const,
+    } as unknown as Parameters<typeof p>[0];
+    const persisted = p(fakeState);
+    expect("isQueuePanelOpen" in persisted).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// playFromIndex (S2-1 through S2-7)
+// ---------------------------------------------------------------------------
+
+describe("playFromIndex", () => {
+  it("S2-1: happy path shuffle OFF — sets currentIndex, isPlaying=true, currentTime=0, shuffleOrder unchanged", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 0);
+    const orderBefore = usePlayerStore.getState().shuffleOrder.slice();
+    usePlayerStore.getState().playFromIndex(3);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(3);
+    expect(state.isPlaying).toBe(true);
+    expect(state.currentTime).toBe(0);
+    expect(state.shuffleOrder).toEqual(orderBefore);
+  });
+
+  it("S2-2: out-of-bounds negative is a no-op", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 2);
+    const stateBefore = usePlayerStore.getState().currentIndex;
+    usePlayerStore.getState().playFromIndex(-1);
+    expect(usePlayerStore.getState().currentIndex).toBe(stateBefore);
+  });
+
+  it("S2-3: out-of-bounds equal to length is a no-op", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 2);
+    usePlayerStore.getState().playFromIndex(5);
+    expect(usePlayerStore.getState().currentIndex).toBe(2);
+  });
+
+  it("S2-4: empty queue is a no-op", () => {
+    usePlayerStore.getState().playFromIndex(0);
+    expect(usePlayerStore.getState().currentIndex).toBeNull();
+  });
+
+  it("S2-5: happy path shuffle ON — currentIndex set, shuffleOrder recomputed, shuffleOrderIndex=0", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c"), makeItem("d"), makeItem("e")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ shuffleMode: true });
+    usePlayerStore.getState().playFromIndex(2);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(2);
+    expect(state.isPlaying).toBe(true);
+    expect(state.currentTime).toBe(0);
+    expect(state.shuffleOrder).toHaveLength(5);
+    expect(state.shuffleOrder[0]).toBe(2);
+    expect(state.shuffleOrderIndex).toBe(0);
+  });
+
+  it("S2-6: restart currently-playing — currentTime=0, isPlaying=true", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ currentTime: 45 });
+    usePlayerStore.getState().playFromIndex(1);
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.isPlaying).toBe(true);
+    expect(state.currentTime).toBe(0);
+  });
+
+  it("S2-7: queue array reference unchanged after playFromIndex", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    const queueRef = usePlayerStore.getState().queue;
+    usePlayerStore.getState().playFromIndex(0);
+    expect(usePlayerStore.getState().queue).toBe(queueRef);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // playQueue() with shuffle (S3-1, S3-2)
 // ---------------------------------------------------------------------------
 
