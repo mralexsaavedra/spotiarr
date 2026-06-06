@@ -30,7 +30,7 @@ export const usePlaylistDetailController = () => {
         name: track.name,
         artist: track.artist ?? "",
         album: track.album,
-        artworkUrl: undefined,
+        artworkUrl: track.albumCoverUrl ?? playlist?.coverUrl ?? undefined,
         audioUrl: track.audioUrl!,
         durationMs: track.durationMs,
       }));

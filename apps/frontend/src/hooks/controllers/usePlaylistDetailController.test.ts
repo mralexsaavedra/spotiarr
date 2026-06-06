@@ -83,6 +83,7 @@ const tracks = [
     status: TrackStatusEnum.Completed,
     audioUrl: undefined,
     trackUrl: "https://open.spotify.com/track/1",
+    albumCoverUrl: undefined,
   },
   {
     id: "track-2",
@@ -91,6 +92,7 @@ const tracks = [
     status: TrackStatusEnum.Completed,
     audioUrl: "/api/library/audio?path=%2Fmusic%2Fmain-theme.mp3",
     trackUrl: "https://open.spotify.com/track/2",
+    albumCoverUrl: "https://example.com/album-cover-track2.jpg",
   },
   {
     id: "track-3",
@@ -99,8 +101,14 @@ const tracks = [
     status: TrackStatusEnum.Completed,
     audioUrl: "/api/library/audio?path=%2Fmusic%2Ffinale.mp3",
     trackUrl: "https://open.spotify.com/track/3",
+    albumCoverUrl: undefined,
   },
 ];
+
+const playlistWithCover = {
+  ...playlist,
+  coverUrl: "https://example.com/playlist-cover.jpg",
+};
 
 const defaultPlaylistController = {
   isDownloading: false,
@@ -249,5 +257,70 @@ describe("usePlaylistDetailController", () => {
     });
 
     expect(mockPlayQueue).not.toHaveBeenCalled();
+  });
+
+  // T1.1 — artworkUrl resolution
+  it("[T1.1-A] uses track.albumCoverUrl when present", () => {
+    setupDefaults("library");
+    mockUsePlaylistsQuery.mockReturnValue({ data: [playlistWithCover], isLoading: false });
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onPlayTrack("track-2");
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    const [items] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; artworkUrl?: string }>,
+      number,
+    ];
+    // track-2 has albumCoverUrl set
+    const track2Item = items.find((i) => i.id === "track-2");
+    expect(track2Item?.artworkUrl).toBe("https://example.com/album-cover-track2.jpg");
+  });
+
+  it("[T1.1-B] falls back to playlist.coverUrl when track.albumCoverUrl is absent", () => {
+    setupDefaults("library");
+    mockUsePlaylistsQuery.mockReturnValue({ data: [playlistWithCover], isLoading: false });
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onPlayTrack("track-3");
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    const [items] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; artworkUrl?: string }>,
+      number,
+    ];
+    // track-3 has no albumCoverUrl → falls back to playlist.coverUrl
+    const track3Item = items.find((i) => i.id === "track-3");
+    expect(track3Item?.artworkUrl).toBe("https://example.com/playlist-cover.jpg");
+  });
+
+  it("[T1.1-C] artworkUrl is undefined when both track and playlist have no cover", () => {
+    setupDefaults("library");
+    // playlist has no coverUrl (use the original playlist fixture)
+    mockUsePlaylistsQuery.mockReturnValue({ data: [playlist], isLoading: false });
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => usePlaylistDetailController());
+
+    act(() => {
+      result.current.onPlayTrack("track-3");
+    });
+
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    const [items] = mockPlayQueue.mock.calls[0] as [
+      Array<{ id: string; artworkUrl?: string }>,
+      number,
+    ];
+    // track-3 has no albumCoverUrl; playlist has no coverUrl → undefined
+    const track3Item = items.find((i) => i.id === "track-3");
+    expect(track3Item?.artworkUrl).toBeUndefined();
   });
 });
