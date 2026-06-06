@@ -10,6 +10,7 @@ const mockStore = vi.hoisted(() => ({
   isQueuePanelOpen: false,
   setQueuePanelOpen: vi.fn(),
   playFromIndex: vi.fn(),
+  reorderQueue: vi.fn(),
 }));
 
 vi.mock("@/store/usePlayerStore", () => ({
@@ -53,6 +54,16 @@ function resetMock() {
   mockStore.isQueuePanelOpen = false;
   mockStore.setQueuePanelOpen = vi.fn();
   mockStore.playFromIndex = vi.fn();
+  mockStore.reorderQueue = vi.fn();
+}
+
+function makeDragTransfer(data = "") {
+  return {
+    setData: vi.fn(),
+    getData: vi.fn().mockReturnValue(data),
+    effectAllowed: "",
+    dropEffect: "",
+  };
 }
 
 beforeEach(resetMock);
@@ -246,5 +257,123 @@ describe("backdrop propagation (S7-4)", () => {
     const backdrop = screen.getByTestId("queue-backdrop");
     fireEvent.click(backdrop);
     expect(outerClick).not.toHaveBeenCalled();
+  });
+});
+
+describe("drag and drop", () => {
+  beforeEach(() => {
+    mockStore.isQueuePanelOpen = true;
+    mockStore.queue = [makeItem("a"), makeItem("b"), makeItem("c")];
+    mockStore.currentIndex = 0;
+  });
+
+  it('dragstart on row N sets dataTransfer text/plain to "N"', () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dt = makeDragTransfer();
+    fireEvent.dragStart(rows[2]!, { dataTransfer: dt });
+    expect(dt.setData).toHaveBeenCalledWith("text/plain", "2");
+  });
+
+  it('dragstart sets effectAllowed to "move"', () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dt = makeDragTransfer();
+    fireEvent.dragStart(rows[1]!, { dataTransfer: dt });
+    expect(dt.effectAllowed).toBe("move");
+  });
+
+  it("dragover calls preventDefault", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const event = new Event("dragover", { bubbles: true, cancelable: true });
+    const preventDefaultSpy = vi.spyOn(event, "preventDefault");
+    rows[0]!.dispatchEvent(event);
+    expect(preventDefaultSpy).toHaveBeenCalled();
+  });
+
+  it("drop on row M after dragstart on row N calls reorderQueue(N, M)", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dtStart = makeDragTransfer();
+    fireEvent.dragStart(rows[1]!, { dataTransfer: dtStart });
+
+    const dtDrop = makeDragTransfer("1");
+    fireEvent.drop(rows[2]!, { dataTransfer: dtDrop });
+    expect(mockStore.reorderQueue).toHaveBeenCalledWith(1, 2);
+  });
+
+  it("dragged row gets opacity-50 class after dragstart", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dt = makeDragTransfer();
+    fireEvent.dragStart(rows[0]!, { dataTransfer: dt });
+    expect(rows[0]!.className).toContain("opacity-50");
+  });
+
+  it("dragged row loses opacity-50 class after dragend", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dt = makeDragTransfer();
+    fireEvent.dragStart(rows[0]!, { dataTransfer: dt });
+    fireEvent.dragEnd(rows[0]!);
+    expect(rows[0]!.className).not.toContain("opacity-50");
+  });
+
+  it("drop target row gets border-t-2 class during dragover", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dtStart = makeDragTransfer();
+    fireEvent.dragStart(rows[0]!, { dataTransfer: dtStart });
+
+    const dtOver = makeDragTransfer();
+    fireEvent.dragOver(rows[2]!, { dataTransfer: dtOver });
+    expect(rows[2]!.className).toContain("border-t-2");
+  });
+
+  it("drop target row loses border-t-2 class after dragend", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dtStart = makeDragTransfer();
+    fireEvent.dragStart(rows[0]!, { dataTransfer: dtStart });
+    fireEvent.dragOver(rows[2]!, { dataTransfer: dtStart });
+    fireEvent.dragEnd(rows[0]!);
+    expect(rows[2]!.className).not.toContain("border-t-2");
+  });
+
+  it("drop with non-numeric dataTransfer is no-op (NaN guard)", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dtDrop = makeDragTransfer("not-a-number");
+    fireEvent.drop(rows[0]!, { dataTransfer: dtDrop });
+    expect(mockStore.reorderQueue).not.toHaveBeenCalled();
+  });
+
+  it("dragend without drop clears all drag visual state", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dt = makeDragTransfer();
+    fireEvent.dragStart(rows[1]!, { dataTransfer: dt });
+    fireEvent.dragOver(rows[2]!, { dataTransfer: dt });
+    fireEvent.dragEnd(rows[1]!);
+    expect(rows[1]!.className).not.toContain("opacity-50");
+    expect(rows[2]!.className).not.toContain("border-t-2");
+  });
+
+  it("ESC closes panel after drag interaction", () => {
+    render(<QueueSidePanel />);
+    const rows = screen.getAllByRole("listitem");
+    const dt = makeDragTransfer();
+    fireEvent.dragStart(rows[0]!, { dataTransfer: dt });
+    fireEvent.dragEnd(rows[0]!);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(mockStore.setQueuePanelOpen).toHaveBeenCalledWith(false);
+  });
+
+  it("click on row still triggers playFromIndex after DnD is wired", () => {
+    render(<QueueSidePanel />);
+    const buttons = screen.getAllByRole("button").filter((b) => /Track/i.test(b.textContent ?? ""));
+    fireEvent.click(buttons[1]!);
+    expect(mockStore.playFromIndex).toHaveBeenCalledWith(1);
   });
 });
