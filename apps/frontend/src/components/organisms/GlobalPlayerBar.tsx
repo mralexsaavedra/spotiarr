@@ -1,6 +1,7 @@
 import {
   faBackwardStep,
   faForwardStep,
+  faListUl,
   faPause,
   faPlay,
   faRepeat,
@@ -10,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { FC, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
@@ -146,11 +148,16 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
 
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
+  const isQueuePanelOpen = usePlayerStore((s) => s.isQueuePanelOpen);
+  const setQueuePanelOpen = usePlayerStore((s) => s.setQueuePanelOpen);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const error = usePlayerStore((s) => s.error);
   const shuffleMode = usePlayerStore((s) => s.shuffleMode);
@@ -248,6 +255,13 @@ export const GlobalPlayerBar: FC = () => {
     }, 3000);
     return () => clearTimeout(timer);
   }, [error]);
+
+  useEffect(() => {
+    if (wasOpenRef.current && !isQueuePanelOpen) {
+      triggerRef.current?.focus();
+    }
+    wasOpenRef.current = isQueuePanelOpen;
+  }, [isQueuePanelOpen]);
 
   const isVisible = currentIndex !== null || !!error;
   const isAtFirst =
@@ -362,6 +376,26 @@ export const GlobalPlayerBar: FC = () => {
                       1
                     </sup>
                   )}
+                </button>
+
+                <button
+                  ref={triggerRef}
+                  type="button"
+                  aria-label={
+                    isQueuePanelOpen ? t("player.queue.toggleClose") : t("player.queue.toggleOpen")
+                  }
+                  aria-pressed={isQueuePanelOpen}
+                  disabled={queue.length === 0}
+                  onClick={() => setQueuePanelOpen(!isQueuePanelOpen)}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    isQueuePanelOpen
+                      ? "text-green-500"
+                      : "text-text-secondary hover:text-text-primary",
+                    queue.length === 0 && "cursor-not-allowed opacity-40",
+                  )}
+                >
+                  <FontAwesomeIcon icon={faListUl} className="text-sm" />
                 </button>
               </div>
 

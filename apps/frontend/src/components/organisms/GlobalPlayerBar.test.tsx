@@ -27,6 +27,28 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+vi.mock("react-i18next", async () => {
+  const actual = await vi.importActual<typeof import("react-i18next")>("react-i18next");
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => {
+        const map: Record<string, string> = {
+          "player.queue.toggleOpen": "Open queue",
+          "player.queue.toggleClose": "Close queue",
+          "player.queue.title": "Queue",
+          "player.queue.empty": "No tracks in queue",
+          "player.queue.close": "Close",
+          "player.queue.repeatAll": "Repeat all",
+          "player.queue.repeatOne": "Repeat one",
+          "player.queue.shuffleOn": "Shuffle on",
+        };
+        return map[key] ?? key;
+      },
+    }),
+  };
+});
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -586,6 +608,114 @@ describe("repeat button", () => {
     const { container } = render(<GlobalPlayerBar />);
 
     expect(container.querySelector("sup")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// queue button (S3-1 through S3-7 + focus return)
+// ---------------------------------------------------------------------------
+
+const { usePlayerStore: mockUsePlayerStore } = vi.hoisted(() => {
+  const storeMock = {
+    queue: [] as ReturnType<typeof makeItem>[],
+    isQueuePanelOpen: false,
+    setQueuePanelOpen: vi.fn(),
+  };
+  return {
+    usePlayerStore: Object.assign(
+      (selector: (s: typeof storeMock) => unknown) => selector(storeMock),
+      {
+        getState: () => storeMock,
+        setState: (partial: Partial<typeof storeMock>) => Object.assign(storeMock, partial),
+      },
+    ),
+  };
+});
+
+describe("queue button", () => {
+  beforeEach(() => {
+    mockUsePlayerStore.setState({
+      queue: [makeItem("a"), makeItem("b")],
+      isQueuePanelOpen: false,
+      setQueuePanelOpen: vi.fn(),
+    });
+  });
+
+  it("S3-1: queue button renders after repeat button", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    render(<GlobalPlayerBar />);
+
+    const buttons = screen.getAllByRole("button");
+    const repeatIdx = buttons.findIndex((b) => /repeat/i.test(b.getAttribute("aria-label") ?? ""));
+    const queueIdx = buttons.findIndex((b) => /queue/i.test(b.getAttribute("aria-label") ?? ""));
+    expect(queueIdx).toBeGreaterThan(repeatIdx);
+  });
+
+  it("S3-2: aria-label=Open queue and aria-pressed=false when closed", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ isQueuePanelOpen: false });
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Open queue" });
+    expect(btn.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("S3-3: aria-label=Close queue and aria-pressed=true when open", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ isQueuePanelOpen: true });
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Close queue" });
+    expect(btn.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("S3-4: click calls setQueuePanelOpen(true) when closed", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ isQueuePanelOpen: false });
+    render(<GlobalPlayerBar />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+    expect(usePlayerStore.getState().isQueuePanelOpen).toBe(true);
+  });
+
+  it("S3-5: click calls setQueuePanelOpen(false) when open", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ isQueuePanelOpen: true });
+    render(<GlobalPlayerBar />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Close queue" }));
+    expect(usePlayerStore.getState().isQueuePanelOpen).toBe(false);
+  });
+
+  it("S3-6: button is disabled when queue is empty", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.getState().clear();
+    usePlayerStore.setState({ error: "err", currentIndex: 0 });
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Open queue" });
+    expect(btn).toHaveProperty("disabled", true);
+    expect(btn).not.toBeNull();
+  });
+
+  it("S3-7: button is NOT disabled when queue has tracks", () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    render(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Open queue" });
+    expect(btn).toHaveProperty("disabled", false);
+  });
+
+  it("focus returns to queue button when panel transitions true→false", async () => {
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+    usePlayerStore.setState({ isQueuePanelOpen: true });
+    const { rerender } = render(<GlobalPlayerBar />);
+
+    usePlayerStore.setState({ isQueuePanelOpen: false });
+    rerender(<GlobalPlayerBar />);
+
+    const btn = screen.getByRole("button", { name: "Open queue" });
+    expect(document.activeElement).toBe(btn);
   });
 });
 
