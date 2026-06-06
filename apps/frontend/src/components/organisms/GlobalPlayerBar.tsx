@@ -33,7 +33,7 @@ const ProgressSection: FC = () => {
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="flex w-full items-center gap-2">
+    <div className="group flex w-full items-center gap-2">
       <span className="text-text-secondary w-8 shrink-0 text-right text-xs tabular-nums">
         {formatSeconds(currentTime)}
       </span>
@@ -50,10 +50,20 @@ const ProgressSection: FC = () => {
         step={1}
         value={currentTime}
         onChange={(e) => seek(Number(e.target.value))}
-        className="h-1 flex-1 cursor-pointer accent-white"
-        style={{
-          background: `linear-gradient(to right, white ${pct}%, rgba(255,255,255,0.2) ${pct}%)`,
-        }}
+        className={cn(
+          "h-1 flex-1 cursor-pointer appearance-none rounded-full",
+          "[&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:rounded-full",
+          "[&::-moz-range-track]:h-1 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-0",
+          "[&::-webkit-slider-thumb]:-mt-1 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:opacity-0 group-hover:[&::-webkit-slider-thumb]:opacity-100",
+          "[&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:opacity-0 group-hover:[&::-moz-range-thumb]:opacity-100",
+          "group-hover:[background:linear-gradient(to_right,#1ed760_var(--pct),rgba(255,255,255,0.3)_var(--pct))]",
+        )}
+        style={
+          {
+            background: `linear-gradient(to right, white ${pct}%, rgba(255,255,255,0.3) ${pct}%)`,
+            "--pct": `${pct}%`,
+          } as React.CSSProperties
+        }
       />
       <span className="text-text-secondary w-8 shrink-0 text-xs tabular-nums">
         {formatSeconds(duration)}
@@ -270,7 +280,7 @@ export const GlobalPlayerBar: FC = () => {
           aria-label="Now playing"
           onKeyDown={onKeyDown}
           className={cn(
-            "bg-surface/95 border-t border-white/10 backdrop-blur-lg",
+            "bg-black",
             "fixed right-0 bottom-16 left-0 z-40 transition-[left] duration-300 md:bottom-0",
             isSidebarCollapsed ? "md:left-20" : "md:left-64",
             "px-4 py-2",
