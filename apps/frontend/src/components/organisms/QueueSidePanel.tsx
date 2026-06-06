@@ -1,6 +1,6 @@
 import { faShuffle, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
@@ -8,6 +8,8 @@ import { cn } from "@/utils/cn";
 export const QueueSidePanel: FC = () => {
   const { t } = useTranslation();
   const activeRowRef = useRef<HTMLLIElement>(null);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
@@ -16,6 +18,7 @@ export const QueueSidePanel: FC = () => {
   const isQueuePanelOpen = usePlayerStore((s) => s.isQueuePanelOpen);
   const setQueuePanelOpen = usePlayerStore((s) => s.setQueuePanelOpen);
   const playFromIndex = usePlayerStore((s) => s.playFromIndex);
+  const reorderQueue = usePlayerStore((s) => s.reorderQueue);
 
   useEffect(() => {
     if (!isQueuePanelOpen) return;
@@ -89,11 +92,45 @@ export const QueueSidePanel: FC = () => {
             <ul className="py-2">
               {queue.map((item, index) => {
                 const isCurrent = index === currentIndex;
+                const isDragging = draggingIndex === index;
+                const isDropTarget = dragOverIndex === index && draggingIndex !== index;
                 return (
                   <li
                     key={item.id}
                     ref={isCurrent ? activeRowRef : undefined}
                     aria-current={isCurrent ? "true" : undefined}
+                    draggable
+                    className={cn(
+                      isDragging && "cursor-grabbing opacity-50",
+                      isDropTarget && "border-t-2 border-green-500",
+                      !isDragging && "cursor-grab",
+                    )}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", String(index));
+                      e.dataTransfer.effectAllowed = "move";
+                      setDraggingIndex(index);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (dragOverIndex !== index) setDragOverIndex(index);
+                    }}
+                    onDragLeave={(e) => {
+                      if (e.currentTarget === e.target) setDragOverIndex(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const raw = e.dataTransfer.getData("text/plain");
+                      const fromIndex = Number(raw);
+                      setDraggingIndex(null);
+                      setDragOverIndex(null);
+                      if (Number.isNaN(fromIndex)) return;
+                      reorderQueue(fromIndex, index);
+                    }}
+                    onDragEnd={() => {
+                      setDraggingIndex(null);
+                      setDragOverIndex(null);
+                    }}
                   >
                     <button
                       type="button"
