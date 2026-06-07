@@ -245,13 +245,13 @@ test.describe("Mocked global player flows", () => {
     const playerBar = page.getByRole("region", { name: "Now playing" });
 
     await expect(playerBar).toBeVisible();
-    await expect(playerBar.getByText("Dayvan Cowboy")).toBeVisible();
-    await expect(playerBar.getByText("Boards of Canada")).toBeVisible();
+    await expect(
+      playerBar.getByRole("button", { name: /Open Dayvan Cowboy by Boards of Canada/ }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Next track" }).click();
 
-    await expect(playerBar.getByText("Awake")).toBeVisible();
-    await expect(playerBar.getByText("Tycho")).toBeVisible();
+    await expect(playerBar.getByRole("button", { name: /Open Awake by Tycho/ })).toBeVisible();
 
     await playerBar.getByRole("button", { name: "Pause" }).click();
 
