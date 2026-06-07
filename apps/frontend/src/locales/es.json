@@ -394,7 +394,8 @@
       "next": "Pista siguiente",
       "pause": "Pausar",
       "play": "Reproducir",
-      "seek": "Avanzar"
+      "seek": "Avanzar",
+      "repeatEnable": "Activar repetición"
     }
   }
 }

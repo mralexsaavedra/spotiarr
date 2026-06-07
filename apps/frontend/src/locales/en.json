@@ -394,7 +394,8 @@
       "next": "Next track",
       "pause": "Pause",
       "play": "Play",
-      "seek": "Seek"
+      "seek": "Seek",
+      "repeatEnable": "Enable repeat"
     }
   }
 }
