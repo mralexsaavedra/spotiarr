@@ -126,7 +126,7 @@ export const NowPlayingFullscreen: FC = () => {
       aria-modal="true"
       aria-label={t("player.nowPlaying.title")}
       className={cn(
-        "fixed inset-0 z-[70] flex flex-col md:hidden",
+        "fixed inset-0 z-[70] flex flex-col bg-black md:hidden",
         "transition-transform duration-300 motion-reduce:transition-none",
         isNowPlayingOpen
           ? "pointer-events-auto translate-y-0"
