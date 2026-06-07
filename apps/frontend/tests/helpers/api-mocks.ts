@@ -114,6 +114,10 @@ interface MockHistoryOptions {
   tracks?: DownloadHistoryItem[];
 }
 
+interface MockTrackOptions {
+  tracksByPlaylistId?: Record<string, Track[]>;
+}
+
 interface MockFeedOptions {
   followedArtists?: FollowedArtist[];
   releases?: ArtistRelease[];
@@ -129,6 +133,12 @@ interface MockArtistOptions {
 const DEFAULT_TIMESTAMP = new Date(0).toISOString();
 
 const DEFAULT_COMPLETED_AT = 1_700_000_000_000;
+
+const SILENT_WAV_BUFFER = Buffer.from([
+  0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6d, 0x74, 0x20,
+  0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x44, 0xac, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00,
+  0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00,
+]);
 
 const SETTINGS_PAYLOAD = {
   data: [
@@ -239,7 +249,7 @@ const registerJsonRoute = async (
   });
 };
 
-function buildPlaylistTrack(overrides: Partial<Track> = {}): Track {
+export function buildTrack(overrides: Partial<Track> = {}): Track {
   return {
     id: "track-1",
     name: "Mock Track",
@@ -253,7 +263,7 @@ function buildPlaylistTrack(overrides: Partial<Track> = {}): Track {
   };
 }
 
-function buildLibraryTrack(overrides: Partial<LibraryTrack> = {}): LibraryTrack {
+export function buildLibraryTrack(overrides: Partial<LibraryTrack> = {}): LibraryTrack {
   return {
     fileName: "01 Mock Track.mp3",
     filePath: "/library/artists/library-artist/library-album/01 Mock Track.mp3",
@@ -270,7 +280,7 @@ function buildLibraryTrack(overrides: Partial<LibraryTrack> = {}): LibraryTrack 
   };
 }
 
-function buildLibraryAlbum(overrides: Partial<LibraryAlbum> = {}): LibraryAlbum {
+export function buildLibraryAlbum(overrides: Partial<LibraryAlbum> = {}): LibraryAlbum {
   const tracks = overrides.tracks ?? [buildLibraryTrack()];
 
   return {
@@ -312,7 +322,7 @@ export function buildPlaylist(overrides: Partial<Playlist> = {}): Playlist {
     ownerUrl: "https://open.spotify.com/user/spotiarr",
     coverUrl: "/artwork/mock-playlist.jpg",
     description: "Mock playlist used for route coverage.",
-    tracks: [buildPlaylistTrack({ playlistId: "playlist-1" })],
+    tracks: [buildTrack({ playlistId: "playlist-1" })],
     ...overrides,
   };
 }
@@ -491,6 +501,28 @@ export async function installHistoryMocks(
 ): Promise<void> {
   await registerJsonRoute(page, `${ApiRoutes.HISTORY}/downloads`, { data: downloads });
   await registerJsonRoute(page, `${ApiRoutes.HISTORY}/tracks`, { data: tracks });
+}
+
+export async function installTrackMocks(
+  page: Page,
+  { tracksByPlaylistId = {} }: MockTrackOptions = {},
+): Promise<void> {
+  await page.route(`**${buildApiUrl(`${ApiRoutes.TRACK}/playlist/**`)}`, async (route) => {
+    const url = new URL(route.request().url());
+    const playlistId = url.pathname.split("/").pop() ?? "";
+
+    await fulfillJson(route, { data: tracksByPlaylistId[playlistId] ?? [] });
+  });
+}
+
+export async function installLibraryAudioMocks(page: Page): Promise<void> {
+  await page.route(`**${buildApiUrl(`${ApiRoutes.LIBRARY}/audio**`)}`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "audio/wav",
+      body: SILENT_WAV_BUFFER,
+    });
+  });
 }
 
 export async function installFeedMocks(
