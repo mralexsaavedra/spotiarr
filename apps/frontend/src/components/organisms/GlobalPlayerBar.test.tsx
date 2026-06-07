@@ -54,6 +54,14 @@ vi.mock("react-i18next", async () => {
           "player.nowPlaying.close": "Close",
           "player.nowPlaying.title": "Now Playing",
           "player.nowPlaying.queueLabel": "Queue",
+          "player.transport.play": "Play",
+          "player.transport.pause": "Pause",
+          "player.transport.previous": "Previous track",
+          "player.transport.next": "Next track",
+          "player.transport.shuffleOn": "Disable shuffle",
+          "player.transport.shuffleOff": "Enable shuffle",
+          "player.transport.seek": "Seek",
+          "player.transport.repeatEnable": "Enable repeat",
         };
         return map[key] ?? key;
       },

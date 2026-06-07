@@ -1,24 +1,16 @@
-import {
-  faBackwardStep,
-  faForwardStep,
-  faListUl,
-  faPause,
-  faPlay,
-  faRepeat,
-  faShuffle,
-  faVolumeHigh,
-  faVolumeXmark,
-} from "@fortawesome/free-solid-svg-icons";
+import { faListUl, faVolumeHigh, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { FC, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
 import { usePreferencesStore } from "@/store/usePreferencesStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
+import { TransportControls } from "../molecules/TransportControls";
 import { NowPlayingFullscreen } from "./NowPlayingFullscreen";
 import { QueueSidePanel } from "./QueueSidePanel";
 
@@ -30,6 +22,7 @@ function formatSeconds(seconds: number): string {
 }
 
 const ProgressSection: FC = () => {
+  const { t } = useTranslation();
   const currentTime = usePlayerStore((s) => s.currentTime);
   const duration = usePlayerStore((s) => s.duration);
   const seek = usePlayerStore((s) => s.seek);
@@ -44,7 +37,7 @@ const ProgressSection: FC = () => {
       <input
         type="range"
         role="slider"
-        aria-label="Seek"
+        aria-label={t("player.transport.seek")}
         aria-valuemin={0}
         aria-valuemax={duration}
         aria-valuenow={currentTime}
@@ -151,9 +144,7 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const wasOpenRef = useRef(false);
   const nowPlayingTriggerRef = useRef<HTMLButtonElement>(null);
-  const wasNowPlayingOpenRef = useRef(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
@@ -198,6 +189,8 @@ export const GlobalPlayerBar: FC = () => {
     [next, prev, seek],
   );
   useMediaSession(currentItem, isPlaying, mediaSessionActions);
+  useFocusReturnOnClose(isQueuePanelOpen, triggerRef);
+  useFocusReturnOnClose(isNowPlayingOpen, nowPlayingTriggerRef);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -262,20 +255,6 @@ export const GlobalPlayerBar: FC = () => {
     return () => clearTimeout(timer);
   }, [error]);
 
-  useEffect(() => {
-    if (wasOpenRef.current && !isQueuePanelOpen) {
-      triggerRef.current?.focus();
-    }
-    wasOpenRef.current = isQueuePanelOpen;
-  }, [isQueuePanelOpen]);
-
-  useEffect(() => {
-    if (wasNowPlayingOpenRef.current && !isNowPlayingOpen) {
-      nowPlayingTriggerRef.current?.focus();
-    }
-    wasNowPlayingOpenRef.current = isNowPlayingOpen;
-  }, [isNowPlayingOpen]);
-
   const isVisible = currentIndex !== null || !!error;
   const isAtFirst =
     !shuffleMode && repeatMode !== "all" && (currentIndex === null || currentIndex <= 0);
@@ -283,11 +262,6 @@ export const GlobalPlayerBar: FC = () => {
     !shuffleMode &&
     repeatMode !== "all" &&
     (currentIndex === null || currentIndex >= queue.length - 1);
-
-  const shuffleAriaLabel = shuffleMode ? "Disable shuffle" : "Enable shuffle";
-  const repeatAriaLabel =
-    repeatMode === "off" ? "Enable repeat" : repeatMode === "all" ? "Repeat all" : "Repeat one";
-  const isRepeatActive = repeatMode !== "off";
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== " ") return;
@@ -340,72 +314,20 @@ export const GlobalPlayerBar: FC = () => {
 
             <div className="flex flex-1 flex-col items-center gap-1">
               <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  aria-label={shuffleAriaLabel}
-                  onClick={toggleShuffle}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-                    shuffleMode ? "text-green-500" : "text-text-secondary hover:text-text-primary",
-                  )}
-                >
-                  <FontAwesomeIcon icon={faShuffle} className="text-sm" />
-                </button>
-
-                <button
-                  type="button"
-                  aria-label="Previous track"
-                  disabled={isAtFirst}
-                  onClick={prev}
-                  className={cn(
-                    "text-text-secondary hover:text-text-primary flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-                    isAtFirst && "cursor-not-allowed opacity-40",
-                  )}
-                >
-                  <FontAwesomeIcon icon={faBackwardStep} className="text-base" />
-                </button>
-
-                <button
-                  type="button"
-                  aria-label={isPlaying ? "Pause" : "Play"}
-                  aria-pressed={isPlaying}
-                  onClick={togglePlay}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow transition-transform hover:scale-105"
-                >
-                  <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className="text-sm" />
-                </button>
-
-                <button
-                  type="button"
-                  aria-label="Next track"
-                  disabled={isAtLast}
-                  onClick={next}
-                  className={cn(
-                    "text-text-secondary hover:text-text-primary flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-                    isAtLast && "cursor-not-allowed opacity-40",
-                  )}
-                >
-                  <FontAwesomeIcon icon={faForwardStep} className="text-base" />
-                </button>
-
-                <button
-                  type="button"
-                  aria-label={repeatAriaLabel}
-                  onClick={cycleRepeat}
-                  className={cn(
-                    "relative flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-                    isRepeatActive
-                      ? "text-green-500"
-                      : "text-text-secondary hover:text-text-primary",
-                  )}
-                >
-                  <FontAwesomeIcon icon={faRepeat} className="text-sm" />
-                  {repeatMode === "one" && (
-                    <sup className="absolute -top-1 -right-1 text-[0.55rem] leading-none font-bold">
-                      1
-                    </sup>
-                  )}
-                </button>
+                <TransportControls
+                  size="default"
+                  currentTrack={currentItem ?? null}
+                  isPlaying={isPlaying}
+                  shuffleMode={shuffleMode}
+                  repeatMode={repeatMode}
+                  onPlayPause={togglePlay}
+                  onPrev={prev}
+                  onNext={next}
+                  onShuffleToggle={toggleShuffle}
+                  onRepeatCycle={cycleRepeat}
+                  isPrevDisabled={isAtFirst}
+                  isNextDisabled={isAtLast}
+                />
 
                 <button
                   ref={triggerRef}

@@ -14,9 +14,24 @@ vi.mock("react-i18next", async () => {
           "player.nowPlaying.open": "Open Now Playing",
           "player.nowPlaying.close": "Close",
           "player.nowPlaying.queueLabel": "Queue",
+          "player.transport.play": "Play",
+          "player.transport.pause": "Pause",
+          "player.transport.previous": "Previous track",
+          "player.transport.next": "Next track",
+          "player.transport.shuffleOn": "Disable shuffle",
+          "player.transport.shuffleOff": "Enable shuffle",
+          "player.transport.seek": "Seek",
+          "player.queue.repeatAll": "Repeat all",
+          "player.queue.repeatOne": "Repeat one",
         };
         if (key === "player.nowPlaying.dragHandle" && opts?.name) {
           return `Drag to reorder ${opts.name as string}`;
+        }
+        if (key === "player.nowPlaying.moveUp" && opts?.name) {
+          return `Move ${opts.name as string} up`;
+        }
+        if (key === "player.nowPlaying.moveDown" && opts?.name) {
+          return `Move ${opts.name as string} down`;
         }
         return map[key] ?? key;
       },

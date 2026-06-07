@@ -1,19 +1,11 @@
-import {
-  faBackwardStep,
-  faChevronDown,
-  faForwardStep,
-  faGripLines,
-  faPause,
-  faPlay,
-  faRepeat,
-  faShuffle,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faGripLines } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
+import { TransportControls } from "../molecules/TransportControls";
 
 function formatSeconds(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds));
@@ -128,17 +120,13 @@ export const NowPlayingFullscreen: FC = () => {
     if (dy >= 80) setNowPlayingOpen(false);
   };
 
-  const shuffleAriaLabel = shuffleMode ? "Disable shuffle" : "Enable shuffle";
-  const repeatAriaLabel =
-    repeatMode === "off" ? "Enable repeat" : repeatMode === "all" ? "Repeat all" : "Repeat one";
-
   return (
     <aside
       role="dialog"
       aria-modal="true"
       aria-label={t("player.nowPlaying.title")}
       className={cn(
-        "fixed inset-0 z-[70] flex flex-col md:hidden",
+        "fixed inset-0 z-[70] flex flex-col bg-black md:hidden",
         "transition-transform duration-300 motion-reduce:transition-none",
         isNowPlayingOpen
           ? "pointer-events-auto translate-y-0"
@@ -206,7 +194,7 @@ export const NowPlayingFullscreen: FC = () => {
           <input
             type="range"
             role="slider"
-            aria-label="Seek"
+            aria-label={t("player.transport.seek")}
             aria-valuemin={0}
             aria-valuemax={duration}
             aria-valuenow={currentTime}
@@ -227,61 +215,19 @@ export const NowPlayingFullscreen: FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-6 px-6 pb-4">
-        <button
-          type="button"
-          aria-label={shuffleAriaLabel}
-          onClick={toggleShuffle}
-          className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-full transition-colors",
-            shuffleMode ? "text-green-500" : "text-white/70 hover:text-white",
-          )}
-        >
-          <FontAwesomeIcon icon={faShuffle} />
-        </button>
-
-        <button
-          type="button"
-          aria-label="Previous track"
-          onClick={prev}
-          className="flex h-12 w-12 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white"
-        >
-          <FontAwesomeIcon icon={faBackwardStep} />
-        </button>
-
-        <button
-          type="button"
-          aria-label={isPlaying ? "Pause" : "Play"}
-          aria-pressed={isPlaying}
-          onClick={togglePlay}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow transition-transform hover:scale-105"
-        >
-          <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
-        </button>
-
-        <button
-          type="button"
-          aria-label="Next track"
-          onClick={next}
-          className="flex h-12 w-12 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white"
-        >
-          <FontAwesomeIcon icon={faForwardStep} />
-        </button>
-
-        <button
-          type="button"
-          aria-label={repeatAriaLabel}
-          onClick={cycleRepeat}
-          className={cn(
-            "relative flex h-12 w-12 items-center justify-center rounded-full transition-colors",
-            repeatMode !== "off" ? "text-green-500" : "text-white/70 hover:text-white",
-          )}
-        >
-          <FontAwesomeIcon icon={faRepeat} />
-          {repeatMode === "one" && (
-            <sup className="absolute -top-1 -right-1 text-[0.55rem] leading-none font-bold">1</sup>
-          )}
-        </button>
+      <div className="flex items-center justify-center px-6 pb-4">
+        <TransportControls
+          size="large"
+          currentTrack={currentItem ?? null}
+          isPlaying={isPlaying}
+          shuffleMode={shuffleMode}
+          repeatMode={repeatMode}
+          onPlayPause={togglePlay}
+          onPrev={prev}
+          onNext={next}
+          onShuffleToggle={toggleShuffle}
+          onRepeatCycle={cycleRepeat}
+        />
       </div>
 
       <section

@@ -1,1 +1,14 @@
 pnpm exec lint-staged
+
+# Fallback guard: ban JSDoc blocks and JSX section-divider comments in molecules/organisms.
+# oxlint 1.66.0 cannot match JSX comment AST nodes via overrides[].
+SCOPE="apps/frontend/src/components"
+RG=$(which rg 2>/dev/null || echo "/opt/homebrew/bin/rg")
+if "$RG" --quiet --glob '*.tsx' --glob '!*.test.tsx' --glob '!*.spec.tsx' \
+  -e '/\*\*' -e '\{/\*\s*={3,}' -e '\{/\*\s*-{3,}' -e '\{/\*\s*SECTION:' \
+  "$SCOPE/molecules" "$SCOPE/organisms" 2>/dev/null; then
+  echo ""
+  echo "Pre-commit guard: JSDoc block or JSX section-divider comment found in molecules/organisms."
+  echo "Remove verbose comments (/** */ blocks and {/* === */} dividers) before committing."
+  exit 1
+fi

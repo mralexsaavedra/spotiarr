@@ -384,7 +384,18 @@
       "queueLabel": "Cola",
       "dragHandle": "Arrastrá para reordenar {{name}}",
       "moveUp": "Subir {{name}}",
-      "moveDown": "Bajar {{name}}"
+      "moveDown": "Bajar {{name}}",
+      "seek": "Avanzar"
+    },
+    "transport": {
+      "shuffleOn": "Aleatorio activado",
+      "shuffleOff": "Aleatorio desactivado",
+      "previous": "Pista anterior",
+      "next": "Pista siguiente",
+      "pause": "Pausar",
+      "play": "Reproducir",
+      "seek": "Avanzar",
+      "repeatEnable": "Activar repetición"
     }
   }
 }

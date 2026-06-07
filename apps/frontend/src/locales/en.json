@@ -384,7 +384,18 @@
       "queueLabel": "Queue",
       "dragHandle": "Drag to reorder {{name}}",
       "moveUp": "Move {{name}} up",
-      "moveDown": "Move {{name}} down"
+      "moveDown": "Move {{name}} down",
+      "seek": "Seek"
+    },
+    "transport": {
+      "shuffleOn": "Shuffle on",
+      "shuffleOff": "Shuffle off",
+      "previous": "Previous track",
+      "next": "Next track",
+      "pause": "Pause",
+      "play": "Play",
+      "seek": "Seek",
+      "repeatEnable": "Enable repeat"
     }
   }
 }
