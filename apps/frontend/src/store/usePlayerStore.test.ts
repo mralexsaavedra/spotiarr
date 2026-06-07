@@ -447,6 +447,74 @@ describe("persist partialize", () => {
 });
 
 // ---------------------------------------------------------------------------
+// __partialize allowlist regression (REQ-5)
+// ---------------------------------------------------------------------------
+
+describe("__partialize allowlist — persisted keys are exactly volume, isMuted, shuffleMode, repeatMode", () => {
+  it("result keys are exactly the 4 approved keys", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fullState = {
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      isPlaying: true,
+      volume: 0.8,
+      isMuted: false,
+      currentTime: 30,
+      duration: 200,
+      error: null,
+      shuffleMode: true,
+      repeatMode: "all" as const,
+      shuffleOrder: [0],
+      shuffleOrderIndex: 0,
+      isQueuePanelOpen: true,
+      isNowPlayingOpen: true,
+      playQueue: vi.fn(),
+      togglePlay: vi.fn(),
+      next: vi.fn(),
+      prev: vi.fn(),
+      seek: vi.fn(),
+      setVolume: vi.fn(),
+      toggleMute: vi.fn(),
+      clear: vi.fn(),
+      toggleShuffle: vi.fn(),
+      cycleRepeat: vi.fn(),
+      setAudioElement: vi.fn(),
+      _onLoadedMetadata: vi.fn(),
+      _onTimeUpdate: vi.fn(),
+      _onEnded: vi.fn(),
+      _onError: vi.fn(),
+      setQueuePanelOpen: vi.fn(),
+      setNowPlayingOpen: vi.fn(),
+      playFromIndex: vi.fn(),
+      reorderQueue: vi.fn(),
+    };
+
+    const result = p(fullState as unknown as Parameters<typeof p>[0]);
+    expect(Object.keys(result).sort()).toEqual(["isMuted", "repeatMode", "shuffleMode", "volume"]);
+  });
+
+  it("excluded fields are absent from result", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fullState = {
+      isNowPlayingOpen: true,
+      isQueuePanelOpen: true,
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      volume: 1,
+      isMuted: false,
+      shuffleMode: false,
+      repeatMode: "off" as const,
+    } as unknown as Parameters<typeof p>[0];
+
+    const result = p(fullState);
+    expect("isNowPlayingOpen" in result).toBe(false);
+    expect("isQueuePanelOpen" in result).toBe(false);
+    expect("queue" in result).toBe(false);
+    expect("currentIndex" in result).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // shuffle state (S1-1, S1-3, S1-4, S5-1, S5-2)
 // ---------------------------------------------------------------------------
 
