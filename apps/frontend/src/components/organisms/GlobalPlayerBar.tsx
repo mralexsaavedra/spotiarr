@@ -13,6 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { FC, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
@@ -151,9 +152,7 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const wasOpenRef = useRef(false);
   const nowPlayingTriggerRef = useRef<HTMLButtonElement>(null);
-  const wasNowPlayingOpenRef = useRef(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
@@ -198,6 +197,8 @@ export const GlobalPlayerBar: FC = () => {
     [next, prev, seek],
   );
   useMediaSession(currentItem, isPlaying, mediaSessionActions);
+  useFocusReturnOnClose(isQueuePanelOpen, triggerRef);
+  useFocusReturnOnClose(isNowPlayingOpen, nowPlayingTriggerRef);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -261,20 +262,6 @@ export const GlobalPlayerBar: FC = () => {
     }, 3000);
     return () => clearTimeout(timer);
   }, [error]);
-
-  useEffect(() => {
-    if (wasOpenRef.current && !isQueuePanelOpen) {
-      triggerRef.current?.focus();
-    }
-    wasOpenRef.current = isQueuePanelOpen;
-  }, [isQueuePanelOpen]);
-
-  useEffect(() => {
-    if (wasNowPlayingOpenRef.current && !isNowPlayingOpen) {
-      nowPlayingTriggerRef.current?.focus();
-    }
-    wasNowPlayingOpenRef.current = isNowPlayingOpen;
-  }, [isNowPlayingOpen]);
 
   const isVisible = currentIndex !== null || !!error;
   const isAtFirst =
