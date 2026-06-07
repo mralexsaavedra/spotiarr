@@ -217,7 +217,8 @@ export const NowPlayingFullscreen: FC = () => {
 
       <div className="flex items-center justify-center px-6 pb-4">
         <TransportControls
-          size="lg"
+          size="large"
+          currentTrack={currentItem ?? null}
           isPlaying={isPlaying}
           shuffleMode={shuffleMode}
           repeatMode={repeatMode}

@@ -315,7 +315,8 @@ export const GlobalPlayerBar: FC = () => {
             <div className="flex flex-1 flex-col items-center gap-1">
               <div className="flex items-center gap-4">
                 <TransportControls
-                  size="sm"
+                  size="default"
+                  currentTrack={currentItem ?? null}
                   isPlaying={isPlaying}
                   shuffleMode={shuffleMode}
                   repeatMode={repeatMode}

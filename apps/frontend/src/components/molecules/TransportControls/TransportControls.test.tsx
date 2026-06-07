@@ -45,14 +45,29 @@ describe("TransportControls", () => {
     expect(screen.getByRole("button", { name: "player.transport.shuffleOn" })).toBeTruthy();
   });
 
-  it("root carries data-size attribute when size prop provided", () => {
-    const { container } = render(<TransportControls {...defaultProps} size="lg" />);
-    expect((container.firstChild as HTMLElement).getAttribute("data-size")).toBe("lg");
+  it("root carries data-size=large when size=large", () => {
+    const { container } = render(<TransportControls {...defaultProps} size="large" />);
+    expect((container.firstChild as HTMLElement).getAttribute("data-size")).toBe("large");
+  });
+
+  it("root carries data-size=default when size=default", () => {
+    const { container } = render(<TransportControls {...defaultProps} size="default" />);
+    expect((container.firstChild as HTMLElement).getAttribute("data-size")).toBe("default");
   });
 
   it("root has no data-size attribute when size is not provided", () => {
     const { container } = render(<TransportControls {...defaultProps} />);
     expect((container.firstChild as HTMLElement).getAttribute("data-size")).toBeNull();
+  });
+
+  it("all five buttons are disabled with aria-disabled when currentTrack is null", () => {
+    render(<TransportControls {...defaultProps} currentTrack={null} />);
+    const buttons = screen.getAllByRole("button");
+    expect(buttons).toHaveLength(5);
+    buttons.forEach((btn) => {
+      expect(btn).toHaveProperty("disabled", true);
+      expect(btn.getAttribute("aria-disabled")).toBe("true");
+    });
   });
 
   it("calls onPlayPause when play/pause button clicked", () => {

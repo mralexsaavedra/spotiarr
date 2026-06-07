@@ -14,6 +14,7 @@ import { cn } from "@/utils/cn";
 export type RepeatMode = "off" | "all" | "one";
 
 export interface TransportControlsProps {
+  currentTrack?: { id: string } | null;
   isPlaying: boolean;
   shuffleMode: boolean;
   repeatMode: RepeatMode;
@@ -24,11 +25,12 @@ export interface TransportControlsProps {
   onRepeatCycle: () => void;
   isPrevDisabled?: boolean;
   isNextDisabled?: boolean;
-  size?: "sm" | "lg";
+  size?: "default" | "large";
   className?: string;
 }
 
 export const TransportControls: FC<TransportControlsProps> = ({
+  currentTrack,
   isPlaying,
   shuffleMode,
   repeatMode,
@@ -44,7 +46,8 @@ export const TransportControls: FC<TransportControlsProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const isLg = size === "lg";
+  const allDisabled = currentTrack === null;
+  const isLg = size === "large";
   const controlSize = isLg ? "h-12 w-12" : "h-8 w-8";
   const playSize = isLg ? "h-14 w-14" : "h-10 w-10";
   const iconSize = isLg ? "text-base" : "text-sm";
@@ -59,15 +62,19 @@ export const TransportControls: FC<TransportControlsProps> = ({
         aria-label={
           shuffleMode ? t("player.transport.shuffleOn") : t("player.transport.shuffleOff")
         }
+        disabled={allDisabled}
+        aria-disabled={allDisabled || undefined}
         onClick={onShuffleToggle}
         className={cn(
           "flex items-center justify-center rounded-full transition-colors",
           controlSize,
-          shuffleMode
-            ? "text-green-500"
-            : isLg
-              ? "text-white/70 hover:text-white"
-              : "text-text-secondary hover:text-text-primary",
+          allDisabled
+            ? "cursor-not-allowed opacity-40"
+            : shuffleMode
+              ? "text-green-500"
+              : isLg
+                ? "text-white/70 hover:text-white"
+                : "text-text-secondary hover:text-text-primary",
         )}
       >
         <FontAwesomeIcon icon={faShuffle} className={iconSize} />
@@ -76,12 +83,13 @@ export const TransportControls: FC<TransportControlsProps> = ({
       <button
         type="button"
         aria-label={t("player.transport.previous")}
-        disabled={isPrevDisabled}
+        disabled={allDisabled || isPrevDisabled}
+        aria-disabled={allDisabled || undefined}
         onClick={onPrev}
         className={cn(
           "flex items-center justify-center rounded-full transition-colors",
           controlSize,
-          isPrevDisabled
+          allDisabled || isPrevDisabled
             ? "cursor-not-allowed opacity-40"
             : isLg
               ? "text-white/70 hover:text-white"
@@ -95,10 +103,13 @@ export const TransportControls: FC<TransportControlsProps> = ({
         type="button"
         aria-label={isPlaying ? t("player.transport.pause") : t("player.transport.play")}
         aria-pressed={isPlaying}
+        disabled={allDisabled}
+        aria-disabled={allDisabled || undefined}
         onClick={onPlayPause}
         className={cn(
           "flex items-center justify-center rounded-full bg-white text-black shadow transition-transform hover:scale-105",
           playSize,
+          allDisabled && "cursor-not-allowed opacity-40",
         )}
       >
         <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className={iconSize} />
@@ -107,12 +118,13 @@ export const TransportControls: FC<TransportControlsProps> = ({
       <button
         type="button"
         aria-label={t("player.transport.next")}
-        disabled={isNextDisabled}
+        disabled={allDisabled || isNextDisabled}
+        aria-disabled={allDisabled || undefined}
         onClick={onNext}
         className={cn(
           "flex items-center justify-center rounded-full transition-colors",
           controlSize,
-          isNextDisabled
+          allDisabled || isNextDisabled
             ? "cursor-not-allowed opacity-40"
             : isLg
               ? "text-white/70 hover:text-white"
@@ -131,15 +143,19 @@ export const TransportControls: FC<TransportControlsProps> = ({
               ? t("player.queue.repeatAll")
               : t("player.queue.repeatOne")
         }
+        disabled={allDisabled}
+        aria-disabled={allDisabled || undefined}
         onClick={onRepeatCycle}
         className={cn(
           "relative flex items-center justify-center rounded-full transition-colors",
           controlSize,
-          repeatMode !== "off"
-            ? "text-green-500"
-            : isLg
-              ? "text-white/70 hover:text-white"
-              : "text-text-secondary hover:text-text-primary",
+          allDisabled
+            ? "cursor-not-allowed opacity-40"
+            : repeatMode !== "off"
+              ? "text-green-500"
+              : isLg
+                ? "text-white/70 hover:text-white"
+                : "text-text-secondary hover:text-text-primary",
         )}
       >
         <FontAwesomeIcon icon={faRepeat} className={iconSize} />
