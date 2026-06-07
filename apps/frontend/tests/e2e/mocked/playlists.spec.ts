@@ -13,6 +13,18 @@ const spotifyPlaylist: SpotifyPlaylist = {
 };
 
 test.describe("Mocked my playlists flows", () => {
+  test("renders the empty playlists state when Spotify returns no playlists", async ({ page }) => {
+    await installPlaylistMocks(page, {
+      myPlaylists: [],
+      playlists: [],
+    });
+
+    await page.goto("/my-playlists", { waitUntil: "domcontentloaded" });
+
+    await expect(page.getByRole("heading", { name: "My Spotify Playlists" })).toBeVisible();
+    await expect(page.getByText("No playlists found.")).toBeVisible();
+  });
+
   test("renders the My Playlists list and navigates into the preview flow", async ({ page }) => {
     await installPlaylistMocks(page, {
       myPlaylists: [spotifyPlaylist],

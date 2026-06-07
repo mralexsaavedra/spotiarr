@@ -1,7 +1,6 @@
 import type { SpotifySearchResults } from "@spotiarr/shared";
 import { expect, test } from "../../fixtures/test";
 import { mockSearchResults } from "../../helpers/api-mocks";
-import { SearchPage } from "../../search/search-page";
 
 const populatedResults: SpotifySearchResults = {
   tracks: [
@@ -95,12 +94,15 @@ test.describe("Mocked search flows", () => {
 
 test.describe("Search smoke", () => {
   test("renders the empty search state with bootstrap mocks only", async ({ appShell, page }) => {
-    const searchPage = new SearchPage(page);
+    await page.goto("/search", { waitUntil: "domcontentloaded" });
 
-    await searchPage.goto();
+    const emptyStateMessage = page.getByText(
+      "Type something in the search bar to find tracks, albums, or artists",
+    );
 
-    await expect(searchPage.emptyStateMessage).toBeVisible();
-    await expect(searchPage.emptyStateMessage).toContainText(
+    await expect(page.getByPlaceholder("Search or paste link...")).toBeVisible();
+    await expect(emptyStateMessage).toBeVisible();
+    await expect(emptyStateMessage).toContainText(
       "Type something in the search bar to find tracks, albums, or artists",
     );
     await appShell.assertNoUnhandledRequests();
@@ -110,12 +112,10 @@ test.describe("Search smoke", () => {
     appShell,
     page,
   }) => {
-    const searchPage = new SearchPage(page);
+    await page.goto("/search", { waitUntil: "domcontentloaded" });
 
-    await searchPage.goto();
-
-    await expect(searchPage.headerSearchInput).toBeVisible();
-    await expect(searchPage.allTab).toBeVisible();
+    await expect(page.getByPlaceholder("Search or paste link...")).toBeVisible();
+    await expect(page.getByRole("button", { name: "All" })).toBeVisible();
     await appShell.assertNoUnhandledRequests();
   });
 

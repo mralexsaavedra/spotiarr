@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import http from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,6 +18,7 @@ export interface PlaywrightRuntimeResult {
 export async function runStartupFailureScenario(): Promise<PlaywrightRuntimeResult> {
   return runFixture({
     webServerCommand: `node -e "process.exit(1)"`,
+    reuseExistingServer: false,
     specBody: `
       import { test } from "@playwright/test";
       import { writeFileSync } from "node:fs";
@@ -28,12 +30,46 @@ export async function runStartupFailureScenario(): Promise<PlaywrightRuntimeResu
   });
 }
 
+export async function runPortCollisionScenario(
+  reuseExistingServer: boolean,
+): Promise<PlaywrightRuntimeResult> {
+  const existingServer = await startExistingServer();
+
+  try {
+    return await runFixture({
+      webServerCommand: `node -e "require('node:http').createServer((_, response) => response.end('playwright')).listen(4173, '127.0.0.1')"`,
+      reuseExistingServer,
+      specBody: `
+        import { test } from "@playwright/test";
+        import { writeFileSync } from "node:fs";
+
+        test("port collision fixture executed", async () => {
+          writeFileSync(process.env.PLAYWRIGHT_SPEC_MARKER!, "executed");
+        });
+      `,
+    });
+  } finally {
+    await new Promise<void>((resolve, reject) => {
+      existingServer.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+}
+
 interface FixtureOptions {
   specBody: string;
   webServerCommand: string;
+  reuseExistingServer: boolean;
 }
 
 async function runFixture({
+  reuseExistingServer,
   specBody,
   webServerCommand,
 }: FixtureOptions): Promise<PlaywrightRuntimeResult> {
@@ -42,7 +78,7 @@ async function runFixture({
   const specPath = join(tempDir, "fixture.spec.ts");
   const markerPath = join(tempDir, "spec-executed.txt");
 
-  await writeFile(configPath, buildConfig(webServerCommand), "utf8");
+  await writeFile(configPath, buildConfig(webServerCommand, reuseExistingServer), "utf8");
   await writeFile(specPath, specBody.trimStart(), "utf8");
 
   try {
@@ -58,7 +94,7 @@ async function runFixture({
   }
 }
 
-function buildConfig(webServerCommand: string): string {
+function buildConfig(webServerCommand: string, reuseExistingServer: boolean): string {
   return `
     import { defineConfig, devices } from "@playwright/test";
 
@@ -83,13 +119,30 @@ function buildConfig(webServerCommand: string): string {
         command: ${JSON.stringify(webServerCommand)},
         cwd: ${JSON.stringify(FRONTEND_ROOT)},
         url: ${JSON.stringify(BASE_URL)},
-        reuseExistingServer: false,
+        reuseExistingServer: ${JSON.stringify(reuseExistingServer)},
         stdout: "pipe",
         stderr: "pipe",
         timeout: ${PLAYWRIGHT_TIMEOUT_MS},
       },
     });
   `.trimStart();
+}
+
+async function startExistingServer(): Promise<http.Server> {
+  const server = http.createServer((_, response) => {
+    response.writeHead(200, { "content-type": "text/plain" });
+    response.end("existing-server");
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(4173, "127.0.0.1", () => {
+      server.off("error", reject);
+      resolve();
+    });
+  });
+
+  return server;
 }
 
 async function runPlaywright(
