@@ -13,7 +13,6 @@ interface SpotifyLinkButtonProps extends Omit<ButtonProps, "onClick" | "children
   id: string;
   name?: string;
   artistName?: string;
-  /** When provided, renders as a direct anchor (no lazy fetch). */
   eagerUrl?: string;
 }
 
