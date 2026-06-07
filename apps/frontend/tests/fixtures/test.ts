@@ -12,12 +12,20 @@ interface MockedFixtures {
 interface MockedFixtureOptions {
   allowUnhandledRequests: boolean;
   appShellOptions: AppShellMockOptions;
+  ignoredConsoleErrors: string[];
 }
 
 const ALLOWED_HOSTS = new Set(["127.0.0.1", "localhost"]);
 
 function shouldIgnoreConsoleError(message: string): boolean {
   return message === "EventSource failed: Event";
+}
+
+function isAllowedConsoleError(message: string, ignoredConsoleErrors: string[]): boolean {
+  return (
+    shouldIgnoreConsoleError(message) ||
+    ignoredConsoleErrors.some((pattern) => message.includes(pattern))
+  );
 }
 
 async function blockExternalNetwork(page: Page): Promise<void> {
@@ -36,13 +44,20 @@ async function blockExternalNetwork(page: Page): Promise<void> {
 export const test = base.extend<MockedFixtures & MockedFixtureOptions>({
   allowUnhandledRequests: [false, { option: true }],
   appShellOptions: [{}, { option: true }],
+  ignoredConsoleErrors: [[], { option: true }],
   appShell: [
-    async ({ allowUnhandledRequests, appShellOptions, page }, applyFixture) => {
+    async (
+      { allowUnhandledRequests, appShellOptions, ignoredConsoleErrors, page },
+      applyFixture,
+    ) => {
       const consoleErrors: string[] = [];
       const pageErrors: string[] = [];
 
       page.on("console", (message) => {
-        if (message.type() === "error" && !shouldIgnoreConsoleError(message.text())) {
+        if (
+          message.type() === "error" &&
+          !isAllowedConsoleError(message.text(), ignoredConsoleErrors)
+        ) {
           consoleErrors.push(message.text());
         }
       });

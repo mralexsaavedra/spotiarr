@@ -1,15 +1,15 @@
 import { expect, test } from "../../fixtures/test";
 import { installLibraryMocks, installPlaylistMocks } from "../../helpers/api-mocks";
-import { NotFoundPage } from "../../not-found/not-found-page";
 
 test.describe("Not found smoke", () => {
   test("shows the embedded not found view for unknown routes", async ({ page }) => {
-    const notFoundPage = new NotFoundPage(page);
+    await page.goto("/does-not-exist", { waitUntil: "domcontentloaded" });
 
-    await notFoundPage.goto();
-
-    await expect(notFoundPage.title).toBeVisible();
-    await expect(notFoundPage.description).toBeVisible();
+    await expect(page.getByPlaceholder("Search or paste link...")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Page Not Found" })).toBeVisible();
+    await expect(
+      page.getByText("The page you are looking for does not exist or has been moved."),
+    ).toBeVisible();
   });
 
   test("recovers to the home route when Go Home is activated", async ({ page }) => {
@@ -25,10 +25,10 @@ test.describe("Not found smoke", () => {
     });
     await installPlaylistMocks(page, { playlists: [] });
 
-    const notFoundPage = new NotFoundPage(page);
+    await page.goto("/does-not-exist", { waitUntil: "domcontentloaded" });
+    await expect(page.getByPlaceholder("Search or paste link...")).toBeVisible();
 
-    await notFoundPage.goto();
-    await notFoundPage.goHome();
+    await page.getByRole("button", { name: "Go Home" }).click();
 
     await expect(page).toHaveURL("/");
     await expect(page.getByText("Your Library")).toBeVisible();
