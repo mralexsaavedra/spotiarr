@@ -83,7 +83,6 @@
   },
   "navigation": {
     "home": "Library",
-    "activity": "Activity",
     "history": "History",
     "releases": "Releases",
     "myPlaylists": "My Playlists",
@@ -104,10 +103,17 @@
       "description": "This will remove all completed playlists from your library. Downloaded files will NOT be deleted."
     }
   },
-  "activity": {
-    "title": "Activity",
+  "history": {
+    "title": "History",
     "emptyTitle": "No downloads in progress",
-    "emptyDescription": "Your queue looks empty. Add some tracks to see activity here."
+    "emptyDescription": "Your queue looks empty. Add some tracks to see activity here.",
+    "completed": "Completed",
+    "actions": "Actions",
+    "downloading": "Downloading...",
+    "exists": "Exists",
+    "recreate": "Recreate",
+    "playlistExists": "Playlist already exists",
+    "recreateTooltip": "Recreate playlist and subscribe again"
   },
   "library": {
     "title": "Library",
@@ -173,18 +179,6 @@
         "error": "Failed"
       }
     }
-  },
-  "history": {
-    "title": "Download History",
-    "emptyTitle": "No download history yet",
-    "emptyDescription": "Completed downloads will appear here.",
-    "completed": "Completed",
-    "actions": "Actions",
-    "downloading": "Downloading...",
-    "exists": "Exists",
-    "recreate": "Recreate",
-    "playlistExists": "Playlist already exists",
-    "recreateTooltip": "Recreate playlist and subscribe again"
   },
   "releases": {
     "title": "Releases",
