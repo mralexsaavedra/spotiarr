@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.13.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.12.2...v1.13.0) (2026-06-08)
+
+### Features
+
+- **Global player bar**: New Spotify-style global player bar with playback controls, track meta, volume, and queue-aware progress. Shipped in two slices: foundation ([#84](https://github.com/mralexsaavedra/spotiarr/pull/84)) and controller wiring ([#85](https://github.com/mralexsaavedra/spotiarr/pull/85)).
+- **Player quick wins**: Queue artwork, meta navigation, and Media Session integration so OS-level controls (lockscreen, headphones, Bluetooth) drive playback. ([#87](https://github.com/mralexsaavedra/spotiarr/pull/87))
+- **Shuffle and repeat modes**: Persisted shuffle and three-state repeat (off/all/one) in the player store with aria-labelled transport controls. ([#88](https://github.com/mralexsaavedra/spotiarr/pull/88))
+- **Track list Spotify-parity UX**: Row-level hover, current-row highlight, downloaded badge scoping, and aligned background fills across the track list. ([#90](https://github.com/mralexsaavedra/spotiarr/pull/90))
+- **Queue side panel**: Slide-in queue with track list, click-to-jump, ESC close, and HTML5 drag-and-drop reorder backed by a new `reorderQueue` store action. ([#91](https://github.com/mralexsaavedra/spotiarr/pull/91), [#95](https://github.com/mralexsaavedra/spotiarr/pull/95))
+- **Mobile fullscreen NowPlaying**: New `NowPlayingFullscreen` organism with touch reorder via Pointer Events, swipe-down close, mobile player-bar trigger with focus return, and i18n keys for the new copy. ([#96](https://github.com/mralexsaavedra/spotiarr/pull/96))
+- **Issue #103 follow-ups**: Extracted ephemeral UI flags into a `playerUISlice` composed into `usePlayerStore` (preserves the 3-store rule), moved repeat aria labels into the `player.transport.*` namespace, and added a mobile-only chevron affordance on the player-bar track meta region. ([#104](https://github.com/mralexsaavedra/spotiarr/pull/104))
+
+### Maintenance
+
+- **Post-roadmap cleanup**: Hardening pass after the player roadmap closed — distinct moveUp/moveDown aria-labels, narrative-comment cleanup, and consistency fixes across the player surface. ([#101](https://github.com/mralexsaavedra/spotiarr/pull/101))
+- **3rd-store documentation**: `usePlayerStore` documented in the Zustand skill as the approved third store. ([#86](https://github.com/mralexsaavedra/spotiarr/pull/86))
+
+### Testing
+
+- **Hermetic Playwright E2E coverage**: New mocked API/SSE foundation and incremental coverage across core routes, detail views, the player surface, and remaining routes — full E2E suite green. ([#89](https://github.com/mralexsaavedra/spotiarr/pull/89), [#93](https://github.com/mralexsaavedra/spotiarr/pull/93), [#94](https://github.com/mralexsaavedra/spotiarr/pull/94), [#97](https://github.com/mralexsaavedra/spotiarr/pull/97), [#100](https://github.com/mralexsaavedra/spotiarr/pull/100), [#102](https://github.com/mralexsaavedra/spotiarr/pull/102))
+
 ## [1.12.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.12.1...v1.12.2) (2026-06-05)
 
 ### Maintenance
