@@ -1,11 +1,10 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
-import { container } from "../../container";
+import { getContainer } from "../../container";
 import { getEnv } from "../setup/environment";
 
-const { trackService, settingsService } = container;
-
 export async function createTrackDownloadWorker() {
+  const { trackService, settingsService, libraryService, eventsController } = getContainer();
   const maxPerMinute = await settingsService.getNumber("YT_DOWNLOADS_PER_MINUTE");
 
   const worker = new Worker(
@@ -34,8 +33,8 @@ export async function createTrackDownloadWorker() {
   worker.on("drained", async () => {
     console.log(`[TrackDownloadWorker] Queue drained, triggering library scan...`);
     try {
-      await container.libraryService.scan();
-      container.eventsController.emit("library-updated");
+      await libraryService.scan();
+      eventsController.emit("library-updated");
       console.log(`[TrackDownloadWorker] Library scan completed successfully.`);
     } catch (err) {
       console.error(`[TrackDownloadWorker] Failed to scan library after queue drain:`, err);
@@ -60,7 +59,7 @@ export async function createTrackDownloadWorker() {
           status: TrackStatusEnum.Error,
           error: err instanceof Error ? err.message : String(err),
         });
-        container.eventsController.emit("playlists-updated");
+        eventsController.emit("playlists-updated");
       } catch (updateError) {
         console.error(`Failed to update track ${trackId} status after job failure:`, updateError);
       }

@@ -2,19 +2,11 @@ import { Worker } from "bullmq";
 import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import type { SettingsService } from "@/application/services/settings.service";
-import { container } from "@/container";
+import { getContainer } from "@/container";
 import type { ReleaseFeedService } from "../external/release-feed.service";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { getEnv } from "../setup/environment";
 import { FEED_SYNC_QUEUE } from "../setup/queues";
-
-const {
-  spotifyUserLibrarySyncService,
-  releaseFeedService,
-  feedRepository,
-  eventBus,
-  settingsService,
-} = container;
 
 const RELEASES_SYNC_TTL_HOURS = 24;
 const RELEASES_ACTIVITY_WINDOW_DAYS = 90;
@@ -116,6 +108,14 @@ export async function runFeedSyncJob(deps: FeedSyncJobDependencies): Promise<voi
 }
 
 export function createFeedSyncWorker(): Worker {
+  const {
+    spotifyUserLibrarySyncService,
+    releaseFeedService,
+    feedRepository,
+    eventBus,
+    settingsService,
+  } = getContainer();
+
   // If the process crashed mid-sync, the state is stuck in "running".
   // Reset it on startup so the cron can enqueue a new job.
   feedRepository

@@ -1,4 +1,4 @@
-import { getEnv } from "@/infrastructure/setup/environment";
+import type { Env } from "@/infrastructure/setup/environment";
 import { CircuitBreaker } from "./circuit-breaker";
 import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
@@ -23,72 +23,81 @@ export const SPOTIFY_LIMITER_MODE = {
 
 export type SpotifyLimiterMode = (typeof SPOTIFY_LIMITER_MODE)[keyof typeof SPOTIFY_LIMITER_MODE];
 
-function resolveLimiterConfig(): {
-  user: { maxConcurrency: number; queueTimeoutMs: number; minIntervalMs: number };
-  sync: { maxConcurrency: number; queueTimeoutMs: number; minIntervalMs: number };
-  interactive: { maxConcurrency: number; queueTimeoutMs: number; minIntervalMs: number };
-} {
-  try {
-    const env = getEnv();
-    return {
-      user: {
-        maxConcurrency: env.SPOTIFY_HTTP_MAX_CONCURRENCY,
-        queueTimeoutMs: env.SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
-        minIntervalMs: env.SPOTIFY_HTTP_MIN_INTERVAL_MS,
-      },
-      sync: {
-        maxConcurrency: env.SPOTIFY_SYNC_MAX_CONCURRENCY,
-        queueTimeoutMs: env.SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
-        minIntervalMs: env.SPOTIFY_SYNC_MIN_INTERVAL_MS,
-      },
-      interactive: {
-        maxConcurrency: env.SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
-        queueTimeoutMs: env.SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
-        minIntervalMs: env.SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
-      },
-    };
-  } catch {
-    return {
-      user: {
-        maxConcurrency: DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY,
-        queueTimeoutMs: DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
-        minIntervalMs: DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS,
-      },
-      sync: {
-        maxConcurrency: DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY,
-        queueTimeoutMs: DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
-        minIntervalMs: DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS,
-      },
-      interactive: {
-        maxConcurrency: DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
-        queueTimeoutMs: DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
-        minIntervalMs: DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
-      },
-    };
-  }
+interface SpotifyLimiterBucketConfig {
+  maxConcurrency: number;
+  queueTimeoutMs: number;
+  minIntervalMs: number;
 }
 
-const limiterConfig = resolveLimiterConfig();
+interface SpotifyLimiterConfig {
+  user: SpotifyLimiterBucketConfig;
+  sync: SpotifyLimiterBucketConfig;
+  interactive: SpotifyLimiterBucketConfig;
+}
 
-// User-facing limiter: faster, shorter timeout
-const userRateLimiter = new RateLimiter({
-  maxConcurrency: limiterConfig.user.maxConcurrency,
-  queueTimeoutMs: limiterConfig.user.queueTimeoutMs,
-  minIntervalMs: limiterConfig.user.minIntervalMs,
-});
+function createRateLimiter(config: SpotifyLimiterBucketConfig): RateLimiter {
+  return new RateLimiter({
+    maxConcurrency: config.maxConcurrency,
+    queueTimeoutMs: config.queueTimeoutMs,
+    minIntervalMs: config.minIntervalMs,
+  });
+}
 
-// Background sync limiter: slower, longer timeout, doesn't block user requests
-const syncRateLimiter = new RateLimiter({
-  maxConcurrency: limiterConfig.sync.maxConcurrency,
-  queueTimeoutMs: limiterConfig.sync.queueTimeoutMs,
-  minIntervalMs: limiterConfig.sync.minIntervalMs,
-});
+function createDefaultLimiterConfig(): SpotifyLimiterConfig {
+  return {
+    user: {
+      maxConcurrency: DEFAULT_SPOTIFY_HTTP_MAX_CONCURRENCY,
+      queueTimeoutMs: DEFAULT_SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
+      minIntervalMs: DEFAULT_SPOTIFY_HTTP_MIN_INTERVAL_MS,
+    },
+    sync: {
+      maxConcurrency: DEFAULT_SPOTIFY_SYNC_MAX_CONCURRENCY,
+      queueTimeoutMs: DEFAULT_SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
+      minIntervalMs: DEFAULT_SPOTIFY_SYNC_MIN_INTERVAL_MS,
+    },
+    interactive: {
+      maxConcurrency: DEFAULT_SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
+      queueTimeoutMs: DEFAULT_SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
+      minIntervalMs: DEFAULT_SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
+    },
+  };
+}
 
-const interactiveRateLimiter = new RateLimiter({
-  maxConcurrency: limiterConfig.interactive.maxConcurrency,
-  queueTimeoutMs: limiterConfig.interactive.queueTimeoutMs,
-  minIntervalMs: limiterConfig.interactive.minIntervalMs,
-});
+function resolveLimiterConfig(env: Env): SpotifyLimiterConfig {
+  return {
+    user: {
+      maxConcurrency: env.SPOTIFY_HTTP_MAX_CONCURRENCY,
+      queueTimeoutMs: env.SPOTIFY_HTTP_QUEUE_TIMEOUT_MS,
+      minIntervalMs: env.SPOTIFY_HTTP_MIN_INTERVAL_MS,
+    },
+    sync: {
+      maxConcurrency: env.SPOTIFY_SYNC_MAX_CONCURRENCY,
+      queueTimeoutMs: env.SPOTIFY_SYNC_QUEUE_TIMEOUT_MS,
+      minIntervalMs: env.SPOTIFY_SYNC_MIN_INTERVAL_MS,
+    },
+    interactive: {
+      maxConcurrency: env.SPOTIFY_INTERACTIVE_MAX_CONCURRENCY,
+      queueTimeoutMs: env.SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS,
+      minIntervalMs: env.SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS,
+    },
+  };
+}
+
+const defaultLimiterConfig = createDefaultLimiterConfig();
+
+// Keep import-time defaults for tests and isolated imports. Production bootstrap
+// must replace these after environment validation.
+let userRateLimiter = createRateLimiter(defaultLimiterConfig.user);
+let syncRateLimiter = createRateLimiter(defaultLimiterConfig.sync);
+let interactiveRateLimiter = createRateLimiter(defaultLimiterConfig.interactive);
+
+export function configureSpotifyRateLimiters(env: Env): void {
+  const limiterConfig = resolveLimiterConfig(env);
+
+  userRateLimiter = createRateLimiter(limiterConfig.user);
+  syncRateLimiter = createRateLimiter(limiterConfig.sync);
+  interactiveRateLimiter = createRateLimiter(limiterConfig.interactive);
+}
 
 // Shared app-token limiter + circuit breaker to prevent 429 storms across workers
 const appTokenRateLimiter = new RateLimiter({

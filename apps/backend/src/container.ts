@@ -88,7 +88,7 @@ import { FileSystemTrackPathService } from "./infrastructure/services/file-syste
 import { FileSystemLibraryAudioService } from "./infrastructure/services/library-audio.service";
 import { FileSystemLibraryImageService } from "./infrastructure/services/library-image.service";
 import { MetadataService } from "./infrastructure/services/metadata.service";
-import { getEnv } from "./infrastructure/setup/environment";
+import type { Env } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
 import { ArtistController } from "./presentation/controllers/artist.controller";
 import { ArtworkBackfillController } from "./presentation/controllers/artwork-backfill.controller";
@@ -104,570 +104,545 @@ import { SearchController } from "./presentation/controllers/search.controller";
 import { SettingsController } from "./presentation/controllers/settings.controller";
 import { TrackController } from "./presentation/controllers/track.controller";
 
-function resolveDownloadsRoot(): string {
-  try {
-    return getEnv().DOWNLOADS;
-  } catch {
-    // Test suites can import the container before environment validation bootstraps.
-    // TODO(secure-library-image-serving): Remove this fallback after `getEnv()` becomes lazily initialized.
-    return process.env.DOWNLOADS ?? ".";
-  }
-}
-
-function resolveSpotifyAuthConfig(): { clientId: string; redirectUri: string } {
-  try {
-    const env = getEnv();
-    return { clientId: env.SPOTIFY_CLIENT_ID, redirectUri: env.SPOTIFY_REDIRECT_URI };
-  } catch {
-    return { clientId: "", redirectUri: "" };
-  }
-}
-
 type ComposedSpotifyUserLibrary = SpotifyUserLibraryPort & {
   getMyPlaylists: SpotifyPlaylistLibraryService["getMyPlaylists"];
   getArtistCatalogData: SpotifyArtistCatalogService["getArtistCatalogData"];
 };
 
-// Repositories
-const playlistRepository = new PrismaPlaylistRepository();
-const trackRepository = new PrismaTrackRepository();
-const historyRepository = new PrismaHistoryRepository();
-const settingsRepository = new PrismaSettingsRepository();
-const followedArtistRepository = new FollowedArtistRepository(prisma);
-const artistAlbumCacheRepository = new ArtistAlbumCacheRepository(prisma);
-const artistReleaseCacheRepository = new ArtistReleaseCacheRepository(prisma);
-const feedSyncStateRepository = new FeedSyncStateRepository(prisma);
-const artworkBackfillRepository = new PrismaArtworkBackfillRepository(prisma);
-const feedCacheEvictionRepository = new FeedCacheEvictionRepository(prisma);
-const feedCacheEvictionService = new FeedCacheEvictionService(feedCacheEvictionRepository);
-const feedRepository: FeedRepositoryPort = {
-  getArtistBySpotifyId: (spotifyId) => followedArtistRepository.getArtistBySpotifyId(spotifyId),
-  getArtistByAnyId: (id) => followedArtistRepository.getArtistByAnyId(id),
-  getArtistCatalogIdentities: (spotifyIds) =>
-    followedArtistRepository.getArtistCatalogIdentities(spotifyIds),
-  updateArtistCatalogIdentities: (identities) =>
-    followedArtistRepository.updateArtistCatalogIdentities(identities),
-  getReleases: (lookbackDays) => artistReleaseCacheRepository.getReleases(lookbackDays),
-  getArtists: () => followedArtistRepository.getArtists(),
-  upsertArtists: (artists) => followedArtistRepository.upsertArtists(artists),
-  upsertReleases: (releases) => artistReleaseCacheRepository.upsertReleases(releases),
-  getArtistAlbumWithArtist: (spotifyArtistId, albumId) =>
-    artistAlbumCacheRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId),
-  getArtistReleaseWithArtist: (artistId, albumId) =>
-    artistReleaseCacheRepository.getArtistReleaseWithArtist(artistId, albumId),
-  updateArtistAlbumIdentities: (id, identities) =>
-    artistAlbumCacheRepository.updateArtistAlbumIdentities(id, identities),
-  upsertArtistAlbumSpotifyUrl: (input) =>
-    artistAlbumCacheRepository.upsertArtistAlbumSpotifyUrl(input),
-  updateArtistReleaseSpotifyUrl: (artistId, albumId, spotifyUrl) =>
-    artistReleaseCacheRepository.updateArtistReleaseSpotifyUrl(artistId, albumId, spotifyUrl),
-  getArtistAlbumCount: (spotifyArtistId) =>
-    artistAlbumCacheRepository.getArtistAlbumCount(spotifyArtistId),
-  getArtistAlbumsFreshness: (spotifyArtistId) =>
-    artistAlbumCacheRepository.getArtistAlbumsFreshness(spotifyArtistId),
-  getArtistIdsWithNoAlbums: () => followedArtistRepository.getArtistIdsWithNoAlbums(),
-  getArtistIdsWithFreshAlbums: (cutoffDate) =>
-    artistAlbumCacheRepository.getArtistIdsWithFreshAlbums(cutoffDate),
-  getArtistIdsWithFreshReleases: (cutoffDate) =>
-    artistReleaseCacheRepository.getArtistIdsWithFreshReleases(cutoffDate),
-  getArtistAlbums: (spotifyArtistId, limit, offset) =>
-    artistAlbumCacheRepository.getArtistAlbums(spotifyArtistId, limit, offset),
-  upsertArtistAlbums: (albums) => artistAlbumCacheRepository.upsertArtistAlbums(albums),
-  evictStaleFeedCache: (artistIds, cutoffDays) =>
-    feedCacheEvictionService.evictStaleFeedCache(artistIds, cutoffDays),
-  getArtistIdsNeedingCatalogSync: (cutoffDate, limit) =>
-    followedArtistRepository.getArtistIdsNeedingCatalogSync(cutoffDate, limit),
-  getActiveArtistIdsForReleasesSync: (releaseCutoff, activityWindowDate, limit) =>
-    followedArtistRepository.getActiveArtistIdsForReleasesSync(
-      releaseCutoff,
-      activityWindowDate,
-      limit,
-    ),
-  updateArtistCatalogSyncedAt: (artistIds) =>
-    followedArtistRepository.updateArtistCatalogSyncedAt(artistIds),
-  updateArtistReleasesSyncedAt: (artistIds) =>
-    followedArtistRepository.updateArtistReleasesSyncedAt(artistIds),
-  getSyncState: () => feedSyncStateRepository.getSyncState(),
-  setSyncState: (status, error) => feedSyncStateRepository.setSyncState(status, error),
-  getCatalogSyncState: () => feedSyncStateRepository.getCatalogSyncState(),
-  setCatalogSyncState: (status, error) =>
-    feedSyncStateRepository.setCatalogSyncState(status, error),
-};
-const connectivityAdapter = new PrismaConnectivityAdapter();
+export function createContainer(env: Env) {
+  const playlistRepository = new PrismaPlaylistRepository();
+  const trackRepository = new PrismaTrackRepository();
+  const historyRepository = new PrismaHistoryRepository();
+  const settingsRepository = new PrismaSettingsRepository();
+  const followedArtistRepository = new FollowedArtistRepository(prisma);
+  const artistAlbumCacheRepository = new ArtistAlbumCacheRepository(prisma);
+  const artistReleaseCacheRepository = new ArtistReleaseCacheRepository(prisma);
+  const feedSyncStateRepository = new FeedSyncStateRepository(prisma);
+  const artworkBackfillRepository = new PrismaArtworkBackfillRepository(prisma);
+  const feedCacheEvictionRepository = new FeedCacheEvictionRepository(prisma);
+  const feedCacheEvictionService = new FeedCacheEvictionService(feedCacheEvictionRepository);
+  const feedRepository: FeedRepositoryPort = {
+    getArtistBySpotifyId: (spotifyId) => followedArtistRepository.getArtistBySpotifyId(spotifyId),
+    getArtistByAnyId: (id) => followedArtistRepository.getArtistByAnyId(id),
+    getArtistCatalogIdentities: (spotifyIds) =>
+      followedArtistRepository.getArtistCatalogIdentities(spotifyIds),
+    updateArtistCatalogIdentities: (identities) =>
+      followedArtistRepository.updateArtistCatalogIdentities(identities),
+    getReleases: (lookbackDays) => artistReleaseCacheRepository.getReleases(lookbackDays),
+    getArtists: () => followedArtistRepository.getArtists(),
+    upsertArtists: (artists) => followedArtistRepository.upsertArtists(artists),
+    upsertReleases: (releases) => artistReleaseCacheRepository.upsertReleases(releases),
+    getArtistAlbumWithArtist: (spotifyArtistId, albumId) =>
+      artistAlbumCacheRepository.getArtistAlbumWithArtist(spotifyArtistId, albumId),
+    getArtistReleaseWithArtist: (artistId, albumId) =>
+      artistReleaseCacheRepository.getArtistReleaseWithArtist(artistId, albumId),
+    updateArtistAlbumIdentities: (id, identities) =>
+      artistAlbumCacheRepository.updateArtistAlbumIdentities(id, identities),
+    upsertArtistAlbumSpotifyUrl: (input) =>
+      artistAlbumCacheRepository.upsertArtistAlbumSpotifyUrl(input),
+    updateArtistReleaseSpotifyUrl: (artistId, albumId, spotifyUrl) =>
+      artistReleaseCacheRepository.updateArtistReleaseSpotifyUrl(artistId, albumId, spotifyUrl),
+    getArtistAlbumCount: (spotifyArtistId) =>
+      artistAlbumCacheRepository.getArtistAlbumCount(spotifyArtistId),
+    getArtistAlbumsFreshness: (spotifyArtistId) =>
+      artistAlbumCacheRepository.getArtistAlbumsFreshness(spotifyArtistId),
+    getArtistIdsWithNoAlbums: () => followedArtistRepository.getArtistIdsWithNoAlbums(),
+    getArtistIdsWithFreshAlbums: (cutoffDate) =>
+      artistAlbumCacheRepository.getArtistIdsWithFreshAlbums(cutoffDate),
+    getArtistIdsWithFreshReleases: (cutoffDate) =>
+      artistReleaseCacheRepository.getArtistIdsWithFreshReleases(cutoffDate),
+    getArtistAlbums: (spotifyArtistId, limit, offset) =>
+      artistAlbumCacheRepository.getArtistAlbums(spotifyArtistId, limit, offset),
+    upsertArtistAlbums: (albums) => artistAlbumCacheRepository.upsertArtistAlbums(albums),
+    evictStaleFeedCache: (artistIds, cutoffDays) =>
+      feedCacheEvictionService.evictStaleFeedCache(artistIds, cutoffDays),
+    getArtistIdsNeedingCatalogSync: (cutoffDate, limit) =>
+      followedArtistRepository.getArtistIdsNeedingCatalogSync(cutoffDate, limit),
+    getActiveArtistIdsForReleasesSync: (releaseCutoff, activityWindowDate, limit) =>
+      followedArtistRepository.getActiveArtistIdsForReleasesSync(
+        releaseCutoff,
+        activityWindowDate,
+        limit,
+      ),
+    updateArtistCatalogSyncedAt: (artistIds) =>
+      followedArtistRepository.updateArtistCatalogSyncedAt(artistIds),
+    updateArtistReleasesSyncedAt: (artistIds) =>
+      followedArtistRepository.updateArtistReleasesSyncedAt(artistIds),
+    getSyncState: () => feedSyncStateRepository.getSyncState(),
+    setSyncState: (status, error) => feedSyncStateRepository.setSyncState(status, error),
+    getCatalogSyncState: () => feedSyncStateRepository.getCatalogSyncState(),
+    setCatalogSyncState: (status, error) =>
+      feedSyncStateRepository.setCatalogSyncState(status, error),
+  };
+  const connectivityAdapter = new PrismaConnectivityAdapter();
 
-const internalizedNumericSettingMap: Record<string, () => number> = {
-  FEED_SYNC_INTERVAL_MINUTES: () => getEnv().FEED_SYNC_INTERVAL_MINUTES,
-  RELEASES_SYNC_INTERVAL_MINUTES: () => getEnv().RELEASES_SYNC_INTERVAL_MINUTES,
-  CATALOG_SYNC_INTERVAL_HOURS: () => getEnv().CATALOG_SYNC_INTERVAL_HOURS,
-  CATALOG_LOOKBACK_DAYS: () => getEnv().CATALOG_LOOKBACK_DAYS,
-  MAX_ACTIVE_ARTISTS_PER_CYCLE: () => getEnv().MAX_ACTIVE_ARTISTS_PER_CYCLE,
-  MAX_CATALOG_ARTISTS_PER_CYCLE: () => getEnv().MAX_CATALOG_ARTISTS_PER_CYCLE,
-  FOLLOWED_ARTISTS_MAX: () => getEnv().FOLLOWED_ARTISTS_MAX,
-  RELEASES_LOOKBACK_DAYS: () => getEnv().RELEASES_LOOKBACK_DAYS,
-  RELEASES_CACHE_MINUTES: () => getEnv().RELEASES_CACHE_MINUTES,
-  YT_SEARCH_CONCURRENCY: () => getEnv().YT_SEARCH_CONCURRENCY,
-  YT_SEARCH_DELAY_MS: () => getEnv().YT_SEARCH_DELAY_MS,
-  YT_DOWNLOADS_PER_MINUTE: () => getEnv().YT_DOWNLOADS_PER_MINUTE,
-  STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES: () => getEnv().STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES,
-  STUCK_TRACKS_TIMEOUT_MINUTES: () => getEnv().STUCK_TRACKS_TIMEOUT_MINUTES,
-};
+  const internalizedNumericSettingMap: Record<string, () => number> = {
+    FEED_SYNC_INTERVAL_MINUTES: () => env.FEED_SYNC_INTERVAL_MINUTES,
+    RELEASES_SYNC_INTERVAL_MINUTES: () => env.RELEASES_SYNC_INTERVAL_MINUTES,
+    CATALOG_SYNC_INTERVAL_HOURS: () => env.CATALOG_SYNC_INTERVAL_HOURS,
+    CATALOG_LOOKBACK_DAYS: () => env.CATALOG_LOOKBACK_DAYS,
+    MAX_ACTIVE_ARTISTS_PER_CYCLE: () => env.MAX_ACTIVE_ARTISTS_PER_CYCLE,
+    MAX_CATALOG_ARTISTS_PER_CYCLE: () => env.MAX_CATALOG_ARTISTS_PER_CYCLE,
+    FOLLOWED_ARTISTS_MAX: () => env.FOLLOWED_ARTISTS_MAX,
+    RELEASES_LOOKBACK_DAYS: () => env.RELEASES_LOOKBACK_DAYS,
+    RELEASES_CACHE_MINUTES: () => env.RELEASES_CACHE_MINUTES,
+    YT_SEARCH_CONCURRENCY: () => env.YT_SEARCH_CONCURRENCY,
+    YT_SEARCH_DELAY_MS: () => env.YT_SEARCH_DELAY_MS,
+    YT_DOWNLOADS_PER_MINUTE: () => env.YT_DOWNLOADS_PER_MINUTE,
+    STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES: () => env.STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES,
+    STUCK_TRACKS_TIMEOUT_MINUTES: () => env.STUCK_TRACKS_TIMEOUT_MINUTES,
+  };
 
-// Services (Base)
-const settingsService = new SettingsService(settingsRepository, (key) =>
-  internalizedNumericSettingMap[key]?.(),
-);
+  const settingsService = new SettingsService(settingsRepository, (key) =>
+    internalizedNumericSettingMap[key]?.(),
+  );
 
-const trackFileHelper = new FileSystemTrackPathService(settingsService);
-const m3uService = new FileSystemM3uService(settingsService, trackFileHelper);
-const youtubeSearchService = new YoutubeSearchService(settingsService);
-const youtubeDownloadService = new YoutubeDownloadService(settingsService, youtubeSearchService);
-const metadataService = new MetadataService();
-const artworkAssetsService = new ArtworkAssetsService();
+  const trackFileHelper = new FileSystemTrackPathService(settingsService);
+  const m3uService = new FileSystemM3uService(settingsService, trackFileHelper);
+  const youtubeSearchService = new YoutubeSearchService(settingsService);
+  const youtubeDownloadService = new YoutubeDownloadService(settingsService, youtubeSearchService);
+  const metadataService = new MetadataService();
+  const artworkAssetsService = new ArtworkAssetsService();
 
-const queueService = new BullMqTrackQueueService();
-const artworkBackfillQueueService = new BullMqArtworkBackfillQueueService();
-const eventBus = new AppEventBus();
+  const queueService = new BullMqTrackQueueService();
+  const artworkBackfillQueueService = new BullMqArtworkBackfillQueueService();
+  const eventsController = new EventsController();
+  const eventBus = new AppEventBus(eventsController.emit);
 
-let spotifyUserLibraryService: ComposedSpotifyUserLibrary | null = null;
-let spotifyUserLibrarySyncService: ComposedSpotifyUserLibrary | null = null;
-let spotifyPlaylistLibraryService: SpotifyPlaylistLibraryService | null = null;
-let spotifyPlaylistLibrarySyncService: SpotifyPlaylistLibraryService | null = null;
-let spotifyArtistCatalogService: SpotifyArtistCatalogService | null = null;
-let spotifyArtistCatalogSyncService: SpotifyArtistCatalogService | null = null;
-let spotifyFollowedArtistsService: SpotifyFollowedArtistsService | null = null;
-let spotifyFollowedArtistsSyncService: SpotifyFollowedArtistsService | null = null;
+  let spotifyUserLibraryService: ComposedSpotifyUserLibrary | null = null;
+  let spotifyUserLibrarySyncService: ComposedSpotifyUserLibrary | null = null;
+  let spotifyPlaylistLibraryService: SpotifyPlaylistLibraryService | null = null;
+  let spotifyPlaylistLibrarySyncService: SpotifyPlaylistLibraryService | null = null;
+  let spotifyArtistCatalogService: SpotifyArtistCatalogService | null = null;
+  let spotifyArtistCatalogSyncService: SpotifyArtistCatalogService | null = null;
+  let spotifyFollowedArtistsService: SpotifyFollowedArtistsService | null = null;
+  let spotifyFollowedArtistsSyncService: SpotifyFollowedArtistsService | null = null;
 
-// Spotify
-const spotifyAuthService = SpotifyAuthService.getInstance(settingsService, () => {
-  spotifyUserLibraryService?.clearCache();
-  spotifyUserLibrarySyncService?.clearCache();
-});
-const spotifyRequestCache = new PromiseCache({ ttlMs: 30_000 });
-const spotifyArtistClient = new SpotifyArtistClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyRequestCache,
-  "interactive",
-);
-const spotifyTrackClient = new SpotifyTrackClient(
-  spotifyAuthService,
-  settingsService,
-  "interactive",
-  spotifyRequestCache,
-);
-const spotifyAlbumClient = new SpotifyAlbumClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyRequestCache,
-  "interactive",
-);
-const spotifyPlaylistClient = new SpotifyPlaylistClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyTrackClient,
-  spotifyAlbumClient,
-  spotifyRequestCache,
-  "interactive",
-);
+  const spotifyAuthService = SpotifyAuthService.getInstance(settingsService, () => {
+    spotifyUserLibraryService?.clearCache();
+    spotifyUserLibrarySyncService?.clearCache();
+  });
+  const spotifyRequestCache = new PromiseCache({ ttlMs: 30_000 });
+  const spotifyArtistClient = new SpotifyArtistClient(
+    spotifyAuthService,
+    settingsService,
+    spotifyRequestCache,
+    "interactive",
+  );
+  const spotifyTrackClient = new SpotifyTrackClient(
+    spotifyAuthService,
+    settingsService,
+    "interactive",
+    spotifyRequestCache,
+  );
+  const spotifyAlbumClient = new SpotifyAlbumClient(
+    spotifyAuthService,
+    settingsService,
+    spotifyRequestCache,
+    "interactive",
+  );
+  const spotifyPlaylistClient = new SpotifyPlaylistClient(
+    spotifyAuthService,
+    settingsService,
+    spotifyTrackClient,
+    spotifyAlbumClient,
+    spotifyRequestCache,
+    "interactive",
+  );
+  const spotifyPlaylistClientSync = new SpotifyPlaylistClient(
+    spotifyAuthService,
+    settingsService,
+    spotifyTrackClient,
+    spotifyAlbumClient,
+    spotifyRequestCache,
+    "sync",
+  );
+  const spotifySearchClient = new SpotifySearchClient(
+    spotifyAuthService,
+    settingsService,
+    spotifyRequestCache,
+    "interactive",
+  );
 
-// Playlist client for background workers (downloads, sync) — uses sync limiter
-// to avoid competing with user-facing interactive requests
-const spotifyPlaylistClientSync = new SpotifyPlaylistClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyTrackClient,
-  spotifyAlbumClient,
-  spotifyRequestCache,
-  "sync",
-);
-const spotifySearchClient = new SpotifySearchClient(
-  spotifyAuthService,
-  settingsService,
-  spotifyRequestCache,
-  "interactive",
-);
+  spotifyFollowedArtistsService = new SpotifyFollowedArtistsService(
+    settingsService,
+    spotifyAuthService,
+    "user",
+  );
+  spotifyPlaylistLibraryService = new SpotifyPlaylistLibraryService(
+    settingsService,
+    spotifyAuthService,
+    "user",
+  );
+  spotifyArtistCatalogService = new SpotifyArtistCatalogService(
+    settingsService,
+    spotifyAuthService,
+    "user",
+  );
 
-spotifyFollowedArtistsService = new SpotifyFollowedArtistsService(
-  settingsService,
-  spotifyAuthService,
-  "user",
-);
-spotifyPlaylistLibraryService = new SpotifyPlaylistLibraryService(
-  settingsService,
-  spotifyAuthService,
-  "user",
-);
-spotifyArtistCatalogService = new SpotifyArtistCatalogService(
-  settingsService,
-  spotifyAuthService,
-  "user",
-);
+  spotifyFollowedArtistsSyncService = new SpotifyFollowedArtistsService(
+    settingsService,
+    spotifyAuthService,
+    "sync",
+  );
+  spotifyPlaylistLibrarySyncService = new SpotifyPlaylistLibraryService(
+    settingsService,
+    spotifyAuthService,
+    "sync",
+  );
+  spotifyArtistCatalogSyncService = new SpotifyArtistCatalogService(
+    settingsService,
+    spotifyAuthService,
+    "sync",
+  );
 
-spotifyFollowedArtistsSyncService = new SpotifyFollowedArtistsService(
-  settingsService,
-  spotifyAuthService,
-  "sync",
-);
-spotifyPlaylistLibrarySyncService = new SpotifyPlaylistLibraryService(
-  settingsService,
-  spotifyAuthService,
-  "sync",
-);
-spotifyArtistCatalogSyncService = new SpotifyArtistCatalogService(
-  settingsService,
-  spotifyAuthService,
-  "sync",
-);
+  spotifyUserLibraryService = {
+    getFollowedArtists: () => spotifyFollowedArtistsService.getFollowedArtists(),
+    getMyPlaylists: () => spotifyPlaylistLibraryService.getMyPlaylists(),
+    getArtistCatalogData: (artists, earlyStopBeforeDate) =>
+      spotifyArtistCatalogService.getArtistCatalogData(artists, earlyStopBeforeDate),
+    clearCache: () => {
+      spotifyFollowedArtistsService?.clearCache();
+      spotifyPlaylistLibraryService?.clearCache();
+      spotifyArtistCatalogService?.clearCache();
+    },
+  };
 
-spotifyUserLibraryService = {
-  getFollowedArtists: () => spotifyFollowedArtistsService.getFollowedArtists(),
-  getMyPlaylists: () => spotifyPlaylistLibraryService.getMyPlaylists(),
-  getArtistCatalogData: (artists, earlyStopBeforeDate) =>
-    spotifyArtistCatalogService.getArtistCatalogData(artists, earlyStopBeforeDate),
-  clearCache: () => {
-    spotifyFollowedArtistsService?.clearCache();
-    spotifyPlaylistLibraryService?.clearCache();
-    spotifyArtistCatalogService?.clearCache();
-  },
-};
+  spotifyUserLibrarySyncService = {
+    getFollowedArtists: () => spotifyFollowedArtistsSyncService.getFollowedArtists(),
+    getMyPlaylists: () => spotifyPlaylistLibrarySyncService.getMyPlaylists(),
+    getArtistCatalogData: (artists, earlyStopBeforeDate) =>
+      spotifyArtistCatalogSyncService.getArtistCatalogData(artists, earlyStopBeforeDate),
+    clearCache: () => {
+      spotifyFollowedArtistsSyncService?.clearCache();
+      spotifyPlaylistLibrarySyncService?.clearCache();
+      spotifyArtistCatalogSyncService?.clearCache();
+    },
+  };
 
-spotifyUserLibrarySyncService = {
-  getFollowedArtists: () => spotifyFollowedArtistsSyncService.getFollowedArtists(),
-  getMyPlaylists: () => spotifyPlaylistLibrarySyncService.getMyPlaylists(),
-  getArtistCatalogData: (artists, earlyStopBeforeDate) =>
-    spotifyArtistCatalogSyncService.getArtistCatalogData(artists, earlyStopBeforeDate),
-  clearCache: () => {
-    spotifyFollowedArtistsSyncService?.clearCache();
-    spotifyPlaylistLibrarySyncService?.clearCache();
-    spotifyArtistCatalogSyncService?.clearCache();
-  },
-};
+  const deezerClient = new DeezerClient();
+  const deezerArtistLookupAdapter = new DeezerArtistLookupAdapter(deezerClient);
+  const catalogSearchPort = new DeezerCatalogSearchAdapter(deezerClient, feedRepository);
+  const musicBrainzClient = new MusicBrainzClient();
+  const releaseFeedService = new ReleaseFeedService(
+    feedRepository,
+    deezerClient,
+    musicBrainzClient,
+  );
 
-// External catalog providers (Deezer primary, MusicBrainz fallback; Spotify URLs materialize on demand)
-const deezerClient = new DeezerClient();
-const deezerArtistLookupAdapter = new DeezerArtistLookupAdapter(deezerClient);
+  const externalUrlCacheRepository = new ExternalUrlCacheRepository(prisma);
+  const spotifyUrlLookupClient = new SpotifyUrlLookupClient(spotifyAuthService, settingsService);
+  const resolveExternalUrlUseCase = new ResolveExternalUrlUseCase(
+    externalUrlCacheRepository,
+    spotifyUrlLookupClient,
+  );
+  const externalUrlController = new ExternalUrlController(resolveExternalUrlUseCase);
 
-// Catalog search is Deezer-first after PR-3.4 cleanup.
-// SpotifyCatalogSearchAdapter and SEARCH_PROVIDER=spotify branch removed (CLN-1).
-const catalogSearchPort = new DeezerCatalogSearchAdapter(deezerClient, feedRepository);
-const musicBrainzClient = new MusicBrainzClient();
-const releaseFeedService = new ReleaseFeedService(feedRepository, deezerClient, musicBrainzClient);
+  const spotifyService = new SpotifyService({
+    artistClient: spotifyArtistClient,
+    trackClient: spotifyTrackClient,
+    albumClient: spotifyAlbumClient,
+    playlistClient: spotifyPlaylistClient,
+    searchClient: spotifySearchClient,
+    userLibraryService: spotifyUserLibraryService,
+  });
+  const spotifyServiceSync = new SpotifyService({
+    artistClient: spotifyArtistClient,
+    trackClient: spotifyTrackClient,
+    albumClient: spotifyAlbumClient,
+    playlistClient: spotifyPlaylistClientSync,
+    searchClient: spotifySearchClient,
+    userLibraryService: spotifyUserLibrarySyncService,
+  });
 
-// External URL lazy resolution (Design D2)
-const externalUrlCacheRepository = new ExternalUrlCacheRepository(prisma);
-const spotifyUrlLookupClient = new SpotifyUrlLookupClient(spotifyAuthService, settingsService);
-const resolveExternalUrlUseCase = new ResolveExternalUrlUseCase(
-  externalUrlCacheRepository,
-  spotifyUrlLookupClient,
-);
-const externalUrlController = new ExternalUrlController(resolveExternalUrlUseCase);
+  const artworkService = new ArtworkService(
+    playlistRepository,
+    spotifyServiceSync,
+    trackFileHelper,
+    artworkAssetsService,
+  );
+  const trackPostProcessingService = new TrackPostProcessingService(
+    artworkService,
+    metadataService,
+    playlistRepository,
+    trackRepository,
+    trackFileHelper,
+    m3uService,
+  );
 
-// Interactive SpotifyService — for user-facing controllers (preview, search, artist detail)
-const spotifyService = new SpotifyService({
-  artistClient: spotifyArtistClient,
-  trackClient: spotifyTrackClient,
-  albumClient: spotifyAlbumClient,
-  playlistClient: spotifyPlaylistClient,
-  searchClient: spotifySearchClient,
-  userLibraryService: spotifyUserLibraryService,
-});
+  const createTrackUseCase = new CreateTrackUseCase(trackRepository, queueService);
+  const deleteTrackUseCase = new DeleteTrackUseCase(trackRepository);
+  const getTracksUseCase = new GetTracksUseCase(
+    trackRepository,
+    playlistRepository,
+    trackFileHelper,
+  );
+  const updateTrackUseCase = new UpdateTrackUseCase(trackRepository);
+  const searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
+    trackRepository,
+    youtubeSearchService,
+    settingsService,
+    queueService,
+    eventBus,
+  );
+  const retryTrackDownloadUseCase = new RetryTrackDownloadUseCase(trackRepository, queueService);
+  const rescueStuckTracksUseCase = new RescueStuckTracksUseCase(
+    trackRepository,
+    retryTrackDownloadUseCase,
+  );
+  const downloadTrackUseCase = new DownloadTrackUseCase(
+    trackRepository,
+    youtubeDownloadService,
+    trackFileHelper,
+    playlistRepository,
+    historyRepository,
+    eventBus,
+    trackPostProcessingService,
+  );
 
-// Sync SpotifyService — for background workers (create playlist, sync, post-processing)
-// Uses sync rate limiter for playlist fetches to avoid starving interactive requests
-const spotifyServiceSync = new SpotifyService({
-  artistClient: spotifyArtistClient,
-  trackClient: spotifyTrackClient,
-  albumClient: spotifyAlbumClient,
-  playlistClient: spotifyPlaylistClientSync,
-  searchClient: spotifySearchClient,
-  userLibraryService: spotifyUserLibrarySyncService,
-});
+  const trackService = new TrackService({
+    searchTrackOnYoutubeUseCase,
+    downloadTrackUseCase,
+    createTrackUseCase,
+    deleteTrackUseCase,
+    getTracksUseCase,
+    retryTrackDownloadUseCase,
+    updateTrackUseCase,
+  });
+  const trackController = new TrackController(
+    deleteTrackUseCase,
+    getTracksUseCase,
+    retryTrackDownloadUseCase,
+  );
 
-// Services (Post-Processing) — uses sync service to avoid starving interactive requests
-const artworkService = new ArtworkService(
-  playlistRepository,
-  spotifyServiceSync,
-  trackFileHelper,
-  artworkAssetsService,
-);
-const trackPostProcessingService = new TrackPostProcessingService(
-  artworkService,
-  metadataService,
-  playlistRepository,
-  trackRepository,
-  trackFileHelper,
-  m3uService,
-);
+  const getSettingsUseCase = new GetSettingsUseCase(settingsRepository);
+  const updateSettingUseCase = new UpdateSettingUseCase(
+    settingsRepository,
+    spotifyUserLibraryService,
+    eventBus,
+  );
 
-// Use Cases - Tracks
-const createTrackUseCase = new CreateTrackUseCase(trackRepository, queueService);
-const deleteTrackUseCase = new DeleteTrackUseCase(trackRepository);
-const getTracksUseCase = new GetTracksUseCase(trackRepository, playlistRepository, trackFileHelper);
-const updateTrackUseCase = new UpdateTrackUseCase(trackRepository);
-const searchTrackOnYoutubeUseCase = new SearchTrackOnYoutubeUseCase(
-  trackRepository,
-  youtubeSearchService,
-  settingsService,
-  queueService,
-  eventBus,
-);
-const retryTrackDownloadUseCase = new RetryTrackDownloadUseCase(trackRepository, queueService);
-const rescueStuckTracksUseCase = new RescueStuckTracksUseCase(
-  trackRepository,
-  retryTrackDownloadUseCase,
-);
-const downloadTrackUseCase = new DownloadTrackUseCase(
-  trackRepository,
-  youtubeDownloadService,
-  trackFileHelper,
-  playlistRepository,
-  historyRepository,
-  eventBus,
-  trackPostProcessingService,
-);
+  const getSystemStatusUseCase = new GetSystemStatusUseCase(playlistRepository);
+  const getPlaylistPreviewUseCase = new GetPlaylistPreviewUseCase(spotifyService);
+  const getPlaylistPreviewTracksPageUseCase = new GetPlaylistPreviewTracksPageUseCase(
+    spotifyService,
+  );
+  const getPlaylistsUseCase = new GetPlaylistsUseCase(playlistRepository);
+  const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
+  const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
 
-// Domain Services (Track)
-const trackService = new TrackService({
-  searchTrackOnYoutubeUseCase,
-  downloadTrackUseCase,
-  createTrackUseCase,
-  deleteTrackUseCase,
-  getTracksUseCase,
-  retryTrackDownloadUseCase,
-  updateTrackUseCase,
-});
+  const spotifyCircuitBreakerAdapter = new SpotifyCircuitBreakerAdapter();
+  const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
+    playlistRepository,
+    spotifyServiceSync,
+    trackService,
+    eventBus,
+    spotifyCircuitBreakerAdapter,
+  );
+  const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
+    playlistRepository,
+    trackService,
+  );
+  const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService);
 
-const trackController = new TrackController(
-  deleteTrackUseCase,
-  getTracksUseCase,
-  retryTrackDownloadUseCase,
-);
+  const fileSystemScannerService = new FileSystemScannerService();
+  const cacheArtworkSourceService = new CacheArtworkSourceService(prisma, trackFileHelper);
+  const fileSystemArtworkSourceService = new FileSystemArtworkSourceService(
+    trackFileHelper,
+    artworkAssetsService,
+  );
+  const embeddedArtworkSourceService = new EmbeddedArtworkSourceService();
+  const spotifyArtworkSourceService = new SpotifyArtworkSourceService(
+    spotifyArtistClient,
+    spotifyAlbumClient,
+    spotifySearchClient,
+  );
+  const deezerArtworkSourceService = new DeezerArtworkSourceService(deezerClient);
+  const externalArtworkSources = [deezerArtworkSourceService, spotifyArtworkSourceService];
+  const processArtworkBackfillBatchUseCase = new ProcessArtworkBackfillBatchUseCase(
+    cacheArtworkSourceService,
+    fileSystemArtworkSourceService,
+    cacheArtworkSourceService,
+    embeddedArtworkSourceService,
+    externalArtworkSources,
+    artworkBackfillRepository,
+  );
+  const startArtworkBackfillUseCase = new StartArtworkBackfillUseCase(
+    artworkBackfillRepository,
+    artworkBackfillQueueService,
+  );
+  const pauseArtworkBackfillUseCase = new PauseArtworkBackfillUseCase(artworkBackfillRepository);
+  const resumeArtworkBackfillUseCase = new ResumeArtworkBackfillUseCase(
+    artworkBackfillRepository,
+    artworkBackfillQueueService,
+  );
+  const getArtworkBackfillStatusUseCase = new GetArtworkBackfillStatusUseCase(
+    artworkBackfillRepository,
+  );
+  const scanLibraryUseCase = new ScanLibraryUseCase(
+    fileSystemScannerService,
+    trackFileHelper,
+    trackRepository,
+  );
+  const libraryService = new LibraryService(scanLibraryUseCase);
+  const libraryAudioService = new FileSystemLibraryAudioService(() => env.DOWNLOADS);
+  const libraryImageService = new FileSystemLibraryImageService(() => env.DOWNLOADS);
 
-// Use Cases - Settings
-const getSettingsUseCase = new GetSettingsUseCase(settingsRepository);
-const updateSettingUseCase = new UpdateSettingUseCase(
-  settingsRepository,
-  spotifyUserLibraryService,
-  eventBus,
-);
+  const libraryController = new LibraryController(
+    libraryService,
+    libraryAudioService,
+    libraryImageService,
+  );
+  const artworkBackfillController = new ArtworkBackfillController(
+    startArtworkBackfillUseCase,
+    pauseArtworkBackfillUseCase,
+    resumeArtworkBackfillUseCase,
+    getArtworkBackfillStatusUseCase,
+  );
+  const healthService = new HealthService(connectivityAdapter);
 
-// Use Cases - Playlists
-const getSystemStatusUseCase = new GetSystemStatusUseCase(playlistRepository);
-const getPlaylistPreviewUseCase = new GetPlaylistPreviewUseCase(spotifyService);
-const getPlaylistPreviewTracksPageUseCase = new GetPlaylistPreviewTracksPageUseCase(spotifyService);
-const getPlaylistsUseCase = new GetPlaylistsUseCase(playlistRepository);
-const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
-const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
+  const getArtistDetailUseCase = new GetArtistDetailUseCase(
+    feedRepository,
+    releaseFeedService,
+    deezerArtistLookupAdapter,
+  );
+  const getArtistAlbumsUseCase = new GetArtistAlbumsUseCase(feedRepository, releaseFeedService);
+  const noopAlbumTracksCache = new NoopAlbumTracksCache();
+  const getAlbumTracksUseCase = new GetAlbumTracksUseCase(
+    feedRepository,
+    deezerClient,
+    musicBrainzClient,
+    noopAlbumTracksCache,
+  );
+  const createPlaylistUseCase = new CreatePlaylistUseCase(
+    playlistRepository,
+    spotifyServiceSync,
+    trackService,
+    settingsService,
+    eventBus,
+    getAlbumTracksUseCase,
+    feedRepository,
+    deezerClient,
+  );
 
-const spotifyCircuitBreakerAdapter = new SpotifyCircuitBreakerAdapter();
+  const playlistService = new PlaylistService({
+    createPlaylistUseCase,
+    getSystemStatusUseCase,
+    getPlaylistPreviewUseCase,
+    syncSubscribedPlaylistsUseCase,
+    getPlaylistsUseCase,
+    deletePlaylistUseCase,
+    updatePlaylistUseCase,
+    retryPlaylistDownloadsUseCase,
+    getMyPlaylistsUseCase,
+  });
+  const playlistController = new PlaylistController(
+    createPlaylistUseCase,
+    deletePlaylistUseCase,
+    getMyPlaylistsUseCase,
+    getPlaylistPreviewUseCase,
+    getPlaylistPreviewTracksPageUseCase,
+    getPlaylistsUseCase,
+    getSystemStatusUseCase,
+    retryPlaylistDownloadsUseCase,
+    updatePlaylistUseCase,
+  );
 
-const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
-  playlistRepository,
-  spotifyServiceSync,
-  trackService,
-  eventBus,
-  spotifyCircuitBreakerAdapter,
-);
+  const artistController = new ArtistController(
+    getArtistDetailUseCase,
+    getArtistAlbumsUseCase,
+    getAlbumTracksUseCase,
+  );
+  const searchController = new SearchController(catalogSearchPort);
+  const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
 
-const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
-  playlistRepository,
-  trackService,
-);
+  const historyUseCases = new HistoryUseCases({ repository: historyRepository });
+  const historyController = new HistoryController(historyUseCases);
+  const getRecentReleasesUseCase = new GetRecentReleasesUseCase(
+    feedRepository,
+    spotifyUserLibraryService,
+    releaseFeedService,
+    settingsService,
+  );
+  const feedController = new FeedController(
+    spotifyUserLibraryService,
+    feedRepository,
+    getRecentReleasesUseCase,
+  );
+  const authController = new AuthController(
+    spotifyAuthService,
+    settingsService,
+    env.SPOTIFY_CLIENT_ID,
+    env.SPOTIFY_REDIRECT_URI,
+  );
+  const healthController = new HealthController(healthService);
 
-const getMyPlaylistsUseCase = new GetMyPlaylistsUseCase(spotifyService);
+  eventBus.on("settings:updated", ({ key }: { key: string }) => {
+    if (key === "SPOTIFY_MARKET") {
+      spotifyArtistClient.clearMarketCache();
+      spotifyAlbumClient.clearMarketCache();
+      spotifyTrackClient.clearMarketCache();
+      spotifyPlaylistClient.clearMarketCache();
+      spotifySearchClient.clearMarketCache();
+      spotifyPlaylistClientSync.clearMarketCache();
+    }
+  });
 
-// Library Services
-const fileSystemScannerService = new FileSystemScannerService();
-const cacheArtworkSourceService = new CacheArtworkSourceService(prisma, trackFileHelper);
-const fileSystemArtworkSourceService = new FileSystemArtworkSourceService(
-  trackFileHelper,
-  artworkAssetsService,
-);
-const embeddedArtworkSourceService = new EmbeddedArtworkSourceService();
-const spotifyArtworkSourceService = new SpotifyArtworkSourceService(
-  spotifyArtistClient,
-  spotifyAlbumClient,
-  spotifySearchClient,
-);
-const deezerArtworkSourceService = new DeezerArtworkSourceService(deezerClient);
-const externalArtworkSources = [deezerArtworkSourceService, spotifyArtworkSourceService];
-const processArtworkBackfillBatchUseCase = new ProcessArtworkBackfillBatchUseCase(
-  cacheArtworkSourceService,
-  fileSystemArtworkSourceService,
-  cacheArtworkSourceService,
-  embeddedArtworkSourceService,
-  externalArtworkSources,
-  artworkBackfillRepository,
-);
-const startArtworkBackfillUseCase = new StartArtworkBackfillUseCase(
-  artworkBackfillRepository,
-  artworkBackfillQueueService,
-);
-const pauseArtworkBackfillUseCase = new PauseArtworkBackfillUseCase(artworkBackfillRepository);
-const resumeArtworkBackfillUseCase = new ResumeArtworkBackfillUseCase(
-  artworkBackfillRepository,
-  artworkBackfillQueueService,
-);
-const getArtworkBackfillStatusUseCase = new GetArtworkBackfillStatusUseCase(
-  artworkBackfillRepository,
-);
-const scanLibraryUseCase = new ScanLibraryUseCase(
-  fileSystemScannerService,
-  trackFileHelper,
-  trackRepository,
-);
-const libraryService = new LibraryService(scanLibraryUseCase);
-const libraryAudioService = new FileSystemLibraryAudioService(() => resolveDownloadsRoot());
-const libraryImageService = new FileSystemLibraryImageService(() => resolveDownloadsRoot());
+  return {
+    playlistService,
+    playlistController,
+    trackService,
+    trackController,
+    artistController,
+    searchController,
+    externalUrlController,
+    libraryController,
+    artworkBackfillController,
+    settingsController,
+    historyController,
+    feedController,
+    authController,
+    healthController,
+    eventsController,
+    spotifyService,
+    spotifyArtistClient,
+    spotifyTrackClient,
+    spotifyAlbumClient,
+    spotifyPlaylistClient,
+    spotifySearchClient,
+    spotifyUserLibraryService,
+    spotifyUserLibrarySyncService,
+    spotifyAuthService,
+    deezerClient,
+    musicBrainzClient,
+    releaseFeedService,
+    settingsService,
+    getSettingsUseCase,
+    updateSettingUseCase,
+    queueService,
+    eventBus,
+    trackPostProcessingService,
+    rescueStuckTracksUseCase,
+    libraryService,
+    feedRepository,
+    artworkBackfillRepository,
+    processArtworkBackfillBatchUseCase,
+  };
+}
 
-const libraryController = new LibraryController(
-  libraryService,
-  libraryAudioService,
-  libraryImageService,
-);
-const artworkBackfillController = new ArtworkBackfillController(
-  startArtworkBackfillUseCase,
-  pauseArtworkBackfillUseCase,
-  resumeArtworkBackfillUseCase,
-  getArtworkBackfillStatusUseCase,
-);
-const healthService = new HealthService(connectivityAdapter);
+export type Container = ReturnType<typeof createContainer>;
 
-const getArtistDetailUseCase = new GetArtistDetailUseCase(
-  feedRepository,
-  releaseFeedService,
-  deezerArtistLookupAdapter,
-);
-const getArtistAlbumsUseCase = new GetArtistAlbumsUseCase(feedRepository, releaseFeedService);
-const noopAlbumTracksCache = new NoopAlbumTracksCache();
-const getAlbumTracksUseCase = new GetAlbumTracksUseCase(
-  feedRepository,
-  deezerClient,
-  musicBrainzClient,
-  noopAlbumTracksCache,
-);
-// Background use cases — use sync service to avoid starving interactive requests
-// getAlbumTracksUseCase must be declared before this
-const createPlaylistUseCase = new CreatePlaylistUseCase(
-  playlistRepository,
-  spotifyServiceSync,
-  trackService,
-  settingsService,
-  eventBus,
-  getAlbumTracksUseCase,
-  feedRepository,
-  deezerClient,
-);
+let currentContainer: Container | null = null;
 
-// Domain Services (Playlist)
-const playlistService = new PlaylistService({
-  createPlaylistUseCase,
-  getSystemStatusUseCase,
-  getPlaylistPreviewUseCase,
-  syncSubscribedPlaylistsUseCase,
-  getPlaylistsUseCase,
-  deletePlaylistUseCase,
-  updatePlaylistUseCase,
-  retryPlaylistDownloadsUseCase,
-  getMyPlaylistsUseCase,
-});
+export function initializeContainer(env: Env): Container {
+  currentContainer = createContainer(env);
+  return currentContainer;
+}
 
-const playlistController = new PlaylistController(
-  createPlaylistUseCase,
-  deletePlaylistUseCase,
-  getMyPlaylistsUseCase,
-  getPlaylistPreviewUseCase,
-  getPlaylistPreviewTracksPageUseCase,
-  getPlaylistsUseCase,
-  getSystemStatusUseCase,
-  retryPlaylistDownloadsUseCase,
-  updatePlaylistUseCase,
-);
-
-const artistController = new ArtistController(
-  getArtistDetailUseCase,
-  getArtistAlbumsUseCase,
-  getAlbumTracksUseCase,
-);
-const searchController = new SearchController(catalogSearchPort);
-
-const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
-
-const historyUseCases = new HistoryUseCases({ repository: historyRepository });
-const historyController = new HistoryController(historyUseCases);
-
-const getRecentReleasesUseCase = new GetRecentReleasesUseCase(
-  feedRepository,
-  spotifyUserLibraryService,
-  releaseFeedService,
-  settingsService,
-);
-const feedController = new FeedController(
-  spotifyUserLibraryService,
-  feedRepository,
-  getRecentReleasesUseCase,
-);
-const authController = new AuthController(
-  spotifyAuthService,
-  settingsService,
-  resolveSpotifyAuthConfig().clientId,
-  resolveSpotifyAuthConfig().redirectUri,
-);
-const healthController = new HealthController(healthService);
-const eventsController = new EventsController();
-
-// When SPOTIFY_MARKET changes, invalidate the in-memory market cache on all clients
-// so the next request picks up the new value from DB
-eventBus.on("settings:updated", ({ key }: { key: string }) => {
-  if (key === "SPOTIFY_MARKET") {
-    spotifyArtistClient.clearMarketCache();
-    spotifyAlbumClient.clearMarketCache();
-    spotifyTrackClient.clearMarketCache();
-    spotifyPlaylistClient.clearMarketCache();
-    spotifySearchClient.clearMarketCache();
-    spotifyPlaylistClientSync.clearMarketCache();
+export function getContainer(): Container {
+  if (!currentContainer) {
+    throw new Error("Container not initialized. Call initializeContainer() first.");
   }
-});
 
-// Export container
-export const container = {
-  playlistService,
-  playlistController,
-  trackService,
-  trackController,
-  artistController,
-  searchController,
-  externalUrlController,
-  libraryController,
-  artworkBackfillController,
-  settingsController,
-  historyController,
-  feedController,
-  authController,
-  healthController,
-  eventsController,
-  spotifyService,
-  spotifyArtistClient,
-  spotifyTrackClient,
-  spotifyAlbumClient,
-  spotifyPlaylistClient,
-  spotifySearchClient,
-  spotifyUserLibraryService,
-  spotifyUserLibrarySyncService,
-  spotifyAuthService,
-  deezerClient,
-  musicBrainzClient,
-  releaseFeedService,
-
-  settingsService,
-  getSettingsUseCase,
-  updateSettingUseCase,
-  queueService,
-  eventBus,
-  trackPostProcessingService,
-  rescueStuckTracksUseCase,
-  libraryService,
-  feedRepository,
-  artworkBackfillRepository,
-  processArtworkBackfillBatchUseCase,
-};
+  return currentContainer;
+}

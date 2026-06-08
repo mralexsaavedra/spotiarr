@@ -1,11 +1,10 @@
 import { type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
-import { container } from "../../container";
+import { getContainer } from "../../container";
 import { getEnv } from "../setup/environment";
 
-const { trackService, settingsService } = container;
-
 export async function createTrackSearchWorker() {
+  const { trackService, settingsService } = getContainer();
   const concurrency = await settingsService.getNumber("YT_SEARCH_CONCURRENCY");
 
   const worker = new Worker(

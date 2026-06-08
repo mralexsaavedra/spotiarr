@@ -1,12 +1,14 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { container } from "../../container";
+import type { Container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
-const router: ExpressRouter = Router();
-const { feedController } = container;
+export function createFeedRoutes(container: Container): ExpressRouter {
+  const router: ExpressRouter = Router();
+  const { feedController } = container;
 
-router.get("/releases", asyncHandler(feedController.getRecentReleases));
+  router.get("/releases", asyncHandler(feedController.getRecentReleases));
 
-router.get("/artists", asyncHandler(feedController.getArtists));
+  router.get("/artists", asyncHandler(feedController.getArtists));
 
-export default router;
+  return router;
+}

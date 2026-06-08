@@ -1,31 +1,34 @@
 import { ApiRoutes } from "@spotiarr/shared";
 import { Router, type Router as ExpressRouter } from "express";
-import artistRoutes from "./artist.routes";
-import authRoutes from "./auth.routes";
-import eventsRoutes from "./events.routes";
-import externalUrlRoutes from "./external-url.routes";
-import feedRoutes from "./feed.routes";
-import healthRoutes from "./health.routes";
-import historyRoutes from "./history.routes";
-import libraryRoutes from "./library.routes";
-import playlistRoutes from "./playlist.routes";
-import searchRoutes from "./search.routes";
-import settingsRoutes from "./settings.routes";
-import trackRoutes from "./track.routes";
+import type { Container } from "../../container";
+import { createArtistRoutes } from "./artist.routes";
+import { createAuthRoutes } from "./auth.routes";
+import { createEventsRoutes } from "./events.routes";
+import { createExternalUrlRoutes } from "./external-url.routes";
+import { createFeedRoutes } from "./feed.routes";
+import { createHealthRoutes } from "./health.routes";
+import { createHistoryRoutes } from "./history.routes";
+import { createLibraryRoutes } from "./library.routes";
+import { createPlaylistRoutes } from "./playlist.routes";
+import { createSearchRoutes } from "./search.routes";
+import { createSettingsRoutes } from "./settings.routes";
+import { createTrackRoutes } from "./track.routes";
 
-const router: ExpressRouter = Router();
+export function createRoutes(container: Container): ExpressRouter {
+  const router: ExpressRouter = Router();
 
-router.use(ApiRoutes.HEALTH, healthRoutes);
-router.use(ApiRoutes.PLAYLIST, playlistRoutes);
-router.use(ApiRoutes.TRACK, trackRoutes);
-router.use(ApiRoutes.HISTORY, historyRoutes);
-router.use(ApiRoutes.SETTINGS, settingsRoutes);
-router.use(ApiRoutes.EVENTS, eventsRoutes);
-router.use(ApiRoutes.FEED, feedRoutes);
-router.use(ApiRoutes.ARTIST, artistRoutes);
-router.use(ApiRoutes.AUTH, authRoutes);
-router.use(ApiRoutes.LIBRARY, libraryRoutes);
-router.use(ApiRoutes.SEARCH, searchRoutes);
-router.use(ApiRoutes.EXTERNAL_URL, externalUrlRoutes);
+  router.use(ApiRoutes.HEALTH, createHealthRoutes(container));
+  router.use(ApiRoutes.PLAYLIST, createPlaylistRoutes(container));
+  router.use(ApiRoutes.TRACK, createTrackRoutes(container));
+  router.use(ApiRoutes.HISTORY, createHistoryRoutes(container));
+  router.use(ApiRoutes.SETTINGS, createSettingsRoutes(container));
+  router.use(ApiRoutes.EVENTS, createEventsRoutes(container));
+  router.use(ApiRoutes.FEED, createFeedRoutes(container));
+  router.use(ApiRoutes.ARTIST, createArtistRoutes(container));
+  router.use(ApiRoutes.AUTH, createAuthRoutes(container));
+  router.use(ApiRoutes.LIBRARY, createLibraryRoutes(container));
+  router.use(ApiRoutes.SEARCH, createSearchRoutes(container));
+  router.use(ApiRoutes.EXTERNAL_URL, createExternalUrlRoutes(container));
 
-export default router;
+  return router;
+}

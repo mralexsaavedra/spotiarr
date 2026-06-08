@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import type { SettingsService } from "@/application/services/settings.service";
-import { container } from "@/container";
+import { getContainer } from "@/container";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { getEnv } from "../setup/environment";
 import { CATALOG_SYNC_QUEUE } from "../setup/queues";
@@ -102,7 +102,7 @@ export async function runCatalogSyncJob(deps: CatalogSyncJobDependencies): Promi
 }
 
 export function createCatalogSyncWorker(): Worker {
-  const { feedRepository, releaseFeedService, eventBus, settingsService } = container;
+  const { feedRepository, releaseFeedService, eventBus, settingsService } = getContainer();
 
   // If the process crashed mid-sync, the state is stuck in "running".
   // Reset it on startup so the cron can enqueue a new job.
