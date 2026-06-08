@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.13.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.13.1...v1.13.2) (2026-06-08)
+
+### Bug Fixes
+
+- **Spotify OAuth in Docker**: The Spotify login redirect now uses the validated Docker environment values for `SPOTIFY_CLIENT_ID` and `SPOTIFY_REDIRECT_URI` instead of caching empty strings during import-time backend wiring. Backend startup now validates env first, configures Spotify rate limiters explicitly, initializes DI from validated config, and builds Express routes from the initialized container. ([#109](https://github.com/mralexsaavedra/spotiarr/pull/109))
+
+### Testing
+
+- **Playwright real stack**: Added an official backend real-stack harness for E2E tests so the frontend helper no longer imports random backend internals from `dist`, while preserving the lightweight no-Redis E2E startup path. ([#109](https://github.com/mralexsaavedra/spotiarr/pull/109))
+
 ## [1.13.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.13.0...v1.13.1) (2026-06-08)
 
 ### Bug Fixes
