@@ -106,6 +106,16 @@ describe("TransportControls", () => {
     expect(onRepeatCycle).toHaveBeenCalledOnce();
   });
 
+  it("repeat button aria-label uses player.transport.repeatAll when repeatMode=all", () => {
+    render(<TransportControls {...defaultProps} repeatMode="all" />);
+    expect(screen.getByRole("button", { name: "player.transport.repeatAll" })).toBeTruthy();
+  });
+
+  it("repeat button aria-label uses player.transport.repeatOne when repeatMode=one", () => {
+    render(<TransportControls {...defaultProps} repeatMode="one" />);
+    expect(screen.getByRole("button", { name: "player.transport.repeatOne" })).toBeTruthy();
+  });
+
   it("prev button is disabled when isPrevDisabled=true", () => {
     render(<TransportControls {...defaultProps} isPrevDisabled={true} />);
     expect(screen.getByRole("button", { name: "player.transport.previous" })).toHaveProperty(

@@ -49,6 +49,8 @@ vi.mock("react-i18next", async () => {
           "player.queue.close": "Close",
           "player.queue.repeatAll": "Repeat all",
           "player.queue.repeatOne": "Repeat one",
+          "player.transport.repeatAll": "Repeat all",
+          "player.transport.repeatOne": "Repeat one",
           "player.queue.shuffleOn": "Shuffle on",
           "player.nowPlaying.open": "Open Now Playing",
           "player.nowPlaying.close": "Close",
@@ -776,6 +778,29 @@ describe("isAtFirst / isAtLast with modes", () => {
 
     const prevBtn = screen.getByRole("button", { name: "Previous track" });
     expect(prevBtn).toHaveProperty("disabled", true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mobile chevron affordance (Item 3 / S3-chevron)
+// ---------------------------------------------------------------------------
+
+describe("mobile chevron affordance", () => {
+  it("ChevronUp icon is present in mobile track-meta button when a track is loaded", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    render(<GlobalPlayerBar />);
+
+    const mobileBtn = screen.getByRole("button", { name: "Open Now Playing" });
+    const chevron = mobileBtn.querySelector("[aria-hidden='true'][data-icon='chevron-up']");
+    expect(chevron).not.toBeNull();
+  });
+
+  it("ChevronUp icon is absent when no track is loaded", () => {
+    usePlayerStore.setState({ error: "Network error" });
+    render(<GlobalPlayerBar />);
+
+    const mobileBtn = screen.queryByRole("button", { name: "Open Now Playing" });
+    expect(mobileBtn).toBeNull();
   });
 });
 

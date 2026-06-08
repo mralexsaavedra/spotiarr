@@ -395,7 +395,9 @@
       "pause": "Pausar",
       "play": "Reproducir",
       "seek": "Avanzar",
-      "repeatEnable": "Activar repetición"
+      "repeatEnable": "Activar repetición",
+      "repeatAll": "Repetir todo",
+      "repeatOne": "Repetir una"
     }
   }
 }

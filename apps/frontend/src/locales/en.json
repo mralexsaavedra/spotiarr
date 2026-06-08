@@ -395,7 +395,9 @@
       "pause": "Pause",
       "play": "Play",
       "seek": "Seek",
-      "repeatEnable": "Enable repeat"
+      "repeatEnable": "Enable repeat",
+      "repeatAll": "Repeat all",
+      "repeatOne": "Repeat one"
     }
   }
 }

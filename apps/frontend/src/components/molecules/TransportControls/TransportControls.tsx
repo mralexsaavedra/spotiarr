@@ -140,8 +140,8 @@ export const TransportControls: FC<TransportControlsProps> = ({
           repeatMode === "off"
             ? t("player.transport.repeatEnable")
             : repeatMode === "all"
-              ? t("player.queue.repeatAll")
-              : t("player.queue.repeatOne")
+              ? t("player.transport.repeatAll")
+              : t("player.transport.repeatOne")
         }
         disabled={allDisabled}
         aria-disabled={allDisabled || undefined}
