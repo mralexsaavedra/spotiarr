@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 const PREVIEW_PORT = 4173;
 const PREVIEW_HOST = "127.0.0.1";
 const PREVIEW_BASE_URL = `http://${PREVIEW_HOST}:${PREVIEW_PORT}`;
-const REAL_BASE_URL = process.env.PLAYWRIGHT_REAL_BASE_URL ?? "http://127.0.0.1:3000";
+const REAL_PORT = process.env.PLAYWRIGHT_REAL_PORT ?? "3000";
+const REAL_BASE_URL = process.env.PLAYWRIGHT_REAL_BASE_URL ?? `http://127.0.0.1:${REAL_PORT}`;
 const ROOT_DIR = fileURLToPath(new URL(".", import.meta.url));
 const PLAYWRIGHT_TARGET = process.env.PLAYWRIGHT_TARGET;
 
@@ -28,7 +29,7 @@ if (PLAYWRIGHT_TARGET !== "mocked") {
       "pnpm --filter @spotiarr/shared run build && pnpm --filter frontend run build && pnpm --filter backend run build && tsx tests/helpers/real-stack.ts",
     cwd: ROOT_DIR,
     url: REAL_BASE_URL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     stdout: "pipe" as const,
     stderr: "pipe" as const,
     timeout: 120_000,

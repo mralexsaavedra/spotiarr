@@ -1,4 +1,11 @@
 import { expect, test } from "../../fixtures/test";
+import {
+  buildPlaylist,
+  buildTrack,
+  installLibraryAudioMocks,
+  installPlaylistMocks,
+  installTrackMocks,
+} from "../../helpers/api-mocks";
 
 const MOCK_AUDIO_URL = "/api/library/audio?path=%2Ftest%2Ftrack1.mp3";
 const MOCK_AUDIO_URL_2 = "/api/library/audio?path=%2Ftest%2Ftrack2.mp3";
@@ -190,5 +197,60 @@ test.describe("player — queue reorder @smoke", () => {
     const queueItems = queuePanel.getByRole("listitem");
     const firstItemText = await queueItems.first().textContent();
     expect(firstItemText).toContain("Track Beta");
+  });
+});
+test.describe("Mocked global player flows", () => {
+  test("updates the GlobalPlayerBar while playing a library-backed playlist queue", async ({
+    page,
+  }) => {
+    const libraryPlaylist = buildPlaylist({
+      id: "library-player-playlist",
+      name: "Local Queue",
+      spotifyUrl: "spotiarr://library-player-playlist",
+      subscribed: true,
+      tracks: [],
+    });
+
+    await installPlaylistMocks(page, { playlists: [libraryPlaylist] });
+    await installTrackMocks(page, {
+      tracksByPlaylistId: {
+        [libraryPlaylist.id]: [
+          buildTrack({
+            album: "Album One",
+            artist: "Boards of Canada",
+            audioUrl: "/api/library/audio?path=/library/boards/track-1.mp3",
+            id: "player-track-1",
+            name: "Dayvan Cowboy",
+            playlistId: libraryPlaylist.id,
+          }),
+          buildTrack({
+            album: "Album Two",
+            artist: "Tycho",
+            audioUrl: "/api/library/audio?path=/library/tycho/track-2.mp3",
+            id: "player-track-2",
+            name: "Awake",
+            playlistId: libraryPlaylist.id,
+          }),
+        ],
+      },
+    });
+    await installLibraryAudioMocks(page);
+
+    await page.goto(`/playlist/${libraryPlaylist.id}?mode=library`, {
+      waitUntil: "domcontentloaded",
+    });
+
+    await page.getByRole("button", { name: "Play track" }).first().click();
+
+    const playerBar = page.getByRole("region", { name: "Now playing" });
+
+    await expect(playerBar).toBeVisible();
+    await expect(
+      playerBar.getByRole("button", { name: /Open Dayvan Cowboy by Boards of Canada/ }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Play track" }).nth(1).click();
+
+    await expect(playerBar.getByRole("button", { name: /Open Awake by Tycho/ })).toBeVisible();
   });
 });

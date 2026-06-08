@@ -91,3 +91,52 @@ test.describe("Mocked search flows", () => {
     await expect(page.getByText("Daft Punk").first()).toBeVisible();
   });
 });
+
+test.describe("Search smoke", () => {
+  test("renders the empty search state with bootstrap mocks only", async ({ appShell, page }) => {
+    await page.goto("/search", { waitUntil: "domcontentloaded" });
+
+    const emptyStateMessage = page.getByText(
+      "Type something in the search bar to find tracks, albums, or artists",
+    );
+
+    await expect(page.getByPlaceholder("Search or paste link...")).toBeVisible();
+    await expect(emptyStateMessage).toBeVisible();
+    await expect(emptyStateMessage).toContainText(
+      "Type something in the search bar to find tracks, albums, or artists",
+    );
+    await appShell.assertNoUnhandledRequests();
+  });
+
+  test("keeps the shared app shell available on the empty search route", async ({
+    appShell,
+    page,
+  }) => {
+    await page.goto("/search", { waitUntil: "domcontentloaded" });
+
+    await expect(page.getByPlaceholder("Search or paste link...")).toBeVisible();
+    await expect(page.getByRole("button", { name: "All" })).toBeVisible();
+    await appShell.assertNoUnhandledRequests();
+  });
+
+  test.describe("missing bootstrap mocks", () => {
+    test.use({
+      allowUnhandledRequests: true,
+      appShellOptions: { mockPlaylistStatus: false },
+    });
+
+    test("fails explicitly when a required bootstrap mock is missing", async ({
+      appShell,
+      page,
+    }) => {
+      await page.unroute("**/api/playlist/status");
+
+      await page.goto("/search", { waitUntil: "domcontentloaded" });
+
+      await expect(appShell.waitForUnhandledRequest()).resolves.toContain("/api/playlist/status");
+      await expect(appShell.assertNoUnhandledRequests()).rejects.toThrow(
+        /Unhandled API request: GET/,
+      );
+    });
+  });
+});
