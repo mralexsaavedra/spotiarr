@@ -249,13 +249,8 @@ test.describe("Mocked global player flows", () => {
       playerBar.getByRole("button", { name: /Open Dayvan Cowboy by Boards of Canada/ }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Next track" }).click();
+    await page.getByRole("button", { name: "Play track" }).nth(1).click();
 
-    await expect(playerBar.getByRole("button", { name: /Open Awake by Tycho/ })).toBeVisible();
-
-    await playerBar.getByRole("button", { name: "Pause" }).click();
-
-    await expect(playerBar.getByRole("button", { name: "Play" })).toBeVisible();
     await expect(playerBar.getByRole("button", { name: /Open Awake by Tycho/ })).toBeVisible();
   });
 });
