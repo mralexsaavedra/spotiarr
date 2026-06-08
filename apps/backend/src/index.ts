@@ -1,10 +1,13 @@
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as http from "http";
-import { app } from "./app";
-import { container } from "./container";
+import { createApp } from "./app";
+import { initializeContainer } from "./container";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
-import { configureAppTokenCircuitBreaker } from "./infrastructure/external/spotify-http.client";
+import {
+  configureAppTokenCircuitBreaker,
+  configureSpotifyRateLimiters,
+} from "./infrastructure/external/spotify-http.client";
 import { startScheduledJobs } from "./infrastructure/jobs";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
@@ -23,6 +26,7 @@ const CIRCUIT_BREAKER_OPEN_UNTIL_KEY = "spotify_circuit_open_until";
 validateEnvironment();
 
 const env = getEnv();
+configureSpotifyRateLimiters(env);
 const PORT = 3000;
 
 // Worker references for shutdown
@@ -34,6 +38,8 @@ let artworkBackfillWorker: import("bullmq").Worker;
 
 async function bootstrap() {
   console.log("🚀 Starting SpotiArr Backend...\n");
+
+  const container = initializeContainer(env);
 
   // Create downloads directory if it doesn't exist
   const downloadsPath = env.DOWNLOADS;
@@ -95,6 +101,7 @@ async function bootstrap() {
   await container.rescueStuckTracksUseCase.execute();
 
   // Create HTTP server
+  const app = createApp(container);
   const server = http.createServer(app);
 
   // Start scheduled jobs

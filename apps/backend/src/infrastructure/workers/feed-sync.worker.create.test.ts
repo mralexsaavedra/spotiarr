@@ -17,7 +17,7 @@ vi.mock("bullmq", () => ({
 }));
 
 vi.mock("@/container", () => ({
-  container: {
+  getContainer: () => ({
     spotifyUserLibrarySyncService: {},
     releaseFeedService: {},
     feedRepository: {
@@ -30,7 +30,13 @@ vi.mock("@/container", () => ({
     settingsService: {
       getNumber: vi.fn(),
     },
-  },
+  }),
+  initializeContainer: vi.fn(),
+  getContainerOrThrow: vi.fn(),
+  getContainerUnsafe: vi.fn(),
+  // Keep the mock shape explicit so tests fail loudly if code tries to rely on removed exports.
+  getContainerState: vi.fn(),
+  __esModule: true,
 }));
 
 vi.mock("../setup/environment", () => ({

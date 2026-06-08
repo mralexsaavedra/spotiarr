@@ -1,14 +1,13 @@
 import cron from "node-cron";
 import { SYNC_STATUS } from "@/application/ports/feed-repository.port";
-import { container } from "@/container";
+import { getContainer } from "@/container";
 import { getFeedSyncQueue } from "../setup/queues";
-
-const { settingsService, feedRepository } = container;
 
 let lastFeedSyncCheckTimestamp = 0;
 
 export const feedSyncJob = cron.createTask("* * * * *", async () => {
   try {
+    const { settingsService, feedRepository } = getContainer();
     const intervalMinutes = await settingsService.getNumber("RELEASES_SYNC_INTERVAL_MINUTES", 60);
     const safeIntervalMinutes = intervalMinutes > 0 ? intervalMinutes : 60;
     const now = Date.now();

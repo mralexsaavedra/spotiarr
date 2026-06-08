@@ -1,7 +1,7 @@
 import { Worker, type Job } from "bullmq";
 import { z } from "zod";
 import { ProcessArtworkBackfillBatchUseCase } from "@/application/use-cases/artwork-backfill/process-artwork-backfill-batch.use-case";
-import { container } from "@/container";
+import { getContainer, type Container } from "@/container";
 import { ARTWORK_BACKFILL_STATUS } from "@/domain/artwork-backfill.types";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
@@ -18,10 +18,10 @@ const ArtworkBackfillJobDataSchema = z.object({
 type JobData = z.infer<typeof ArtworkBackfillJobDataSchema>;
 
 export interface ArtworkBackfillWorkerDependencies {
-  backfillRepository: typeof container.artworkBackfillRepository;
+  backfillRepository: Container["artworkBackfillRepository"];
   processBatchUseCase: ProcessArtworkBackfillBatchUseCase;
-  eventBus: typeof container.eventBus;
-  libraryService: Pick<typeof container.libraryService, "clearCache">;
+  eventBus: Container["eventBus"];
+  libraryService: Pick<Container["libraryService"], "clearCache">;
 }
 
 export async function runArtworkBackfillJob(
@@ -118,7 +118,7 @@ export function createArtworkBackfillWorker(): Worker {
     processArtworkBackfillBatchUseCase,
     eventBus,
     libraryService,
-  } = container;
+  } = getContainer();
 
   const worker = new Worker(
     ARTWORK_BACKFILL_QUEUE,

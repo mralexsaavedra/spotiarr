@@ -1,14 +1,13 @@
 import cron from "node-cron";
 import { SYNC_STATUS } from "@/application/ports/feed-repository.port";
-import { container } from "@/container";
+import { getContainer } from "@/container";
 import { getCatalogSyncQueue } from "../setup/queues";
-
-const { settingsService, feedRepository } = container;
 
 let lastCatalogSyncCheckTimestamp = 0;
 
 export const catalogSyncJob = cron.createTask("* * * * *", async () => {
   try {
+    const { settingsService, feedRepository } = getContainer();
     const intervalHours = await settingsService.getNumber("CATALOG_SYNC_INTERVAL_HOURS", 6);
     const safeIntervalHours = intervalHours > 0 ? intervalHours : 6;
     const now = Date.now();

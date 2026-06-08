@@ -1,15 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import http from "node:http";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const HOST = "127.0.0.1";
 const PORT = Number.parseInt(process.env.PLAYWRIGHT_REAL_PORT ?? "3000", 10);
 const ROOT_DIR = fileURLToPath(new URL("../../../../", import.meta.url));
 const BACKEND_DIR = path.join(ROOT_DIR, "apps/backend");
+const requireBackendHarness = createRequire(import.meta.url);
 
 const SEEDED_SETTINGS = [
   { key: "UI_LANGUAGE", value: "en" },
@@ -95,6 +96,17 @@ interface RealStackContext {
   downloadsDir: string;
   databasePath: string;
   databaseUrl: string;
+}
+
+interface PlaywrightRealStackServerHandle {
+  shutdown: () => Promise<void>;
+}
+
+interface PlaywrightRealStackServerModule {
+  startPlaywrightRealStackServer: (options: {
+    host: string;
+    port: number;
+  }) => Promise<PlaywrightRealStackServerHandle>;
 }
 
 interface SeedPlaylistInput {
@@ -312,31 +324,11 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
   }
 }
 
-async function startServer(): Promise<{
-  server: http.Server;
-  disconnectPrisma: () => Promise<void>;
-}> {
-  const { validateEnvironment } = await import(
-    pathToFileURL(path.join(BACKEND_DIR, "dist/infrastructure/setup/environment.js")).href
-  );
+async function startServer(): Promise<PlaywrightRealStackServerHandle> {
+  const harnessPath = path.join(BACKEND_DIR, "dist/testing/playwright-real-stack-server.js");
+  const harness = requireBackendHarness(harnessPath) as PlaywrightRealStackServerModule;
 
-  validateEnvironment();
-
-  const { app } = await import(pathToFileURL(path.join(BACKEND_DIR, "dist/app.js")).href);
-  const { prisma } = await import(
-    pathToFileURL(path.join(BACKEND_DIR, "dist/infrastructure/setup/prisma.js")).href
-  );
-
-  const server = http.createServer(app);
-
-  await new Promise<void>((resolve) => {
-    server.listen(PORT, HOST, () => resolve());
-  });
-
-  return {
-    server,
-    disconnectPrisma: () => prisma.$disconnect(),
-  };
+  return harness.startPlaywrightRealStackServer({ host: HOST, port: PORT });
 }
 
 async function main(): Promise<void> {
@@ -346,11 +338,16 @@ async function main(): Promise<void> {
   runBackendMigrations();
   await seedDatabase(context.databaseUrl);
 
-  const { server, disconnectPrisma } = await startServer();
+  const { shutdown: shutdownServer } = await startServer();
+  let shuttingDown = false;
 
   const shutdown = async (exitCode = 0): Promise<void> => {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
-    await disconnectPrisma();
+    if (shuttingDown) {
+      return;
+    }
+
+    shuttingDown = true;
+    await shutdownServer();
     rmSync(context.tempDir, { recursive: true, force: true });
     process.exit(exitCode);
   };
@@ -362,12 +359,10 @@ async function main(): Promise<void> {
   process.on("SIGTERM", () => {
     void shutdown(0);
   });
-
-  console.log(`[playwright-real-stack] ready at http://${HOST}:${PORT}`);
 }
 
 const executedAsScript = process.argv[1]
-  ? pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url
+  ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
   : false;
 
 if (executedAsScript) {

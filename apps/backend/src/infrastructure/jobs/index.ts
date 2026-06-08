@@ -1,16 +1,15 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import cron from "node-cron";
-import { container } from "../../container";
+import { getContainer } from "../../container";
 import { startCatalogSyncJob } from "./catalog-sync.job";
 import { startFeedSyncJob } from "./feed-sync.job";
-
-const { playlistService, settingsService, trackService, eventBus } = container;
 
 let lastPlaylistCheckTimestamp = 0;
 let lastStuckTracksCleanupTimestamp = 0;
 
 export const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
   try {
+    const { playlistService, settingsService } = getContainer();
     const intervalMinutes = await settingsService.getNumber("PLAYLIST_CHECK_INTERVAL_MINUTES");
     const safeIntervalMinutes = intervalMinutes > 0 ? intervalMinutes : 60;
     const now = Date.now();
@@ -30,6 +29,7 @@ export const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
 
 export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
   try {
+    const { trackService, settingsService, eventBus } = getContainer();
     const cleanupIntervalMinutes = await settingsService.getNumber(
       "STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES",
     );

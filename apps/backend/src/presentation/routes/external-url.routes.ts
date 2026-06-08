@@ -1,10 +1,12 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { container } from "../../container";
+import type { Container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
-const router: ExpressRouter = Router();
-const { externalUrlController } = container;
+export function createExternalUrlRoutes(container: Container): ExpressRouter {
+  const router: ExpressRouter = Router();
+  const { externalUrlController } = container;
 
-router.get("/", asyncHandler(externalUrlController.resolve));
+  router.get("/", asyncHandler(externalUrlController.resolve));
 
-export default router;
+  return router;
+}

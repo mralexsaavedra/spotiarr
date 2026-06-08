@@ -1,14 +1,16 @@
 import { Router, type Router as ExpressRouter } from "express";
-import { container } from "../../container";
+import type { Container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 
-const router: ExpressRouter = Router();
-const { trackController } = container;
+export function createTrackRoutes(container: Container): ExpressRouter {
+  const router: ExpressRouter = Router();
+  const { trackController } = container;
 
-router.get("/playlist/:id", asyncHandler(trackController.getAllByPlaylist));
+  router.get("/playlist/:id", asyncHandler(trackController.getAllByPlaylist));
 
-router.delete("/:id", asyncHandler(trackController.remove));
+  router.delete("/:id", asyncHandler(trackController.remove));
 
-router.get("/retry/:id", asyncHandler(trackController.retry));
+  router.get("/retry/:id", asyncHandler(trackController.retry));
 
-export default router;
+  return router;
+}
