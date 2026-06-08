@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.13.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.13.0...v1.13.1) (2026-06-08)
+
+### Bug Fixes
+
+- **Mobile layout**: Bottom navigation and the global player bar no longer get clipped by the browser address bar or system gesture area. Layout switches to dynamic viewport height (`dvh`) and the player + bottom-padding budget respect `env(safe-area-inset-bottom)`.
+- **Mobile player bar overflow**: Long track titles or multi-artist credits no longer push the player bar past the viewport — the mobile track-meta button is now width-bounded and truncates its content, with title and artist centered between artwork (left) and the fullscreen chevron (right).
+- **NowPlayingFullscreen body scroll**: Opening the mobile fullscreen Now Playing now locks `document.body` scroll, so only the inner queue list scrolls; the underlying page can no longer leak scroll behind the dialog. The dialog also uses `h-dvh` to match the visible viewport.
+- **NowPlayingFullscreen current track highlight**: The currently playing row in the fullscreen queue now renders in green (matching `QueueSidePanel`), instead of staying white when active.
+
 ## [1.13.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.12.2...v1.13.0) (2026-06-08)
 
 ### Features

@@ -21,8 +21,8 @@ vi.mock("react-i18next", async () => {
           "player.transport.shuffleOn": "Disable shuffle",
           "player.transport.shuffleOff": "Enable shuffle",
           "player.transport.seek": "Seek",
-          "player.queue.repeatAll": "Repeat all",
-          "player.queue.repeatOne": "Repeat one",
+          "player.transport.repeatAll": "Repeat all",
+          "player.transport.repeatOne": "Repeat one",
         };
         if (key === "player.nowPlaying.dragHandle" && opts?.name) {
           return `Drag to reorder ${opts.name as string}`;
@@ -403,6 +403,22 @@ describe("swipe-down close", () => {
     });
 
     expect(usePlayerStore.getState().isNowPlayingOpen).toBe(true);
+  });
+
+  it("35. locks document.body overflow while open and restores it on close", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    document.body.style.overflow = "";
+    usePlayerStore.setState({ isNowPlayingOpen: true });
+    const { rerender } = render(<NowPlayingFullscreen />);
+
+    expect(document.body.style.overflow).toBe("hidden");
+
+    act(() => {
+      usePlayerStore.setState({ isNowPlayingOpen: false });
+    });
+    rerender(<NowPlayingFullscreen />);
+
+    expect(document.body.style.overflow).toBe("");
   });
 
   it("34. pointerdown on data-no-swipe ancestor does NOT engage swipe", () => {

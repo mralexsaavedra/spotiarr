@@ -289,7 +289,7 @@ export const GlobalPlayerBar: FC = () => {
           onKeyDown={onKeyDown}
           className={cn(
             "bg-black",
-            "fixed right-0 bottom-16 left-0 z-40 transition-[left] duration-300 md:bottom-0",
+            "fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 transition-[left] duration-300 md:bottom-0",
             isSidebarCollapsed ? "md:left-20" : "md:left-64",
             "px-4 py-2",
           )}
@@ -306,9 +306,23 @@ export const GlobalPlayerBar: FC = () => {
                     aria-label={t("player.nowPlaying.open")}
                     aria-pressed={isNowPlayingOpen}
                     onClick={() => setNowPlayingOpen(true)}
-                    className="flex min-w-0 items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:hidden"
+                    className="flex w-full min-w-0 items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:hidden"
                   >
-                    <TrackMetaContent item={currentItem} />
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded shadow-sm">
+                      <Image
+                        src={currentItem.artworkUrl}
+                        alt={currentItem.name}
+                        className="rounded"
+                      />
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+                      <span className="w-full truncate text-sm font-semibold text-white">
+                        {currentItem.name}
+                      </span>
+                      <span className="text-text-secondary w-full truncate text-xs">
+                        {currentItem.artist}
+                      </span>
+                    </div>
                     <FontAwesomeIcon
                       icon={faChevronUp}
                       aria-hidden="true"

@@ -17,14 +17,12 @@ export const AppLayout: FC<AppLayoutProps> = ({ pathname, version }) => {
   const { isSidebarCollapsed } = usePreferencesStore();
 
   return (
-    <div className="bg-background text-text-primary flex min-h-screen">
+    <div className="bg-background text-text-primary flex min-h-dvh">
       <Sidebar pathname={pathname} version={version} />
 
       <main
         className={cn(
-          // Mobile: pb-36 clears bottom-nav (h-16 = 64px) + player bar (~80px).
-          // Desktop: pb-24 clears player bar (~80px); no bottom nav on md+.
-          "bg-background ml-0 flex flex-1 flex-col pb-36 transition-[margin-left] duration-300 md:pb-24",
+          "bg-background ml-0 flex flex-1 flex-col pb-[calc(9rem+env(safe-area-inset-bottom))] transition-[margin-left] duration-300 md:pb-24",
           isSidebarCollapsed ? "md:ml-20" : "md:ml-64",
         )}
       >

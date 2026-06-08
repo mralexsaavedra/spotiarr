@@ -60,6 +60,15 @@ export const NowPlayingFullscreen: FC = () => {
     if (isNowPlayingOpen) closeButtonRef.current?.focus();
   }, [isNowPlayingOpen]);
 
+  useEffect(() => {
+    if (!isNowPlayingOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isNowPlayingOpen]);
+
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const onHandlePointerDown = (e: React.PointerEvent, index: number) => {
@@ -126,7 +135,7 @@ export const NowPlayingFullscreen: FC = () => {
       aria-modal="true"
       aria-label={t("player.nowPlaying.title")}
       className={cn(
-        "fixed inset-0 z-[70] flex flex-col bg-black md:hidden",
+        "fixed inset-0 z-[70] flex h-dvh flex-col overflow-hidden bg-black md:hidden",
         "transition-transform duration-300 motion-reduce:transition-none",
         isNowPlayingOpen
           ? "pointer-events-auto translate-y-0"
@@ -236,62 +245,74 @@ export const NowPlayingFullscreen: FC = () => {
         data-no-swipe
       >
         <ul>
-          {queue.map((item, index) => (
-            <li
-              key={item.id}
-              data-row-index={index}
-              aria-current={index === currentIndex ? "true" : undefined}
-              className={cn(
-                "flex items-center gap-2 rounded px-2 py-2",
-                index === currentIndex && "bg-white/5 text-green-400",
-                draggingIndex === index && "opacity-50",
-                dragOverIndex === index && draggingIndex !== index && "border-t-2 border-green-500",
-              )}
-            >
-              <button
-                type="button"
-                aria-label={item.name}
-                onClick={() => playFromIndex(index)}
-                className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          {queue.map((item, index) => {
+            const isCurrent = index === currentIndex;
+            return (
+              <li
+                key={item.id}
+                data-row-index={index}
+                aria-current={isCurrent ? "true" : undefined}
+                className={cn(
+                  "flex items-center gap-2 rounded px-2 py-2",
+                  isCurrent ? "bg-white/5 text-green-400" : "text-white",
+                  draggingIndex === index && "opacity-50",
+                  dragOverIndex === index &&
+                    draggingIndex !== index &&
+                    "border-t-2 border-green-500",
+                )}
               >
-                <span className="truncate text-sm text-white">{item.name}</span>
-                <span className="text-text-secondary truncate text-xs">{item.artist}</span>
-              </button>
+                <button
+                  type="button"
+                  aria-label={item.name}
+                  onClick={() => playFromIndex(index)}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  <span className="truncate text-sm font-medium">{item.name}</span>
+                  <span
+                    className={cn(
+                      "truncate text-xs",
+                      isCurrent ? "text-green-400/80" : "text-white/50",
+                    )}
+                  >
+                    {item.artist}
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                aria-label={t("player.nowPlaying.moveUp", { name: item.name })}
-                disabled={index === 0}
-                onClick={() => index > 0 && reorderQueue(index, index - 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                aria-label={t("player.nowPlaying.moveDown", { name: item.name })}
-                disabled={index === queue.length - 1}
-                onClick={() => index < queue.length - 1 && reorderQueue(index, index + 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"
-              >
-                ↓
-              </button>
+                <button
+                  type="button"
+                  aria-label={t("player.nowPlaying.moveUp", { name: item.name })}
+                  disabled={index === 0}
+                  onClick={() => index > 0 && reorderQueue(index, index - 1)}
+                  className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  aria-label={t("player.nowPlaying.moveDown", { name: item.name })}
+                  disabled={index === queue.length - 1}
+                  onClick={() => index < queue.length - 1 && reorderQueue(index, index + 1)}
+                  className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"
+                >
+                  ↓
+                </button>
 
-              <span
-                role="button"
-                data-drag-handle
-                aria-label={t("player.nowPlaying.dragHandle", { name: item.name })}
-                onPointerDown={(e) => onHandlePointerDown(e, index)}
-                onPointerMove={onHandlePointerMove}
-                onPointerUp={onHandlePointerUp}
-                onPointerCancel={onHandlePointerCancel}
-                className="cursor-grab touch-none p-2 text-white/60 active:cursor-grabbing"
-                style={{ touchAction: "none" }}
-              >
-                <FontAwesomeIcon icon={faGripLines} />
-              </span>
-            </li>
-          ))}
+                <span
+                  role="button"
+                  data-drag-handle
+                  aria-label={t("player.nowPlaying.dragHandle", { name: item.name })}
+                  onPointerDown={(e) => onHandlePointerDown(e, index)}
+                  onPointerMove={onHandlePointerMove}
+                  onPointerUp={onHandlePointerUp}
+                  onPointerCancel={onHandlePointerCancel}
+                  className="cursor-grab touch-none p-2 text-white/60 active:cursor-grabbing"
+                  style={{ touchAction: "none" }}
+                >
+                  <FontAwesomeIcon icon={faGripLines} />
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </section>
     </aside>
