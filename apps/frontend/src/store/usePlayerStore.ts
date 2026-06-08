@@ -1,11 +1,6 @@
-/**
- * 3rd Zustand store — approved exception to the "exactly 2 stores" convention.
- * Singleton module survives client-side navigation so playback continues across
- * route changes; selector subscriptions confine ~4Hz currentTime re-renders to
- * the progress sub-component. See `sdd/global-player-bar/proposal`.
- */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createPlayerUISlice, type PlayerUISlice } from "./playerUISlice";
 
 export interface QueueItem {
   id: string;
@@ -26,7 +21,7 @@ export interface QueueItem {
 
 export type RepeatMode = "off" | "all" | "one";
 
-export interface PlayerState {
+export interface PlayerState extends PlayerUISlice {
   queue: QueueItem[];
   currentIndex: number | null;
   isPlaying: boolean;
@@ -40,9 +35,6 @@ export interface PlayerState {
   shuffleOrder: number[];
   shuffleOrderIndex: number;
 
-  isQueuePanelOpen: boolean;
-  isNowPlayingOpen: boolean;
-
   playQueue: (items: QueueItem[], startIndex: number) => void;
   togglePlay: () => void;
   next: () => void;
@@ -53,8 +45,6 @@ export interface PlayerState {
   clear: () => void;
   toggleShuffle: () => void;
   cycleRepeat: () => void;
-  setQueuePanelOpen: (open: boolean) => void;
-  setNowPlayingOpen: (open: boolean) => void;
   playFromIndex: (index: number) => void;
 
   reorderQueue: (fromIndex: number, toIndex: number) => void;
@@ -109,8 +99,6 @@ const INITIAL_STATE = {
   repeatMode: "off" as RepeatMode,
   shuffleOrder: [] as number[],
   shuffleOrderIndex: -1,
-  isQueuePanelOpen: false,
-  isNowPlayingOpen: false,
 };
 
 type AdvanceSource = "user" | "ended";
@@ -159,6 +147,7 @@ export const usePlayerStore = create<PlayerState>()(
 
       return {
         ...INITIAL_STATE,
+        ...createPlayerUISlice(set, get, undefined as never),
 
         playQueue(items, startIndex) {
           if (items.length === 0 || startIndex < 0 || startIndex >= items.length) {
@@ -313,14 +302,6 @@ export const usePlayerStore = create<PlayerState>()(
 
         _onError(message) {
           set({ error: message, isPlaying: false });
-        },
-
-        setQueuePanelOpen(open) {
-          set({ isQueuePanelOpen: open });
-        },
-
-        setNowPlayingOpen(open) {
-          set({ isNowPlayingOpen: open });
         },
 
         playFromIndex(index) {

@@ -1,4 +1,9 @@
-import { faListUl, faVolumeHigh, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronUp,
+  faListUl,
+  faVolumeHigh,
+  faVolumeXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { FC, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -304,6 +309,11 @@ export const GlobalPlayerBar: FC = () => {
                     className="flex min-w-0 items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:hidden"
                   >
                     <TrackMetaContent item={currentItem} />
+                    <FontAwesomeIcon
+                      icon={faChevronUp}
+                      aria-hidden="true"
+                      className="shrink-0 text-xs text-white/60"
+                    />
                   </button>
                   <div className="hidden min-w-0 md:flex">
                     <TrackMeta item={currentItem} onNavigate={navigate} />
