@@ -62,10 +62,6 @@ export class PlaylistService {
     return this.deletePlaylistUseCase.execute(id);
   }
 
-  async removeCompleted(): Promise<void> {
-    return this.deletePlaylistUseCase.removeCompleted();
-  }
-
   async create(input: CreatePlaylistRequest): Promise<IPlaylist> {
     return this.createPlaylistUseCase.execute(input);
   }

@@ -1,7 +1,6 @@
 import type { IconProp } from "@fortawesome/fontawesome-svg-core";
 import {
   faBell,
-  faBolt,
   faClockRotateLeft,
   faHouse,
   faListUl,
@@ -18,7 +17,6 @@ interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Home", icon: faHouse, to: Path.HOME },
-  { label: "Activity", icon: faBolt, to: Path.ACTIVITY },
   { label: "History", icon: faClockRotateLeft, to: Path.HISTORY },
   { label: "Releases", icon: faBell, to: Path.RELEASES },
   { label: "My Playlists", icon: faListUl, to: Path.MY_PLAYLISTS },
@@ -26,6 +24,4 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Settings", icon: faSliders, to: Path.SETTINGS },
 ];
 
-export const MOBILE_NAV_ITEMS: NavItem[] = NAV_ITEMS.filter(
-  (item) => item.to !== Path.SETTINGS && item.to !== Path.HISTORY,
-);
+export const MOBILE_NAV_ITEMS: NavItem[] = NAV_ITEMS.filter((item) => item.to !== Path.SETTINGS);

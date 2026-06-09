@@ -83,7 +83,6 @@
   },
   "navigation": {
     "home": "Biblioteca",
-    "activity": "Actividad",
     "history": "Historial",
     "releases": "Lanzamientos",
     "myPlaylists": "Mis Listas",
@@ -104,10 +103,17 @@
       "description": "Esto eliminará todas las listas completadas de tu biblioteca. Los archivos descargados NO se borrarán."
     }
   },
-  "activity": {
-    "title": "Actividad",
-    "emptyTitle": "Sin descargas en curso",
-    "emptyDescription": "Tu cola parece vacía. Añade algunas canciones para ver actividad aquí."
+  "history": {
+    "title": "Historial de Descargas",
+    "emptyTitle": "Sin historial",
+    "emptyDescription": "Las descargas completadas aparecerán aquí.",
+    "completed": "Completado",
+    "actions": "Acciones",
+    "downloading": "Descargando...",
+    "exists": "Existe",
+    "recreate": "Recrear",
+    "playlistExists": "La lista ya existe",
+    "recreateTooltip": "Recrear lista y suscribirse de nuevo"
   },
   "library": {
     "title": "Biblioteca",
@@ -173,18 +179,6 @@
         "error": "Fallido"
       }
     }
-  },
-  "history": {
-    "title": "Historial de Descargas",
-    "emptyTitle": "Sin historial",
-    "emptyDescription": "Las descargas completadas aparecerán aquí.",
-    "completed": "Completado",
-    "actions": "Acciones",
-    "downloading": "Descargando...",
-    "exists": "Existe",
-    "recreate": "Recrear",
-    "playlistExists": "La lista ya existe",
-    "recreateTooltip": "Recrear lista y suscribirse de nuevo"
   },
   "releases": {
     "title": "Lanzamientos",

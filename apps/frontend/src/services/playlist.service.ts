@@ -73,8 +73,4 @@ export const playlistService = {
   deletePlaylist: async (id: string): Promise<void> => {
     return httpClient.delete<void>(`${ApiRoutes.PLAYLIST}/${id}`);
   },
-
-  deleteCompletedPlaylists: async (): Promise<void> => {
-    return httpClient.delete<void>(`${ApiRoutes.PLAYLIST}/completed`);
-  },
 };

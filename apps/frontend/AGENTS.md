@@ -21,7 +21,7 @@ src/
 ├── config/          app.ts, links.ts, navigation.ts, version.ts
 ├── contexts/        DownloadStatusContext, ToastContext
 ├── hooks/
-│   ├── controllers/ view-level logic (useActivityController, useAlbumDetailController…)
+│   ├── controllers/ view-level logic (useHomeController, useAlbumDetailController…)
 │   ├── mutations/   TanStack useMutation wrappers
 │   ├── queries/     TanStack useQuery wrappers
 │   ├── useServerEvents.ts  ← SSE / real-time sync
@@ -30,7 +30,7 @@ src/
 ├── routes/          routes.ts, Routing.tsx
 ├── services/        raw HTTP clients (artist/history/library/playlist/search/settings/track)
 ├── store/           useDownloadStatusStore.ts, usePreferencesStore.ts
-├── views/           14 page-level route screens (Home, Activity, PlaylistDetail…)
+├── views/           13 page-level route screens (Home, History, PlaylistDetail…)
 └── utils/           cache.ts, cn.ts, date.ts
 ```
 

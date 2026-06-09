@@ -76,7 +76,7 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 
   <img src="assets/screenshots/history.png" alt="Download History" width="100%">
   <br>
-  <em>Comprehensive Download History</em>
+  <em>Unified History & Queue Dashboard</em>
   <br><br>
 
   <img src="assets/screenshots/mobile.png" alt="Mobile View" width="48%">
@@ -90,8 +90,7 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 ## 📱 Application Views
 
 - **🏠 Library (Home):** Browse your downloaded music collection, artists, and albums natively.
-- **⚡ Activity:** Real-time dashboard with active downloads, queue progress, and fast actions.
-- **📜 History:** Comprehensive log of all downloaded tracks and playlists.
+- **⚡ History:** Unified dashboard with active downloads, queue progress, and past history records.
 - **🔔 Releases:** New releases from your followed artists.
 - **💾 My Playlists:** Browse and import your followed Spotify playlists directly.
 - **👥 Artists:** Manage your followed artists and view their discography.

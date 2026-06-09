@@ -5,7 +5,9 @@ import { AppError } from "@/domain/errors/app-error";
 import { CreatePlaylistUseCase } from "./create-playlist.use-case";
 
 // Minimal in-memory stubs
-function makePlaylistEntity(overrides: Partial<{ id: string; spotifyUrl: string; type: PlaylistTypeEnum; name: string }> = {}) {
+function makePlaylistEntity(
+  overrides: Partial<{ id: string; spotifyUrl: string; type: PlaylistTypeEnum; name: string }> = {},
+) {
   return new Playlist({
     id: overrides.id ?? "playlist-id",
     spotifyUrl: overrides.spotifyUrl ?? "spotiarr://album/artist-1/album-1",
@@ -23,7 +25,6 @@ function makeStubs() {
     update: vi.fn(),
     findOne: vi.fn(),
     delete: vi.fn(),
-    removeCompleted: vi.fn(),
   };
 
   const spotifyService = {

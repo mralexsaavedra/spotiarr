@@ -1,5 +1,4 @@
 import {
-  faClockRotateLeft,
   faDownload,
   faLink,
   faMagnifyingGlass,
@@ -64,14 +63,6 @@ export const AppHeader: FC = () => {
             )}
           </div>
         </div>
-
-        {/* History: Mobile Only */}
-        <Link
-          to={Path.HISTORY}
-          className="text-text-secondary hover:text-text-primary hover:bg-background-elevated flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors md:hidden"
-        >
-          <FontAwesomeIcon icon={faClockRotateLeft} className="text-xl" />
-        </Link>
 
         {/* Settings: Mobile Only */}
         <Link

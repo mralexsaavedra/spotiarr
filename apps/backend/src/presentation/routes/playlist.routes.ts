@@ -43,9 +43,6 @@ export function createPlaylistRoutes(container: Container): ExpressRouter {
   // PUT /api/playlist/:id - Update playlist
   router.put("/:id", validate(updatePlaylistSchema), asyncHandler(playlistController.update));
 
-  // DELETE /api/playlist/completed - Delete all completed playlists
-  router.delete("/completed", asyncHandler(playlistController.removeCompleted));
-
   // DELETE /api/playlist/:id - Delete playlist
   router.delete("/:id", validate(playlistIdSchema), asyncHandler(playlistController.remove));
 

@@ -74,11 +74,6 @@ export class PlaylistController {
     res.status(204).send();
   };
 
-  removeCompleted = async (req: Request, res: Response) => {
-    await this.deletePlaylistUseCase.removeCompleted();
-    res.status(204).send();
-  };
-
   remove = async (req: Request, res: Response) => {
     const { id } = req.params;
     await this.deletePlaylistUseCase.execute(id);
