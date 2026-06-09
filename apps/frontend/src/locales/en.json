@@ -104,9 +104,9 @@
     }
   },
   "history": {
-    "title": "History",
-    "emptyTitle": "No downloads in progress",
-    "emptyDescription": "Your queue looks empty. Add some tracks to see activity here.",
+    "title": "Download History",
+    "emptyTitle": "No download history yet",
+    "emptyDescription": "Completed downloads will appear here.",
     "completed": "Completed",
     "actions": "Actions",
     "downloading": "Downloading...",

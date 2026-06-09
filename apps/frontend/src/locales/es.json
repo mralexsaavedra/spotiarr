@@ -104,9 +104,9 @@
     }
   },
   "history": {
-    "title": "Historial",
-    "emptyTitle": "Sin descargas en curso",
-    "emptyDescription": "Tu cola parece vacía. Añade algunas canciones para ver actividad aquí.",
+    "title": "Historial de Descargas",
+    "emptyTitle": "Sin historial",
+    "emptyDescription": "Las descargas completadas aparecerán aquí.",
     "completed": "Completado",
     "actions": "Acciones",
     "downloading": "Descargando...",
