@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.14.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.13.2...v1.14.0) (2026-06-09)
+
+### Features
+
+- **Activity and History unification**: Removed the redundant Activity view and consolidated active downloads and history records into a single, comprehensive History view. This significantly simplifies frontend routing, UI complexity, and translations. ([#110](https://github.com/mralexsaavedra/spotiarr/pull/110))
+
+### Code Refactoring
+
+- **Backend cleanup**: Removed the orphaned `/api/playlist/completed` endpoint and all associated logic across services, use cases, and controllers that was previously used by the Activity view. ([#110](https://github.com/mralexsaavedra/spotiarr/pull/110))
+
 ## [1.13.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.13.1...v1.13.2) (2026-06-08)
 
 ### Bug Fixes
