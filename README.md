@@ -24,17 +24,17 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 
 ## ✨ Features
 
-| Feature                    | Description                                                                 |
-| -------------------------- | --------------------------------------------------------------------------- |
-| 🎵 **Smart Downloads**     | Paste any Spotify URL (track/album/playlist) and download with metadata     |
-| 🔍 **Live Search**         | Fast debounced search synchronized with browser history and parameters      |
-| 📚 **Built-in Library**    | Browse your downloaded music organized by artists, albums, and tracks       |
-| 🔄 **Auto-Sync Playlists** | Subscribe to playlists for automatic updates when new tracks are added      |
-| 📁 **Jellyfin-Ready**      | Organized folder structure (`Playlists/`, `Artist/Album/`) + M3U generation |
-| 🎨 **Modern UI**           | Spotify-inspired dark theme with real-time progress tracking                |
-| 🏷️ **Rich Metadata**       | Automatic tagging (artist, album, year, cover art embedded + saved)         |
-| 🚫 **Duplicate Detection** | Smart checks to avoid re-downloading existing tracks                        |
-| 🐳 **Docker First**        | One-command deployment with Redis included                                  |
+| Feature                    | Description                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| 🎵 **Smart Downloads**     | Paste any Spotify URL (track/album/playlist) and download with metadata      |
+| 🔍 **Live Search**         | Fast debounced search synchronized with browser history and parameters       |
+| 🎧 **Native Player**       | Spotify-style playback for downloaded tracks with queue, shuffle, and repeat |
+| 📚 **Built-in Library**    | Browse your downloaded music organized by artists, albums, and tracks        |
+| 🔄 **Auto-Sync Playlists** | Subscribe to playlists for automatic updates when new tracks are added       |
+| 📁 **Jellyfin-Ready**      | Organized folder structure (`Playlists/`, `Artist/Album/`) + M3U generation  |
+| 🎨 **Modern UI**           | Spotify-inspired dark theme with real-time progress tracking                 |
+| 🏷️ **Rich Metadata**       | Automatic tagging (artist, album, year, cover art embedded + saved)          |
+| 🐳 **Docker First**        | One-command deployment with Redis included                                   |
 
 **Stack:** Express + Prisma + React 19 + Vite + Tailwind 4 + SQLite + Redis + BullMQ
 
@@ -53,14 +53,24 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
   <em>Built-in Native Music Library</em>
   <br><br>
 
+  <img src="assets/screenshots/search.png" alt="Live Search" width="100%">
+  <br>
+  <em>Live Search across Spotify's catalog</em>
+  <br><br>
+
+  <img src="assets/screenshots/player-desktop.png" alt="Desktop Player" width="100%">
+  <br>
+  <em>Native Player with full Queue and Playback Controls (Desktop)</em>
+  <br><br>
+
   <img src="assets/screenshots/artist-profile.png" alt="Artist Profile" width="100%">
   <br>
   <em>Artist Profile with Discography & Metadata</em>
   <br><br>
 
-  <img src="assets/screenshots/activity.png" alt="Activity Dashboard" width="100%">
+  <img src="assets/screenshots/history.png" alt="Unified History & Queue" width="100%">
   <br>
-  <em>Real-time Activity Dashboard & Queue</em>
+  <em>Unified History, Active Downloads & Queue</em>
   <br><br>
 
   <img src="assets/screenshots/playlist.png" alt="Playlist Detail" width="100%">
@@ -74,22 +84,22 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
   <em>Artist Library & New Releases Tracking</em>
   <br><br>
 
-  <img src="assets/screenshots/history.png" alt="Download History" width="100%">
+  <img src="assets/screenshots/mobile.png" alt="Mobile View" width="48%">
+  <img src="assets/screenshots/player-mobile.png" alt="Mobile Player" width="48%">
   <br>
-  <em>Unified History & Queue Dashboard</em>
+  <em>Fully Responsive Mobile Design & Fullscreen Player</em>
   <br><br>
 
-  <img src="assets/screenshots/mobile.png" alt="Mobile View" width="48%">
-  <img src="assets/screenshots/settings.png" alt="Settings" width="48%">
+  <img src="assets/screenshots/settings.png" alt="Settings" width="100%">
   <br>
-  <em>Fully Responsive Mobile Design & Comprehensive Settings</em>
+  <em>Comprehensive Settings & Preferences</em>
 </div>
 
 </details>
 
 ## 📱 Application Views
 
-- **🏠 Library (Home):** Browse your downloaded music collection, artists, and albums natively.
+- **🏠 Library (Home):** Browse your downloaded music collection, artists, albums, and saved playlists.
 - **⚡ History:** Unified dashboard with active downloads, queue progress, and past history records.
 - **🔔 Releases:** New releases from your followed artists.
 - **💾 My Playlists:** Browse and import your followed Spotify playlists directly.
