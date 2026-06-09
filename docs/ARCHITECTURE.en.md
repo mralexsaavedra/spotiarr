@@ -117,6 +117,9 @@ apps/frontend/src/
 │   └── useServerEvents  # Real-time Sync (SSE)
 ├── services/            # Pure Fetchers
 └── store/               # Global UI State (Zustand)
+    ├── useDownloadStatusStore.ts
+    ├── usePreferencesStore.ts
+    └── usePlayerStore.ts # Approved 3rd store for playback state
 ```
 
 **Advanced Hook Patterns:**
@@ -191,6 +194,16 @@ Where metadata magic happens:
 - **ID3 Tags:** Not just Artist and Title. Injects Album, Year, Track Number, Disc, and Cover Art.
 - **M3U Generator:** Dynamically regenerates playlist `.m3u8` file every time a new download completes.
 - **File Organization:** Moves files to canonical structure `Artist/Album/Track.ext` expected by Jellyfin.
+
+### 5.8. Native Player & Streaming
+
+The application includes a robust native music player for local playback:
+
+- **State Management:** `usePlayerStore` manages the active queue, playback status (playing/paused), shuffle, and repeat modes. It utilizes a modular slice architecture (`playerUISlice`) for ephemeral UI state.
+- **Media Session API:** Integrated with the browser's Media Session API to provide OS-level controls (lockscreen, media keys, Bluetooth) and metadata display.
+- **Secure Streaming:** A dedicated backend endpoint (`/api/audio/:trackId`) serves audio files with support for HTTP Range requests, enabling seeking and efficient buffering.
+- **Responsive UI:** Includes a Spotify-style `GlobalPlayerBar` for desktop and a `NowPlayingFullscreen` view for mobile devices with touch-friendly gestures.
+- **Queue Management:** Supports drag-and-drop reordering and seamless transitions between tracks.
 
 ## 6. Data Model & Persistence
 
