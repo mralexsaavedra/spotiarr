@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       VitePWA({
+        disable: process.env.PWA_DISABLE === "true",
         registerType: "autoUpdate",
         injectRegister: "auto",
         devOptions: { enabled: false },

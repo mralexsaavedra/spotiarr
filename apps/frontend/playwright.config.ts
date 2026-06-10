@@ -13,7 +13,7 @@ const webServers = [];
 
 if (PLAYWRIGHT_TARGET !== "real") {
   webServers.push({
-    command: `pnpm run build && vite preview --host ${PREVIEW_HOST} --port ${PREVIEW_PORT} --strictPort`,
+    command: `PWA_DISABLE=true pnpm run build && vite preview --host ${PREVIEW_HOST} --port ${PREVIEW_PORT} --strictPort`,
     cwd: ROOT_DIR,
     url: PREVIEW_BASE_URL,
     reuseExistingServer: !process.env.CI,
@@ -26,7 +26,7 @@ if (PLAYWRIGHT_TARGET !== "real") {
 if (PLAYWRIGHT_TARGET !== "mocked") {
   webServers.push({
     command:
-      "pnpm --filter @spotiarr/shared run build && pnpm --filter frontend run build && pnpm --filter backend run build && tsx tests/helpers/real-stack.ts",
+      "pnpm --filter @spotiarr/shared run build && PWA_DISABLE=true pnpm --filter frontend run build && pnpm --filter backend run build && tsx tests/helpers/real-stack.ts",
     cwd: ROOT_DIR,
     url: REAL_BASE_URL,
     reuseExistingServer: false,
