@@ -1,6 +1,7 @@
 import { ApiRoutes } from "@spotiarr/shared";
 import { Router, type Router as ExpressRouter } from "express";
 import type { Container } from "../../container";
+import { createAiRoutes } from "./ai.routes";
 import { createArtistRoutes } from "./artist.routes";
 import { createAuthRoutes } from "./auth.routes";
 import { createEventsRoutes } from "./events.routes";
@@ -29,6 +30,7 @@ export function createRoutes(container: Container): ExpressRouter {
   router.use(ApiRoutes.LIBRARY, createLibraryRoutes(container));
   router.use(ApiRoutes.SEARCH, createSearchRoutes(container));
   router.use(ApiRoutes.EXTERNAL_URL, createExternalUrlRoutes(container));
+  router.use(ApiRoutes.AI, createAiRoutes(container));
 
   return router;
 }

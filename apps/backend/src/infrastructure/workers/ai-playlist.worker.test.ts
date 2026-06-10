@@ -83,7 +83,7 @@ describe("createAiPlaylistWorker", () => {
     const { createAiPlaylistWorker } = await import("./ai-playlist.worker");
     createAiPlaylistWorker();
 
-    const processor = WorkerMock.mock.calls[0][1] as (job: unknown) => Promise<void>;
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as (job: unknown) => Promise<void>;
     const job = { data: { jobId: "job-123", prompt: "upbeat 90s rock" } };
 
     executeUseCase.mockResolvedValueOnce(undefined);
@@ -96,15 +96,17 @@ describe("createAiPlaylistWorker", () => {
     const { createAiPlaylistWorker } = await import("./ai-playlist.worker");
     createAiPlaylistWorker();
 
-    const processor = WorkerMock.mock.calls[0][1] as (job: unknown) => Promise<void>;
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as (job: unknown) => Promise<void>;
     const job = { data: { jobId: "job-456", prompt: "jazz standards" } };
 
     let capturedOnProgress: ((event: AiPlaylistProgressEvent) => void) | undefined;
     const { GenerateAiPlaylistUseCase } =
       await import("@/application/use-cases/ai/generate-ai-playlist.use-case");
-    vi.mocked(GenerateAiPlaylistUseCase).mockImplementationOnce(({ onProgress }) => {
-      capturedOnProgress = onProgress;
-      return { execute: executeUseCase };
+    vi.mocked(GenerateAiPlaylistUseCase).mockImplementationOnce((deps) => {
+      capturedOnProgress = deps.onProgress;
+      return { execute: executeUseCase } as unknown as InstanceType<
+        typeof GenerateAiPlaylistUseCase
+      >;
     });
 
     executeUseCase.mockResolvedValueOnce(undefined);

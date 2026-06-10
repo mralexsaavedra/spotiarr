@@ -78,6 +78,7 @@ import { SpotifyTrackClient } from "./infrastructure/external/spotify-track.clie
 import { YoutubeDownloadService } from "./infrastructure/external/youtube-download.service";
 import { YoutubeSearchService } from "./infrastructure/external/youtube-search.service";
 import { AppEventBus } from "./infrastructure/messaging/app-event-bus";
+import { BullMqAiPlaylistQueueService } from "./infrastructure/messaging/bullmq-ai-playlist-queue.service";
 import { BullMqArtworkBackfillQueueService } from "./infrastructure/messaging/bullmq-artwork-backfill-queue.service";
 import { BullMqTrackQueueService } from "./infrastructure/messaging/bullmq-track-queue.service";
 import { ArtworkAssetsService } from "./infrastructure/services/artwork-assets.service";
@@ -92,6 +93,7 @@ import { FileSystemLibraryImageService } from "./infrastructure/services/library
 import { MetadataService } from "./infrastructure/services/metadata.service";
 import type { Env } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
+import { AiChatController } from "./presentation/controllers/ai.controller";
 import { ArtistController } from "./presentation/controllers/artist.controller";
 import { ArtworkBackfillController } from "./presentation/controllers/artwork-backfill.controller";
 import { AuthController } from "./presentation/controllers/auth.controller";
@@ -597,6 +599,9 @@ export function createContainer(env: Env) {
   const searchController = new SearchController(catalogSearchPort);
   const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
 
+  const aiPlaylistQueueService = new BullMqAiPlaylistQueueService();
+  const aiChatController = new AiChatController(aiPlaylistQueueService);
+
   const historyUseCases = new HistoryUseCases({ repository: historyRepository });
   const historyController = new HistoryController(historyUseCases);
   const getRecentReleasesUseCase = new GetRecentReleasesUseCase(
@@ -672,6 +677,10 @@ export function createContainer(env: Env) {
     feedRepository,
     artworkBackfillRepository,
     processArtworkBackfillBatchUseCase,
+    aiPlaylistQueueService,
+    aiChatController,
+    spotifyUrlLookupClient,
+    playlistRepository,
   };
 }
 
