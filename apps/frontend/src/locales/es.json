@@ -383,7 +383,9 @@
       "close": "Cerrar",
       "repeatAll": "Repetir todo",
       "repeatOne": "Repetir una",
-      "shuffleOn": "Aleatorio activado"
+      "shuffleOn": "Aleatorio activado",
+      "moveUp": "Subir {{name}}",
+      "moveDown": "Bajar {{name}}"
     },
     "nowPlaying": {
       "title": "Reproduciendo ahora",

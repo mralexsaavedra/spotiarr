@@ -22,7 +22,7 @@ vi.mock("react-i18next", async () => {
   return {
     ...actual,
     useTranslation: () => ({
-      t: (key: string) => {
+      t: (key: string, opts?: Record<string, string>) => {
         const map: Record<string, string> = {
           "player.queue.title": "Queue",
           "player.queue.empty": "No tracks in queue",
@@ -32,8 +32,16 @@ vi.mock("react-i18next", async () => {
           "player.queue.repeatAll": "Repeat all",
           "player.queue.repeatOne": "Repeat one",
           "player.queue.shuffleOn": "Shuffle on",
+          "player.queue.moveUp": "Move {{name}} up",
+          "player.queue.moveDown": "Move {{name}} down",
         };
-        return map[key] ?? key;
+        let value = map[key] ?? key;
+        if (opts) {
+          for (const [token, replacement] of Object.entries(opts)) {
+            value = value.replace(`{{${token}}}`, String(replacement));
+          }
+        }
+        return value;
       },
     }),
   };
@@ -375,5 +383,58 @@ describe("drag and drop", () => {
     const buttons = screen.getAllByRole("button").filter((b) => /Track/i.test(b.textContent ?? ""));
     fireEvent.click(buttons[1]!);
     expect(mockStore.playFromIndex).toHaveBeenCalledWith(1);
+  });
+});
+
+describe("keyboard reorder (a11y)", () => {
+  beforeEach(() => {
+    mockStore.isQueuePanelOpen = true;
+    mockStore.queue = [makeItem("a"), makeItem("b"), makeItem("c")];
+    mockStore.currentIndex = 0;
+  });
+
+  it("renders move up/down buttons with track-specific accessible names", () => {
+    render(<QueueSidePanel />);
+    expect(screen.getByRole("button", { name: "Move Track a up" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Move Track c down" })).not.toBeNull();
+  });
+
+  it("disables move up on the first row and enables it elsewhere", () => {
+    render(<QueueSidePanel />);
+    expect(
+      (screen.getByRole("button", { name: "Move Track a up" }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Move Track b up" }) as HTMLButtonElement).disabled,
+    ).toBe(false);
+  });
+
+  it("disables move down on the last row and enables it elsewhere", () => {
+    render(<QueueSidePanel />);
+    expect(
+      (screen.getByRole("button", { name: "Move Track c down" }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Move Track b down" }) as HTMLButtonElement).disabled,
+    ).toBe(false);
+  });
+
+  it("click move up calls reorderQueue(index, index - 1)", () => {
+    render(<QueueSidePanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Move Track b up" }));
+    expect(mockStore.reorderQueue).toHaveBeenCalledWith(1, 0);
+  });
+
+  it("click move down calls reorderQueue(index, index + 1)", () => {
+    render(<QueueSidePanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Move Track a down" }));
+    expect(mockStore.reorderQueue).toHaveBeenCalledWith(0, 1);
+  });
+
+  it("clicking a disabled boundary control is a no-op", () => {
+    render(<QueueSidePanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Move Track a up" }));
+    fireEvent.click(screen.getByRole("button", { name: "Move Track c down" }));
+    expect(mockStore.reorderQueue).not.toHaveBeenCalled();
   });
 });
