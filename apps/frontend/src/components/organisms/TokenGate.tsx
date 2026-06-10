@@ -1,4 +1,4 @@
-import { type FC, type ReactNode, type FormEvent, useState } from "react";
+import { type FC, type FormEvent, type ReactNode, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTokenGate } from "@/hooks/controllers/useTokenGate";
 import { ApiError } from "@/services/httpClient";
@@ -12,37 +12,29 @@ export const TokenGate: FC<TokenGateProps> = ({ children }) => {
   const { phase, unlock, sessionExpired } = useTokenGate();
   const [token, setToken] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const sessionExpiredMsg = sessionExpired ? t("instanceAuth.sessionExpired") : null;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (phase === "checking") {
-    return null;
-  }
-
-  if (phase === "unlocked") {
-    return <>{children}</>;
-  }
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      await unlock(token);
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 429) {
-          setError(t("instanceAuth.rateLimited"));
-        } else {
-          setError(t("instanceAuth.invalidToken"));
-        }
-      } else {
-        setError(t("instanceAuth.invalidToken"));
+  const handleSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      setError(null);
+      setIsSubmitting(true);
+      try {
+        await unlock(token);
+      } catch (err) {
+        const rateLimited = err instanceof ApiError && err.status === 429;
+        setError(t(rateLimited ? "instanceAuth.rateLimited" : "instanceAuth.invalidToken"));
+      } finally {
+        setIsSubmitting(false);
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    [unlock, token, t],
+  );
+
+  if (phase === "checking") return null;
+  if (phase === "unlocked") return <>{children}</>;
+
+  const message = error ?? (sessionExpired ? t("instanceAuth.sessionExpired") : null);
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
@@ -69,9 +61,7 @@ export const TokenGate: FC<TokenGateProps> = ({ children }) => {
             />
           </div>
 
-          {(error ?? sessionExpiredMsg) && (
-            <p className="text-sm text-red-400">{error ?? sessionExpiredMsg}</p>
-          )}
+          {message && <p className="text-sm text-red-400">{message}</p>}
 
           <button
             type="submit"
