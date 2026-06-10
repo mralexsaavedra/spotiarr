@@ -1,4 +1,4 @@
-import { PlaylistTypeEnum, type ITrack } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import { AppError } from "@/domain/errors/app-error";
@@ -6,6 +6,10 @@ import { SyncSubscribedPlaylistsUseCase } from "./sync-subscribed-playlists.use-
 
 const spotifyCircuitBreaker = {
   isOpen: vi.fn(() => false),
+};
+
+const retryTrackDownloadUseCase = {
+  execute: vi.fn(),
 };
 
 describe("SyncSubscribedPlaylistsUseCase", () => {
@@ -78,11 +82,63 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
       trackService as never,
       eventBus as never,
       spotifyCircuitBreaker as never,
+      retryTrackDownloadUseCase as never,
     );
 
     await useCase.execute();
 
     expect(trackService.create).not.toHaveBeenCalled();
+  });
+
+  it("re-enqueues previously errored tracks on subscribed playlists", async () => {
+    const erroredTrack: ITrack = {
+      id: "track-err",
+      name: "Song",
+      artist: "Artist",
+      trackUrl: "https://open.spotify.com/track/track-1",
+      status: TrackStatusEnum.Error,
+    };
+    trackService.getAllByPlaylist.mockResolvedValue([erroredTrack]);
+
+    const useCase = new SyncSubscribedPlaylistsUseCase(
+      playlistRepository as never,
+      spotifyService as never,
+      trackService as never,
+      eventBus as never,
+      spotifyCircuitBreaker as never,
+      retryTrackDownloadUseCase as never,
+    );
+
+    await useCase.execute();
+
+    // Spotify returns the same single track, so nothing new is created, but the
+    // stranded errored track must be retried so the subscription can complete.
+    expect(trackService.create).not.toHaveBeenCalled();
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-err");
+  });
+
+  it("does not re-enqueue completed tracks", async () => {
+    const completedTrack: ITrack = {
+      id: "track-ok",
+      name: "Song",
+      artist: "Artist",
+      trackUrl: "https://open.spotify.com/track/track-1",
+      status: TrackStatusEnum.Completed,
+    };
+    trackService.getAllByPlaylist.mockResolvedValue([completedTrack]);
+
+    const useCase = new SyncSubscribedPlaylistsUseCase(
+      playlistRepository as never,
+      spotifyService as never,
+      trackService as never,
+      eventBus as never,
+      spotifyCircuitBreaker as never,
+      retryTrackDownloadUseCase as never,
+    );
+
+    await useCase.execute();
+
+    expect(retryTrackDownloadUseCase.execute).not.toHaveBeenCalled();
   });
 
   it("skips the run entirely when the Spotify circuit breaker is open", async () => {
@@ -94,6 +150,7 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
       trackService as never,
       eventBus as never,
       spotifyCircuitBreaker as never,
+      retryTrackDownloadUseCase as never,
     );
 
     await useCase.execute();
@@ -121,6 +178,7 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
       trackService as never,
       eventBus as never,
       spotifyCircuitBreaker as never,
+      retryTrackDownloadUseCase as never,
     );
 
     await useCase.execute();
@@ -149,6 +207,7 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
       trackService as never,
       eventBus as never,
       spotifyCircuitBreaker as never,
+      retryTrackDownloadUseCase as never,
     );
 
     await useCase.execute();

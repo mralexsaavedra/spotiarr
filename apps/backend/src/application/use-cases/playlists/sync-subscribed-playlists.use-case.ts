@@ -1,4 +1,4 @@
-import { PlaylistTypeEnum } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import type { SpotifyCircuitBreakerPort } from "@/application/ports/spotify-circuit-breaker.port";
 import { SpotifyService, type PlaylistTrack } from "@/application/services/spotify.service";
 import { AppError } from "@/domain/errors/app-error";
@@ -6,6 +6,7 @@ import { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackService } from "../../services/track.service";
+import type { RetryTrackDownloadUseCase } from "../tracks/retry-track-download.use-case";
 
 const PERMANENTLY_UNAVAILABLE_ERROR_CODES = new Set([
   "playlist_not_accessible",
@@ -23,6 +24,7 @@ export class SyncSubscribedPlaylistsUseCase {
     private readonly trackService: TrackService,
     private readonly eventBus: EventBus,
     private readonly spotifyCircuitBreaker: SpotifyCircuitBreakerPort,
+    private readonly retryTrackDownloadUseCase: RetryTrackDownloadUseCase,
   ) {}
 
   async execute(): Promise<void> {
@@ -146,6 +148,20 @@ export class SyncSubscribedPlaylistsUseCase {
               });
             }),
           );
+        }
+        this.eventBus.emit("playlists-updated");
+      }
+
+      // Subscribed playlists should keep trying to complete. Tracks that failed
+      // to download land in Error state with no automatic recovery (the startup
+      // rescue only handles non-terminal statuses), so re-enqueue them here on
+      // every sync. This is what lets newly-added tracks that hit a transient
+      // failure eventually finish instead of stranding the playlist below 100%.
+      const erroredTracks = existingTracks.filter((t) => t.status === TrackStatusEnum.Error);
+      if (erroredTracks.length > 0) {
+        for (const track of erroredTracks) {
+          if (!track.id) continue;
+          await this.retryTrackDownloadUseCase.execute(track.id);
         }
         this.eventBus.emit("playlists-updated");
       }

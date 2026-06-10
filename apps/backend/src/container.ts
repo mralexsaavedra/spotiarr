@@ -438,6 +438,7 @@ export function createContainer(env: Env) {
     trackService,
     eventBus,
     spotifyCircuitBreakerAdapter,
+    retryTrackDownloadUseCase,
   );
   const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
     playlistRepository,
