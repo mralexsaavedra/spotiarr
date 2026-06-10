@@ -111,8 +111,6 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
 
     await useCase.execute();
 
-    // Spotify returns the same single track, so nothing new is created, but the
-    // stranded errored track must be retried so the subscription can complete.
     expect(trackService.create).not.toHaveBeenCalled();
     expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-err");
   });

@@ -152,11 +152,7 @@ export class SyncSubscribedPlaylistsUseCase {
         this.eventBus.emit("playlists-updated");
       }
 
-      // Subscribed playlists should keep trying to complete. Tracks that failed
-      // to download land in Error state with no automatic recovery (the startup
-      // rescue only handles non-terminal statuses), so re-enqueue them here on
-      // every sync. This is what lets newly-added tracks that hit a transient
-      // failure eventually finish instead of stranding the playlist below 100%.
+      // Error is terminal with no auto-recovery (startup rescue skips it), so re-enqueue stranded tracks each sync.
       const erroredTracks = existingTracks.filter((t) => t.status === TrackStatusEnum.Error);
       if (erroredTracks.length > 0) {
         for (const track of erroredTracks) {
