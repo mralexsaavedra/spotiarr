@@ -76,6 +76,15 @@ describe("401 handling", () => {
     await expect(httpClient.post("/auth/unlock", { token: "x" })).rejects.toBeInstanceOf(ApiError);
     expect(handler).not.toHaveBeenCalled();
   });
+
+  it("fires onUnauthorized for /auth/sessionXYZ (not a real auth endpoint)", async () => {
+    const handler = vi.fn();
+    setUnauthorizedHandler(handler);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401)));
+
+    await expect(httpClient.get("/auth/sessionXYZ")).rejects.toBeInstanceOf(ApiError);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("successful response", () => {
@@ -93,13 +102,11 @@ describe("successful response", () => {
   it("returns undefined for 204 No Content", async () => {
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue({
-          status: 204,
-          ok: true,
-          text: () => Promise.resolve(""),
-        } as unknown as Response),
+      vi.fn().mockResolvedValue({
+        status: 204,
+        ok: true,
+        text: () => Promise.resolve(""),
+      } as unknown as Response),
     );
 
     const result = await httpClient.delete("/playlists/1");
@@ -129,6 +136,21 @@ describe("non-ok response", () => {
     const err = await httpClient.get("/playlists").catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).status).toBe(500);
+  });
+});
+
+describe("network failure", () => {
+  it("propagates raw TypeError when fetch itself rejects — does NOT wrap in ApiError and does NOT fire onUnauthorized", async () => {
+    const handler = vi.fn();
+    setUnauthorizedHandler(handler);
+    const networkError = new TypeError("Failed to fetch");
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(networkError));
+
+    const err = await httpClient.get("/playlists").catch((e: unknown) => e);
+
+    expect(err).toBe(networkError);
+    expect(err).not.toBeInstanceOf(ApiError);
+    expect(handler).not.toHaveBeenCalled();
   });
 });
 

@@ -17,6 +17,107 @@ test.use({
   ],
 });
 
+test.describe("SESSION EXPIRED re-lock", () => {
+  /**
+   * Approach: two-phase route handlers.
+   * Phase 1 (initial load): session 200 + artists 200 → app shows Library heading.
+   * Phase 2 (reload): session 200 gates artists until session response is sent,
+   * then artists returns 401 → httpClient fires onUnauthorized → TokenGate
+   * re-locks with sessionExpired banner.
+   *
+   * Limitation: requires a page.reload() to trigger a second round of queries,
+   * because useAuthSessionQuery uses staleTime:Infinity and won't refetch
+   * without a hard navigation.
+   */
+  test("shows session-expired banner when a mid-session API call returns 401", async ({ page }) => {
+    let loadPhase: "initial" | "reload" = "initial";
+    let resolveSessionSent!: () => void;
+    const sessionSentGate = new Promise<void>((resolve) => {
+      resolveSessionSent = resolve;
+    });
+
+    await page.route("**/api/auth/session", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ tokenRequired: false }),
+      });
+      if (loadPhase === "reload") {
+        resolveSessionSent();
+      }
+    });
+
+    await page.route("**/api/library/artists", async (route) => {
+      if (loadPhase === "initial") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            data: [buildLibraryArtist({ name: "Library Artist", image: null })],
+          }),
+        });
+      } else {
+        await sessionSentGate;
+        await route.fulfill({ status: 401, contentType: "application/json", body: "{}" });
+      }
+    });
+
+    await page.route("**/api/library/stats", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          data: {
+            totalArtists: 1,
+            totalAlbums: 1,
+            totalTracks: 1,
+            totalSize: 4096,
+            lastScannedAt: null,
+          },
+        }),
+      });
+    });
+
+    await page.route("**/api/library/artwork-backfill/status", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          data: {
+            runId: null,
+            status: "idle",
+            phase: null,
+            totals: 0,
+            processed: 0,
+            skippedExisting: 0,
+            written: 0,
+            failed: 0,
+            externalCalls: 0,
+            lastCheckpoint: null,
+            rateLimitUntil: null,
+            updatedAt: null,
+          },
+        }),
+      });
+    });
+
+    await installPlaylistMocks(page, { playlists: [] });
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Library", exact: true })).toBeVisible({
+      timeout: 5_000,
+    });
+
+    loadPhase = "reload";
+    await page.reload({ waitUntil: "domcontentloaded" });
+
+    await expect(
+      page.getByText("Your session has expired. Please enter the token again."),
+    ).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByRole("heading", { name: "Instance Protected" })).toBeVisible();
+  });
+});
+
 test.describe("Instance auth — TokenGate", () => {
   test("OPEN mode: renders app shell when session returns tokenRequired:false", async ({
     page,

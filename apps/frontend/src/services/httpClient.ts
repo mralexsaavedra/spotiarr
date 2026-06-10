@@ -29,7 +29,10 @@ class HttpClient {
       return undefined as unknown as T;
     }
 
-    if (response.status === 401 && !AUTH_ENDPOINTS.some((e) => endpoint.startsWith(e))) {
+    if (
+      response.status === 401 &&
+      !AUTH_ENDPOINTS.some((e) => endpoint === e || endpoint.startsWith(e + "/"))
+    ) {
       _onUnauthorized?.();
     }
 

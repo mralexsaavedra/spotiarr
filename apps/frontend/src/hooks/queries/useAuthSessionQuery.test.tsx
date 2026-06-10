@@ -52,17 +52,21 @@ describe("useAuthSessionQuery", () => {
     expect(authService.getSession).toHaveBeenCalledTimes(1);
   });
 
-  it("non-401: retries at least once (getSession called more than once after advancing timers)", async () => {
+  it("non-401: exhausts retries — called 6 times total and ends in error state with no data", async () => {
     vi.useFakeTimers();
     vi.mocked(authService.getSession).mockRejectedValue({ status: 500 });
 
-    renderHook(() => useAuthSessionQuery(), {
+    const { result } = renderHook(() => useAuthSessionQuery(), {
       wrapper: createWrapper(),
     });
 
-    await vi.advanceTimersByTimeAsync(1100);
-    await vi.advanceTimersByTimeAsync(1100);
+    for (let i = 0; i < 5; i++) {
+      await vi.advanceTimersByTimeAsync(1_100);
+    }
+    await vi.runAllTimersAsync();
 
-    expect(vi.mocked(authService.getSession).mock.calls.length).toBeGreaterThanOrEqual(2);
-  });
+    expect(result.current.isError).toBe(true);
+    expect(result.current.data).toBeUndefined();
+    expect(authService.getSession).toHaveBeenCalledTimes(6);
+  }, 20_000);
 });
