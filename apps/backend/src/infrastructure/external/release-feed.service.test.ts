@@ -1,5 +1,5 @@
 import type { ArtistRelease } from "@spotiarr/shared";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
@@ -254,6 +254,15 @@ describe("ReleaseFeedService", () => {
   });
 
   describe("filterByLookback — lookbackDays parameter", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date("2026-01-15T12:00:00Z"));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it("SHALL exclude releases older than the configured lookbackDays window (7d)", async () => {
       const artist = makeArtist();
       const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
