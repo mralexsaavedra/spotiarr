@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.16.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.16.0...v1.16.1) (2026-06-10)
+
+### Security
+
+- **api**: CORS is no longer wide open by default. The API and live event stream (SSE) previously returned `Access-Control-Allow-Origin: *` on every response; they now send no CORS header at all, since the app is served from the same origin as the UI. Cross-origin access is opt-in via a new `SPOTIARR_CORS_ORIGIN` allowlist (explicit origins only — the wildcard `*` is rejected), recommended hardening for internet-exposed instances. No change for normal same-origin deployments. ([#119](https://github.com/mralexsaavedra/spotiarr/pull/119))
+
 ## [1.16.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.15.0...v1.16.0) (2026-06-10)
 
 ### Features
