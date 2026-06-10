@@ -360,6 +360,17 @@
       "title": "Álbum"
     }
   },
+  "instanceAuth": {
+    "title": "Instancia protegida",
+    "description": "Esta instancia de SpotiArr está protegida con contraseña. Introduce el token de acceso para continuar.",
+    "tokenLabel": "Token de acceso",
+    "tokenPlaceholder": "Introduce el token de acceso...",
+    "submitButton": "Desbloquear",
+    "loadingButton": "Desbloqueando...",
+    "invalidToken": "Token incorrecto. Por favor, inténtalo de nuevo.",
+    "rateLimited": "Demasiados intentos. Espera un momento antes de volver a intentarlo.",
+    "sessionExpired": "Tu sesión ha expirado. Por favor, introduce el token de nuevo."
+  },
   "player": {
     "queue": {
       "title": "Cola",

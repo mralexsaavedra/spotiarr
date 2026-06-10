@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { useLocation } from "react-router-dom";
 import { ToastContainer } from "@/components/organisms/ToastContainer";
+import { TokenGate } from "@/components/organisms/TokenGate";
 import { APP_VERSION } from "@/config/version";
 import { DownloadStatusProvider } from "@/contexts/DownloadStatusContext";
 import { ToastProvider } from "@/contexts/ToastContext";
@@ -9,12 +10,11 @@ import { useServerEvents } from "@/hooks/useServerEvents";
 import { Routing } from "@/routes/Routing";
 import { Path } from "@/routes/routes";
 
-export const App: FC = () => {
+const AuthenticatedApp: FC = () => {
   const { pathname } = useLocation();
   const version = APP_VERSION;
 
   useServerEvents();
-  useLanguageSync();
 
   return (
     <ToastProvider>
@@ -23,5 +23,15 @@ export const App: FC = () => {
         <Routing pathname={pathname as Path} version={version} />
       </DownloadStatusProvider>
     </ToastProvider>
+  );
+};
+
+export const App: FC = () => {
+  useLanguageSync();
+
+  return (
+    <TokenGate>
+      <AuthenticatedApp />
+    </TokenGate>
   );
 };

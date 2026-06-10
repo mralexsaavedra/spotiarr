@@ -360,6 +360,17 @@
       "title": "Album"
     }
   },
+  "instanceAuth": {
+    "title": "Instance Protected",
+    "description": "This SpotiArr instance is password-protected. Enter the access token to continue.",
+    "tokenLabel": "Access Token",
+    "tokenPlaceholder": "Enter access token...",
+    "submitButton": "Unlock",
+    "loadingButton": "Unlocking...",
+    "invalidToken": "Invalid token. Please try again.",
+    "rateLimited": "Too many attempts. Please wait a moment before trying again.",
+    "sessionExpired": "Your session has expired. Please enter the token again."
+  },
   "player": {
     "queue": {
       "title": "Queue",
