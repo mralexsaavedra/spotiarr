@@ -142,6 +142,26 @@ export const envSchema = z
       .transform((t) => t?.trim() || undefined),
     SPOTIARR_SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(8760).default(168),
     SPOTIARR_UNLOCK_RATELIMIT: z.coerce.number().int().min(1).max(100).default(5),
+    SPOTIARR_CORS_ORIGIN: z
+      .string()
+      .optional()
+      .transform((val, ctx) => {
+        if (val === undefined) return undefined;
+        const origins = val
+          .split(",")
+          .map((o) => o.trim())
+          .filter(Boolean);
+        if (origins.length === 0) return undefined;
+        if (origins.includes("*")) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              'SPOTIARR_CORS_ORIGIN must be an explicit origin allowlist; wildcard "*" is not allowed.',
+          });
+          return z.NEVER;
+        }
+        return origins;
+      }),
     SPOTIARR_TRUST_PROXY: z
       .string()
       .optional()

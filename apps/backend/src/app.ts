@@ -5,6 +5,7 @@ import helmet from "helmet";
 import path from "path";
 import type { Container } from "./container";
 import { getEnv } from "./infrastructure/setup/environment";
+import { buildCorsOptions } from "./presentation/middleware/cors";
 import { errorHandler } from "./presentation/middleware/error-handler";
 import { createRequireTokenMiddleware } from "./presentation/middleware/require-token";
 import { createRoutes } from "./presentation/routes";
@@ -31,7 +32,12 @@ export function createApp(container: Container): Express {
       originAgentCluster: false,
     }),
   );
-  app.use(cors());
+  // CORS is opt-in: same-origin deployments need none. When an explicit
+  // allowlist is configured, restrict to it with credentials — never wildcard.
+  const corsOptions = buildCorsOptions(getEnv().SPOTIARR_CORS_ORIGIN);
+  if (corsOptions) {
+    app.use(cors(corsOptions));
+  }
 
   // Body parsing
   app.use(express.json());

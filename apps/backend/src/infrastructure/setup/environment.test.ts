@@ -6,6 +6,7 @@ type AnyDef = { _def: { in: { _def: { shape: Record<string, z.ZodTypeAny> } } } 
 const innerShape = (envSchema as unknown as AnyDef)._def.in._def.shape;
 
 const tokenSchema = innerShape.SPOTIARR_TOKEN;
+const corsOriginSchema = innerShape.SPOTIARR_CORS_ORIGIN;
 const trustProxySchema = innerShape.SPOTIARR_TRUST_PROXY;
 const sessionTtlSchema = innerShape.SPOTIARR_SESSION_TTL_HOURS;
 const unlockRatelimitSchema = innerShape.SPOTIARR_UNLOCK_RATELIMIT;
@@ -42,6 +43,46 @@ describe("SPOTIARR_TOKEN schema", () => {
 
   it("rejects an empty string", () => {
     expect(tokenSchema.safeParse("").success).toBe(false);
+  });
+});
+
+describe("SPOTIARR_CORS_ORIGIN schema", () => {
+  it("accepts undefined and returns undefined (no CORS)", () => {
+    const result = corsOriginSchema.safeParse(undefined);
+    expect(result.success).toBe(true);
+    expect(result.data).toBeUndefined();
+  });
+
+  it("returns undefined for an empty string", () => {
+    const result = corsOriginSchema.safeParse("");
+    expect(result.success).toBe(true);
+    expect(result.data).toBeUndefined();
+  });
+
+  it("returns undefined for a whitespace-only string", () => {
+    const result = corsOriginSchema.safeParse("   ");
+    expect(result.success).toBe(true);
+    expect(result.data).toBeUndefined();
+  });
+
+  it("parses a single origin into an array", () => {
+    const result = corsOriginSchema.safeParse("https://app.example.com");
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual(["https://app.example.com"]);
+  });
+
+  it("parses a comma-separated list and trims each entry", () => {
+    const result = corsOriginSchema.safeParse("https://a.com, https://b.com ,https://c.com");
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual(["https://a.com", "https://b.com", "https://c.com"]);
+  });
+
+  it("rejects a wildcard origin", () => {
+    expect(corsOriginSchema.safeParse("*").success).toBe(false);
+  });
+
+  it("rejects a list containing a wildcard", () => {
+    expect(corsOriginSchema.safeParse("https://a.com,*").success).toBe(false);
   });
 });
 

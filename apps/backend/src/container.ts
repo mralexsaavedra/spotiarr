@@ -206,7 +206,7 @@ export function createContainer(env: Env) {
 
   const queueService = new BullMqTrackQueueService();
   const artworkBackfillQueueService = new BullMqArtworkBackfillQueueService();
-  const eventsController = new EventsController();
+  const eventsController = new EventsController(() => env.SPOTIARR_CORS_ORIGIN);
   const eventBus = new AppEventBus(eventsController.emit);
 
   let spotifyUserLibraryService: ComposedSpotifyUserLibrary | null = null;
