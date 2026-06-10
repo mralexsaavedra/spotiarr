@@ -198,6 +198,72 @@ test.describe("player — queue reorder @smoke", () => {
     const firstItemText = await queueItems.first().textContent();
     expect(firstItemText).toContain("Track Beta");
   });
+
+  test("native drag-and-drop reorders the second queue track above the first", async ({ page }) => {
+    const libraryPlaylist = buildPlaylist({
+      id: "dnd-reorder-playlist",
+      name: "Reorder Queue",
+      spotifyUrl: "spotiarr://dnd-reorder-playlist",
+      subscribed: true,
+      tracks: [],
+    });
+
+    await installPlaylistMocks(page, { playlists: [libraryPlaylist] });
+    await installTrackMocks(page, {
+      tracksByPlaylistId: {
+        [libraryPlaylist.id]: [
+          buildTrack({
+            album: "Album One",
+            artist: "Boards of Canada",
+            audioUrl: "/api/library/audio?path=/library/boards/track-1.mp3",
+            id: "dnd-track-1",
+            name: "Dayvan Cowboy",
+            playlistId: libraryPlaylist.id,
+          }),
+          buildTrack({
+            album: "Album Two",
+            artist: "Tycho",
+            audioUrl: "/api/library/audio?path=/library/tycho/track-2.mp3",
+            id: "dnd-track-2",
+            name: "Awake",
+            playlistId: libraryPlaylist.id,
+          }),
+        ],
+      },
+    });
+    await installLibraryAudioMocks(page);
+
+    await page.goto(`/playlist/${libraryPlaylist.id}?mode=library`, {
+      waitUntil: "domcontentloaded",
+    });
+
+    await page.getByRole("button", { name: "Play track" }).first().click();
+
+    const playerBar = page.getByRole("region", { name: "Now playing" });
+    await expect(playerBar).toBeVisible();
+
+    const queueBtn = playerBar.getByRole("button", { name: "Open queue" });
+    await expect(queueBtn).toBeVisible();
+    await queueBtn.click();
+
+    const queuePanel = page.getByRole("complementary", { name: "Queue" });
+    await expect(queuePanel).toBeVisible();
+
+    const queueItems = queuePanel.getByRole("listitem");
+    await expect(queueItems.first()).toContainText("Dayvan Cowboy");
+    await expect(queueItems.nth(1)).toContainText("Awake");
+
+    // Lock the native HTML5 drag path: each queue <li> is draggable, so dragging
+    // "Awake" onto "Dayvan Cowboy" drives the dragstart/dragover/drop sequence the
+    // QueueSidePanel listens for, exercising reorderQueue end to end.
+    const awake = queueItems.filter({ hasText: "Awake" });
+    const dayvanCowboy = queueItems.filter({ hasText: "Dayvan Cowboy" });
+
+    await awake.dragTo(dayvanCowboy);
+
+    await expect(queueItems.first()).toContainText("Awake");
+    await expect(queueItems.nth(1)).toContainText("Dayvan Cowboy");
+  });
 });
 test.describe("Mocked global player flows", () => {
   test("updates the GlobalPlayerBar while playing a library-backed playlist queue", async ({
