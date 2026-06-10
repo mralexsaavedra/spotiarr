@@ -1,13 +1,13 @@
 import { TrackStatusEnum, type IPlaylist, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
-import { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { getErrorMessage } from "../utils/error.utils";
 import { FileSystemTrackPathService } from "./file-system-track-path.service";
 
 export class FileSystemM3uService {
   constructor(
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     private readonly trackPathService: FileSystemTrackPathService,
   ) {}
 

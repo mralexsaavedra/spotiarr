@@ -1,4 +1,4 @@
-import { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { getErrorMessage } from "../utils/error.utils";
 import { PromiseCache } from "./promise-cache";
 import { SpotifyAuthService } from "./spotify-auth.service";
@@ -11,7 +11,7 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
 
   constructor(
     authService: SpotifyAuthService,
-    settingsService: SettingsService,
+    settingsService: SettingsPort,
     requestCache: PromiseCache,
     limiterMode: SpotifyLimiterMode = "interactive",
   ) {

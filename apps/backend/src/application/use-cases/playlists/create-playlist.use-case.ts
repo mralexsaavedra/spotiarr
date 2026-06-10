@@ -6,20 +6,16 @@ import {
   extractDeezerTrackId,
 } from "@spotiarr/shared";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyService } from "@/application/services/spotify.service";
+import { isPrismaUniqueViolation } from "@/application/utils/prisma-error.utils";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import { AppError } from "@/domain/errors/app-error";
 import type { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
-import type { SettingsService } from "../../services/settings.service";
 import type { TrackService } from "../../services/track.service";
 import type { GetAlbumTracksUseCase } from "../artists/get-album-tracks.use-case";
-
-// Inline type guard: keeps application layer free of infrastructure imports.
-// Same guard exists in infrastructure/database/prisma-errors.ts for infra-layer use.
-const isUniqueConstraintViolation = (e: unknown): boolean =>
-  e instanceof Error && "code" in e && (e as { code?: string }).code === "P2002";
 
 interface DeezerAlbumTracksPort {
   getAlbumTracks(deezerAlbumId: string | number): Promise<NormalizedTrack[]>;
@@ -46,7 +42,7 @@ export class CreatePlaylistUseCase {
     private readonly playlistRepository: PlaylistRepository,
     private readonly spotifyService: SpotifyService,
     private readonly trackService: TrackService,
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     private readonly eventBus: EventBus,
     private readonly getAlbumTracksUseCase?: GetAlbumTracksUseCase,
     private readonly feedRepository?: FeedRepositoryPort,
@@ -327,7 +323,9 @@ export class CreatePlaylistUseCase {
     trackUrl: string,
   ): Promise<IPlaylist> {
     // 1. Find-or-create parent playlist (race-safe via unique constraint + P2002 recovery)
-    let parentRow = (await this.playlistRepository.findAll(false, { spotifyUrl: parentSpotifyUrl }))[0];
+    let parentRow = (
+      await this.playlistRepository.findAll(false, { spotifyUrl: parentSpotifyUrl })
+    )[0];
 
     if (!parentRow) {
       const meta = await this.spotifyService.getPlaylistMetadata(parentSpotifyUrl);
@@ -352,7 +350,7 @@ export class CreatePlaylistUseCase {
       try {
         parentRow = await this.playlistRepository.save(newParent);
       } catch (e) {
-        if (isUniqueConstraintViolation(e)) {
+        if (isPrismaUniqueViolation(e)) {
           // Another concurrent request won the race — re-read the winner
           parentRow = (
             await this.playlistRepository.findAll(false, { spotifyUrl: parentSpotifyUrl })

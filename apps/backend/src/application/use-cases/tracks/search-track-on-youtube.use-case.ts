@@ -1,15 +1,15 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { YoutubeSearchPort } from "@/application/ports/youtube.port";
 import { EventBus } from "@/domain/events/event-bus";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 import type { TrackQueueService } from "@/domain/services/track-queue.service";
-import { SettingsService } from "../../services/settings.service";
 
 export class SearchTrackOnYoutubeUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
     private readonly youtubeSearchService: YoutubeSearchPort,
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     private readonly queueService: TrackQueueService,
     private readonly eventBus: EventBus,
   ) {}

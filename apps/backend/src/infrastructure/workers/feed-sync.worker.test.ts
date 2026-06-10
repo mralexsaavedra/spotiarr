@@ -1,8 +1,8 @@
 import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
-import type { SettingsService } from "@/application/services/settings.service";
 import type { ReleaseFeedService } from "../external/release-feed.service";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { runFeedSyncJob, type FeedSyncJobDependencies } from "./feed-sync.worker";
@@ -62,7 +62,7 @@ function makeMockDeps(): FeedSyncJobDependencies {
     } as unknown as AppEventBus,
     settingsService: {
       getNumber: vi.fn().mockResolvedValue(15),
-    } as unknown as SettingsService,
+    } as unknown as SettingsPort,
   };
 }
 

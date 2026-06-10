@@ -1,15 +1,15 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
-import type { SettingsService } from "@/application/services/settings.service";
 
 export class GetRecentReleasesUseCase {
   constructor(
     private readonly feedRepository: FeedRepositoryPort,
     private readonly spotifyUserLibraryService: SpotifyUserLibraryPort,
     private readonly releaseFeedService: ReleaseFeedPort,
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
   ) {}
 
   async execute(): Promise<ArtistRelease[]> {

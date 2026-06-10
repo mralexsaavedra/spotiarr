@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
 import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
-import type { SettingsService } from "@/application/services/settings.service";
 import { getContainer } from "@/container";
 import type { ReleaseFeedService } from "../external/release-feed.service";
 import type { AppEventBus } from "../messaging/app-event-bus";
@@ -17,7 +17,7 @@ export interface FeedSyncJobDependencies {
   releaseFeedService: ReleaseFeedService;
   feedRepository: FeedRepositoryPort;
   eventBus: AppEventBus;
-  settingsService: SettingsService;
+  settingsService: SettingsPort;
 }
 
 /**

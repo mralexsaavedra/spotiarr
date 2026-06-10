@@ -5,14 +5,14 @@ import {
   type SupportedAudioFormat,
 } from "@spotiarr/shared";
 import { YtDlp } from "ytdlp-nodejs";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import type { YoutubeSearchService } from "./youtube-search.service";
 import { YOUTUBE_HEADERS } from "./youtube.constants";
 
 export class YoutubeDownloadService {
   constructor(
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     private readonly searchService: YoutubeSearchService,
   ) {}
 

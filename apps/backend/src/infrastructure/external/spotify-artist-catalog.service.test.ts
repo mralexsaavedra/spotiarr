@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { validateEnvironment } from "@/infrastructure/setup/environment";
 import { SpotifyArtistCatalogService } from "./spotify-artist-catalog.service";
 import type { SpotifyAuthService } from "./spotify-auth.service";
@@ -23,7 +23,7 @@ const buildService = (market = "ES") =>
     {
       getNumber: vi.fn().mockResolvedValue(30),
       getString: vi.fn().mockResolvedValue(market),
-    } as unknown as SettingsService,
+    } as unknown as SettingsPort,
     {
       getAppToken: vi.fn().mockResolvedValue("app-token"),
       getUserToken: vi.fn().mockResolvedValue("user-token"),
@@ -83,5 +83,25 @@ describe("SpotifyArtistCatalogService", () => {
     await service.getArtistCatalogData(artists);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("SpotifyArtistCatalogService — SettingsPort seam", () => {
+  it("is constructable with a FakeSettingsPort and no SettingsService import required", () => {
+    const fakeSettings = {
+      getString: async () => "ES",
+      getNumber: async () => 30,
+      getBoolean: async () => false,
+    };
+    const fakeAuth = {
+      getAppToken: vi.fn().mockResolvedValue("token"),
+      getUserToken: vi.fn(),
+      refreshUserToken: vi.fn(),
+    };
+
+    expect(
+      () =>
+        new SpotifyArtistCatalogService(fakeSettings, fakeAuth as unknown as SpotifyAuthService),
+    ).not.toThrow();
   });
 });

@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { validateEnvironment } from "@/infrastructure/setup/environment";
 import type { SpotifyAuthService } from "./spotify-auth.service";
 import {
@@ -44,7 +44,7 @@ const buildService = () =>
   new SpotifyPlaylistLibraryService(
     {
       getNumber: vi.fn().mockResolvedValue(30),
-    } as unknown as SettingsService,
+    } as unknown as SettingsPort,
     {
       getUserToken: vi.fn().mockResolvedValue("user-token"),
       refreshUserToken: vi.fn().mockResolvedValue(false),

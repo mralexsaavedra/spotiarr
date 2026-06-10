@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "crypto";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { COOKIE_NAME, signCookie } from "../middleware/cookie";
 
 interface SpotifyAuthPort {
@@ -23,7 +23,7 @@ const unlockBodySchema = z.object({
 export class AuthController {
   constructor(
     private readonly spotifyAuthService: SpotifyAuthPort,
-    private readonly settingsService: SettingsService,
+    private readonly settingsService: SettingsPort,
     private readonly spotifyClientId: string,
     private readonly spotifyRedirectUri: string,
     private readonly spotiarrToken: string | undefined,
