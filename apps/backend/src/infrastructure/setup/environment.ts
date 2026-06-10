@@ -24,7 +24,7 @@ console.log(`[Env] Loaded environment for: ${currentEnv}`);
 // Schema Validation & Auto-configuration
 // -----------------------------------------------------------------------------
 
-const envSchema = z
+export const envSchema = z
   .object({
     // Spotify
     SPOTIFY_CLIENT_ID: z.string().min(1, "SPOTIFY_CLIENT_ID is required"),

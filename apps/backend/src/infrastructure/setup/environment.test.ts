@@ -1,4 +1,105 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
+import { envSchema } from "./environment";
+
+type AnyDef = { _def: { in: { _def: { shape: Record<string, z.ZodTypeAny> } } } };
+const innerShape = (envSchema as unknown as AnyDef)._def.in._def.shape;
+
+const tokenSchema = innerShape.SPOTIARR_TOKEN;
+const trustProxySchema = innerShape.SPOTIARR_TRUST_PROXY;
+
+describe("SPOTIARR_TOKEN schema", () => {
+  it("accepts undefined (auth disabled)", () => {
+    expect(tokenSchema.safeParse(undefined).success).toBe(true);
+    expect(tokenSchema.safeParse(undefined).data).toBeUndefined();
+  });
+
+  it("accepts a 16-character token", () => {
+    const result = tokenSchema.safeParse("abcdefghijklmnop");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe("abcdefghijklmnop");
+  });
+
+  it("accepts a long token", () => {
+    expect(tokenSchema.safeParse("a-valid-token-that-is-long-enough").success).toBe(true);
+  });
+
+  it("trims surrounding whitespace and keeps the trimmed value", () => {
+    const result = tokenSchema.safeParse("  abcdefghijklmnop  ");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe("abcdefghijklmnop");
+  });
+
+  it("rejects a token shorter than 16 characters", () => {
+    expect(tokenSchema.safeParse("tooshort").success).toBe(false);
+  });
+
+  it("rejects a whitespace-only string", () => {
+    expect(tokenSchema.safeParse("               ").success).toBe(false);
+  });
+
+  it("rejects an empty string", () => {
+    expect(tokenSchema.safeParse("").success).toBe(false);
+  });
+});
+
+describe("SPOTIARR_TRUST_PROXY schema", () => {
+  it("accepts undefined and returns undefined", () => {
+    const result = trustProxySchema.safeParse(undefined);
+    expect(result.success).toBe(true);
+    expect(result.data).toBeUndefined();
+  });
+
+  it("parses '1' as the number 1", () => {
+    const result = trustProxySchema.safeParse("1");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(1);
+  });
+
+  it("parses '0' as the number 0", () => {
+    const result = trustProxySchema.safeParse("0");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(0);
+  });
+
+  it("parses 'true' as boolean true", () => {
+    const result = trustProxySchema.safeParse("true");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(true);
+  });
+
+  it("parses 'false' as boolean false", () => {
+    const result = trustProxySchema.safeParse("false");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(false);
+  });
+
+  it("parses 'loopback' as string 'loopback'", () => {
+    const result = trustProxySchema.safeParse("loopback");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe("loopback");
+  });
+
+  it("parses 'linklocal' as string 'linklocal'", () => {
+    expect(trustProxySchema.safeParse("linklocal").data).toBe("linklocal");
+  });
+
+  it("parses 'uniquelocal' as string 'uniquelocal'", () => {
+    expect(trustProxySchema.safeParse("uniquelocal").data).toBe("uniquelocal");
+  });
+
+  it("rejects an unknown string", () => {
+    expect(trustProxySchema.safeParse("garbage-value").success).toBe(false);
+  });
+
+  it("rejects 'yes' (not a valid preset or boolean)", () => {
+    expect(trustProxySchema.safeParse("yes").success).toBe(false);
+  });
+
+  it("rejects 'TRUE' (case-sensitive)", () => {
+    expect(trustProxySchema.safeParse("TRUE").success).toBe(false);
+  });
+});
 
 const REQUIRED_ENV = {
   SPOTIFY_CLIENT_ID: "client-id",
