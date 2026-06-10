@@ -88,9 +88,7 @@ test.describe("player — mobile now-playing fullscreen @smoke", () => {
     await expect(nowPlayingTrigger).toBeVisible();
     await nowPlayingTrigger.click();
 
-    // The fullscreen dialog is a persistent off-canvas panel toggled via
-    // transform (translate-y), so assert viewport presence rather than DOM
-    // visibility — the element stays mounted whether open or closed.
+    // Panel stays mounted (toggled via transform), so assert viewport presence, not DOM visibility.
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeInViewport();
 
@@ -108,8 +106,6 @@ test.describe("player — mobile now-playing fullscreen @smoke", () => {
 });
 
 test.describe("player — queue reorder @smoke", () => {
-  // Open the side queue with two known tracks (Dayvan Cowboy, then Awake) and
-  // return the queue list items, so each scenario only asserts the reorder path.
   async function openQueueWithTwoTracks(page: import("@playwright/test").Page) {
     const libraryPlaylist = buildPlaylist({
       id: "queue-reorder-playlist",
@@ -169,9 +165,7 @@ test.describe("player — queue reorder @smoke", () => {
   test("native drag-and-drop reorders the second queue track above the first", async ({ page }) => {
     const queueItems = await openQueueWithTwoTracks(page);
 
-    // Lock the native HTML5 drag path: each queue <li> is draggable, so dragging
-    // "Awake" onto "Dayvan Cowboy" drives the dragstart/dragover/drop sequence the
-    // QueueSidePanel listens for, exercising reorderQueue end to end.
+    // Native HTML5 drag path (each <li> is draggable).
     const awake = queueItems.filter({ hasText: "Awake" });
     const dayvanCowboy = queueItems.filter({ hasText: "Dayvan Cowboy" });
 
@@ -186,8 +180,7 @@ test.describe("player — queue reorder @smoke", () => {
   }) => {
     const queueItems = await openQueueWithTwoTracks(page);
 
-    // Accessible path: the per-row move-up button is keyboard- and screen-reader-
-    // operable, unlike native drag-and-drop. It must reorder the same queue.
+    // Accessible path: keyboard/screen-reader operable, unlike native DnD.
     await page.getByRole("button", { name: "Move Awake up" }).click();
 
     await expect(queueItems.first()).toContainText("Awake");
