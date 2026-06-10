@@ -1,15 +1,14 @@
 import { faChevronDown, faChevronUp, faShuffle, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useReorderable } from "@/hooks/useReorderable";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
 
 export const QueueSidePanel: FC = () => {
   const { t } = useTranslation();
   const activeRowRef = useRef<HTMLLIElement>(null);
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
@@ -19,6 +18,18 @@ export const QueueSidePanel: FC = () => {
   const setQueuePanelOpen = usePlayerStore((s) => s.setQueuePanelOpen);
   const playFromIndex = usePlayerStore((s) => s.playFromIndex);
   const reorderQueue = usePlayerStore((s) => s.reorderQueue);
+
+  const {
+    draggingIndex,
+    dragOverIndex,
+    startDrag,
+    setDropTarget,
+    clearDropTarget,
+    cancelDrag,
+    commit,
+    moveUp,
+    moveDown,
+  } = useReorderable(reorderQueue);
 
   useEffect(() => {
     if (!isQueuePanelOpen) return;
@@ -109,28 +120,22 @@ export const QueueSidePanel: FC = () => {
                     onDragStart={(e) => {
                       e.dataTransfer.setData("text/plain", String(index));
                       e.dataTransfer.effectAllowed = "move";
-                      setDraggingIndex(index);
+                      startDrag(index);
                     }}
                     onDragOver={(e) => {
                       e.preventDefault();
                       if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-                      if (dragOverIndex !== index) setDragOverIndex(index);
+                      setDropTarget(index);
                     }}
                     onDragLeave={(e) => {
-                      if (e.currentTarget === e.target) setDragOverIndex(null);
+                      if (e.currentTarget === e.target) clearDropTarget();
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      const raw = e.dataTransfer.getData("text/plain");
-                      const fromIndex = Number(raw);
-                      setDraggingIndex(null);
-                      setDragOverIndex(null);
-                      if (Number.isNaN(fromIndex)) return;
-                      reorderQueue(fromIndex, index);
+                      commit(index);
                     }}
                     onDragEnd={() => {
-                      setDraggingIndex(null);
-                      setDragOverIndex(null);
+                      cancelDrag();
                     }}
                   >
                     <button
@@ -153,7 +158,7 @@ export const QueueSidePanel: FC = () => {
                         type="button"
                         aria-label={t("player.queue.moveUp", { name: item.name })}
                         disabled={index === 0}
-                        onClick={() => index > 0 && reorderQueue(index, index - 1)}
+                        onClick={() => moveUp(index)}
                         className="flex h-7 w-7 items-center justify-center rounded text-white/40 transition-colors hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-30"
                       >
                         <FontAwesomeIcon icon={faChevronUp} className="text-xs" />
@@ -162,7 +167,7 @@ export const QueueSidePanel: FC = () => {
                         type="button"
                         aria-label={t("player.queue.moveDown", { name: item.name })}
                         disabled={index === queue.length - 1}
-                        onClick={() => index < queue.length - 1 && reorderQueue(index, index + 1)}
+                        onClick={() => moveDown(index, queue.length)}
                         className="flex h-7 w-7 items-center justify-center rounded text-white/40 transition-colors hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-30"
                       >
                         <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
