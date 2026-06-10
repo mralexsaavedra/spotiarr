@@ -176,4 +176,94 @@ describe("createRequireTokenMiddleware — allowlist", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "unauthorized" });
     expect(next).not.toHaveBeenCalled();
   });
+
+  it("GET /auth/unlock (wrong method) is NOT bypassed — returns 401 with no cookie", () => {
+    const middleware = createRequireTokenMiddleware(() => SECRET);
+    const req = makeReq({ method: "GET", path: "/auth/unlock" });
+    const res = mockRes();
+    const next = vi.fn() as NextFunction;
+
+    middleware(req as Request, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("POST /health (wrong method) is NOT bypassed — returns 401 with no cookie", () => {
+    const middleware = createRequireTokenMiddleware(() => SECRET);
+    const req = makeReq({ method: "POST", path: "/health" });
+    const res = mockRes();
+    const next = vi.fn() as NextFunction;
+
+    middleware(req as Request, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
+});
+
+describe("createRequireTokenMiddleware — expiry boundary", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects a cookie where exp === nowSeconds (boundary: not-yet-expired is strictly greater)", () => {
+    const middleware = createRequireTokenMiddleware(() => SECRET);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const value = signCookie({ iat: nowSeconds - 3600, exp: nowSeconds }, SECRET);
+    const req = makeReq({
+      method: "GET",
+      path: "/protected",
+      headers: { cookie: `${COOKIE_NAME}=${value}` },
+    });
+    const res = mockRes();
+    const next = vi.fn() as NextFunction;
+
+    middleware(req as Request, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("accepts a cookie where exp === nowSeconds + 60 (clearly in the future)", () => {
+    const middleware = createRequireTokenMiddleware(() => SECRET);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const value = signCookie({ iat: nowSeconds, exp: nowSeconds + 60 }, SECRET);
+    const req = makeReq({
+      method: "GET",
+      path: "/protected",
+      headers: { cookie: `${COOKIE_NAME}=${value}` },
+    });
+    const res = mockRes();
+    const next = vi.fn() as NextFunction;
+
+    middleware(req as Request, res, next);
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.status).not.toHaveBeenCalled();
+  });
+});
+
+describe("createRequireTokenMiddleware — multi-cookie header", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("extracts the session cookie from a multi-cookie header and calls next()", () => {
+    const middleware = createRequireTokenMiddleware(() => SECRET);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const value = signCookie({ iat: nowSeconds, exp: nowSeconds + 3600 }, SECRET);
+    const req = makeReq({
+      method: "GET",
+      path: "/protected",
+      headers: { cookie: `foo=1; ${COOKIE_NAME}=${value}; bar=2` },
+    });
+    const res = mockRes();
+    const next = vi.fn() as NextFunction;
+
+    middleware(req as Request, res, next);
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.status).not.toHaveBeenCalled();
+  });
 });

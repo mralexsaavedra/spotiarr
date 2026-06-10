@@ -155,6 +155,64 @@ describe("AuthController.unlock", () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ error: "invalid_token" });
   });
+
+  it("sets secure:true on the cookie when req.secure is true", () => {
+    const controller = makeController(VALID_TOKEN);
+    const req = {
+      body: { token: VALID_TOKEN },
+      secure: true,
+    } as unknown as Request;
+    const res = mockRes();
+
+    controller.unlock(req, res);
+
+    const [, , options] = (res.cookie as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.secure).toBe(true);
+  });
+
+  it("sets secure:false on the cookie when req.secure is false", () => {
+    const controller = makeController(VALID_TOKEN);
+    const req = {
+      body: { token: VALID_TOKEN },
+      secure: false,
+    } as unknown as Request;
+    const res = mockRes();
+
+    controller.unlock(req, res);
+
+    const [, , options] = (res.cookie as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.secure).toBe(false);
+  });
+
+  it("sets cookie maxAge equal to SESSION_TTL_HOURS * 3600 * 1000", () => {
+    const controller = makeController(VALID_TOKEN);
+    const req = {
+      body: { token: VALID_TOKEN },
+      secure: false,
+    } as unknown as Request;
+    const res = mockRes();
+
+    controller.unlock(req, res);
+
+    const [, , options] = (res.cookie as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.maxAge).toBe(SESSION_TTL_HOURS * 3600 * 1000);
+  });
+
+  it("cookie payload TTL equals SESSION_TTL_HOURS * 3600 seconds", () => {
+    const controller = makeController(VALID_TOKEN);
+    const req = {
+      body: { token: VALID_TOKEN },
+      secure: false,
+    } as unknown as Request;
+    const res = mockRes();
+
+    controller.unlock(req, res);
+
+    const [, cookieValue] = (res.cookie as ReturnType<typeof vi.fn>).mock.calls[0];
+    const payload = verifyCookie(cookieValue as string, VALID_TOKEN);
+    expect(payload).not.toBeNull();
+    expect(payload!.exp - payload!.iat).toBe(SESSION_TTL_HOURS * 3600);
+  });
 });
 
 describe("AuthController.session", () => {

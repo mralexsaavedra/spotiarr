@@ -7,6 +7,8 @@ const innerShape = (envSchema as unknown as AnyDef)._def.in._def.shape;
 
 const tokenSchema = innerShape.SPOTIARR_TOKEN;
 const trustProxySchema = innerShape.SPOTIARR_TRUST_PROXY;
+const sessionTtlSchema = innerShape.SPOTIARR_SESSION_TTL_HOURS;
+const unlockRatelimitSchema = innerShape.SPOTIARR_UNLOCK_RATELIMIT;
 
 describe("SPOTIARR_TOKEN schema", () => {
   it("accepts undefined (auth disabled)", () => {
@@ -98,6 +100,72 @@ describe("SPOTIARR_TRUST_PROXY schema", () => {
 
   it("rejects 'TRUE' (case-sensitive)", () => {
     expect(trustProxySchema.safeParse("TRUE").success).toBe(false);
+  });
+});
+
+describe("SPOTIARR_SESSION_TTL_HOURS schema", () => {
+  it("defaults to 168 when absent", () => {
+    const result = sessionTtlSchema.safeParse(undefined);
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(168);
+  });
+
+  it("accepts 1 (min boundary)", () => {
+    expect(sessionTtlSchema.safeParse("1").success).toBe(true);
+    expect(sessionTtlSchema.safeParse("1").data).toBe(1);
+  });
+
+  it("rejects 0 (below min boundary)", () => {
+    expect(sessionTtlSchema.safeParse("0").success).toBe(false);
+  });
+
+  it("accepts 8760 (max boundary)", () => {
+    expect(sessionTtlSchema.safeParse("8760").success).toBe(true);
+    expect(sessionTtlSchema.safeParse("8760").data).toBe(8760);
+  });
+
+  it("rejects 8761 (above max boundary)", () => {
+    expect(sessionTtlSchema.safeParse("8761").success).toBe(false);
+  });
+
+  it("rejects non-integer garbage", () => {
+    expect(sessionTtlSchema.safeParse("abc").success).toBe(false);
+  });
+
+  it("coerces a string number to a number", () => {
+    const result = sessionTtlSchema.safeParse("24");
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(24);
+  });
+});
+
+describe("SPOTIARR_UNLOCK_RATELIMIT schema", () => {
+  it("defaults to 5 when absent", () => {
+    const result = unlockRatelimitSchema.safeParse(undefined);
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(5);
+  });
+
+  it("accepts 1 (min boundary)", () => {
+    expect(unlockRatelimitSchema.safeParse("1").success).toBe(true);
+    expect(unlockRatelimitSchema.safeParse("1").data).toBe(1);
+  });
+
+  it("rejects 0 (below min boundary)", () => {
+    expect(unlockRatelimitSchema.safeParse("0").success).toBe(false);
+  });
+
+  it("accepts 100 (max boundary)", () => {
+    expect(unlockRatelimitSchema.safeParse("100").success).toBe(true);
+    expect(unlockRatelimitSchema.safeParse("100").data).toBe(100);
+  });
+
+  it("rejects 101 (above max boundary)", () => {
+    expect(unlockRatelimitSchema.safeParse("101").success).toBe(false);
+  });
+
+  it("rejects garbage", () => {
+    expect(unlockRatelimitSchema.safeParse("garbage").success).toBe(false);
   });
 });
 

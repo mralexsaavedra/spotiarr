@@ -8,30 +8,30 @@ interface RateLimitEntry {
   windowStart: number;
 }
 
-const rateLimitMap = new Map<string, RateLimitEntry>();
 const WINDOW_MS = 60_000;
 
-function pruneRateLimitMap(now: number): void {
-  for (const [key, entry] of rateLimitMap) {
-    if (now - entry.windowStart >= WINDOW_MS) rateLimitMap.delete(key);
+export function createUnlockRateLimit(
+  getMax: () => number,
+): (req: Request, res: Response, next: NextFunction) => void {
+  const map = new Map<string, RateLimitEntry>();
+
+  function prune(now: number): void {
+    for (const [key, entry] of map) {
+      if (now - entry.windowStart >= WINDOW_MS) map.delete(key);
+    }
   }
-}
 
-export function createAuthRoutes(container: Container): ExpressRouter {
-  const router: ExpressRouter = Router();
-  const { authController, unlockRateLimit: maxUnlockRequests } = container;
-
-  function unlockRateLimit(req: Request, res: Response, next: NextFunction): void {
-    const max = maxUnlockRequests;
+  return function unlockRateLimit(req: Request, res: Response, next: NextFunction): void {
+    const max = getMax();
     const ip = req.ip ?? "unknown";
     const now = Date.now();
 
-    pruneRateLimitMap(now);
+    prune(now);
 
-    const entry = rateLimitMap.get(ip);
+    const entry = map.get(ip);
 
     if (!entry || now - entry.windowStart >= WINDOW_MS) {
-      rateLimitMap.set(ip, { count: 1, windowStart: now });
+      map.set(ip, { count: 1, windowStart: now });
       next();
       return;
     }
@@ -45,7 +45,14 @@ export function createAuthRoutes(container: Container): ExpressRouter {
 
     entry.count += 1;
     next();
-  }
+  };
+}
+
+export function createAuthRoutes(container: Container): ExpressRouter {
+  const router: ExpressRouter = Router();
+  const { authController, unlockRateLimit: maxUnlockRequests } = container;
+
+  const unlockRateLimit = createUnlockRateLimit(() => maxUnlockRequests);
 
   router.get("/spotify/login", asyncHandler(authController.login));
 
