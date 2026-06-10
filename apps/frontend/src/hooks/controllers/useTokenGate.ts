@@ -1,7 +1,6 @@
-import { ApiRoutes, type AuthSessionResponseDto } from "@spotiarr/shared";
 import { useCallback, useEffect, useState } from "react";
+import { authService } from "@/services/auth.service";
 import { clearUnauthorizedHandler, setUnauthorizedHandler } from "@/services/httpClient";
-import { httpClient } from "@/services/httpClient";
 
 type GatePhase = "checking" | "locked" | "unlocked";
 
@@ -20,21 +19,15 @@ export const useTokenGate = () => {
   useEffect(() => {
     let cancelled = false;
 
-    httpClient
-      .get<AuthSessionResponseDto>(ApiRoutes.AUTH_SESSION)
-      .then((data) => {
-        if (cancelled) return;
-        setPhase("unlocked");
-        void data;
+    authService
+      .getSession()
+      .then(() => {
+        if (!cancelled) setPhase("unlocked");
       })
       .catch((err: unknown) => {
         if (cancelled) return;
         const status = (err as { status?: number }).status;
-        if (status === 401) {
-          setPhase("locked");
-        } else {
-          setPhase("unlocked");
-        }
+        setPhase(status === 401 ? "locked" : "unlocked");
       });
 
     return () => {
@@ -43,8 +36,7 @@ export const useTokenGate = () => {
   }, []);
 
   const unlock = useCallback(async (token: string): Promise<void> => {
-    const response = await httpClient.post<{ ok: boolean }>(ApiRoutes.AUTH_UNLOCK, { token });
-    void response;
+    await authService.unlock(token);
     setSessionExpired(false);
     setPhase("unlocked");
   }, []);
