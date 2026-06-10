@@ -250,6 +250,16 @@ Implementamos una estrategia de **fail-fast** y validación estricta de datos.
 
 **Contraparte en el frontend:** Cuando el backend devuelve `401`, la aplicación React muestra `<TokenGate>` — un formulario de desbloqueo a pantalla completa — en lugar de la UI normal. Una vez que la cookie está establecida, la aplicación se reanuda sin recargar la página.
 
+### 8.2. Política CORS
+
+**Modelo de amenaza:** El SPA y la API se sirven desde el mismo proceso Express, así que la aplicación es del mismo origen y no necesita CORS en absoluto. Un comodín `Access-Control-Allow-Origin: *` es, por tanto, pura superficie de ataque, especialmente en instancias expuestas a internet.
+
+**Diseño:**
+
+- **Opcional, activado por variable de entorno.** CORS está deshabilitado por defecto. El middleware `cors()` se monta solo cuando `SPOTIARR_CORS_ORIGIN` está definida; los despliegues del mismo origen nunca ven una cabecera CORS.
+- **Lista explícita, nunca comodín.** `SPOTIARR_CORS_ORIGIN` es una lista de orígenes exactos separados por comas, validada al arranque para rechazar `*`. Cuando se habilita, CORS se ejecuta con `credentials: true` contra esa lista — la combinación `*` + credenciales es imposible por construcción (`buildCorsOptions` también elimina cualquier comodín como defensa en profundidad).
+- **Ubicación de capa.** La lista se inyecta desde `container.ts` en el constructor de `EventsController`, de modo que el transporte SSE refleja la política global (devolviendo el origen de la petición solo cuando está en la lista) sin que la capa `presentation/` importe `getEnv` — el mismo patrón que respeta R4 que usa `require-token`.
+
 ## 9. Ciclo de Vida de una Descarga
 
 El proceso más crítico de la aplicación funciona así:

@@ -62,6 +62,8 @@ SPOTIARR_UNLOCK_RATELIMIT=5       # default: 5 per IP per minute
 SPOTIARR_TRUST_PROXY=1            # hop count (e.g. 1) or Express preset; REQUIRED behind Traefik/any
                                   # reverse proxy — otherwise req.ip is the proxy IP and rate-limiting
                                   # locks out everyone together
+SPOTIARR_CORS_ORIGIN=             # comma-separated CORS origin allowlist; omit for same-origin (default).
+                                  # Wildcard "*" is rejected. Only needed for a separate-origin client.
 ```
 
 ## Update Flow

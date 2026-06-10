@@ -51,6 +51,7 @@ src/
 - Environment access through `getEnv()` from `infrastructure/setup/environment.ts` — never `process.env` directly.
 - Instance token auth: `createRequireTokenMiddleware` is mounted at `ApiRoutes.BASE` before the API router. Public routes must be added to the allowlist in `presentation/middleware/require-token.ts` (currently POST /auth/unlock, GET /health, GET /auth/spotify/callback). GET /auth/session is intentionally NOT allowlisted.
 - `app.set("trust proxy", ...)` is driven by `SPOTIARR_TRUST_PROXY`; it MUST be set behind a reverse proxy or `req.secure` (cookie Secure flag) and `req.ip` (rate-limit bucket) break.
+- CORS is opt-in via `SPOTIARR_CORS_ORIGIN` (explicit origin allowlist, wildcard rejected). `cors()` is registered only when it is set; same-origin deployments get none. The SSE controller mirrors the policy through an injected allowlist getter — do NOT import `getEnv` into presentation; wire it from `container.ts`.
 
 ## Validation
 

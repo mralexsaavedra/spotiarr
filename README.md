@@ -216,6 +216,7 @@ pnpm --filter frontend run test:e2e
 | `SPOTIARR_SESSION_TTL_HOURS` | `168`   | Session lifetime in hours (default: 7 days). Cookie expires after this period.                                                                |
 | `SPOTIARR_UNLOCK_RATELIMIT`  | `5`     | Max unlock attempts per minute per IP before returning 429.                                                                                   |
 | `SPOTIARR_TRUST_PROXY`       | -       | Number of proxy hops (e.g. `1`), or `true`/`false`/preset. **Required** behind any reverse proxy for correct IP resolution and Secure cookie. |
+| `SPOTIARR_CORS_ORIGIN`       | -       | Comma-separated CORS origin allowlist. Unset = no CORS (the SPA and API are same-origin, so none is needed). Wildcard `*` is rejected.        |
 
 ### Exposing SpotiArr to the internet
 
