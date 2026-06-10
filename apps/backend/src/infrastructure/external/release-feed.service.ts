@@ -189,7 +189,12 @@ export class ReleaseFeedService {
   }
 
   private filterByLookback(releases: ArtistRelease[], lookbackDays: number): ArtistRelease[] {
-    const cutoff = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
+    // Release dates are date-only ("YYYY-MM-DD"), so the cutoff must also be
+    // date-only. Anchoring it to the start of the day avoids a time-of-day
+    // boundary where a release exactly N days old flickers in and out of the
+    // window depending on the current wall-clock time and timezone.
+    const now = new Date();
+    const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - lookbackDays);
 
     return releases.filter((item) => {
       if (!item.releaseDate) return false;
