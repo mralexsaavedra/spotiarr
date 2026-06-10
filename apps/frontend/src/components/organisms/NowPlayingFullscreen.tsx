@@ -174,6 +174,7 @@ export const NowPlayingFullscreen: FC = () => {
           <button
             type="button"
             ref={closeButtonRef}
+            data-no-swipe
             aria-label={t("player.nowPlaying.close")}
             onClick={() => setNowPlayingOpen(false)}
             className="flex h-10 w-10 items-center justify-center rounded-full text-white/80 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
