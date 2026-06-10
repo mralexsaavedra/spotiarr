@@ -4,7 +4,7 @@ description: "Trigger: command, validate, PR, branch, run lint, run build, secre
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "2.0"
+  version: "2.1"
 ---
 
 ## Activation Contract
@@ -41,6 +41,16 @@ Load when running commands, validating changes, creating PRs, managing branches,
 | Chore    | `chore/`    | `chore/bump-deps`            |
 
 **PR checklist:** branch up to date with `main` · lint + build passing · PR body has what/why/verification · screenshots for UI changes.
+
+**PR sizing policy:**
+
+| Situation          | Action                                                                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Slice over 400 LOC | Default: split into chained-to-main PRs (see `chained-pr` skill).                                                                             |
+| `ask-on-risk`      | Only when the requester explicitly asks to be consulted before splitting.                                                                    |
+| `size:exception`   | Reserved for irreducible atomic refactors that cannot be split without breaking review or correctness. Label the PR and justify in the body. |
+
+The 400 LOC threshold protects review focus. Prefer many small, sequentially reviewable PRs over one oversized PR. `size:exception` is the rare escape hatch, not a routine option.
 
 **Key commands:**
 
