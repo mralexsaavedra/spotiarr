@@ -208,6 +208,15 @@ pnpm --filter frontend run test:e2e
 | `REDIS_HOST` | `redis` | Hostname of Redis server (for external DB) |
 | `REDIS_PORT` | `6379`  | Port of Redis server                       |
 
+**Instance Authentication (optional — recommended for internet-exposed instances):**
+
+| Variable                     | Default | Description                                                                                                 |
+| ---------------------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `SPOTIARR_TOKEN`             | -       | Shared secret to password-protect the instance. Unset = open access (no auth check).                        |
+| `SPOTIARR_SESSION_TTL_HOURS` | `168`   | Session lifetime in hours (default: 7 days). Cookie expires after this period.                              |
+| `SPOTIARR_UNLOCK_RATELIMIT`  | `5`     | Max unlock attempts per minute per IP before returning 429.                                                 |
+| `SPOTIARR_TRUST_PROXY`       | -       | Set to `1` when behind a reverse proxy (Nginx, Traefik, Caddy) for correct IP and `secure` cookie handling. |
+
 **Note regarding HTTPS:**
 The included `docker-compose.yml` uses **Traefik** as a reverse proxy to handle HTTPS automatically on port 443. This is required for Spotify authentication on remote servers. SpotiArr itself runs on HTTP (port 3000) internally.
 
