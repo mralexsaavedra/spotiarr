@@ -4,6 +4,7 @@ import {
   type AiPlaylistProgressEvent,
 } from "@spotiarr/shared";
 import type { AiChatPort } from "@/application/ports/ai-chat.port";
+import { Playlist } from "@/domain/entities/playlist.entity";
 import { AiChatError } from "@/domain/errors/ai-chat.error";
 import type { EventBus } from "@/domain/events/event-bus";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
@@ -27,7 +28,7 @@ interface UseCaseInput {
 interface UseCaseDeps {
   aiChatPort: AiChatPort;
   resolveTrackUrl: (title: string, artist: string) => Promise<string | null>;
-  playlistRepository: PlaylistRepository;
+  playlistRepository: Pick<PlaylistRepository, "save">;
   trackService: Pick<TrackService, "create">;
   eventBus: EventBus;
   onProgress?: (event: AiPlaylistProgressEvent) => void;
@@ -37,7 +38,7 @@ interface UseCaseDeps {
 export class GenerateAiPlaylistUseCase {
   private readonly aiChatPort: AiChatPort;
   private readonly resolveTrackUrl: (title: string, artist: string) => Promise<string | null>;
-  private readonly playlistRepository: PlaylistRepository;
+  private readonly playlistRepository: Pick<PlaylistRepository, "save">;
   private readonly trackService: Pick<TrackService, "create">;
   private readonly eventBus: EventBus;
   private readonly onProgress: (event: AiPlaylistProgressEvent) => void;
@@ -92,14 +93,14 @@ export class GenerateAiPlaylistUseCase {
       const playlistName = `AI: ${prompt.slice(0, 80)}`;
       const playlistId = crypto.randomUUID();
 
-      const playlist = {
+      const playlist = new Playlist({
         id: playlistId,
         name: playlistName,
         type: PlaylistTypeEnum.Ai,
         spotifyUrl: syntheticUrl,
         subscribed: false,
-        createdAt: new Date(),
-      };
+        createdAt: Date.now(),
+      });
 
       await this.playlistRepository.save(playlist);
 
