@@ -3,11 +3,11 @@ import { FC, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
-import { AlbumPageLayout } from "../molecules/AlbumPageLayout";
 import { PlaylistActions } from "../molecules/PlaylistActions";
 import { PlaylistDescription } from "../molecules/PlaylistDescription";
 import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
 import { ConfirmModal } from "../organisms/ConfirmModal";
+import { AlbumPageLayout } from "./AlbumPageLayout";
 
 export type PlaylistMode = "library" | "managed";
 

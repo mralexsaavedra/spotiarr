@@ -2,9 +2,9 @@ import { faMusic } from "@fortawesome/free-solid-svg-icons";
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { FC, ReactNode } from "react";
 import { Track } from "@/types";
-import { PlaylistTracksList } from "../organisms/PlaylistTracksList";
-import { EmptyState } from "./EmptyState";
-import { PlaylistHeader } from "./PlaylistHeader";
+import { EmptyState } from "../molecules/EmptyState";
+import { PlaylistHeader } from "../molecules/PlaylistHeader";
+import { PlaylistTracksList } from "./PlaylistTracksList";
 
 export interface AlbumPageLayoutProps {
   title: string;
