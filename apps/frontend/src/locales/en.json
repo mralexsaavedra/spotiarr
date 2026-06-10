@@ -383,7 +383,9 @@
       "close": "Close",
       "repeatAll": "Repeat all",
       "repeatOne": "Repeat one",
-      "shuffleOn": "Shuffle on"
+      "shuffleOn": "Shuffle on",
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down"
     },
     "nowPlaying": {
       "title": "Now Playing",

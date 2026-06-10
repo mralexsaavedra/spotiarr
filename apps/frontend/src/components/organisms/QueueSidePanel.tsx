@@ -1,4 +1,4 @@
-import { faShuffle, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp, faShuffle, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -101,6 +101,7 @@ export const QueueSidePanel: FC = () => {
                     aria-current={isCurrent ? "true" : undefined}
                     draggable
                     className={cn(
+                      "flex items-center",
                       isDragging && "cursor-grabbing opacity-50",
                       isDropTarget && "border-t-2 border-green-500",
                       !isDragging && "cursor-grab",
@@ -135,7 +136,7 @@ export const QueueSidePanel: FC = () => {
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full flex-col items-start px-4 py-2 text-left transition-colors hover:bg-white/5",
+                        "flex min-w-0 flex-1 flex-col items-start px-4 py-2 text-left transition-colors hover:bg-white/5",
                         isCurrent ? "bg-white/5 text-green-400" : "text-white",
                       )}
                       onClick={() => playFromIndex(index)}
@@ -146,6 +147,27 @@ export const QueueSidePanel: FC = () => {
                       <span className="w-full truncate text-sm font-medium">{item.name}</span>
                       <span className="w-full truncate text-xs text-white/50">{item.artist}</span>
                     </button>
+
+                    <div className="flex items-center gap-1 pr-2">
+                      <button
+                        type="button"
+                        aria-label={t("player.queue.moveUp", { name: item.name })}
+                        disabled={index === 0}
+                        onClick={() => index > 0 && reorderQueue(index, index - 1)}
+                        className="flex h-7 w-7 items-center justify-center rounded text-white/40 transition-colors hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <FontAwesomeIcon icon={faChevronUp} className="text-xs" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={t("player.queue.moveDown", { name: item.name })}
+                        disabled={index === queue.length - 1}
+                        onClick={() => index < queue.length - 1 && reorderQueue(index, index + 1)}
+                        className="flex h-7 w-7 items-center justify-center rounded text-white/40 transition-colors hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
+                      </button>
+                    </div>
                   </li>
                 );
               })}

@@ -108,11 +108,13 @@ test.describe("player — mobile now-playing fullscreen @smoke", () => {
 });
 
 test.describe("player — queue reorder @smoke", () => {
-  test("native drag-and-drop reorders the second queue track above the first", async ({ page }) => {
+  // Open the side queue with two known tracks (Dayvan Cowboy, then Awake) and
+  // return the queue list items, so each scenario only asserts the reorder path.
+  async function openQueueWithTwoTracks(page: import("@playwright/test").Page) {
     const libraryPlaylist = buildPlaylist({
-      id: "dnd-reorder-playlist",
+      id: "queue-reorder-playlist",
       name: "Reorder Queue",
-      spotifyUrl: "spotiarr://dnd-reorder-playlist",
+      spotifyUrl: "spotiarr://queue-reorder-playlist",
       subscribed: true,
       tracks: [],
     });
@@ -125,7 +127,7 @@ test.describe("player — queue reorder @smoke", () => {
             album: "Album One",
             artist: "Boards of Canada",
             audioUrl: "/api/library/audio?path=/library/boards/track-1.mp3",
-            id: "dnd-track-1",
+            id: "queue-track-1",
             name: "Dayvan Cowboy",
             playlistId: libraryPlaylist.id,
           }),
@@ -133,7 +135,7 @@ test.describe("player — queue reorder @smoke", () => {
             album: "Album Two",
             artist: "Tycho",
             audioUrl: "/api/library/audio?path=/library/tycho/track-2.mp3",
-            id: "dnd-track-2",
+            id: "queue-track-2",
             name: "Awake",
             playlistId: libraryPlaylist.id,
           }),
@@ -161,6 +163,11 @@ test.describe("player — queue reorder @smoke", () => {
     const queueItems = queuePanel.getByRole("listitem");
     await expect(queueItems.first()).toContainText("Dayvan Cowboy");
     await expect(queueItems.nth(1)).toContainText("Awake");
+    return queueItems;
+  }
+
+  test("native drag-and-drop reorders the second queue track above the first", async ({ page }) => {
+    const queueItems = await openQueueWithTwoTracks(page);
 
     // Lock the native HTML5 drag path: each queue <li> is draggable, so dragging
     // "Awake" onto "Dayvan Cowboy" drives the dragstart/dragover/drop sequence the
@@ -169,6 +176,19 @@ test.describe("player — queue reorder @smoke", () => {
     const dayvanCowboy = queueItems.filter({ hasText: "Dayvan Cowboy" });
 
     await awake.dragTo(dayvanCowboy);
+
+    await expect(queueItems.first()).toContainText("Awake");
+    await expect(queueItems.nth(1)).toContainText("Dayvan Cowboy");
+  });
+
+  test("keyboard-accessible move-up control reorders the second queue track above the first", async ({
+    page,
+  }) => {
+    const queueItems = await openQueueWithTwoTracks(page);
+
+    // Accessible path: the per-row move-up button is keyboard- and screen-reader-
+    // operable, unlike native drag-and-drop. It must reorder the same queue.
+    await page.getByRole("button", { name: "Move Awake up" }).click();
 
     await expect(queueItems.first()).toContainText("Awake");
     await expect(queueItems.nth(1)).toContainText("Dayvan Cowboy");
