@@ -1,7 +1,7 @@
 import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { AlbumPageLayoutProps } from "../molecules/AlbumPageLayout";
+import type { AlbumPageLayoutProps } from "./AlbumPageLayout";
 import { Playlist } from "./Playlist";
 
 const albumPageLayoutSpy = vi.fn<(props: AlbumPageLayoutProps) => void>();
@@ -18,7 +18,7 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-vi.mock("../molecules/AlbumPageLayout", () => ({
+vi.mock("./AlbumPageLayout", () => ({
   AlbumPageLayout: (props: AlbumPageLayoutProps) => {
     albumPageLayoutSpy(props);
 

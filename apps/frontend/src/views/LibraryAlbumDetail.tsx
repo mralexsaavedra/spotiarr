@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/atoms/Button";
 import { Loading } from "@/components/atoms/Loading";
-import { AlbumPageLayout } from "@/components/molecules/AlbumPageLayout";
 import { EmptyState } from "@/components/molecules/EmptyState";
 import { SpotifyLinkButton } from "@/components/molecules/SpotifyLinkButton";
+import { AlbumPageLayout } from "@/components/organisms/AlbumPageLayout";
 import { useLibraryAlbumDetailController } from "@/hooks/controllers/useLibraryAlbumDetailController";
 import { cn } from "@/utils/cn";
 
