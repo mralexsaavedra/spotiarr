@@ -2,6 +2,7 @@ import { faChevronDown, faGripLines } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useReorderable } from "@/hooks/useReorderable";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
@@ -39,10 +40,17 @@ export const NowPlayingFullscreen: FC = () => {
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const draggingIndexRef = useRef<number | null>(null);
-  const dragOverIndexRef = useRef<number | null>(null);
+  const {
+    draggingIndex,
+    dragOverIndex,
+    draggingIndexRef,
+    startDrag,
+    setDropTarget,
+    commit,
+    cancelDrag,
+    moveUp,
+    moveDown,
+  } = useReorderable(reorderQueue);
 
   const swipeStartYRef = useRef<number | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
@@ -73,40 +81,25 @@ export const NowPlayingFullscreen: FC = () => {
 
   const onHandlePointerDown = (e: React.PointerEvent, index: number) => {
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    draggingIndexRef.current = index;
-    dragOverIndexRef.current = null;
-    setDraggingIndex(index);
+    startDrag(index);
   };
 
   const onHandlePointerMove = (e: React.PointerEvent) => {
     if (draggingIndexRef.current === null) return;
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const row = el?.closest("[data-row-index]") as HTMLElement | null;
-    const overIndex = row ? Number(row.dataset.rowIndex) : null;
-    if (overIndex !== null && overIndex !== dragOverIndexRef.current) {
-      dragOverIndexRef.current = overIndex;
-      setDragOverIndex(overIndex);
-    }
+    if (row) setDropTarget(Number(row.dataset.rowIndex));
   };
 
   const onHandlePointerUp = (e: React.PointerEvent) => {
     if (draggingIndexRef.current === null) return;
-    const from = draggingIndexRef.current;
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const row = el?.closest("[data-row-index]") as HTMLElement | null;
-    const to = row ? Number(row.dataset.rowIndex) : (dragOverIndexRef.current ?? from);
-    draggingIndexRef.current = null;
-    dragOverIndexRef.current = null;
-    setDraggingIndex(null);
-    setDragOverIndex(null);
-    if (from !== to) reorderQueue(from, to);
+    commit(row ? Number(row.dataset.rowIndex) : undefined);
   };
 
   const onHandlePointerCancel = () => {
-    draggingIndexRef.current = null;
-    dragOverIndexRef.current = null;
-    setDraggingIndex(null);
-    setDragOverIndex(null);
+    cancelDrag();
   };
 
   const onSwipePointerDown = (e: React.PointerEvent) => {
@@ -283,7 +276,7 @@ export const NowPlayingFullscreen: FC = () => {
                   type="button"
                   aria-label={t("player.nowPlaying.moveUp", { name: item.name })}
                   disabled={index === 0}
-                  onClick={() => index > 0 && reorderQueue(index, index - 1)}
+                  onClick={() => moveUp(index)}
                   className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"
                 >
                   ↑
@@ -292,7 +285,7 @@ export const NowPlayingFullscreen: FC = () => {
                   type="button"
                   aria-label={t("player.nowPlaying.moveDown", { name: item.name })}
                   disabled={index === queue.length - 1}
-                  onClick={() => index < queue.length - 1 && reorderQueue(index, index + 1)}
+                  onClick={() => moveDown(index, queue.length)}
                   className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:text-white/80"
                 >
                   ↓
