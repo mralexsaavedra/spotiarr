@@ -164,7 +164,9 @@ export type ApiErrorCode =
   | "playlist_not_accessible"
   | "rate_limiter_overflow"
   | "circuit_open"
-  | "interactive_timeout";
+  | "interactive_timeout"
+  | "unauthorized"
+  | "invalid_token";
 
 export interface ApiErrorShape {
   error: ApiErrorCode;
@@ -380,4 +382,13 @@ export interface ArtworkBackfillStatusResponse {
 export interface ArtworkBackfillStartResponse {
   runId: string;
   status: "running";
+}
+
+export interface UnlockRequestDto {
+  token: string;
+}
+
+export interface AuthSessionResponseDto {
+  tokenRequired: boolean;
+  authenticated?: boolean;
 }
