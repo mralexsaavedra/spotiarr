@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.16.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.15.0...v1.16.0) (2026-06-10)
+
+### Features
+
+- **Installable PWA**: SpotiArr can now be installed to your phone's home screen and launched as a standalone app. Adds a service worker and web app manifest, with the API and live event stream (SSE) excluded from caching so real-time download status and playback always reflect the server. ([#117](https://github.com/mralexsaavedra/spotiarr/pull/117))
+
+### Bug Fixes
+
+- **Mobile input zoom**: Tapping a text field on a phone no longer zooms the whole page. Form controls now use a 16px font size on touch devices (iOS Safari and Chromium/Android such as Chrome and Brave), while desktop styling and pinch-zoom stay untouched. ([#117](https://github.com/mralexsaavedra/spotiarr/pull/117))
+- **Instance lock screen on Spotify errors**: The "Instance protected" screen no longer appears by mistake when you are not logged into Spotify. Only the instance-token authorization failure triggers the lock; unrelated Spotify authorization errors (such as a missing user login during feed sync) no longer force the gate, so `SPOTIARR_TOKEN` remains the single source of truth for whether the instance is protected. ([#118](https://github.com/mralexsaavedra/spotiarr/pull/118))
+
 ## [1.15.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.14.0...v1.15.0) (2026-06-10)
 
 ### Features
