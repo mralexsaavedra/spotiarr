@@ -22,6 +22,18 @@
   --color-border-light: rgba(255, 255, 255, 0.05);
 }
 
+/* Mobile browsers (iOS Safari and Chromium/Android such as Chrome and Brave)
+   auto-zoom form fields with font-size < 16px on focus. Force 16px on touch
+   devices only; unlayered + !important to beat Tailwind text-sm/text-xs
+   utilities. Desktop styling and pinch-zoom are untouched. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 @layer base {
   body {
     padding: 0;

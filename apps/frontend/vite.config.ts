@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { defineConfig, loadEnv } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const packageJson = JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf-8"));
 
@@ -12,7 +13,40 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, envDir, "");
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      VitePWA({
+        disable: process.env.PWA_DISABLE === "true",
+        registerType: "autoUpdate",
+        injectRegister: "auto",
+        devOptions: { enabled: false },
+        manifest: {
+          name: "SpotiArr",
+          short_name: "SpotiArr",
+          description: "Self-hosted Spotify downloader with Jellyfin/Plex integration",
+          theme_color: "#1DB954",
+          background_color: "#000000",
+          display: "standalone",
+          icons: [
+            { src: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+            { src: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
+          ],
+        },
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+          // API and SSE must never be cached or intercepted by the SW
+          navigateFallbackDenylist: [/^\/api/],
+          runtimeCaching: [
+            {
+              urlPattern: ({ url }) => url.pathname.startsWith("/api"),
+              handler: "NetworkOnly",
+            },
+          ],
+        },
+      }),
+    ],
     define: {
       __APP_VERSION__: JSON.stringify(packageJson.version),
     },
