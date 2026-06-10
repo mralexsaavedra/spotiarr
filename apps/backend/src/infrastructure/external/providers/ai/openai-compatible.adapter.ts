@@ -1,0 +1,121 @@
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateObject, NoObjectGeneratedError } from "ai";
+import { z } from "zod";
+import type { AiChatPort, AiTrackSuggestion } from "@/application/ports/ai-chat.port";
+import type { SettingsService } from "@/application/services/settings.service";
+import { AiChatError } from "@/domain/errors/ai-chat.error";
+
+const tracksSchema = z.object({
+  tracks: z
+    .array(
+      z.object({
+        title: z.string().min(1),
+        artist: z.string().min(1),
+      }),
+    )
+    .min(1)
+    .max(50),
+});
+
+type GenerateObjectParams = {
+  model: ReturnType<ReturnType<typeof createOpenAI>>;
+  schema: typeof tracksSchema;
+  system: string;
+  prompt: string;
+};
+
+export type GenerateObjectFn = (
+  params: GenerateObjectParams,
+) => Promise<{ object: { tracks: AiTrackSuggestion[] } }>;
+
+interface AdapterConfig {
+  baseURL: string;
+  apiKey: string;
+  model: string;
+  generateFn?: GenerateObjectFn;
+}
+
+function mapError(err: unknown): never {
+  if (err instanceof AiChatError) throw err;
+
+  if (err instanceof Error) {
+    if (
+      err.name === "AI_NoObjectGeneratedError" ||
+      err instanceof NoObjectGeneratedError ||
+      err.name === "ZodError"
+    ) {
+      throw new AiChatError("llm-bad-output", err.message);
+    }
+
+    if (
+      err.name === "TypeError" ||
+      err.message.includes("fetch") ||
+      err.message.includes("network") ||
+      err.message.includes("ECONNREFUSED") ||
+      err.message.includes("timeout") ||
+      err.message.includes("abort")
+    ) {
+      throw new AiChatError("provider-unreachable", err.message);
+    }
+  }
+
+  throw new AiChatError("provider-unreachable", String(err));
+}
+
+export class OpenAiCompatibleAdapter implements AiChatPort {
+  private readonly config: Required<AdapterConfig>;
+
+  constructor(config: AdapterConfig) {
+    this.config = {
+      ...config,
+      generateFn: config.generateFn ?? (generateObject as unknown as GenerateObjectFn),
+    };
+  }
+
+  async generateTracks(prompt: string): Promise<AiTrackSuggestion[]> {
+    const { baseURL, apiKey, model, generateFn } = this.config;
+
+    if (!baseURL || !apiKey) {
+      throw new AiChatError("provider-misconfig", "AI_BASE_URL and AI_API_KEY must be configured");
+    }
+
+    try {
+      const provider = createOpenAI({ baseURL, apiKey });
+      const result = await generateFn({
+        model: provider(model),
+        schema: tracksSchema,
+        system: SYSTEM_PROMPT,
+        prompt,
+      });
+      return result.object.tracks;
+    } catch (err) {
+      mapError(err);
+    }
+  }
+}
+
+const SYSTEM_PROMPT = `You are a music curator. Given a playlist description, return a JSON list of real, existing tracks.
+Only suggest tracks that genuinely exist. Be accurate about artist names and track titles.
+Return at most 50 tracks.`;
+
+export function createAiChatPort(settingsService: SettingsService): AiChatPort {
+  return {
+    async generateTracks(prompt: string): Promise<AiTrackSuggestion[]> {
+      const [baseURL, apiKey, model] = await Promise.all([
+        settingsService.getString("AI_BASE_URL", ""),
+        settingsService.getString("AI_API_KEY", ""),
+        settingsService.getString("AI_MODEL", ""),
+      ]);
+
+      if (!baseURL || !apiKey || !model) {
+        throw new AiChatError(
+          "provider-misconfig",
+          "AI_BASE_URL, AI_API_KEY, and AI_MODEL must all be configured in Settings",
+        );
+      }
+
+      const adapter = new OpenAiCompatibleAdapter({ baseURL, apiKey, model });
+      return adapter.generateTracks(prompt);
+    },
+  };
+}
