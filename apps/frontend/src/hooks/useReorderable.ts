@@ -16,13 +16,6 @@ export interface Reorderable {
   moveDown: (index: number, itemCount: number) => void;
 }
 
-/**
- * Owns the reorder state machine shared by the queue surfaces: the dragging /
- * drop-over indices, the reset logic, the `from !== to` guard, and the keyboard
- * move helpers. Each consumer wires its own input modality (native HTML5
- * drag-and-drop, pointer events) to these handlers. Refs mirror the indices so
- * pointer handlers can read the latest value synchronously.
- */
 export function useReorderable(onReorder: ReorderHandler): Reorderable {
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
