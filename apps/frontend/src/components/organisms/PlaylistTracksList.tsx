@@ -5,7 +5,7 @@ import { TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
+import { useBulkTrackStatus } from "@/hooks/queries/useDownloadStatus";
 import { Path } from "@/routes/routes";
 import { Track } from "@/types";
 import { formatDuration } from "@/utils/date";

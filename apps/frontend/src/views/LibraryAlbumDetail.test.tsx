@@ -23,6 +23,10 @@ vi.mock("react-i18next", async (importOriginal) => {
   };
 });
 
+vi.mock("@/hooks/queries/useDownloadStatus", () => ({
+  useBulkTrackStatus: () => new Map(),
+}));
+
 vi.mock("@/components/molecules/SpotifyLinkButton", () => ({
   SpotifyLinkButton: () => null,
 }));

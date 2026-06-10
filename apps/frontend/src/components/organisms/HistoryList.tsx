@@ -4,7 +4,7 @@ import { PlaylistHistory } from "@spotiarr/shared";
 import { FC, memo, MouseEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
+import { useBulkPlaylistStatus } from "@/hooks/queries/useDownloadStatus";
 import { Path } from "@/routes/routes";
 import { type Playlist } from "@/types";
 import { formatRelativeDate } from "@/utils/date";

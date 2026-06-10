@@ -58,7 +58,7 @@ vi.mock("@/hooks/queries/useSearchQuery", () => ({
   }),
 }));
 
-vi.mock("@/contexts/DownloadStatusContext", () => ({
+vi.mock("@/hooks/queries/useDownloadStatus", () => ({
   useBulkPlaylistStatus: () => new Map(),
 }));
 

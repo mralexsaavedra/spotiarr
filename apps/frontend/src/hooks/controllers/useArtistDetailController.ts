@@ -1,7 +1,7 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { usePlaylistDownloaded } from "@/contexts/DownloadStatusContext";
+import { usePlaylistDownloaded } from "@/hooks/queries/useDownloadStatus";
 import { Path } from "@/routes/routes";
 import { isSpotifyUrl } from "@/utils/spotify";
 import { useCreatePlaylistMutation } from "../mutations/useCreatePlaylistMutation";

@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ITrack, NormalizedTrack, TrackStatusEnum } from "@spotiarr/shared";
 import { FC, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
+import { useBulkTrackStatus } from "@/hooks/queries/useDownloadStatus";
 import { Path } from "@/routes/routes";
 import { formatDuration } from "@/utils/date";
 import { isSpotifyUrl } from "@/utils/spotify";
