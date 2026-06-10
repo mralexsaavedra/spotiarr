@@ -390,5 +390,4 @@ export interface UnlockRequestDto {
 
 export interface AuthSessionResponseDto {
   tokenRequired: boolean;
-  authenticated?: boolean;
 }

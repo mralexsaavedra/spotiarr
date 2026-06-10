@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
+export const COOKIE_NAME = "spotiarr_session";
+
 function toBase64url(input: string): string {
   return Buffer.from(input).toString("base64url");
 }

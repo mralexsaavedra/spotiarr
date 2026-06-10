@@ -12,10 +12,7 @@ import { createRoutes } from "./presentation/routes";
 export function createApp(container: Container): Express {
   const app: Express = express();
 
-  const trustProxy = getEnv().SPOTIARR_TRUST_PROXY;
-  if (trustProxy) {
-    app.set("trust proxy", trustProxy);
-  }
+  app.set("trust proxy", getEnv().SPOTIARR_TRUST_PROXY ?? false);
 
   // Security middleware
   app.use(
@@ -40,7 +37,6 @@ export function createApp(container: Container): Express {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Instance auth gate — runs before API router, after body parsing
   app.use(
     ApiRoutes.BASE,
     createRequireTokenMiddleware(() => getEnv().SPOTIARR_TOKEN),

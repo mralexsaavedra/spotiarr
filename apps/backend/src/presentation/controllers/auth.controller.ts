@@ -1,8 +1,8 @@
-import { timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import type { SettingsService } from "@/application/services/settings.service";
-import { signCookie } from "../middleware/cookie";
+import { COOKIE_NAME, signCookie } from "../middleware/cookie";
 
 interface SpotifyAuthPort {
   exchangeCodeForToken(code: string): Promise<void>;
@@ -15,8 +15,6 @@ const SCOPES = [
   "playlist-read-private",
   "playlist-read-collaborative",
 ].join(" ");
-
-const COOKIE_NAME = "spotiarr_session";
 
 const unlockBodySchema = z.object({
   token: z.string().min(1),
@@ -100,11 +98,8 @@ export class AuthController {
     }
 
     const submittedToken = parsed.data.token;
-    const tokenBuf = Buffer.from(token, "utf8");
-    const submittedBuf = Buffer.from(submittedToken, "utf8");
-
-    const match =
-      tokenBuf.length === submittedBuf.length && timingSafeEqual(tokenBuf, submittedBuf);
+    const digest = (s: string) => createHash("sha256").update(s, "utf8").digest();
+    const match = timingSafeEqual(digest(token), digest(submittedToken));
 
     if (!match) {
       res.status(401).json({ error: "invalid_token" });
@@ -116,7 +111,7 @@ export class AuthController {
     const payload = { iat: nowSeconds, exp: nowSeconds + ttlSeconds };
     const cookieValue = signCookie(payload, token);
 
-    const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
+    const isSecure = req.secure;
 
     res.cookie(COOKIE_NAME, cookieValue, {
       httpOnly: true,
@@ -137,6 +132,6 @@ export class AuthController {
       return;
     }
 
-    res.status(200).json({ tokenRequired: true, authenticated: true });
+    res.status(200).json({ tokenRequired: true });
   };
 }

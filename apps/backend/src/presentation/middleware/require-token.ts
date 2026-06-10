@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import { verifyCookie } from "./cookie";
+import { COOKIE_NAME, verifyCookie } from "./cookie";
 
-const COOKIE_NAME = "spotiarr_session";
-
+// GET /auth/session is intentionally NOT here — when a token is set, its 401 is what signals
+// "locked" to the frontend; allowlisting it would let the probe succeed without a cookie.
 const ALLOWLISTED: Array<{ method: string; path: string }> = [
   { method: "POST", path: "/auth/unlock" },
   { method: "GET", path: "/health" },
