@@ -44,8 +44,10 @@ RUN corepack enable && \
 RUN apk add --no-cache ffmpeg python3 curl openssl su-exec shadow || \
     (ffmpeg -version && python3 --version && curl --version)
 
-# Install latest yt-dlp directly from core source for best compatibility
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
+# Install a pinned yt-dlp release for reproducible builds.
+# Bump YTDLP_VERSION to update (kept current via Dependabot/Renovate).
+ARG YTDLP_VERSION=2026.06.09
+RUN curl -L "https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}/yt-dlp" -o /usr/local/bin/yt-dlp && \
     chmod a+rx /usr/local/bin/yt-dlp && \
     yt-dlp --version
 

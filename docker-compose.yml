@@ -49,7 +49,9 @@ services:
     restart: unless-stopped
     command:
       #- "--log.level=DEBUG"
-      - "--api.insecure=true" # Enable Dashboard on 8080
+      # Dashboard is disabled by default. To enable it for local debugging,
+      # add `--api.insecure=true` (and expose port 8080) in docker-compose.override.yml,
+      # or serve it behind a BasicAuth middleware — never expose it unauthenticated in production.
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
