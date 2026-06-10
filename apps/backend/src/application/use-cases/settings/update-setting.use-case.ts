@@ -1,6 +1,7 @@
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import type { EventBus } from "@/domain/events/event-bus";
 import type { SettingsRepository } from "@/domain/repositories/settings.repository";
+import { MASKED_SENTINEL } from "./get-settings.use-case";
 
 export class UpdateSettingUseCase {
   constructor(
@@ -10,6 +11,10 @@ export class UpdateSettingUseCase {
   ) {}
 
   async execute(key: string, value: string): Promise<void> {
+    if (value === MASKED_SENTINEL) {
+      return;
+    }
+
     let finalValue = value;
 
     if (key === "YT_COOKIES") {
