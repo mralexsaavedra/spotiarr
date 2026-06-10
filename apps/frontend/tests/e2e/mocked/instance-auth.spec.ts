@@ -58,7 +58,11 @@ test.describe("SESSION EXPIRED re-lock", () => {
         });
       } else {
         await sessionSentGate;
-        await route.fulfill({ status: 401, contentType: "application/json", body: "{}" });
+        await route.fulfill({
+          status: 401,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "unauthorized" }),
+        });
       }
     });
 
