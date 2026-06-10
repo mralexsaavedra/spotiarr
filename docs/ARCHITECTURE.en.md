@@ -250,6 +250,16 @@ We implement a **fail-fast** strategy and strict data validation.
 
 **Frontend counterpart:** When the backend returns `401`, the React app renders `<TokenGate>` — a full-screen unlock form — instead of the normal UI. Once the cookie is set, the app resumes normally without a page reload.
 
+### 8.2. CORS Policy
+
+**Threat model:** The SPA and API are served by the same Express process, so the app is same-origin and needs no CORS at all. A wildcard `Access-Control-Allow-Origin: *` is therefore pure attack surface, especially for internet-exposed instances.
+
+**Design:**
+
+- **Opt-in, env-gated.** CORS is disabled by default. The `cors()` middleware is mounted only when `SPOTIARR_CORS_ORIGIN` is set; same-origin deployments never see a CORS header.
+- **Explicit allowlist, never wildcard.** `SPOTIARR_CORS_ORIGIN` is a comma-separated list of exact origins, validated at startup to reject `*`. When enabled, CORS runs with `credentials: true` against that allowlist — the `*` + credentials combination is impossible by construction (`buildCorsOptions` also strips any wildcard as defense in depth).
+- **Layer placement.** The allowlist is injected from `container.ts` into the `EventsController` constructor, so the SSE transport mirrors the global policy (echoing the request origin only when allowlisted) without the `presentation/` layer importing `getEnv` — the same R4-respecting pattern as `require-token`.
+
 ## 9. Download Lifecycle
 
 The most critical process of the application works like this:
