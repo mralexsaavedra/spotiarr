@@ -29,26 +29,30 @@ class HttpClient {
       return undefined as unknown as T;
     }
 
+    const text = await response.text();
+    const data = text ? (JSON.parse(text) as unknown) : undefined;
+
+    let errorCode: ApiErrorCode | undefined;
+    let message: string | undefined;
+
+    if (typeof data === "object" && data !== null && "error" in data) {
+      const shape = data as ApiErrorShape;
+      errorCode = shape.error;
+      message = shape.message;
+    }
+
+    // Only the instance-token 401 ("unauthorized") triggers the lock screen.
+    // Other 401s (e.g. "missing_user_access_token" from Spotify) are unrelated
+    // to instance auth and must not force the gate when no token is configured.
     if (
       response.status === 401 &&
+      errorCode === "unauthorized" &&
       !AUTH_ENDPOINTS.some((e) => endpoint === e || endpoint.startsWith(e + "/"))
     ) {
       _onUnauthorized?.();
     }
 
-    const text = await response.text();
-    const data = text ? (JSON.parse(text) as unknown) : undefined;
-
     if (!response.ok) {
-      let errorCode: ApiErrorCode | undefined;
-      let message: string | undefined;
-
-      if (typeof data === "object" && data !== null && "error" in data) {
-        const shape = data as ApiErrorShape;
-        errorCode = shape.error;
-        message = shape.message;
-      }
-
       throw new ApiError(
         message ?? errorCode ?? `API Error: ${response.statusText}`,
         errorCode,
