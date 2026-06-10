@@ -1,5 +1,8 @@
+import { timingSafeEqual } from "crypto";
 import type { Request, Response } from "express";
+import { z } from "zod";
 import type { SettingsService } from "@/application/services/settings.service";
+import { signCookie } from "../middleware/cookie";
 
 interface SpotifyAuthPort {
   exchangeCodeForToken(code: string): Promise<void>;
@@ -13,12 +16,20 @@ const SCOPES = [
   "playlist-read-collaborative",
 ].join(" ");
 
+const COOKIE_NAME = "spotiarr_session";
+
+const unlockBodySchema = z.object({
+  token: z.string().min(1),
+});
+
 export class AuthController {
   constructor(
     private readonly spotifyAuthService: SpotifyAuthPort,
     private readonly settingsService: SettingsService,
     private readonly spotifyClientId: string,
     private readonly spotifyRedirectUri: string,
+    private readonly spotiarrToken: string | undefined,
+    private readonly sessionTtlHours: number,
   ) {}
 
   login = async (_req: Request, res: Response) => {
@@ -72,5 +83,60 @@ export class AuthController {
       success: true,
       message: "Successfully logged out from Spotify",
     });
+  };
+
+  unlock = (req: Request, res: Response): void => {
+    const token = this.spotiarrToken;
+
+    if (!token) {
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const parsed = unlockBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(401).json({ error: "invalid_token" });
+      return;
+    }
+
+    const submittedToken = parsed.data.token;
+    const tokenBuf = Buffer.from(token, "utf8");
+    const submittedBuf = Buffer.from(submittedToken, "utf8");
+
+    const match =
+      tokenBuf.length === submittedBuf.length && timingSafeEqual(tokenBuf, submittedBuf);
+
+    if (!match) {
+      res.status(401).json({ error: "invalid_token" });
+      return;
+    }
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const ttlSeconds = this.sessionTtlHours * 3600;
+    const payload = { iat: nowSeconds, exp: nowSeconds + ttlSeconds };
+    const cookieValue = signCookie(payload, token);
+
+    const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
+
+    res.cookie(COOKIE_NAME, cookieValue, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "lax",
+      path: "/",
+      maxAge: ttlSeconds * 1000,
+    });
+
+    res.status(200).json({ ok: true });
+  };
+
+  session = (_req: Request, res: Response): void => {
+    const token = this.spotiarrToken;
+
+    if (!token) {
+      res.status(200).json({ tokenRequired: false });
+      return;
+    }
+
+    res.status(200).json({ tokenRequired: true, authenticated: true });
   };
 }

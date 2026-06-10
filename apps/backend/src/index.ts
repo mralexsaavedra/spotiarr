@@ -26,6 +26,14 @@ const CIRCUIT_BREAKER_OPEN_UNTIL_KEY = "spotify_circuit_open_until";
 validateEnvironment();
 
 const env = getEnv();
+
+if (env.SPOTIARR_TOKEN && !env.SPOTIARR_TRUST_PROXY) {
+  console.warn(
+    "⚠️  [Auth] SPOTIARR_TOKEN is set but SPOTIARR_TRUST_PROXY is not. " +
+      "The session cookie Secure flag relies on X-Forwarded-Proto — a misconfigured reverse proxy could serve cookies over plaintext.",
+  );
+}
+
 configureSpotifyRateLimiters(env);
 const PORT = 3000;
 

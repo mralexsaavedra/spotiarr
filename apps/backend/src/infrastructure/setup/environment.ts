@@ -130,6 +130,16 @@ const envSchema = z
 
     // System
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
+
+    // Instance auth (optional — unset means auth is disabled)
+    SPOTIARR_TOKEN: z
+      .string()
+      .min(1)
+      .optional()
+      .transform((t) => t?.trim() || undefined),
+    SPOTIARR_SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(8760).default(168),
+    SPOTIARR_UNLOCK_RATELIMIT: z.coerce.number().int().min(1).max(100).default(5),
+    SPOTIARR_TRUST_PROXY: z.string().optional(),
   })
   .transform((data) => {
     // Derived configurations

@@ -4,11 +4,18 @@ import express, { type Express } from "express";
 import helmet from "helmet";
 import path from "path";
 import type { Container } from "./container";
+import { getEnv } from "./infrastructure/setup/environment";
 import { errorHandler } from "./presentation/middleware/error-handler";
+import { createRequireTokenMiddleware } from "./presentation/middleware/require-token";
 import { createRoutes } from "./presentation/routes";
 
 export function createApp(container: Container): Express {
   const app: Express = express();
+
+  const trustProxy = getEnv().SPOTIARR_TRUST_PROXY;
+  if (trustProxy) {
+    app.set("trust proxy", trustProxy);
+  }
 
   // Security middleware
   app.use(
@@ -32,6 +39,12 @@ export function createApp(container: Container): Express {
   // Body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Instance auth gate — runs before API router, after body parsing
+  app.use(
+    ApiRoutes.BASE,
+    createRequireTokenMiddleware(() => getEnv().SPOTIARR_TOKEN),
+  );
 
   // API Routes
   app.use(ApiRoutes.BASE, createRoutes(container));
