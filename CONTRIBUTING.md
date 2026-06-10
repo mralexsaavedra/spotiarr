@@ -290,6 +290,11 @@ This repo is configured for coding agents (Claude Code, Cursor, Copilot, etc.). 
 | No stray `console.log`         | Breaking changes (if any)      |
 | Docs/tests updated when needed | Related issue numbers          |
 
+**PR sizing**
+
+- Keep PRs reviewable. Slices over **400 LOC** are split into chained-to-main PRs by default.
+- `size:exception` is reserved for irreducible atomic refactors that cannot be split without breaking review or correctness—label the PR and justify it in the description.
+
 **Review process**
 
 - Maintainers review and may request tweaks
