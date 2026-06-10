@@ -10,7 +10,7 @@ export function createTrackRoutes(container: Container): ExpressRouter {
 
   router.delete("/:id", asyncHandler(trackController.remove));
 
-  router.get("/retry/:id", asyncHandler(trackController.retry));
+  router.post("/:id/retry", asyncHandler(trackController.retry));
 
   return router;
 }

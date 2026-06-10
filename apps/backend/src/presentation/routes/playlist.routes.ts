@@ -46,9 +46,9 @@ export function createPlaylistRoutes(container: Container): ExpressRouter {
   // DELETE /api/playlist/:id - Delete playlist
   router.delete("/:id", validate(playlistIdSchema), asyncHandler(playlistController.remove));
 
-  // GET /api/playlist/retry/:id - Retry failed tracks
-  router.get(
-    "/retry/:id",
+  // POST /api/playlist/:id/retry - Retry failed tracks
+  router.post(
+    "/:id/retry",
     validate(playlistIdSchema),
     asyncHandler(playlistController.retryFailedOfPlaylist),
   );
