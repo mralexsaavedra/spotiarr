@@ -5,12 +5,14 @@ import { getEnv } from "../setup/environment";
 export const FEED_SYNC_QUEUE = "feed-sync-queue";
 export const CATALOG_SYNC_QUEUE = "catalog-sync-queue";
 export const ARTWORK_BACKFILL_QUEUE = "artwork-backfill-queue";
+export const AI_PLAYLIST_QUEUE = "ai-playlist-processor";
 
 let trackDownloadQueue: Queue;
 let trackSearchQueue: Queue;
 let feedSyncQueue: Queue;
 let catalogSyncQueue: Queue;
 let artworkBackfillQueue: Queue;
+let aiPlaylistQueue: Queue;
 
 export function initializeQueues(): void {
   const env = getEnv();
@@ -54,6 +56,13 @@ export function initializeQueues(): void {
     },
   });
 
+  aiPlaylistQueue = new Queue(AI_PLAYLIST_QUEUE, {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: true,
+    },
+  });
+
   console.log("✅ BullMQ queues initialized");
 }
 
@@ -90,4 +99,11 @@ export function getArtworkBackfillQueue(): Queue {
     throw new AppError(500, "internal_server_error", "Artwork backfill queue not initialized");
   }
   return artworkBackfillQueue;
+}
+
+export function getAiPlaylistQueue(): Queue {
+  if (!aiPlaylistQueue) {
+    throw new AppError(500, "internal_server_error", "AI playlist queue not initialized");
+  }
+  return aiPlaylistQueue;
 }
