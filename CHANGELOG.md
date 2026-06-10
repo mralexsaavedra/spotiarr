@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.15.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.14.0...v1.15.0) (2026-06-10)
+
+### Features
+
+- **Instance authentication**: Optionally password-protect your entire SpotiArr instance with a single token so it can be safely exposed to the internet (Pangolin, Cloudflare Tunnel, Tailscale, or any reverse proxy). Set `SPOTIARR_TOKEN` to gate the whole app behind a login screen; leave it unset to keep open LAN-only access with no behavior change. Includes a configurable session lifetime (`SPOTIARR_SESSION_TTL_HOURS`), unlock rate limiting (`SPOTIARR_UNLOCK_RATELIMIT`), and reverse-proxy trust (`SPOTIARR_TRUST_PROXY`). ([#114](https://github.com/mralexsaavedra/spotiarr/pull/114))
+
 ## [1.14.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.13.2...v1.14.0) (2026-06-09)
 
 ### Features
