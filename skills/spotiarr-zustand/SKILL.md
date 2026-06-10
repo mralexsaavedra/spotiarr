@@ -54,7 +54,17 @@ Use bulk hooks in list components to avoid per-item store subscriptions.
 - The single `<audio>` element is owned by `GlobalPlayerBar` and bound via `setAudioElement`; internal handlers (`_onTimeUpdate`, `_onEnded`, etc.) are wired by the bar and not called from controllers.
 - **Dispatch pattern**: page controllers build a `QueueItem[]` snapshot from their domain data (normalizing source DTO fields like `trackUrl` or `audioUrl` to `QueueItem.audioUrl`) and call `playQueue(items, startIndex)`.
 - **Shared binding hook**: use `usePlayerQueueBinding(queueItems)` (`apps/frontend/src/hooks/usePlayerQueueBinding.ts`) to read `{ currentTrackId, isPlaying, hasPlayableTracks, playFromIndex, onPlayTrack, onPauseTrack }`. Do not subscribe to the same selectors manually in new controllers.
-- **Approved exception** to the 2-store convention; rationale recorded in the store file header and the `sdd/global-player-bar/proposal` SDD artifact.
+- **Approved exception** to the prior store-count convention; rationale recorded in the store file header and the `sdd/global-player-bar/proposal` SDD artifact.
+
+### Auth gate — ephemeral React state (not a store)
+
+`useTokenGate` (`apps/frontend/src/hooks/controllers/useTokenGate.ts`) deliberately uses local `useState`, not a 4th Zustand store:
+
+- One-time startup concern; no component outside `TokenGate` needs to subscribe to it.
+- Ephemeral by design — "unlocked" must not survive a page reload (a store with `persist` would break this).
+- Preserves the 3-store ceiling without a documented proposal.
+
+Promoting it to a store requires a written SDD proposal.
 
 ## Adding State
 

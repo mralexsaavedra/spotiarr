@@ -15,6 +15,8 @@ Load when running commands, validating changes, creating PRs, managing branches,
 
 - CI runs lint, tests, and build as separate jobs. Automated tests cover backend and frontend utilities.
 - Never commit `.env`, tokens, or credentials. Use `.env.example` as source of truth.
+- `SPOTIARR_TOKEN` (instance auth token) is a secret — treat like a password, never hardcode or log it. Generate with `openssl rand -base64 32`.
+- Cover new code with tests — services, query/mutation hooks, components, middleware, and utils all get unit tests. The absence of a sibling test is NOT a reason to skip; being the first test of its kind is fine.
 - Never bypass pre-commit hooks (`--no-verify` is forbidden).
 - External services required locally: **Redis**, **FFmpeg**, **yt-dlp**, **Python 3.11/3.12**.
 

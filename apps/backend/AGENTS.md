@@ -37,7 +37,7 @@ src/
 │   └── setup/           environment.ts, prisma.ts, queues.ts
 └── presentation/
     ├── controllers/     artist, auth, events, feed, health, history, library, playlist, search, settings, track
-    ├── middleware/      async-handler.ts, error-handler.ts, validate.ts
+    ├── middleware/      async-handler.ts, cookie.ts, error-handler.ts, require-token.ts, validate.ts
     └── routes/          *.routes.ts + schemas/
 ```
 
@@ -49,6 +49,8 @@ src/
 - Never let Prisma errors escape to the presentation layer — map them in the repository.
 - SSE events emitted via `infrastructure/messaging/app-event-bus.ts`, never directly from controllers.
 - Environment access through `getEnv()` from `infrastructure/setup/environment.ts` — never `process.env` directly.
+- Instance token auth: `createRequireTokenMiddleware` is mounted at `ApiRoutes.BASE` before the API router. Public routes must be added to the allowlist in `presentation/middleware/require-token.ts` (currently POST /auth/unlock, GET /health, GET /auth/spotify/callback). GET /auth/session is intentionally NOT allowlisted.
+- `app.set("trust proxy", ...)` is driven by `SPOTIARR_TRUST_PROXY`; it MUST be set behind a reverse proxy or `req.secure` (cookie Secure flag) and `req.ip` (rate-limit bucket) break.
 
 ## Validation
 

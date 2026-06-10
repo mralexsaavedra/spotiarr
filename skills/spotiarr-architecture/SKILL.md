@@ -29,6 +29,7 @@ Backend — where does it go?
   Use-case orchestration?            → application/
   DB, queues, APIs, filesystem?      → infrastructure/
   HTTP routes, controllers, SSE?     → presentation/
+  Cross-cutting request guards?      → presentation/middleware/
 
 Frontend — where does it go?
   UI rendering / composition?        → components/
@@ -36,6 +37,7 @@ Frontend — where does it go?
   View logic / orchestration?        → hooks/
   Remote fetch / mutate?             → services/ + hooks/queries|mutations
   App-wide client state?             → store/
+  Ephemeral gate/overlay state?      → local useState in the controller hook (NOT a Zustand store; see useTokenGate)
 
 Cross-cutting types / utils?         → packages/shared/
 ```
@@ -44,3 +46,5 @@ Cross-cutting types / utils?         → packages/shared/
 
 - DI container: `apps/backend/src/container.ts`
 - Store pattern: `apps/frontend/src/store/`
+- Request guards: `apps/backend/src/presentation/middleware/`
+- Auth gate hook: `apps/frontend/src/hooks/controllers/useTokenGate.ts`

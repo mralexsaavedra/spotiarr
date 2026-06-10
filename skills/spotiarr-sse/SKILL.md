@@ -17,6 +17,7 @@ Load when adding real-time updates, emitting new SSE events, or extending `useSe
 - `useServerEvents` reacts to events by **invalidating TanStack Query caches** — NOT by writing to Zustand stores.
 - No reconnection logic exists — if needed, add it inside `useServerEvents`, nowhere else.
 - Backend: emit SSE events via `infrastructure/messaging/app-event-bus.ts` only. Never emit from controllers directly.
+- `useServerEvents` must stay mounted inside the authenticated subtree under `<TokenGate>` (currently `AuthenticatedApp` in App.tsx). The `/api/events` SSE endpoint is gated by `require-token`; mounting SSE before unlock produces 401s. Never hoist `useServerEvents` above `<TokenGate>`.
 
 ## Event Contracts
 

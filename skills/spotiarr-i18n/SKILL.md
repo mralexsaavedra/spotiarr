@@ -22,6 +22,7 @@ Load when adding/modifying translations, working with i18n keys, or adding a new
 - Nested dot-notation: `common.loading`, `common.errors.pageNotFound`, `common.trackStatus.error`
 - Interpolation keys: `common.dates.todayAt` → `t("common.dates.todayAt", { time: "14:30" })`
 - camelCase key names: `downloadAll`, `clearAll`, `openInSpotify`
+- Top-level groups beyond `common` exist (e.g. `instanceAuth`, `player`, `settings`) — check `src/locales/en.json` for the current group list before adding a new top-level key.
 
 ## Decision Gates
 
