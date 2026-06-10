@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { authService } from "@/services/auth.service";
 import { clearUnauthorizedHandler, setUnauthorizedHandler } from "@/services/httpClient";
 
-type GatePhase = "checking" | "locked" | "unlocked";
+type GatePhase = "checking" | "locked" | "unlocked" | "error";
 
 const MAX_PROBE_ATTEMPTS = 5;
 const PROBE_RETRY_DELAY_MS = 1000;
@@ -42,8 +42,9 @@ export const useTokenGate = () => {
           }
           if (attempt < MAX_PROBE_ATTEMPTS) {
             retryTimeout = setTimeout(() => probe(attempt + 1), PROBE_RETRY_DELAY_MS);
+            return;
           }
-          // all retries exhausted: stay in "checking" — never auto-unlock
+          setPhase("error");
         });
     };
 

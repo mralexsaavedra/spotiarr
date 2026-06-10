@@ -369,7 +369,10 @@
     "loadingButton": "Unlocking...",
     "invalidToken": "Invalid token. Please try again.",
     "rateLimited": "Too many attempts. Please wait a moment before trying again.",
-    "sessionExpired": "Your session has expired. Please enter the token again."
+    "sessionExpired": "Your session has expired. Please enter the token again.",
+    "connectionErrorTitle": "Cannot connect",
+    "connectionErrorMessage": "Could not reach the SpotiArr server. Check that it is running and try again.",
+    "reloadButton": "Retry"
   },
   "player": {
     "queue": {

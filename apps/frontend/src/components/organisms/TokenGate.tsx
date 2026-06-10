@@ -34,6 +34,30 @@ export const TokenGate: FC<TokenGateProps> = ({ children }) => {
   if (phase === "checking") return null;
   if (phase === "unlocked") return <>{children}</>;
 
+  if (phase === "error") {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <div className="bg-background-elevated w-full max-w-sm space-y-6 rounded-lg border border-white/10 p-8 text-center">
+          <div className="space-y-2">
+            <h1 className="text-text-primary text-xl font-bold">
+              {t("instanceAuth.connectionErrorTitle")}
+            </h1>
+            <p className="text-text-secondary text-sm">
+              {t("instanceAuth.connectionErrorMessage")}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="bg-primary hover:bg-primary/90 w-full rounded-md px-4 py-2 text-sm font-medium text-white transition-colors"
+          >
+            {t("instanceAuth.reloadButton")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const message = error ?? (sessionExpired ? t("instanceAuth.sessionExpired") : null);
 
   return (
