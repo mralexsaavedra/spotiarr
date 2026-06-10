@@ -26,7 +26,7 @@ describe("setUnauthorizedHandler / clearUnauthorizedHandler", () => {
   it("registers a handler that is called on 401 non-auth endpoint", async () => {
     const handler = vi.fn();
     setUnauthorizedHandler(handler);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401)));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401, { error: "unauthorized" })));
 
     await expect(httpClient.get("/playlists")).rejects.toBeInstanceOf(ApiError);
     expect(handler).toHaveBeenCalledTimes(1);
@@ -36,7 +36,7 @@ describe("setUnauthorizedHandler / clearUnauthorizedHandler", () => {
     const handler = vi.fn();
     setUnauthorizedHandler(handler);
     clearUnauthorizedHandler();
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401)));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401, { error: "unauthorized" })));
 
     await expect(httpClient.get("/playlists")).rejects.toBeInstanceOf(ApiError);
     expect(handler).not.toHaveBeenCalled();
@@ -51,12 +51,36 @@ describe("401 handling", () => {
   it("fires the handler and throws ApiError(401) for non-auth endpoint", async () => {
     const handler = vi.fn();
     setUnauthorizedHandler(handler);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401)));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401, { error: "unauthorized" })));
 
     await expect(httpClient.get("/playlists")).rejects.toMatchObject({
       status: 401,
     });
     expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT fire handler on 401 with a non-instance error code", async () => {
+    const handler = vi.fn();
+    setUnauthorizedHandler(handler);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(makeResponse(401, { error: "missing_user_access_token" })),
+    );
+
+    await expect(httpClient.get("/artists/followed")).rejects.toMatchObject({
+      status: 401,
+      code: "missing_user_access_token",
+    });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("does NOT fire handler on 401 with no error body", async () => {
+    const handler = vi.fn();
+    setUnauthorizedHandler(handler);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401)));
+
+    await expect(httpClient.get("/playlists")).rejects.toBeInstanceOf(ApiError);
+    expect(handler).not.toHaveBeenCalled();
   });
 
   it("does NOT fire handler on 401 for /auth/session", async () => {
@@ -80,7 +104,7 @@ describe("401 handling", () => {
   it("fires onUnauthorized for /auth/sessionXYZ (not a real auth endpoint)", async () => {
     const handler = vi.fn();
     setUnauthorizedHandler(handler);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401)));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeResponse(401, { error: "unauthorized" })));
 
     await expect(httpClient.get("/auth/sessionXYZ")).rejects.toBeInstanceOf(ApiError);
     expect(handler).toHaveBeenCalledTimes(1);
