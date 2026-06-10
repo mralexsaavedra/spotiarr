@@ -1,4 +1,8 @@
-import { PlaylistTypeEnum, type AiPlaylistProgressEvent } from "@spotiarr/shared";
+import {
+  PlaylistTypeEnum,
+  type AiPlaylistProgressEvent,
+  type AiPlaylistStage,
+} from "@spotiarr/shared";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { AiChatPort, AiTrackSuggestion } from "@/application/ports/ai-chat.port";
 import { AiChatError } from "@/domain/errors/ai-chat.error";
@@ -55,10 +59,13 @@ describe("GenerateAiPlaylistUseCase", () => {
       expect(deps.trackService.create).toHaveBeenCalledTimes(2);
 
       const stages = deps.onProgress.mock.calls.map((c) => c[0].stage);
-      expect(stages).toContain("llm");
-      expect(stages).toContain("validating");
-      expect(stages).toContain("saving");
-      expect(stages).toContain("done");
+      const firstIndexOf = (stage: AiPlaylistStage) => stages.indexOf(stage);
+      expect(firstIndexOf("llm")).toBeGreaterThanOrEqual(0);
+      expect(firstIndexOf("llm")).toBeLessThan(firstIndexOf("validating"));
+      expect(firstIndexOf("validating")).toBeLessThan(firstIndexOf("saving"));
+      expect(firstIndexOf("saving")).toBeLessThan(firstIndexOf("done"));
+
+      expect(deps.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
 
       const doneEvent = deps.onProgress.mock.calls.find((c) => c[0].stage === "done")?.[0];
       expect(doneEvent?.resolvedCount).toBe(2);
