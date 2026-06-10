@@ -1,5 +1,6 @@
 import { PlaylistTypeEnum } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { Playlist } from "@/domain/entities/playlist.entity";
 import { AppError } from "@/domain/errors/app-error";
 import { CreatePlaylistUseCase } from "./create-playlist.use-case";
@@ -732,6 +733,62 @@ describe("CreatePlaylistUseCase — executePlaylistTrack branch", () => {
     });
 
     const savedArg = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedArg.toPrimitive().subscribed).toBe(true);
+  });
+});
+
+describe("CreatePlaylistUseCase — SettingsPort seam", () => {
+  it("is constructable with a FakeSettingsPort and auto-subscribes when getBoolean returns true", async () => {
+    const store = new Map<string, boolean>([["AUTO_SUBSCRIBE_NEW_PLAYLISTS", true]]);
+    const fakeSettings: SettingsPort = {
+      getString: async () => "",
+      getNumber: async () => 0,
+      getBoolean: async (key) => store.get(key) ?? false,
+    };
+
+    const savedEntity = new Playlist({
+      id: "pl-1",
+      spotifyUrl: "spotiarr://album/artist-1/album-1",
+      type: PlaylistTypeEnum.Album,
+    });
+
+    const playlistRepository = {
+      findAll: vi.fn().mockResolvedValue([]),
+      save: vi.fn().mockResolvedValue(savedEntity),
+    };
+    const spotifyService = { getPlaylistDetail: vi.fn(), getPlaylistMetadata: vi.fn() };
+    const trackService = { create: vi.fn(), getAllByPlaylist: vi.fn() };
+    const eventBus = { emit: vi.fn(), on: vi.fn() };
+    const getAlbumTracksUseCase = {
+      execute: vi
+        .fn()
+        .mockResolvedValue([{ name: "T1", artist: "A", trackNumber: 1, durationMs: 1000 }]),
+    };
+    const feedRepository = {
+      getArtistByAnyId: vi.fn().mockResolvedValue(null),
+      getArtistAlbumWithArtist: vi.fn().mockResolvedValue({
+        albumName: "Album",
+        artistName: "Artist",
+        coverUrl: undefined,
+      }),
+      getArtistReleaseWithArtist: vi.fn().mockResolvedValue(null),
+    };
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const useCase = new CreatePlaylistUseCase(
+      playlistRepository as any,
+      spotifyService as any,
+      trackService as any,
+      fakeSettings,
+      eventBus as any,
+      getAlbumTracksUseCase as any,
+      feedRepository as any,
+    );
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    await useCase.execute({ kind: "album", artistId: "artist-1", albumId: "album-1" });
+
+    const savedArg = playlistRepository.save.mock.calls[0]?.[0] as Playlist;
     expect(savedArg.toPrimitive().subscribed).toBe(true);
   });
 });

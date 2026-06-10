@@ -1,5 +1,5 @@
 import { NormalizedTrack } from "@spotiarr/shared";
-import { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper } from "@/domain/helpers/spotify-url.helper";
 import { getErrorMessage } from "../utils/error.utils";
@@ -24,7 +24,7 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
 
   constructor(
     authService: SpotifyAuthService,
-    settingsService: SettingsService,
+    settingsService: SettingsPort,
     private readonly trackClient: SpotifyTrackClient,
     private readonly albumClient: SpotifyAlbumClient,
     requestCache: PromiseCache,
@@ -34,9 +34,7 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
     this.requestCache = requestCache;
   }
 
-  async getPlaylistMetadata(
-    spotifyUrl: string,
-  ): Promise<{
+  async getPlaylistMetadata(spotifyUrl: string): Promise<{
     name: string;
     image: string;
     owner: string;

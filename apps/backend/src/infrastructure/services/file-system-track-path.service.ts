@@ -2,11 +2,11 @@ import type { ITrack } from "@spotiarr/shared";
 import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "path";
 import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
-import { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { getEnv } from "../setup/environment";
 
 export class FileSystemTrackPathService implements FileSystemTrackPathPort {
-  constructor(private readonly settingsService: SettingsService) {}
+  constructor(private readonly settingsService: SettingsPort) {}
 
   /**
    * Get the base music library path

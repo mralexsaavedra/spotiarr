@@ -218,7 +218,7 @@ export function createContainer(env: Env) {
   let spotifyFollowedArtistsService: SpotifyFollowedArtistsService | null = null;
   let spotifyFollowedArtistsSyncService: SpotifyFollowedArtistsService | null = null;
 
-  const spotifyAuthService = SpotifyAuthService.getInstance(settingsService, () => {
+  const spotifyAuthService = new SpotifyAuthService(settingsService, () => {
     spotifyUserLibraryService?.clearCache();
     spotifyUserLibrarySyncService?.clearCache();
   });

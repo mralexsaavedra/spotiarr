@@ -1,5 +1,5 @@
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyUrlLookupPort } from "@/application/ports/spotify-url-lookup.port";
-import { SettingsService } from "@/application/services/settings.service";
 import { SpotifyAuthService } from "../../spotify-auth.service";
 import { SpotifyBaseClient } from "../../spotify-base.client";
 
@@ -13,7 +13,7 @@ import { SpotifyBaseClient } from "../../spotify-base.client";
  * All Spotify calls are routed through the existing CircuitBreaker via SpotifyBaseClient.
  */
 export class SpotifyUrlLookupClient extends SpotifyBaseClient implements SpotifyUrlLookupPort {
-  constructor(authService: SpotifyAuthService, settingsService: SettingsService) {
+  constructor(authService: SpotifyAuthService, settingsService: SettingsPort) {
     super(authService, settingsService, "SpotifyUrlLookupClient", "interactive");
   }
 

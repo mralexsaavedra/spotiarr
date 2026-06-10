@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { TokenStorePort } from "@/application/ports/token-store.port";
 import { AppError } from "@/domain/errors/app-error";
 import { validateEnvironment } from "@/infrastructure/setup/environment";
 import { SpotifyAuthService } from "./spotify-auth.service";
@@ -26,7 +26,7 @@ describe("SpotifyAuthService invalidation", () => {
     getString: vi.fn(),
     setString: vi.fn(),
     delete: vi.fn(),
-  } as unknown as SettingsService;
+  } as unknown as TokenStorePort;
 
   let service: SpotifyAuthService;
 
@@ -108,5 +108,43 @@ describe("SpotifyAuthService invalidation", () => {
 
     await expect(service.exchangeCodeForToken("bad-code")).rejects.toBeInstanceOf(AppError);
     expect(invalidateUserLibraryCache).not.toHaveBeenCalled();
+  });
+});
+
+describe("SpotifyAuthService instance isolation", () => {
+  it("two instances do not share state", async () => {
+    const storeA = new Map<string, string>();
+    const storeB = new Map<string, string>();
+
+    const fakeStoreA: TokenStorePort = {
+      getString: async (key) => storeA.get(key) ?? "",
+      setString: async (key, val) => {
+        storeA.set(key, val);
+      },
+      delete: async (key) => {
+        storeA.delete(key);
+      },
+    };
+    const fakeStoreB: TokenStorePort = {
+      getString: async (key) => storeB.get(key) ?? "",
+      setString: async (key, val) => {
+        storeB.set(key, val);
+      },
+      delete: async (key) => {
+        storeB.delete(key);
+      },
+    };
+
+    const instanceA = new SpotifyAuthService(fakeStoreA);
+    const instanceB = new SpotifyAuthService(fakeStoreB);
+
+    await fakeStoreA.setString("some_key", "value-from-A");
+
+    const fromB = await instanceB["tokenStore"].getString("some_key");
+    expect(fromB).toBe("");
+    expect(storeA.get("some_key")).toBe("value-from-A");
+    expect(storeB.get("some_key")).toBeUndefined();
+
+    void instanceA;
   });
 });

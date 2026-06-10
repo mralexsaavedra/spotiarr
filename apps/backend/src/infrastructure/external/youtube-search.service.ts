@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import { join } from "path";
 import { promisify } from "util";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { YOUTUBE_USER_AGENT } from "./youtube.constants";
 
@@ -13,7 +13,7 @@ export class YoutubeSearchService {
   private readonly ytDlpPath: string;
   private lastSearchTime: number = 0;
 
-  constructor(private readonly settingsService: SettingsService) {
+  constructor(private readonly settingsService: SettingsPort) {
     // Auto-detect yt-dlp path from system PATH
     try {
       const systemPath = execSync("which yt-dlp", {

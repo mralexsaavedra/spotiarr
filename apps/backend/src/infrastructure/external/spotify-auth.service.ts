@@ -1,4 +1,4 @@
-import { SettingsService } from "@/application/services/settings.service";
+import type { TokenStorePort } from "@/application/ports/token-store.port";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 import { getErrorMessage } from "../utils/error.utils";
@@ -9,28 +9,14 @@ interface SpotifyTokenResponse {
 }
 
 export class SpotifyAuthService {
-  private static instance: SpotifyAuthService | null = null;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
   private appTokenPromise: Promise<string> | null = null;
 
   constructor(
-    private readonly settingsService: SettingsService,
+    private readonly tokenStore: TokenStorePort,
     private readonly invalidateUserLibraryCache: () => void = () => {},
   ) {}
-
-  static getInstance(
-    settingsService: SettingsService,
-    invalidateUserLibraryCache?: () => void,
-  ): SpotifyAuthService {
-    if (!SpotifyAuthService.instance) {
-      SpotifyAuthService.instance = new SpotifyAuthService(
-        settingsService,
-        invalidateUserLibraryCache,
-      );
-    }
-    return SpotifyAuthService.instance;
-  }
 
   private log(message: string, level: "debug" | "error" | "warn" = "debug") {
     const prefix = `[SpotifyAuthService]`;
@@ -107,7 +93,7 @@ export class SpotifyAuthService {
     // Check settings first (database persistence)
     let fromSettings: string | undefined;
     try {
-      fromSettings = await this.settingsService.getString(accessTokenKey);
+      fromSettings = await this.tokenStore.getString(accessTokenKey);
     } catch {
       fromSettings = undefined;
     }
@@ -131,7 +117,7 @@ export class SpotifyAuthService {
       const refreshTokenKey = "spotify_user_refresh_token";
       const accessTokenKey = "spotify_user_access_token";
 
-      const refreshToken = await this.settingsService.getString(refreshTokenKey);
+      const refreshToken = await this.tokenStore.getString(refreshTokenKey);
       if (!refreshToken) {
         this.log("No Spotify user refresh token available to refresh access token", "warn");
         return false;
@@ -178,10 +164,10 @@ export class SpotifyAuthService {
         scope?: string;
       };
 
-      await this.settingsService.setString(accessTokenKey, data.access_token);
+      await this.tokenStore.setString(accessTokenKey, data.access_token);
 
       if (data.refresh_token) {
-        await this.settingsService.setString(refreshTokenKey, data.refresh_token);
+        await this.tokenStore.setString(refreshTokenKey, data.refresh_token);
       }
 
       this.invalidateUserLibraryCache();
@@ -234,10 +220,10 @@ export class SpotifyAuthService {
       token_type: string;
     };
 
-    await this.settingsService.setString("spotify_user_access_token", data.access_token);
+    await this.tokenStore.setString("spotify_user_access_token", data.access_token);
 
     if (data.refresh_token) {
-      await this.settingsService.setString("spotify_user_refresh_token", data.refresh_token);
+      await this.tokenStore.setString("spotify_user_refresh_token", data.refresh_token);
     }
 
     this.invalidateUserLibraryCache();
@@ -245,8 +231,8 @@ export class SpotifyAuthService {
 
   async logout(): Promise<void> {
     try {
-      await this.settingsService.delete("spotify_user_access_token");
-      await this.settingsService.delete("spotify_user_refresh_token");
+      await this.tokenStore.delete("spotify_user_access_token");
+      await this.tokenStore.delete("spotify_user_refresh_token");
       this.invalidateUserLibraryCache();
       this.log("Successfully logged out from Spotify");
     } catch (error) {

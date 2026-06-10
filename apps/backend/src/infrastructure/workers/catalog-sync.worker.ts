@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
 import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
-import type { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { getContainer } from "@/container";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { getEnv } from "../setup/environment";
@@ -11,7 +11,7 @@ export interface CatalogSyncJobDependencies {
   feedRepository: FeedRepositoryPort;
   releaseFeedService: ReleaseFeedPort;
   eventBus: AppEventBus;
-  settingsService: SettingsService;
+  settingsService: SettingsPort;
 }
 
 const CATALOG_SYNC_TTL_DAYS = 7;

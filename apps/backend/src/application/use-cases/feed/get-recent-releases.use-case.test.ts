@@ -2,8 +2,8 @@ import type { ArtistRelease, FollowedArtist } from "@spotiarr/shared";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { FeedRepositoryPort } from "@/application/ports/feed-repository.port";
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
-import type { SettingsService } from "@/application/services/settings.service";
 import { GetRecentReleasesUseCase } from "./get-recent-releases.use-case";
 
 function makeArtist(overrides: Partial<FollowedArtist> = {}): FollowedArtist {
@@ -47,7 +47,7 @@ function makeDeps() {
 
   const settingsService = {
     getNumber: vi.fn().mockResolvedValue(30),
-  } as unknown as SettingsService;
+  } as unknown as SettingsPort;
 
   return { feedRepository, spotifyUserLibraryService, releaseFeedService, settingsService };
 }

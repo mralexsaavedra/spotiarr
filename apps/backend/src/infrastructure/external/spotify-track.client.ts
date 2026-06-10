@@ -1,5 +1,5 @@
 import { NormalizedTrack } from "@spotiarr/shared";
-import { SettingsService } from "@/application/services/settings.service";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
 import { PromiseCache } from "./promise-cache";
@@ -14,7 +14,7 @@ export class SpotifyTrackClient extends SpotifyBaseClient {
 
   constructor(
     authService: SpotifyAuthService,
-    settingsService: SettingsService,
+    settingsService: SettingsPort,
     limiterMode: SpotifyLimiterMode = "interactive",
     requestCache?: PromiseCache,
   ) {
