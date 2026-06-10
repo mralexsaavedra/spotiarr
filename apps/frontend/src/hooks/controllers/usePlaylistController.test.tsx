@@ -53,7 +53,7 @@ vi.mock("../mutations/useDeletePlaylistMutation", () => ({
   }),
 }));
 
-vi.mock("@/contexts/DownloadStatusContext", () => ({
+vi.mock("@/hooks/queries/useDownloadStatus", () => ({
   usePlaylistDownloading: () => false,
   usePlaylistDownloaded: () => false,
 }));

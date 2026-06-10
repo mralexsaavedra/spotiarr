@@ -1,7 +1,7 @@
 import { PlaylistPreview, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
+import { useBulkTrackStatus } from "@/hooks/queries/useDownloadStatus";
 import { playlistService } from "@/services/playlist.service";
 import { PlaylistWithStats } from "@/types";
 import { Track } from "@/types";

@@ -2,7 +2,7 @@ import { NormalizedTrack, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/sh
 import { useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { APP_CONFIG } from "@/config/app";
-import { useBulkTrackStatus } from "@/contexts/DownloadStatusContext";
+import { useBulkTrackStatus } from "@/hooks/queries/useDownloadStatus";
 import { PlaylistWithStats, Track } from "@/types";
 import { buildZeroStats } from "@/utils/playlist";
 import { useAlbumTracksQuery } from "../queries/useAlbumTracksQuery";

@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { ToastContainer } from "@/components/organisms/ToastContainer";
 import { TokenGate } from "@/components/organisms/TokenGate";
 import { APP_VERSION } from "@/config/version";
-import { DownloadStatusProvider } from "@/contexts/DownloadStatusContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useLanguageSync } from "@/hooks/useLanguageSync";
 import { useServerEvents } from "@/hooks/useServerEvents";
@@ -18,10 +17,8 @@ const AuthenticatedApp: FC = () => {
 
   return (
     <ToastProvider>
-      <DownloadStatusProvider>
-        <ToastContainer />
-        <Routing pathname={pathname as Path} version={version} />
-      </DownloadStatusProvider>
+      <ToastContainer />
+      <Routing pathname={pathname as Path} version={version} />
     </ToastProvider>
   );
 };

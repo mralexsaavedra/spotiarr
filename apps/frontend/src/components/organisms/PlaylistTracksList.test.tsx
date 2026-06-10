@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Track } from "@/types";
 import { PlaylistTracksList } from "./PlaylistTracksList";
 
-vi.mock("@/contexts/DownloadStatusContext", () => ({
+vi.mock("@/hooks/queries/useDownloadStatus", () => ({
   useBulkTrackStatus: () => new Map<string, TrackStatusEnum>(),
 }));
 

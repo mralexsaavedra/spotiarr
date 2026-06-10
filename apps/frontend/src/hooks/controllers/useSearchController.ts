@@ -2,9 +2,9 @@ import { NormalizedTrack, isDeezerUrl, extractDeezerTrackId } from "@spotiarr/sh
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TopResultItem } from "@/components/molecules/SearchTopResultCard";
-import { useBulkPlaylistStatus } from "@/contexts/DownloadStatusContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useCreatePlaylistMutation } from "@/hooks/mutations/useCreatePlaylistMutation";
+import { useBulkPlaylistStatus } from "@/hooks/queries/useDownloadStatus";
 import { useSearchQuery } from "@/hooks/queries/useSearchQuery";
 import { Path } from "@/routes/routes";
 import { isSpotifyUrl } from "@/utils/spotify";

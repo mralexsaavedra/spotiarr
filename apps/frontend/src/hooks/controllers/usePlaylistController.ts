@@ -1,7 +1,7 @@
 import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePlaylistDownloaded, usePlaylistDownloading } from "@/contexts/DownloadStatusContext";
+import { usePlaylistDownloaded, usePlaylistDownloading } from "@/hooks/queries/useDownloadStatus";
 import { Playlist, PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
 import { formatPlaylistTitle } from "@/utils/playlist";
