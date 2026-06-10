@@ -25,4 +25,5 @@ export const queryKeys = {
   libraryArtistDetail: (name: string) => ["library", "artist", name] as const,
   search: (query: string, types: string[], limit: number) =>
     ["search", query, types, limit] as const,
+  authSession: ["auth", "session"] as const,
 } as const;

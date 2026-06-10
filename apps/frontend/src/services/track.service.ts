@@ -11,7 +11,7 @@ export const trackService = {
   },
 
   retryTrack: async (id: string): Promise<void> => {
-    return httpClient.get<void>(`${ApiRoutes.TRACK}/retry/${id}`);
+    return httpClient.post<void>(`${ApiRoutes.TRACK}/${id}/retry`);
   },
 
   deleteTrack: async (id: string): Promise<void> => {

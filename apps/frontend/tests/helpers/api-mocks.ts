@@ -542,6 +542,63 @@ export async function installArtistMocks(
   await registerJsonRoute(page, `${ApiRoutes.ARTIST}/${artistId}/albums/**/tracks`, tracks);
 }
 
+export async function mockAuthSession(
+  page: Page,
+  { tokenRequired }: { tokenRequired: boolean },
+): Promise<void> {
+  await page.route(`**${buildApiUrl(ApiRoutes.AUTH_SESSION)}`, async (route) => {
+    await fulfillJson(route, { tokenRequired });
+  });
+}
+
+export async function mockAuthSessionUnauthorized(page: Page): Promise<void> {
+  await page.route(`**${buildApiUrl(ApiRoutes.AUTH_SESSION)}`, async (route) => {
+    await route.fulfill({ status: 401, contentType: "application/json", body: "{}" });
+  });
+}
+
+export async function mockAuthSessionError(page: Page, status = 500): Promise<void> {
+  await page.route(`**${buildApiUrl(ApiRoutes.AUTH_SESSION)}`, async (route) => {
+    await route.fulfill({ status, contentType: "application/json", body: "{}" });
+  });
+}
+
+export async function mockAuthUnlock(
+  page: Page,
+  { status = 200 }: { status?: number } = {},
+): Promise<void> {
+  await page.route(`**${buildApiUrl(ApiRoutes.AUTH_UNLOCK)}`, async (route) => {
+    if (status === 200) {
+      await fulfillJson(route, { ok: true });
+    } else {
+      await route.fulfill({ status, contentType: "application/json", body: "{}" });
+    }
+  });
+}
+
+export async function mockLockedThenUnlock(page: Page): Promise<{ resolve: () => void }> {
+  let unlocked = false;
+
+  await page.route(`**${buildApiUrl(ApiRoutes.AUTH_SESSION)}`, async (route) => {
+    if (unlocked) {
+      await fulfillJson(route, { tokenRequired: false });
+    } else {
+      await route.fulfill({ status: 401, contentType: "application/json", body: "{}" });
+    }
+  });
+
+  await page.route(`**${buildApiUrl(ApiRoutes.AUTH_UNLOCK)}`, async (route) => {
+    unlocked = true;
+    await fulfillJson(route, { ok: true });
+  });
+
+  return {
+    resolve: () => {
+      unlocked = true;
+    },
+  };
+}
+
 export async function installExternalUrlMock(
   page: Page,
   resolved: { url: string } = { url: "https://open.spotify.com" },
@@ -579,6 +636,7 @@ export async function installAppShellMocks(
 
   await mockSettingsPageData(page, { settings, settingsMetadata, supportedFormats });
   await mockSpotifyAuthStatus(page, spotifyAuthStatus);
+  await mockAuthSession(page, { tokenRequired: false });
 
   await page.route("**/api/events", async (route) => {
     await route.fulfill({

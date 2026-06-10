@@ -234,6 +234,22 @@ We implement a **fail-fast** strategy and strict data validation.
 - **Centralized Error Handling:** Global Middleware (`error-handler.ts`) capturing any exception, standardizing it to a safe JSON response (no stack traces in production) and preventing server crashes.
 - **Personal Rate Limiting:** The download worker (`track-download.worker.ts`) implements its own pause mechanism based on user configuration (`YT_DOWNLOADS_PER_MINUTE`) to be "good citizens" with YouTube servers.
 
+### 8.1. Instance Authentication (`require-token` middleware)
+
+**Threat model:** SpotiArr is designed for trusted LAN use. When exposed to the internet, a single shared-secret gate protects the entire instance without adding user accounts or external identity providers.
+
+**Design:**
+
+- **Optional, env-gated.** When `SPOTIARR_TOKEN` is not set, the middleware is never mounted — zero overhead, zero behavior change for LAN deployments.
+- **Layer placement.** The `require-token` middleware sits in the `presentation/` layer, registered on the Express router before all `/api/*` routes. The token value is injected from `container.ts` (composition root), keeping the middleware ignorant of `process.env` and respecting the R4 layer boundary.
+- **Stateless HMAC-SHA256 cookie.** On a successful unlock (`POST /api/auth/unlock`), the server issues an httpOnly, Secure, `SameSite=Strict` cookie signed with the token itself. All subsequent API calls are validated against this cookie. Because the cookie is signed with the token, rotating `SPOTIARR_TOKEN` immediately invalidates all active sessions — no session store required.
+- **Constant-time comparison.** Token verification uses `crypto.timingSafeEqual` to prevent timing side-channels.
+- **Rate limiting.** The unlock endpoint is rate-limited per IP (`SPOTIARR_UNLOCK_RATELIMIT`, default 5/min) to resist brute-force attempts. `SPOTIARR_TRUST_PROXY` must be set when behind a reverse proxy so the real client IP is resolved correctly.
+- **SSE transport.** Server-Sent Events (`/api/events`) are covered by the same cookie check — no separate auth token needed for the event stream.
+- **Allowlist.** Three paths bypass the gate: `POST /api/auth/unlock` (the unlock flow itself), `GET /api/health` (infrastructure probes), and `GET /api/auth/spotify/callback` (OAuth redirect — Spotify contacts this URL server-side and cannot present the cookie).
+
+**Frontend counterpart:** When the backend returns `401`, the React app renders `<TokenGate>` — a full-screen unlock form — instead of the normal UI. Once the cookie is set, the app resumes normally without a page reload.
+
 ## 9. Download Lifecycle
 
 The most critical process of the application works like this:

@@ -24,7 +24,7 @@ console.log(`[Env] Loaded environment for: ${currentEnv}`);
 // Schema Validation & Auto-configuration
 // -----------------------------------------------------------------------------
 
-const envSchema = z
+export const envSchema = z
   .object({
     // Spotify
     SPOTIFY_CLIENT_ID: z.string().min(1, "SPOTIFY_CLIENT_ID is required"),
@@ -130,6 +130,33 @@ const envSchema = z
 
     // System
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
+
+    // Instance auth (optional — unset means auth is disabled)
+    SPOTIARR_TOKEN: z
+      .string()
+      .optional()
+      .refine((t) => t === undefined || t.trim().length >= 16, {
+        message:
+          "SPOTIARR_TOKEN must be at least 16 non-whitespace characters. Generate one with: openssl rand -base64 32",
+      })
+      .transform((t) => t?.trim() || undefined),
+    SPOTIARR_SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(8760).default(168),
+    SPOTIARR_UNLOCK_RATELIMIT: z.coerce.number().int().min(1).max(100).default(5),
+    SPOTIARR_TRUST_PROXY: z
+      .string()
+      .optional()
+      .transform((val, ctx) => {
+        if (val === undefined) return undefined;
+        if (/^\d+$/.test(val)) return Number(val);
+        if (val === "true") return true;
+        if (val === "false") return false;
+        if (["loopback", "linklocal", "uniquelocal"].includes(val)) return val as string;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `SPOTIARR_TRUST_PROXY must be a hop count (e.g. 1), a preset (loopback/linklocal/uniquelocal), or true/false. Got: "${val}"`,
+        });
+        return z.NEVER;
+      }),
   })
   .transform((data) => {
     // Derived configurations

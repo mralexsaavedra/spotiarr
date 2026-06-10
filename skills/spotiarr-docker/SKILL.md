@@ -53,6 +53,17 @@ REDIS_HOST=redis   # default: "redis" (service name)
 REDIS_PORT=6379    # default: 6379
 ```
 
+## Instance Auth (Optional)
+
+```bash
+SPOTIARR_TOKEN=                   # >=16 chars; omit to disable the gate
+SPOTIARR_SESSION_TTL_HOURS=168    # default: 168 (7 days)
+SPOTIARR_UNLOCK_RATELIMIT=5       # default: 5 per IP per minute
+SPOTIARR_TRUST_PROXY=1            # hop count (e.g. 1) or Express preset; REQUIRED behind Traefik/any
+                                  # reverse proxy — otherwise req.ip is the proxy IP and rate-limiting
+                                  # locks out everyone together
+```
+
 ## Update Flow
 
 ```bash

@@ -234,6 +234,22 @@ Implementamos una estrategia de **fail-fast** y validación estricta de datos.
 - **Error Handling Centralizado:** Middleware global (`error-handler.ts`) que captura cualquier excepción, la estandariza a una respuesta JSON segura (sin stack traces en producción) y previene caídas del servidor.
 - **Rate Limiting Personal:** El worker de descargas (`track-download.worker.ts`) implementa su propio mecanismo de pausa basado en la configuración del usuario (`YT_DOWNLOADS_PER_MINUTE`) para ser "buenos ciudadanos" con los servidores de YouTube.
 
+### 8.1. Autenticación de instancia (middleware `require-token`)
+
+**Modelo de amenaza:** SpotiArr está diseñado para uso en red local de confianza. Cuando se expone a internet, una clave compartida protege la instancia completa sin necesidad de cuentas de usuario ni proveedores de identidad externos.
+
+**Diseño:**
+
+- **Opcional, activado por variable de entorno.** Cuando `SPOTIARR_TOKEN` no está configurado, el middleware no se monta — cero sobrecarga, cero cambio de comportamiento para despliegues en LAN.
+- **Ubicación en capas.** El middleware `require-token` vive en la capa `presentation/`, registrado en el router de Express antes de todas las rutas `/api/*`. El valor del token se inyecta desde `container.ts` (raíz de composición), manteniendo el middleware ajeno a `process.env` y respetando el límite de capa R4.
+- **Cookie HMAC-SHA256 sin estado.** Tras un desbloqueo exitoso (`POST /api/auth/unlock`), el servidor emite una cookie httpOnly, Secure, `SameSite=Strict` firmada con el propio token. Todas las llamadas API posteriores se validan contra esta cookie. Al estar firmada con el token, rotar `SPOTIARR_TOKEN` invalida de inmediato todas las sesiones activas — sin necesidad de almacén de sesiones.
+- **Comparación en tiempo constante.** La verificación del token usa `crypto.timingSafeEqual` para prevenir ataques de temporización.
+- **Rate limiting.** El endpoint de desbloqueo tiene límite de intentos por IP (`SPOTIARR_UNLOCK_RATELIMIT`, por defecto 5/min) para resistir ataques de fuerza bruta. `SPOTIARR_TRUST_PROXY` debe configurarse cuando se opera detrás de un proxy inverso para que la IP real del cliente se resuelva correctamente.
+- **Transporte SSE.** Los Server-Sent Events (`/api/events`) están cubiertos por la misma verificación de cookie — no se necesita un token de autenticación separado para el flujo de eventos.
+- **Lista de exclusión.** Tres rutas omiten el control: `POST /api/auth/unlock` (el flujo de desbloqueo en sí), `GET /api/health` (sondas de infraestructura) y `GET /api/auth/spotify/callback` (redirección OAuth — Spotify contacta esta URL del lado del servidor y no puede presentar la cookie).
+
+**Contraparte en el frontend:** Cuando el backend devuelve `401`, la aplicación React muestra `<TokenGate>` — un formulario de desbloqueo a pantalla completa — en lugar de la UI normal. Una vez que la cookie está establecida, la aplicación se reanuda sin recargar la página.
+
 ## 9. Ciclo de Vida de una Descarga
 
 El proceso más crítico de la aplicación funciona así:

@@ -574,6 +574,8 @@ export function createContainer(env: Env) {
     settingsService,
     env.SPOTIFY_CLIENT_ID,
     env.SPOTIFY_REDIRECT_URI,
+    env.SPOTIARR_TOKEN,
+    env.SPOTIARR_SESSION_TTL_HOURS,
   );
   const healthController = new HealthController(healthService);
 
@@ -589,6 +591,7 @@ export function createContainer(env: Env) {
   });
 
   return {
+    unlockRateLimit: env.SPOTIARR_UNLOCK_RATELIMIT,
     playlistService,
     playlistController,
     trackService,

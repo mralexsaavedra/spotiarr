@@ -4,11 +4,15 @@ import express, { type Express } from "express";
 import helmet from "helmet";
 import path from "path";
 import type { Container } from "./container";
+import { getEnv } from "./infrastructure/setup/environment";
 import { errorHandler } from "./presentation/middleware/error-handler";
+import { createRequireTokenMiddleware } from "./presentation/middleware/require-token";
 import { createRoutes } from "./presentation/routes";
 
 export function createApp(container: Container): Express {
   const app: Express = express();
+
+  app.set("trust proxy", getEnv().SPOTIARR_TRUST_PROXY ?? false);
 
   // Security middleware
   app.use(
@@ -32,6 +36,11 @@ export function createApp(container: Container): Express {
   // Body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  app.use(
+    ApiRoutes.BASE,
+    createRequireTokenMiddleware(() => getEnv().SPOTIARR_TOKEN),
+  );
 
   // API Routes
   app.use(ApiRoutes.BASE, createRoutes(container));

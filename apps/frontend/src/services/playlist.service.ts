@@ -67,7 +67,7 @@ export const playlistService = {
   },
 
   retryFailedTracks: async (playlistId: string): Promise<void> => {
-    return httpClient.get<void>(`${ApiRoutes.PLAYLIST}/retry/${playlistId}`);
+    return httpClient.post<void>(`${ApiRoutes.PLAYLIST}/${playlistId}/retry`);
   },
 
   deletePlaylist: async (id: string): Promise<void> => {

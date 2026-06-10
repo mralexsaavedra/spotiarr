@@ -9,7 +9,7 @@ Workspace: `apps/frontend` · React 19, Vite, TanStack Query v5, Zustand, Tailwi
 - React 19 with React Compiler
 - Vite (bundler) · React Router v6 (lazy + Suspense + RouteErrorBoundary)
 - TanStack Query v5 — server state (queries + mutations)
-- Zustand — client state (2 stores, single-file with co-located selector hooks)
+- Zustand — client state (3 stores, single-file with co-located selector hooks)
 - Tailwind CSS v4 · `cn()` utility for conditional classes
 
 ## Structure
@@ -29,7 +29,7 @@ src/
 ├── locales/         en.json, es.json
 ├── routes/          routes.ts, Routing.tsx
 ├── services/        raw HTTP clients (artist/history/library/playlist/search/settings/track)
-├── store/           useDownloadStatusStore.ts, usePreferencesStore.ts
+├── store/           useDownloadStatusStore.ts, usePreferencesStore.ts, usePlayerStore.ts
 ├── views/           13 page-level route screens (Home, History, PlaylistDetail…)
 └── utils/           cache.ts, cn.ts, date.ts
 ```
@@ -42,6 +42,8 @@ src/
 - `usePreferencesStore` persists to `localStorage` (`spotiarr-preferences`). `useDownloadStatusStore` is ephemeral.
 - `useLanguageSync` controls the active language from the `UI_LANGUAGE` backend setting — never call `i18n.changeLanguage()` manually.
 - Use `cn()` from `src/utils/cn.ts` for conditional Tailwind classes.
+- Instance auth gate → `components/organisms/TokenGate.tsx` wraps the authenticated app. Gate state is EPHEMERAL React state in `useTokenGate` (hooks/controllers) — NOT a Zustand store. Do not add a 4th store for auth.
+- `httpClient` fires `setUnauthorizedHandler` on any non-auth 401; wire that handler only in `useTokenGate`, never add a second 401 handler.
 
 ## Validation
 

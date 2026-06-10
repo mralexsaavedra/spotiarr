@@ -26,6 +26,16 @@ const CIRCUIT_BREAKER_OPEN_UNTIL_KEY = "spotify_circuit_open_until";
 validateEnvironment();
 
 const env = getEnv();
+
+if (env.SPOTIARR_TOKEN && !env.SPOTIARR_TRUST_PROXY) {
+  console.warn(
+    "⚠️  [Auth] SPOTIARR_TOKEN is set but SPOTIARR_TRUST_PROXY is not. " +
+      "Behind a reverse proxy you MUST set SPOTIARR_TRUST_PROXY (e.g. 1), otherwise: " +
+      "(a) the session cookie will NOT get the Secure flag (req.secure stays false), and " +
+      "(b) per-client rate limiting collapses to a single shared bucket (req.ip becomes the proxy IP).",
+  );
+}
+
 configureSpotifyRateLimiters(env);
 const PORT = 3000;
 

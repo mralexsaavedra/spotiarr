@@ -8,6 +8,8 @@ export const ApiRoutes = {
   ARTIST: "/artist",
   FEED: "/feed",
   AUTH: "/auth",
+  AUTH_UNLOCK: "/auth/unlock",
+  AUTH_SESSION: "/auth/session",
   HEALTH: "/health",
   LIBRARY: "/library",
   SEARCH: "/search",

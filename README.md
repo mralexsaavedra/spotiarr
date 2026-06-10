@@ -208,6 +208,36 @@ pnpm --filter frontend run test:e2e
 | `REDIS_HOST` | `redis` | Hostname of Redis server (for external DB) |
 | `REDIS_PORT` | `6379`  | Port of Redis server                       |
 
+**Instance Authentication (optional — recommended for internet-exposed instances):**
+
+| Variable                     | Default | Description                                                                                                                                   |
+| ---------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SPOTIARR_TOKEN`             | -       | Shared secret to gate the instance (minimum 16 characters). Unset = open LAN access, zero behavior change.                                    |
+| `SPOTIARR_SESSION_TTL_HOURS` | `168`   | Session lifetime in hours (default: 7 days). Cookie expires after this period.                                                                |
+| `SPOTIARR_UNLOCK_RATELIMIT`  | `5`     | Max unlock attempts per minute per IP before returning 429.                                                                                   |
+| `SPOTIARR_TRUST_PROXY`       | -       | Number of proxy hops (e.g. `1`), or `true`/`false`/preset. **Required** behind any reverse proxy for correct IP resolution and Secure cookie. |
+
+### Exposing SpotiArr to the internet
+
+The instance token gate is **optional**. Without `SPOTIARR_TOKEN` set, SpotiArr behaves exactly as before — fully open for trusted LAN use.
+
+To expose the instance to the internet safely:
+
+1. **Generate a strong token** and add it to your `.env`:
+
+   ```bash
+   openssl rand -base64 32
+   # → paste the output as SPOTIARR_TOKEN=<value>
+   ```
+
+   The token must be at least 16 characters. Rotating it invalidates all active sessions immediately (sessions are signed with the token itself).
+
+2. **Set `SPOTIARR_TRUST_PROXY`** if you are behind a reverse proxy (Pangolin, Traefik, Nginx, Caddy, Cloudflare Tunnel, etc.). Without this, rate limiting uses the wrong IP and the Secure cookie flag may not be set. For a single proxy hop, use `SPOTIARR_TRUST_PROXY=1`.
+
+3. **No URL config needed for the gate itself.** The only URL you must configure when going public is `SPOTIFY_REDIRECT_URI` — it must point to your public hostname (`https://your-domain.com/api/auth/spotify/callback`) and that exact URI must be whitelisted in your Spotify Developer Dashboard app settings.
+
+See the table above for all related variables and their defaults.
+
 **Note regarding HTTPS:**
 The included `docker-compose.yml` uses **Traefik** as a reverse proxy to handle HTTPS automatically on port 443. This is required for Spotify authentication on remote servers. SpotiArr itself runs on HTTP (port 3000) internally.
 

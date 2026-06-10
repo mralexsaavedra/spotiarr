@@ -11,10 +11,29 @@ export class ApiError extends Error {
   }
 }
 
+let _onUnauthorized: (() => void) | undefined;
+
+export function setUnauthorizedHandler(fn: () => void): void {
+  _onUnauthorized = fn;
+}
+
+export function clearUnauthorizedHandler(): void {
+  _onUnauthorized = undefined;
+}
+
+const AUTH_ENDPOINTS = [ApiRoutes.AUTH_UNLOCK, ApiRoutes.AUTH_SESSION];
+
 class HttpClient {
-  private async handleResponse<T>(response: Response): Promise<T> {
+  private async handleResponse<T>(response: Response, endpoint: string): Promise<T> {
     if (response.status === 204) {
       return undefined as unknown as T;
+    }
+
+    if (
+      response.status === 401 &&
+      !AUTH_ENDPOINTS.some((e) => endpoint === e || endpoint.startsWith(e + "/"))
+    ) {
+      _onUnauthorized?.();
     }
 
     const text = await response.text();
@@ -42,6 +61,7 @@ class HttpClient {
 
   async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const response = await fetch(`${ApiRoutes.BASE}${endpoint}`, {
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,
@@ -49,7 +69,7 @@ class HttpClient {
       ...options,
     });
 
-    return this.handleResponse<T>(response);
+    return this.handleResponse<T>(response, endpoint);
   }
 
   async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
