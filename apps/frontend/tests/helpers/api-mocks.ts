@@ -636,6 +636,7 @@ export async function installAppShellMocks(
 
   await mockSettingsPageData(page, { settings, settingsMetadata, supportedFormats });
   await mockSpotifyAuthStatus(page, spotifyAuthStatus);
+  await mockAuthSession(page, { tokenRequired: false });
 
   await page.route("**/api/events", async (route) => {
     await route.fulfill({
