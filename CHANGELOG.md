@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.17.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.16.1...v1.17.0) (2026-06-11)
+
+### Features
+
+- **Keyboard-accessible queue reorder**: The side queue panel now has per-row move up / move down buttons, so the playback queue can be reordered with the keyboard and screen readers — not just mouse drag-and-drop. This brings the desktop queue to parity with the mobile now-playing view. ([#132](https://github.com/mralexsaavedra/spotiarr/pull/132))
+
+### Bug Fixes
+
+- **Subscribed playlists stuck below 100%**: A subscribed playlist could sit forever showing e.g. "30/32" after new songs were added on Spotify. New tracks were detected and queued, but any track that failed to download was left in an error state with no automatic recovery. Subscribed playlists now re-enqueue failed tracks on every sync, so transient download failures resolve on their own. ([#136](https://github.com/mralexsaavedra/spotiarr/pull/136))
+- **Mobile fullscreen close button**: Tapping the close (chevron-down) button in the mobile now-playing view did not dismiss the overlay on touch devices, because the swipe-to-dismiss gesture captured the tap. The button now closes the overlay reliably. ([#121](https://github.com/mralexsaavedra/spotiarr/pull/121))
+- **Release feed window**: Fixed a boundary in the new-release lookback filter where a release exactly N days old could be included or excluded depending on the time of day and server timezone. The window is now compared at whole-day granularity. ([#136](https://github.com/mralexsaavedra/spotiarr/pull/136))
+
 ## [1.16.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.16.0...v1.16.1) (2026-06-10)
 
 ### Security
