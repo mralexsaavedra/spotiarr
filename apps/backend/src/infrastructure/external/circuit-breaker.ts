@@ -109,9 +109,13 @@ export class CircuitBreaker {
 
       this.probeInFlight = true;
       const promise = this.runFn(fn);
-      promise.finally(() => {
-        this.probeInFlight = false;
-      });
+      // Reset the in-flight flag without leaving a floating rejection: the
+      // caller owns `promise`, so swallow the rejection on this side chain only.
+      promise
+        .finally(() => {
+          this.probeInFlight = false;
+        })
+        .catch(() => {});
       return promise;
     }
 
