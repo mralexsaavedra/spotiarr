@@ -1,5 +1,5 @@
 import { PlaylistPreviewTracksPage } from "@spotiarr/shared";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
 import { playlistService } from "@/services/playlist.service";
 import { STALE_TIME_MEDIUM } from "@/utils/cache";
 import { queryKeys } from "../queryKeys";
@@ -14,7 +14,7 @@ export const usePlaylistPreviewTracksInfiniteQuery = (
   return useInfiniteQuery<
     PlaylistPreviewTracksPage,
     Error,
-    import("@tanstack/react-query").InfiniteData<PlaylistPreviewTracksPage>,
+    InfiniteData<PlaylistPreviewTracksPage>,
     ReturnType<typeof queryKeys.playlistPreviewTracks>,
     number
   >({
