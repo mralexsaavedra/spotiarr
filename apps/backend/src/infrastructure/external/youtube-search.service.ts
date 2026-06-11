@@ -1,10 +1,8 @@
-import { execFile, execSync } from "child_process";
-import * as fs from "fs";
-import * as os from "os";
-import { join } from "path";
+import { execFile } from "child_process";
 import { promisify } from "util";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
+import { detectYtDlpPath } from "./youtube-binary";
 import { YOUTUBE_USER_AGENT } from "./youtube.constants";
 
 const execFilePromise = promisify(execFile);
@@ -14,24 +12,12 @@ export class YoutubeSearchService {
   private lastSearchTime: number = 0;
 
   constructor(private readonly settingsService: SettingsPort) {
-    // Auto-detect yt-dlp path from system PATH
+    // Use the system binary directly when it is writable. ytdlp-nodejs chmods the
+    // binary, which only fails for a non-writable path (e.g. /usr/bin/yt-dlp in
+    // Docker); in that case we copy it to a writable tmp path, refreshing every
+    // start so an upgraded system binary propagates instead of going stale.
     try {
-      const systemPath = execSync("which yt-dlp", {
-        encoding: "utf-8",
-      }).trim();
-
-      // WORKAROUND: ytdlp-nodejs tries to chmod the binary, which fails for /usr/bin/yt-dlp in Docker
-      // We copy it to a local writable path (tmp dir) so the library can do its thing
-      const localPath = join(os.tmpdir(), "yt-dlp");
-
-      // Only copy if it doesn't exist or is different (simple check)
-      if (!fs.existsSync(localPath)) {
-        console.debug(`Copying system yt-dlp to ${localPath} to avoid permission issues`);
-        fs.copyFileSync(systemPath, localPath);
-        fs.chmodSync(localPath, 0o755);
-      }
-
-      this.ytDlpPath = localPath;
+      this.ytDlpPath = detectYtDlpPath();
       console.debug(`Using yt-dlp from: ${this.ytDlpPath}`);
     } catch (e) {
       console.warn("yt-dlp not found in PATH, will try default 'yt-dlp' command", e);
