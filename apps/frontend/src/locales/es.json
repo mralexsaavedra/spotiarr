@@ -411,5 +411,31 @@
       "repeatAll": "Repetir todo",
       "repeatOne": "Repetir una"
     }
+  },
+  "ai": {
+    "title": "Chat con IA",
+    "promptPlaceholder": "Describe la lista de reproducción que quieres... (p. ej. \"jazz para una tarde lluviosa\")",
+    "sendButton": "Generar",
+    "stages": {
+      "llm": "Generando sugerencias de canciones...",
+      "validating": "Validando canciones en Spotify...",
+      "saving": "Guardando lista de reproducción...",
+      "done": "Listo",
+      "error": "Error"
+    },
+    "result": {
+      "tracksAdded": "{{count}} canciones añadidas a tu biblioteca",
+      "tracksAdded_one": "{{count}} canción añadida a tu biblioteca",
+      "tracksAdded_other": "{{count}} canciones añadidas a tu biblioteca",
+      "droppedTitles": "{{count}} canción no pudo encontrarse",
+      "droppedTitles_one": "{{count}} canción no pudo encontrarse",
+      "droppedTitles_other": "{{count}} canciones no pudieron encontrarse"
+    },
+    "errors": {
+      "provider-misconfig": "El proveedor de IA no está configurado. Ve a Ajustes > IA para añadir tus credenciales.",
+      "provider-unreachable": "No se pudo conectar con el proveedor de IA. Verifica la URL y la clave de API e inténtalo de nuevo.",
+      "llm-bad-output": "La IA devolvió una respuesta inesperada. Intenta reformular tu petición.",
+      "zero-resolved": "Ninguna de las canciones sugeridas pudo encontrarse en Spotify. Intenta reformular tu petición."
+    }
   }
 }

@@ -4,6 +4,7 @@ import {
   faClockRotateLeft,
   faHouse,
   faListUl,
+  faRobot,
   faSliders,
   faUserGroup,
 } from "@fortawesome/free-solid-svg-icons";
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Releases", icon: faBell, to: Path.RELEASES },
   { label: "My Playlists", icon: faListUl, to: Path.MY_PLAYLISTS },
   { label: "Artists", icon: faUserGroup, to: Path.ARTISTS },
+  { label: "AI Chat", icon: faRobot, to: Path.CHAT },
   { label: "Settings", icon: faSliders, to: Path.SETTINGS },
 ];
 

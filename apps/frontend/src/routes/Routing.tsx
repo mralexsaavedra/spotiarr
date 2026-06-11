@@ -43,6 +43,7 @@ const Search = lazy(() => import("../views/Search").then((module) => ({ default:
 const AlbumDetail = lazy(() =>
   import("../views/AlbumDetail").then((module) => ({ default: module.AlbumDetail })),
 );
+const Chat = lazy(() => import("../views/Chat").then((module) => ({ default: module.Chat })));
 
 interface RoutingProps {
   pathname: Path;
@@ -74,6 +75,7 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
         <Route path={Path.SETTINGS} element={<Settings />} />
         <Route path={Path.SEARCH} element={<Search />} />
         <Route path={Path.ALBUM_DETAIL} element={<AlbumDetail />} />
+        <Route path={Path.CHAT} element={<Chat />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Route>
