@@ -293,6 +293,7 @@ export const NowPlayingFullscreen: FC = () => {
 
                 <span
                   role="button"
+                  tabIndex={0}
                   data-drag-handle
                   aria-label={t("player.nowPlaying.dragHandle", { name: item.name })}
                   onPointerDown={(e) => onHandlePointerDown(e, index)}

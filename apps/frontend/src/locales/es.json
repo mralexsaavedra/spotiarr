@@ -74,7 +74,9 @@
         "tracks_one": "canción",
         "tracks_other": "canciones"
       },
-      "unnamedPlaylist": "Lista sin nombre"
+      "unnamedPlaylist": "Lista sin nombre",
+      "albumCardAriaLabel": "{{name}} de {{artist}}",
+      "viewArtist": "Ver artista {{name}}"
     }
   },
   "header": {
