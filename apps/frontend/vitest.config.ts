@@ -11,6 +11,14 @@ export default defineConfig({
       reporter: ["text", "json", "html"],
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/**/index.{ts,tsx}", "src/index.tsx", "src/i18n.ts"],
+      // Thresholds sit just under the currently measured coverage so the gate is
+      // green on merge. Ratchet these up as coverage improves (issue #149).
+      thresholds: {
+        lines: 47,
+        statements: 47,
+        functions: 58,
+        branches: 74,
+      },
     },
   },
   resolve: {

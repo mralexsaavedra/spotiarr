@@ -60,8 +60,18 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter backend run prisma:generate
 
-      - name: Run tests
-        run: pnpm test
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            apps/backend/coverage/
+            apps/frontend/coverage/
+          if-no-files-found: ignore
 
   e2e:
     name: E2E

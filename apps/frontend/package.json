@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:mocked": "PLAYWRIGHT_TARGET=mocked playwright test --project=mocked",
     "test:e2e:real": "PLAYWRIGHT_TARGET=real playwright test --project=real",
