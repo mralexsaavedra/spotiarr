@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { FC, useRef } from "react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { Button } from "../atoms/Button";
 
 interface ConfirmModalProps {
@@ -22,12 +23,23 @@ export const ConfirmModal: FC<ConfirmModalProps> = ({
   onCancel,
   isDestructive = false,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(isOpen, containerRef, onCancel);
+
   if (!isOpen) return null;
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm duration-200">
-      <div className="bg-background-hover animate-in zoom-in-95 w-full max-w-md scale-100 transform rounded-lg border border-white/5 p-6 shadow-2xl transition-all duration-200">
-        <h2 className="mb-2 text-xl font-bold text-white">{title}</h2>
+      <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+        className="bg-background-hover animate-in zoom-in-95 w-full max-w-md scale-100 transform rounded-lg border border-white/5 p-6 shadow-2xl transition-all duration-200"
+      >
+        <h2 id="confirm-modal-title" className="mb-2 text-xl font-bold text-white">
+          {title}
+        </h2>
         <p className="text-text-subtle mb-6 text-sm">{description}</p>
 
         <div className="flex justify-end gap-3">
@@ -35,7 +47,7 @@ export const ConfirmModal: FC<ConfirmModalProps> = ({
             {cancelLabel}
           </Button>
           <Button
-            variant={isDestructive ? "primary" : "primary"}
+            variant={isDestructive ? "danger" : "primary"}
             onClick={onConfirm}
             className={
               isDestructive
