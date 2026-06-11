@@ -12,15 +12,13 @@ interface ArtistCardProps {
 
 export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick }) => {
   const { t } = useTranslation();
-  const handleCardClick = () => {
-    onClick(id);
-  };
 
   return (
-    <article
-      key={id}
-      className="group hover:bg-background-hover flex cursor-pointer flex-col gap-3 rounded-md p-3 transition-colors"
-      onClick={handleCardClick}
+    <button
+      type="button"
+      onClick={() => onClick(id)}
+      aria-label={name}
+      className="group hover:bg-background-hover focus-visible:ring-primary flex w-full cursor-pointer flex-col gap-3 rounded-md p-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-full bg-zinc-800 shadow-lg">
         <Image
@@ -35,6 +33,8 @@ export const ArtistCard: FC<ArtistCardProps> = memo(({ id, name, image, onClick 
         <h3 className="truncate text-base font-bold text-white">{name}</h3>
         <p className="text-sm text-zinc-400">{t("artist.type")}</p>
       </div>
-    </article>
+    </button>
   );
 });
+
+ArtistCard.displayName = "ArtistCard";
