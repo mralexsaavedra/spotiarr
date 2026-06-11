@@ -1,6 +1,7 @@
 import { ArtworkBackfillRunStatus } from "@spotiarr/shared";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { Button } from "../atoms/Button";
 
 interface ScanLibraryModalProps {
@@ -32,6 +33,9 @@ export const ScanLibraryModal: FC<ScanLibraryModalProps> = ({
     [backfillStatus],
   );
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(isOpen, containerRef, onCancel);
+
   useEffect(() => {
     if (isBackfillActive) {
       setShouldStartBackfill(false);
@@ -48,8 +52,14 @@ export const ScanLibraryModal: FC<ScanLibraryModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="bg-background-hover w-full max-w-lg rounded-lg border border-white/5 p-6 shadow-2xl">
-        <h2 className="mb-2 text-xl font-bold text-white">
+      <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scan-library-modal-title"
+        className="bg-background-hover w-full max-w-lg rounded-lg border border-white/5 p-6 shadow-2xl"
+      >
+        <h2 id="scan-library-modal-title" className="mb-2 text-xl font-bold text-white">
           {t("library.scanModal.title", "Scan library")}
         </h2>
         <p className="text-text-subtle mb-6 text-sm">
