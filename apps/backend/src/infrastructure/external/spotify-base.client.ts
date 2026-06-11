@@ -1,5 +1,7 @@
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { getEnv } from "../setup/environment";
+import { CircuitBreaker } from "./circuit-breaker";
+import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient, type SpotifyLimiterMode } from "./spotify-http.client";
 
@@ -11,8 +13,10 @@ export abstract class SpotifyBaseClient extends SpotifyHttpClient {
     protected readonly settingsService: SettingsPort,
     private readonly contextName: string,
     limiterMode: SpotifyLimiterMode = "interactive",
+    appTokenCircuitBreaker?: CircuitBreaker,
+    appTokenRateLimiter?: RateLimiter,
   ) {
-    super(authService, limiterMode);
+    super(authService, limiterMode, undefined, appTokenCircuitBreaker, appTokenRateLimiter);
   }
 
   protected async getMarket(): Promise<string> {

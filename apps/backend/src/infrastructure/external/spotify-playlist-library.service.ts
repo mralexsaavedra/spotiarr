@@ -3,6 +3,8 @@ import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { getEnv } from "../setup/environment";
 import { getErrorMessage } from "../utils/error.utils";
+import { CircuitBreaker } from "./circuit-breaker";
+import { RateLimiter } from "./rate-limiter";
 import type { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient, type SpotifyLimiterMode } from "./spotify-http.client";
 
@@ -64,8 +66,10 @@ export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
     private readonly settingsService: SettingsPort,
     authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
+    appTokenCircuitBreaker?: CircuitBreaker,
+    appTokenRateLimiter?: RateLimiter,
   ) {
-    super(authService, limiterMode);
+    super(authService, limiterMode, undefined, appTokenCircuitBreaker, appTokenRateLimiter);
   }
 
   clearCache(): void {

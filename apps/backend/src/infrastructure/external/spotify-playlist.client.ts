@@ -3,7 +3,9 @@ import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper } from "@/domain/helpers/spotify-url.helper";
 import { getErrorMessage } from "../utils/error.utils";
+import { CircuitBreaker } from "./circuit-breaker";
 import { PromiseCache } from "./promise-cache";
+import { RateLimiter } from "./rate-limiter";
 import { SpotifyAlbumClient } from "./spotify-album.client";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
@@ -29,8 +31,17 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
     private readonly albumClient: SpotifyAlbumClient,
     requestCache: PromiseCache,
     limiterMode: SpotifyLimiterMode = "interactive",
+    appTokenCircuitBreaker?: CircuitBreaker,
+    appTokenRateLimiter?: RateLimiter,
   ) {
-    super(authService, settingsService, "SpotifyPlaylistClient", limiterMode);
+    super(
+      authService,
+      settingsService,
+      "SpotifyPlaylistClient",
+      limiterMode,
+      appTokenCircuitBreaker,
+      appTokenRateLimiter,
+    );
     this.requestCache = requestCache;
   }
 

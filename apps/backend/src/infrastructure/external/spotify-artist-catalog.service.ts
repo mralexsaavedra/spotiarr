@@ -2,6 +2,8 @@ import type { AlbumType, ArtistRelease } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import type { CacheEntry } from "./cache.types";
+import { CircuitBreaker } from "./circuit-breaker";
+import { RateLimiter } from "./rate-limiter";
 import type { SpotifyAuthService } from "./spotify-auth.service";
 import { SPOTIFY_ARTIST_ALBUMS_MAX_LIMIT } from "./spotify-constants";
 import { SpotifyHttpClient, type SpotifyLimiterMode } from "./spotify-http.client";
@@ -16,8 +18,10 @@ export class SpotifyArtistCatalogService extends SpotifyHttpClient {
     private readonly settingsService: SettingsPort,
     authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
+    appTokenCircuitBreaker?: CircuitBreaker,
+    appTokenRateLimiter?: RateLimiter,
   ) {
-    super(authService, limiterMode);
+    super(authService, limiterMode, undefined, appTokenCircuitBreaker, appTokenRateLimiter);
   }
 
   clearCache(): void {

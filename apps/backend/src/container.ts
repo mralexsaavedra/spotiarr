@@ -54,6 +54,7 @@ import { PrismaHistoryRepository } from "./infrastructure/database/prisma-histor
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
+import { CircuitBreaker } from "./infrastructure/external/circuit-breaker";
 import { PromiseCache } from "./infrastructure/external/promise-cache";
 import { DeezerArtistLookupAdapter } from "./infrastructure/external/providers/deezer/deezer-artist-lookup.adapter";
 import { DeezerArtworkSourceService } from "./infrastructure/external/providers/deezer/deezer-artwork-source.service";
@@ -61,6 +62,7 @@ import { DeezerCatalogSearchAdapter } from "./infrastructure/external/providers/
 import { DeezerClient } from "./infrastructure/external/providers/deezer/deezer.client";
 import { MusicBrainzClient } from "./infrastructure/external/providers/musicbrainz/musicbrainz.client";
 import { SpotifyUrlLookupClient } from "./infrastructure/external/providers/spotify/spotify-url-lookup.client";
+import { RateLimiter } from "./infrastructure/external/rate-limiter";
 import { ReleaseFeedService } from "./infrastructure/external/release-feed.service";
 import { SpotifyAlbumClient } from "./infrastructure/external/spotify-album.client";
 import { SpotifyArtistCatalogService } from "./infrastructure/external/spotify-artist-catalog.service";
@@ -110,6 +112,15 @@ type ComposedSpotifyUserLibrary = SpotifyUserLibraryPort & {
 };
 
 export function createContainer(env: Env) {
+  // Shared app-token circuit breaker and rate limiter — created once per container
+  // instance so they can be reset between tests and configured after construction.
+  const appTokenCircuitBreaker = new CircuitBreaker();
+  const appTokenRateLimiter = new RateLimiter({
+    maxConcurrency: 2,
+    minIntervalMs: 500,
+    queueTimeoutMs: 120_000,
+  });
+
   const playlistRepository = new PrismaPlaylistRepository();
   const trackRepository = new PrismaTrackRepository();
   const historyRepository = new PrismaHistoryRepository();
@@ -228,18 +239,24 @@ export function createContainer(env: Env) {
     settingsService,
     spotifyRequestCache,
     "interactive",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   const spotifyTrackClient = new SpotifyTrackClient(
     spotifyAuthService,
     settingsService,
     "interactive",
     spotifyRequestCache,
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   const spotifyAlbumClient = new SpotifyAlbumClient(
     spotifyAuthService,
     settingsService,
     spotifyRequestCache,
     "interactive",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   const spotifyPlaylistClient = new SpotifyPlaylistClient(
     spotifyAuthService,
@@ -248,6 +265,8 @@ export function createContainer(env: Env) {
     spotifyAlbumClient,
     spotifyRequestCache,
     "interactive",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   const spotifyPlaylistClientSync = new SpotifyPlaylistClient(
     spotifyAuthService,
@@ -256,44 +275,60 @@ export function createContainer(env: Env) {
     spotifyAlbumClient,
     spotifyRequestCache,
     "sync",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   const spotifySearchClient = new SpotifySearchClient(
     spotifyAuthService,
     settingsService,
     spotifyRequestCache,
     "interactive",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
 
   spotifyFollowedArtistsService = new SpotifyFollowedArtistsService(
     settingsService,
     spotifyAuthService,
     "user",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   spotifyPlaylistLibraryService = new SpotifyPlaylistLibraryService(
     settingsService,
     spotifyAuthService,
     "user",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   spotifyArtistCatalogService = new SpotifyArtistCatalogService(
     settingsService,
     spotifyAuthService,
     "user",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
 
   spotifyFollowedArtistsSyncService = new SpotifyFollowedArtistsService(
     settingsService,
     spotifyAuthService,
     "sync",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   spotifyPlaylistLibrarySyncService = new SpotifyPlaylistLibraryService(
     settingsService,
     spotifyAuthService,
     "sync",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
   spotifyArtistCatalogSyncService = new SpotifyArtistCatalogService(
     settingsService,
     spotifyAuthService,
     "sync",
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
   );
 
   spotifyUserLibraryService = {
@@ -331,7 +366,12 @@ export function createContainer(env: Env) {
   );
 
   const externalUrlCacheRepository = new ExternalUrlCacheRepository(prisma);
-  const spotifyUrlLookupClient = new SpotifyUrlLookupClient(spotifyAuthService, settingsService);
+  const spotifyUrlLookupClient = new SpotifyUrlLookupClient(
+    spotifyAuthService,
+    settingsService,
+    appTokenCircuitBreaker,
+    appTokenRateLimiter,
+  );
   const resolveExternalUrlUseCase = new ResolveExternalUrlUseCase(
     externalUrlCacheRepository,
     spotifyUrlLookupClient,
@@ -431,7 +471,7 @@ export function createContainer(env: Env) {
   const deletePlaylistUseCase = new DeletePlaylistUseCase(playlistRepository, eventBus);
   const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
 
-  const spotifyCircuitBreakerAdapter = new SpotifyCircuitBreakerAdapter();
+  const spotifyCircuitBreakerAdapter = new SpotifyCircuitBreakerAdapter(appTokenCircuitBreaker);
   const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
     playlistRepository,
     spotifyServiceSync,
@@ -592,6 +632,7 @@ export function createContainer(env: Env) {
   });
 
   return {
+    appTokenCircuitBreaker,
     unlockRateLimit: env.SPOTIARR_UNLOCK_RATELIMIT,
     playlistService,
     playlistController,

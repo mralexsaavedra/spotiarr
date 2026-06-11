@@ -99,42 +99,6 @@ export function configureSpotifyRateLimiters(env: Env): void {
   interactiveRateLimiter = createRateLimiter(limiterConfig.interactive);
 }
 
-// Shared app-token limiter + circuit breaker to prevent 429 storms across workers
-const appTokenRateLimiter = new RateLimiter({
-  maxConcurrency: 2,
-  minIntervalMs: 500,
-  queueTimeoutMs: 120_000,
-});
-
-const appTokenCircuitBreaker = new CircuitBreaker();
-
-/**
- * Configure the shared app-token circuit breaker with persistence callbacks.
- * Call this once at startup (after the settings repository is ready) to:
- * - Restore any persisted open-until timestamp (so restarts don't reset the breaker)
- * - Register a callback to persist the state whenever the circuit opens
- *
- * @param initialOpenUntilMs - timestamp (ms) read from persistent storage
- * @param onOpen             - called whenever the circuit opens; persist this value
- */
-export function isAppTokenCircuitOpen(): boolean {
-  return appTokenCircuitBreaker.isOpen();
-}
-
-export function getAppTokenCircuitOpenUntil(): number {
-  return appTokenCircuitBreaker.getOpenUntil();
-}
-
-export function configureAppTokenCircuitBreaker(
-  initialOpenUntilMs: number,
-  onOpen: (openUntilMs: number) => void,
-): void {
-  if (initialOpenUntilMs > 0) {
-    appTokenCircuitBreaker.restore(initialOpenUntilMs);
-  }
-  appTokenCircuitBreaker.setOnOpenCallback(onOpen);
-}
-
 export class SpotifyHttpClient {
   private readonly limiter: RateLimiter;
   private readonly useFailFastRetry: boolean;
@@ -143,6 +107,12 @@ export class SpotifyHttpClient {
     private readonly authService: SpotifyAuthService,
     limiterMode: SpotifyLimiterMode = "user",
     useFailFastRetryOverride?: boolean,
+    private readonly appTokenCircuitBreaker: CircuitBreaker = new CircuitBreaker(),
+    private readonly appTokenRateLimiter: RateLimiter = new RateLimiter({
+      maxConcurrency: 2,
+      minIntervalMs: 500,
+      queueTimeoutMs: 120_000,
+    }),
   ) {
     let resolvedLimiter = userRateLimiter;
     let useFailFastRetry = false;
@@ -208,9 +178,9 @@ export class SpotifyHttpClient {
       Authorization: `Bearer ${token}`,
     } as Record<string, string>;
 
-    return appTokenCircuitBreaker.execute(
+    return this.appTokenCircuitBreaker.execute(
       () =>
-        appTokenRateLimiter.queueRequest(() =>
+        this.appTokenRateLimiter.queueRequest(() =>
           this.fetchWithRateLimitRetry(input, { ...init, headers }, 0, {
             failFast: this.useFailFastRetry,
           }),
