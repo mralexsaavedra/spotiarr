@@ -1,17 +1,19 @@
 import { PlaylistPreview, PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useBulkTrackStatus } from "@/hooks/queries/useDownloadStatus";
-import { playlistService } from "@/services/playlist.service";
 import { PlaylistWithStats } from "@/types";
 import { Track } from "@/types";
 import { buildZeroStats } from "@/utils/playlist";
 import { usePlaylistPreviewQuery } from "../queries/usePlaylistPreviewQuery";
+import {
+  PLAYLIST_PREVIEW_PAGE_SIZE,
+  usePlaylistPreviewTracksInfiniteQuery,
+} from "../queries/usePlaylistPreviewTracksInfiniteQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useNavigationHelpers } from "../useNavigationHelpers";
 import { usePlaylistController } from "./usePlaylistController";
 
-const PLAYLIST_PREVIEW_PAGE_SIZE = 100;
 type PlaylistPreviewTrack = PlaylistPreview["tracks"][number];
 
 const createPreviewTrackKey = (track: PlaylistPreviewTrack): string => {
@@ -40,70 +42,54 @@ export const usePlaylistPreviewController = () => {
 
   const { data: previewData, isLoading, error } = usePlaylistPreviewQuery(spotifyUrl);
   const { data: playlists } = usePlaylistsQuery();
-  const [pagedTracks, setPagedTracks] = useState<PlaylistPreviewTrack[]>([]);
-  const [hasMoreTracks, setHasMoreTracks] = useState(false);
-  const [nextOffset, setNextOffset] = useState<number | null>(null);
-  const [isLoadingMoreTracks, setIsLoadingMoreTracks] = useState(false);
-  const requestedOffsetsRef = useRef<Set<number>>(new Set());
+
+  const [paginationStarted, setPaginationStarted] = useState(false);
 
   useEffect(() => {
-    requestedOffsetsRef.current = new Set();
+    setPaginationStarted(false);
+  }, [spotifyUrl]);
 
-    if (!previewData || !spotifyUrl) {
-      setPagedTracks([]);
-      setHasMoreTracks(false);
-      setNextOffset(null);
-      return;
-    }
+  const initialTrackCount = previewData?.tracks.length ?? 0;
+  const isPlaylistPreview = previewData?.type === PlaylistTypeEnum.Playlist;
+  const shouldLoadMore =
+    isPlaylistPreview &&
+    previewData != null &&
+    (previewData.totalTracks > initialTrackCount ||
+      initialTrackCount >= PLAYLIST_PREVIEW_PAGE_SIZE);
 
-    const initialTrackCount = previewData.tracks.length;
-    const isPlaylistPreview = previewData.type === PlaylistTypeEnum.Playlist;
-    const shouldLoadMore =
-      isPlaylistPreview &&
-      (previewData.totalTracks > initialTrackCount ||
-        initialTrackCount >= PLAYLIST_PREVIEW_PAGE_SIZE);
+  const queryEnabled = !!spotifyUrl && previewData != null && shouldLoadMore && paginationStarted;
 
-    setPagedTracks([]);
-    setHasMoreTracks(shouldLoadMore);
-    setNextOffset(shouldLoadMore ? initialTrackCount : null);
-  }, [previewData, spotifyUrl]);
+  const {
+    data: infiniteData,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching: isInfiniteFetching,
+    fetchNextPage,
+  } = usePlaylistPreviewTracksInfiniteQuery(spotifyUrl, initialTrackCount, queryEnabled);
+
+  const infinitePages = useMemo(
+    () => infiniteData?.pages.flatMap((p) => p.tracks) ?? [],
+    [infiniteData],
+  );
 
   const accumulatedPreviewTracks = useMemo(() => {
     if (!previewData) {
       return [];
     }
 
-    return mergeUniquePreviewTracks([...previewData.tracks, ...pagedTracks]);
-  }, [previewData, pagedTracks]);
+    return mergeUniquePreviewTracks([...previewData.tracks, ...infinitePages]);
+  }, [previewData, infinitePages]);
 
-  const handleLoadMoreTracks = useCallback(async () => {
-    if (!spotifyUrl || !hasMoreTracks || nextOffset === null || isLoadingMoreTracks) {
+  const handleLoadMoreTracks = useCallback(() => {
+    if (!shouldLoadMore) return;
+    if (!paginationStarted) {
+      setPaginationStarted(true);
       return;
     }
-
-    if (requestedOffsetsRef.current.has(nextOffset)) {
-      return;
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-
-    requestedOffsetsRef.current.add(nextOffset);
-    setIsLoadingMoreTracks(true);
-
-    try {
-      const page = await playlistService.getPlaylistPreviewTracksPage(
-        spotifyUrl,
-        nextOffset,
-        PLAYLIST_PREVIEW_PAGE_SIZE,
-      );
-
-      setPagedTracks((previous) => mergeUniquePreviewTracks([...previous, ...page.tracks]));
-      setHasMoreTracks(page.hasMore);
-      setNextOffset(page.nextOffset);
-    } catch {
-      requestedOffsetsRef.current.delete(nextOffset);
-    } finally {
-      setIsLoadingMoreTracks(false);
-    }
-  }, [hasMoreTracks, isLoadingMoreTracks, nextOffset, spotifyUrl]);
+  }, [shouldLoadMore, paginationStarted, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const savedPlaylist = useMemo(() => {
     return playlists?.find((p) => p.spotifyUrl === spotifyUrl);
@@ -188,8 +174,9 @@ export const usePlaylistPreviewController = () => {
     isLoading,
     error,
     isButtonLoading,
-    hasMoreTracks,
-    isLoadingMoreTracks,
+    hasMoreTracks: shouldLoadMore && (!paginationStarted || hasNextPage),
+    isLoadingMoreTracks:
+      isFetchingNextPage || (paginationStarted && isInfiniteFetching && !infiniteData),
     isDownloaded,
     isSaved,
     hasFailed,
