@@ -20,6 +20,7 @@ const NAV_TRANSLATION_KEYS = {
   Releases: "navigation.releases",
   "My Playlists": "navigation.myPlaylists",
   Artists: "navigation.artists",
+  "AI Chat": "navigation.aiChat",
   Settings: "navigation.settings",
 } as const;
 
