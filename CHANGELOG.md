@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.17.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.17.0...v1.17.1) (2026-06-11)
+
+### Bug Fixes
+
+- **downloads**: Every download could suddenly start failing with an internal `ENOENT` error, leaving tracks stuck in an error state. This happened after the system `yt-dlp` was upgraded (or the OS cleared its temp folder): SpotiArr kept pointing at a stale cached copy of the binary. The yt-dlp location is now resolved robustly — used directly when possible and refreshed on every start — so downloads keep working across upgrades. ([760c047](https://github.com/mralexsaavedra/spotiarr/commit/760c047))
+- **accessibility**: Album and artist cards are now fully keyboard-accessible. They can be reached with Tab and activated with Enter or Space, and screen readers announce them correctly — previously they were mouse-only. ([e376293](https://github.com/mralexsaavedra/spotiarr/commit/e376293))
+- **accessibility**: The confirmation and library-scan dialogs now expose proper ARIA dialog semantics, trap keyboard focus while open, and close with Escape. Destructive confirmations also render in the correct danger style. ([867e20d](https://github.com/mralexsaavedra/spotiarr/commit/867e20d))
+
 ## [1.17.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.16.1...v1.17.0) (2026-06-11)
 
 ### Features
