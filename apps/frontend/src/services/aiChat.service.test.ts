@@ -1,0 +1,37 @@
+import { ApiRoutes } from "@spotiarr/shared";
+import { describe, expect, it, vi } from "vitest";
+import { httpClient } from "@/services/httpClient";
+import { aiChatService } from "./aiChat.service";
+
+vi.mock("@/services/httpClient", () => ({
+  httpClient: {
+    post: vi.fn(),
+  },
+}));
+
+describe("aiChatService", () => {
+  it("generate posts to AI chat/generate endpoint and returns jobId", async () => {
+    vi.mocked(httpClient.post).mockResolvedValueOnce({ data: { jobId: "job-123" } });
+
+    const result = await aiChatService.generate("jazz for a rainy afternoon");
+
+    expect(httpClient.post).toHaveBeenCalledWith(`${ApiRoutes.AI}/chat/generate`, {
+      prompt: "jazz for a rainy afternoon",
+    });
+    expect(result).toEqual({ jobId: "job-123" });
+  });
+
+  it("unwraps data envelope and returns jobId only", async () => {
+    vi.mocked(httpClient.post).mockResolvedValueOnce({ data: { jobId: "abc-456" } });
+
+    const result = await aiChatService.generate("chill beats");
+
+    expect(result.jobId).toBe("abc-456");
+  });
+
+  it("propagates errors thrown by httpClient", async () => {
+    vi.mocked(httpClient.post).mockRejectedValueOnce(new Error("Network error"));
+
+    await expect(aiChatService.generate("test")).rejects.toThrow("Network error");
+  });
+});

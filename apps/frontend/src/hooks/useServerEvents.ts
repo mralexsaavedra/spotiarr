@@ -1,7 +1,8 @@
-import { ApiRoutes } from "@spotiarr/shared";
+import { type AiPlaylistProgressEvent, ApiRoutes } from "@spotiarr/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { queryKeys } from "@/hooks/queryKeys";
+import { aiProgressBus } from "@/lib/aiProgressBus";
 
 interface ArtworkBackfillUpdatedEvent {
   status?: string;
@@ -14,6 +15,15 @@ const parseArtworkBackfillEvent = (event: MessageEvent): ArtworkBackfillUpdatedE
     return JSON.parse(String(event.data)) as ArtworkBackfillUpdatedEvent;
   } catch {
     return {};
+  }
+};
+
+const parseAiProgressEvent = (event: MessageEvent): AiPlaylistProgressEvent | null => {
+  if (!event.data) return null;
+  try {
+    return JSON.parse(String(event.data)) as AiPlaylistProgressEvent;
+  } catch {
+    return null;
   }
 };
 
@@ -71,6 +81,17 @@ export const useServerEvents = () => {
             query.queryKey[0] === "library" &&
             query.queryKey[1] === "artist",
         });
+      }
+    });
+
+    eventSource.addEventListener("ai-playlist-progress", (event) => {
+      const payload = parseAiProgressEvent(event);
+      if (!payload) return;
+
+      aiProgressBus.emit(payload);
+
+      if (payload.stage === "done" || payload.stage === "error") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
       }
     });
 
