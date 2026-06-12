@@ -1,6 +1,8 @@
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { getErrorMessage } from "../utils/error.utils";
+import { CircuitBreaker } from "./circuit-breaker";
 import { PromiseCache } from "./promise-cache";
+import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
 import type { SpotifyLimiterMode } from "./spotify-http.client";
@@ -13,9 +15,18 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     authService: SpotifyAuthService,
     settingsService: SettingsPort,
     requestCache: PromiseCache,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "interactive",
   ) {
-    super(authService, settingsService, "SpotifyArtistClient", limiterMode);
+    super(
+      authService,
+      settingsService,
+      "SpotifyArtistClient",
+      appTokenCircuitBreaker,
+      appTokenRateLimiter,
+      limiterMode,
+    );
     this.requestCache = requestCache;
   }
 

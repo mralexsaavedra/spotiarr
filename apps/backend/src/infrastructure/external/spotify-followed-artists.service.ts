@@ -3,7 +3,9 @@ import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
 import type { CacheEntry } from "./cache.types";
+import { CircuitBreaker } from "./circuit-breaker";
 import { PromiseCache } from "./promise-cache";
+import { RateLimiter } from "./rate-limiter";
 import type { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyHttpClient, type SpotifyLimiterMode } from "./spotify-http.client";
 import type { SpotifyArtistFull, SpotifyFollowedArtistsResponse } from "./spotify.types";
@@ -18,9 +20,11 @@ export class SpotifyFollowedArtistsService extends SpotifyHttpClient {
   constructor(
     private readonly settingsService: SettingsPort,
     authService: SpotifyAuthService,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "user",
   ) {
-    super(authService, limiterMode);
+    super(authService, appTokenCircuitBreaker, appTokenRateLimiter, limiterMode);
   }
 
   clearCache(): void {

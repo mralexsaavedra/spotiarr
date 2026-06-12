@@ -4,10 +4,7 @@ import * as http from "http";
 import { createApp } from "./app";
 import { initializeContainer } from "./container";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
-import {
-  configureAppTokenCircuitBreaker,
-  configureSpotifyRateLimiters,
-} from "./infrastructure/external/spotify-http.client";
+import { configureSpotifyRateLimiters } from "./infrastructure/external/spotify-http.client";
 import { startScheduledJobs } from "./infrastructure/jobs";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
@@ -66,7 +63,10 @@ async function bootstrap() {
   const settingsRepo = new PrismaSettingsRepository();
   const savedOpenUntil = await settingsRepo.get(CIRCUIT_BREAKER_OPEN_UNTIL_KEY);
   const initialOpenUntilMs = savedOpenUntil ? parseInt(savedOpenUntil, 10) : 0;
-  configureAppTokenCircuitBreaker(initialOpenUntilMs, async (openUntilMs) => {
+  if (initialOpenUntilMs > 0) {
+    container.appTokenCircuitBreaker.restore(initialOpenUntilMs);
+  }
+  container.appTokenCircuitBreaker.setOnOpenCallback(async (openUntilMs) => {
     await settingsRepo.set(CIRCUIT_BREAKER_OPEN_UNTIL_KEY, openUntilMs.toString()).catch((err) => {
       console.error("[CircuitBreaker] Failed to persist open-until timestamp", err);
     });

@@ -1,6 +1,8 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { validateEnvironment } from "@/infrastructure/setup/environment";
+import { CircuitBreaker } from "./circuit-breaker";
+import { RateLimiter } from "./rate-limiter";
 import type { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyFollowedArtistsService } from "./spotify-followed-artists.service";
 
@@ -31,6 +33,8 @@ const buildService = () =>
       getUserToken: vi.fn().mockResolvedValue("user-token"),
       refreshUserToken: vi.fn().mockResolvedValue(false),
     } as unknown as SpotifyAuthService,
+    new CircuitBreaker(),
+    new RateLimiter({ maxConcurrency: 2, minIntervalMs: 500, queueTimeoutMs: 120_000 }),
   );
 
 beforeEach(() => {

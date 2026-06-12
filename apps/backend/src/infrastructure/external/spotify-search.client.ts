@@ -2,7 +2,9 @@ import type { AlbumType, SpotifySearchResults } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
 import { getErrorMessage } from "../utils/error.utils";
+import { CircuitBreaker } from "./circuit-breaker";
 import { PromiseCache } from "./promise-cache";
+import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
 import type { SpotifyLimiterMode } from "./spotify-http.client";
@@ -16,9 +18,18 @@ export class SpotifySearchClient extends SpotifyBaseClient {
     authService: SpotifyAuthService,
     settingsService: SettingsPort,
     requestCache: PromiseCache,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "interactive",
   ) {
-    super(authService, settingsService, "SpotifySearchClient", limiterMode);
+    super(
+      authService,
+      settingsService,
+      "SpotifySearchClient",
+      appTokenCircuitBreaker,
+      appTokenRateLimiter,
+      limiterMode,
+    );
     this.requestCache = requestCache;
   }
 

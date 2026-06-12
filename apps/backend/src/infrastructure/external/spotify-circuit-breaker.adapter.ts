@@ -1,8 +1,10 @@
 import type { SpotifyCircuitBreakerPort } from "@/application/ports/spotify-circuit-breaker.port";
-import { isAppTokenCircuitOpen } from "./spotify-http.client";
+import { CircuitBreaker } from "./circuit-breaker";
 
 export class SpotifyCircuitBreakerAdapter implements SpotifyCircuitBreakerPort {
+  constructor(private readonly circuitBreaker: CircuitBreaker) {}
+
   isOpen(): boolean {
-    return isAppTokenCircuitOpen();
+    return this.circuitBreaker.isOpen();
   }
 }
