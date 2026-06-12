@@ -1,11 +1,13 @@
-import { ArtworkBackfillRunStatus, LibraryArtist, PlaylistTypeEnum } from "@spotiarr/shared";
+import { LibraryArtist, PlaylistTypeEnum } from "@spotiarr/shared";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { APP_CONFIG } from "@/config/app";
 import { useToast } from "@/contexts/ToastContext";
 import { Path } from "@/routes/routes";
 import { ApiError } from "@/services/httpClient";
 import { PlaylistWithStats } from "@/types";
+import { ACTIVE_BACKFILL_STATUSES } from "@/utils/artworkBackfill";
 import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
 import { useStartArtworkBackfillMutation } from "../mutations/useStartArtworkBackfillMutation";
 import { useArtworkBackfillStatusQuery } from "../queries/useArtworkBackfillStatusQuery";
@@ -13,14 +15,6 @@ import { useLibraryArtistsQuery } from "../queries/useLibraryArtistsQuery";
 import { useLibraryStatsQuery } from "../queries/useLibraryStatsQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useDebounce } from "../useDebounce";
-import { APP_CONFIG } from "@/config/app";
-
-const ACTIVE_BACKFILL_STATUSES = new Set<ArtworkBackfillRunStatus>([
-  "running",
-  "pause_requested",
-  "paused",
-  "paused_rate_limited",
-]);
 
 export const useHomeController = () => {
   const { t } = useTranslation();

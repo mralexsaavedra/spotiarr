@@ -5,7 +5,7 @@ import {
   faVolumeXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { FC, useEffect, useMemo, useRef } from "react";
+import { FC, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
@@ -15,64 +15,10 @@ import type { QueueItem } from "@/store/usePlayerStore";
 import { usePreferencesStore } from "@/store/usePreferencesStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
+import { ProgressSlider } from "../molecules/ProgressSlider";
 import { TransportControls } from "../molecules/TransportControls";
 import { NowPlayingFullscreen } from "./NowPlayingFullscreen";
 import { QueueSidePanel } from "./QueueSidePanel";
-
-function formatSeconds(seconds: number): string {
-  const s = Math.max(0, Math.floor(seconds));
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  return `${m}:${rem.toString().padStart(2, "0")}`;
-}
-
-const ProgressSection: FC = () => {
-  const { t } = useTranslation();
-  const currentTime = usePlayerStore((s) => s.currentTime);
-  const duration = usePlayerStore((s) => s.duration);
-  const seek = usePlayerStore((s) => s.seek);
-
-  const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  return (
-    <div className="group flex w-full items-center gap-2">
-      <span className="text-text-secondary w-8 shrink-0 text-right text-xs tabular-nums">
-        {formatSeconds(currentTime)}
-      </span>
-      <input
-        type="range"
-        role="slider"
-        aria-label={t("player.transport.seek")}
-        aria-valuemin={0}
-        aria-valuemax={duration}
-        aria-valuenow={currentTime}
-        aria-valuetext={`${formatSeconds(currentTime)} of ${formatSeconds(duration)}`}
-        min={0}
-        max={duration || 1}
-        step={1}
-        value={currentTime}
-        onChange={(e) => seek(Number(e.target.value))}
-        className={cn(
-          "h-1 flex-1 cursor-pointer appearance-none rounded-full",
-          "[&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:rounded-full",
-          "[&::-moz-range-track]:h-1 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-0",
-          "[&::-webkit-slider-thumb]:-mt-1 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:opacity-0 group-hover:[&::-webkit-slider-thumb]:opacity-100",
-          "[&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:opacity-0 group-hover:[&::-moz-range-thumb]:opacity-100",
-          "group-hover:[background:linear-gradient(to_right,#1ed760_var(--pct),rgba(255,255,255,0.3)_var(--pct))]",
-        )}
-        style={
-          {
-            background: `linear-gradient(to right, white ${pct}%, rgba(255,255,255,0.3) ${pct}%)`,
-            "--pct": `${pct}%`,
-          } as React.CSSProperties
-        }
-      />
-      <span className="text-text-secondary w-8 shrink-0 text-xs tabular-nums">
-        {formatSeconds(duration)}
-      </span>
-    </div>
-  );
-};
 
 const VolumeSection: FC = () => {
   const volume = usePlayerStore((s) => s.volume);
@@ -170,6 +116,8 @@ export const GlobalPlayerBar: FC = () => {
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
   const seek = usePlayerStore((s) => s.seek);
+  const currentTime = usePlayerStore((s) => s.currentTime);
+  const duration = usePlayerStore((s) => s.duration);
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
   const cycleRepeat = usePlayerStore((s) => s.cycleRepeat);
   const _onLoadedMetadata = usePlayerStore((s) => s._onLoadedMetadata);
@@ -374,7 +322,13 @@ export const GlobalPlayerBar: FC = () => {
                 </button>
               </div>
 
-              <ProgressSection />
+              <ProgressSlider
+                currentTime={currentTime}
+                duration={duration}
+                onSeek={seek}
+                ariaLabel={t("player.transport.seek")}
+                variant="bar"
+              />
             </div>
 
             <div className="hidden flex-1 justify-end md:flex">

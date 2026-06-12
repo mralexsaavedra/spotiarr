@@ -6,14 +6,8 @@ import { useReorderable } from "@/hooks/useReorderable";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { cn } from "@/utils/cn";
 import { Image } from "../atoms/Image";
+import { ProgressSlider } from "../molecules/ProgressSlider";
 import { TransportControls } from "../molecules/TransportControls";
-
-function formatSeconds(seconds: number): string {
-  const s = Math.max(0, Math.floor(seconds));
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  return `${m}:${rem.toString().padStart(2, "0")}`;
-}
 
 export const NowPlayingFullscreen: FC = () => {
   const { t } = useTranslation();
@@ -76,8 +70,6 @@ export const NowPlayingFullscreen: FC = () => {
       document.body.style.overflow = previousOverflow;
     };
   }, [isNowPlayingOpen]);
-
-  const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const onHandlePointerDown = (e: React.PointerEvent, index: number) => {
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -190,32 +182,13 @@ export const NowPlayingFullscreen: FC = () => {
       </div>
 
       <div className="px-6 py-3">
-        <div className="group flex w-full items-center gap-2">
-          <span className="text-text-secondary w-8 shrink-0 text-right text-xs tabular-nums">
-            {formatSeconds(currentTime)}
-          </span>
-          <input
-            type="range"
-            role="slider"
-            aria-label={t("player.transport.seek")}
-            aria-valuemin={0}
-            aria-valuemax={duration}
-            aria-valuenow={currentTime}
-            aria-valuetext={`${formatSeconds(currentTime)} of ${formatSeconds(duration)}`}
-            min={0}
-            max={duration || 1}
-            step={1}
-            value={currentTime}
-            onChange={(e) => seek(Number(e.target.value))}
-            className="h-1 flex-1 cursor-pointer appearance-none rounded-full"
-            style={{
-              background: `linear-gradient(to right, white ${pct}%, rgba(255,255,255,0.3) ${pct}%)`,
-            }}
-          />
-          <span className="text-text-secondary w-8 shrink-0 text-xs tabular-nums">
-            {formatSeconds(duration)}
-          </span>
-        </div>
+        <ProgressSlider
+          variant="fullscreen"
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={seek}
+          ariaLabel={t("player.transport.seek")}
+        />
       </div>
 
       <div className="flex items-center justify-center px-6 pb-4">
