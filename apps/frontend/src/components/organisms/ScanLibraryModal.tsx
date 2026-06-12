@@ -2,6 +2,7 @@ import { ArtworkBackfillRunStatus } from "@spotiarr/shared";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { ACTIVE_BACKFILL_STATUSES } from "@/utils/artworkBackfill";
 import { Button } from "../atoms/Button";
 
 interface ScanLibraryModalProps {
@@ -11,13 +12,6 @@ interface ScanLibraryModalProps {
   onCancel: () => void;
   onConfirm: (input: { shouldStartBackfill: boolean }) => void;
 }
-
-const ACTIVE_BACKFILL_STATUSES = new Set<ArtworkBackfillRunStatus>([
-  "running",
-  "pause_requested",
-  "paused",
-  "paused_rate_limited",
-]);
 
 export const ScanLibraryModal: FC<ScanLibraryModalProps> = ({
   isOpen,
