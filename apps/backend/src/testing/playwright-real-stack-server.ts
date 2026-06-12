@@ -4,6 +4,14 @@ import { initializeContainer } from "../container";
 import { configureSpotifyRateLimiters } from "../infrastructure/external/spotify-http.client";
 import { getEnv, validateEnvironment } from "../infrastructure/setup/environment";
 import { prisma } from "../infrastructure/setup/prisma";
+import {
+  getArtworkBackfillQueue,
+  getCatalogSyncQueue,
+  getFeedSyncQueue,
+  getTrackDownloadQueue,
+  getTrackSearchQueue,
+  initializeQueues,
+} from "../infrastructure/setup/queues";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 3000;
@@ -37,6 +45,10 @@ export async function startPlaywrightRealStackServer(
   validateEnvironment();
   const env = getEnv();
   configureSpotifyRateLimiters(env);
+
+  // Mirror the production bootstrap so the BullMQ Redis connection exists and
+  // /api/health can ping it. Without this, getTrackDownloadQueue() throws.
+  initializeQueues();
 
   const container = initializeContainer(env);
   const app = createApp(container);
@@ -73,6 +85,14 @@ async function closeServer(server: http.Server): Promise<void> {
   });
 
   await Promise.race([closeServer, forceClose]);
+
+  await Promise.allSettled([
+    getTrackDownloadQueue().close(),
+    getTrackSearchQueue().close(),
+    getFeedSyncQueue().close(),
+    getCatalogSyncQueue().close(),
+    getArtworkBackfillQueue().close(),
+  ]);
 
   await prisma.$disconnect();
 }

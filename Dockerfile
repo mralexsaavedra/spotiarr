@@ -71,6 +71,8 @@ COPY --chown=node:node --from=builder /spotiarr/apps/backend/node_modules ./apps
 COPY --chown=node:node --from=builder /spotiarr/apps/backend/package.json ./apps/backend/
 COPY --chown=node:node --from=builder /spotiarr/apps/backend/dist ./apps/backend/dist
 COPY --chown=node:node --from=builder /spotiarr/apps/backend/prisma ./apps/backend/prisma
+# The Playwright real-stack harness is build-time test tooling; drop it from prod.
+RUN rm -rf /spotiarr/apps/backend/dist/testing
 COPY --chown=node:node --from=builder /spotiarr/apps/frontend/package.json ./apps/frontend/
 COPY --chown=node:node --from=builder /spotiarr/apps/frontend/dist ./apps/frontend/dist
 COPY --chown=node:node --from=builder /spotiarr/packages/shared/package.json ./packages/shared/
