@@ -63,10 +63,20 @@ COPY --chown=node:node --from=builder /spotiarr/package.json /spotiarr/pnpm-work
 COPY --chown=node:node docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# Copy application artifacts (node_modules, dist, prisma) from builder
+# Copy built artifacts only — keep TS source and tests out of the runtime image.
+# Selective COPY ships only node_modules, compiled dist, and the Prisma
+# schema/migrations, reducing image size and attack surface.
 COPY --chown=node:node --from=builder /spotiarr/node_modules ./node_modules
-COPY --chown=node:node --from=builder /spotiarr/apps ./apps
-COPY --chown=node:node --from=builder /spotiarr/packages ./packages
+COPY --chown=node:node --from=builder /spotiarr/apps/backend/node_modules ./apps/backend/node_modules
+COPY --chown=node:node --from=builder /spotiarr/apps/backend/package.json ./apps/backend/
+COPY --chown=node:node --from=builder /spotiarr/apps/backend/dist ./apps/backend/dist
+COPY --chown=node:node --from=builder /spotiarr/apps/backend/prisma ./apps/backend/prisma
+# The Playwright real-stack harness is build-time test tooling; drop it from prod.
+RUN rm -rf /spotiarr/apps/backend/dist/testing
+COPY --chown=node:node --from=builder /spotiarr/apps/frontend/package.json ./apps/frontend/
+COPY --chown=node:node --from=builder /spotiarr/apps/frontend/dist ./apps/frontend/dist
+COPY --chown=node:node --from=builder /spotiarr/packages/shared/package.json ./packages/shared/
+COPY --chown=node:node --from=builder /spotiarr/packages/shared/dist ./packages/shared/dist
 
 # Prisma writes engine binaries at startup; make those dirs world-writable
 # so they work when PUID != 1000 (the build uid).

@@ -45,11 +45,11 @@ import { NoopAlbumTracksCache } from "./infrastructure/cache/noop-album-tracks-c
 import { ArtistAlbumCacheRepository } from "./infrastructure/database/artist-album-cache.repository";
 import { ArtistReleaseCacheRepository } from "./infrastructure/database/artist-release-cache.repository";
 import { PrismaArtworkBackfillRepository } from "./infrastructure/database/artwork-backfill.repository";
+import { ConnectivityAdapter } from "./infrastructure/database/connectivity.adapter";
 import { ExternalUrlCacheRepository } from "./infrastructure/database/external-url-cache.repository";
 import { FeedCacheEvictionRepository } from "./infrastructure/database/feed-cache-eviction.repository";
 import { FeedSyncStateRepository } from "./infrastructure/database/feed-sync-state.repository";
 import { FollowedArtistRepository } from "./infrastructure/database/followed-artist.repository";
-import { PrismaConnectivityAdapter } from "./infrastructure/database/prisma-connectivity.adapter";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
@@ -185,7 +185,7 @@ export function createContainer(env: Env) {
     setCatalogSyncState: (status, error) =>
       feedSyncStateRepository.setCatalogSyncState(status, error),
   };
-  const connectivityAdapter = new PrismaConnectivityAdapter();
+  const connectivityAdapter = new ConnectivityAdapter();
 
   const internalizedNumericSettingMap: Record<string, () => number> = {
     FEED_SYNC_INTERVAL_MINUTES: () => env.FEED_SYNC_INTERVAL_MINUTES,

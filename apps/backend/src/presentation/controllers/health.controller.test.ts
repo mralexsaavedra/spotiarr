@@ -16,7 +16,7 @@ function mockRes(): Response {
 describe("HealthController", () => {
   it("returns 200 with { status: 'ok' } for healthy report", async () => {
     const healthService = {
-      check: vi.fn().mockResolvedValue({ status: "ok", components: { db: "ok" } }),
+      check: vi.fn().mockResolvedValue({ status: "ok", components: { db: "ok", redis: "ok" } }),
     } as unknown as HealthService;
     const controller = new HealthController(healthService);
 
@@ -27,9 +27,11 @@ describe("HealthController", () => {
     expect(res.json).toHaveBeenCalledWith({ status: "ok" });
   });
 
-  it("returns 503 with degraded components shape when db is down", async () => {
+  it("returns 503 with degraded components shape when redis is down", async () => {
     const healthService = {
-      check: vi.fn().mockResolvedValue({ status: "degraded", components: { db: "down" } }),
+      check: vi
+        .fn()
+        .mockResolvedValue({ status: "degraded", components: { db: "ok", redis: "down" } }),
     } as unknown as HealthService;
     const controller = new HealthController(healthService);
 
@@ -39,7 +41,7 @@ describe("HealthController", () => {
     expect(res.status).toHaveBeenCalledWith(503);
     expect(res.json).toHaveBeenCalledWith({
       status: "degraded",
-      components: { db: "down" },
+      components: { db: "ok", redis: "down" },
     });
   });
 });
