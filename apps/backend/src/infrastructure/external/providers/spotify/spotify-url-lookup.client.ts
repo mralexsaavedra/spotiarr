@@ -18,16 +18,16 @@ export class SpotifyUrlLookupClient extends SpotifyBaseClient implements Spotify
   constructor(
     authService: SpotifyAuthService,
     settingsService: SettingsPort,
-    appTokenCircuitBreaker?: CircuitBreaker,
-    appTokenRateLimiter?: RateLimiter,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
   ) {
     super(
       authService,
       settingsService,
       "SpotifyUrlLookupClient",
-      "interactive",
       appTokenCircuitBreaker,
       appTokenRateLimiter,
+      "interactive",
     );
   }
 

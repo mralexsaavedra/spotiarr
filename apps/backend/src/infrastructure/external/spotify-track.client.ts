@@ -17,18 +17,18 @@ export class SpotifyTrackClient extends SpotifyBaseClient {
   constructor(
     authService: SpotifyAuthService,
     settingsService: SettingsPort,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "interactive",
     requestCache?: PromiseCache,
-    appTokenCircuitBreaker?: CircuitBreaker,
-    appTokenRateLimiter?: RateLimiter,
   ) {
     super(
       authService,
       settingsService,
       "SpotifyTrackClient",
-      limiterMode,
       appTokenCircuitBreaker,
       appTokenRateLimiter,
+      limiterMode,
     );
     this.requestCache = requestCache ?? new PromiseCache({ ttlMs: 30_000 });
   }

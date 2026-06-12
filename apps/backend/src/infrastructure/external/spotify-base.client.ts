@@ -12,11 +12,11 @@ export abstract class SpotifyBaseClient extends SpotifyHttpClient {
     authService: SpotifyAuthService,
     protected readonly settingsService: SettingsPort,
     private readonly contextName: string,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "interactive",
-    appTokenCircuitBreaker?: CircuitBreaker,
-    appTokenRateLimiter?: RateLimiter,
   ) {
-    super(authService, limiterMode, undefined, appTokenCircuitBreaker, appTokenRateLimiter);
+    super(authService, appTokenCircuitBreaker, appTokenRateLimiter, limiterMode);
   }
 
   protected async getMarket(): Promise<string> {

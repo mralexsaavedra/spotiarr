@@ -105,14 +105,10 @@ export class SpotifyHttpClient {
 
   constructor(
     private readonly authService: SpotifyAuthService,
+    private readonly appTokenCircuitBreaker: CircuitBreaker,
+    private readonly appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "user",
     useFailFastRetryOverride?: boolean,
-    private readonly appTokenCircuitBreaker: CircuitBreaker = new CircuitBreaker(),
-    private readonly appTokenRateLimiter: RateLimiter = new RateLimiter({
-      maxConcurrency: 2,
-      minIntervalMs: 500,
-      queueTimeoutMs: 120_000,
-    }),
   ) {
     let resolvedLimiter = userRateLimiter;
     let useFailFastRetry = false;

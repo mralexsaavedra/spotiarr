@@ -17,11 +17,11 @@ export class SpotifyArtistCatalogService extends SpotifyHttpClient {
   constructor(
     private readonly settingsService: SettingsPort,
     authService: SpotifyAuthService,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "user",
-    appTokenCircuitBreaker?: CircuitBreaker,
-    appTokenRateLimiter?: RateLimiter,
   ) {
-    super(authService, limiterMode, undefined, appTokenCircuitBreaker, appTokenRateLimiter);
+    super(authService, appTokenCircuitBreaker, appTokenRateLimiter, limiterMode);
   }
 
   clearCache(): void {

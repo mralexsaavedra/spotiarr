@@ -30,17 +30,17 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
     private readonly trackClient: SpotifyTrackClient,
     private readonly albumClient: SpotifyAlbumClient,
     requestCache: PromiseCache,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "interactive",
-    appTokenCircuitBreaker?: CircuitBreaker,
-    appTokenRateLimiter?: RateLimiter,
   ) {
     super(
       authService,
       settingsService,
       "SpotifyPlaylistClient",
-      limiterMode,
       appTokenCircuitBreaker,
       appTokenRateLimiter,
+      limiterMode,
     );
     this.requestCache = requestCache;
   }

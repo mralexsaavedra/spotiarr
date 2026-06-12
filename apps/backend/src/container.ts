@@ -238,25 +238,25 @@ export function createContainer(env: Env) {
     spotifyAuthService,
     settingsService,
     spotifyRequestCache,
-    "interactive",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "interactive",
   );
   const spotifyTrackClient = new SpotifyTrackClient(
     spotifyAuthService,
     settingsService,
-    "interactive",
-    spotifyRequestCache,
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "interactive",
+    spotifyRequestCache,
   );
   const spotifyAlbumClient = new SpotifyAlbumClient(
     spotifyAuthService,
     settingsService,
     spotifyRequestCache,
-    "interactive",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "interactive",
   );
   const spotifyPlaylistClient = new SpotifyPlaylistClient(
     spotifyAuthService,
@@ -264,9 +264,9 @@ export function createContainer(env: Env) {
     spotifyTrackClient,
     spotifyAlbumClient,
     spotifyRequestCache,
-    "interactive",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "interactive",
   );
   const spotifyPlaylistClientSync = new SpotifyPlaylistClient(
     spotifyAuthService,
@@ -274,61 +274,61 @@ export function createContainer(env: Env) {
     spotifyTrackClient,
     spotifyAlbumClient,
     spotifyRequestCache,
-    "sync",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "sync",
   );
   const spotifySearchClient = new SpotifySearchClient(
     spotifyAuthService,
     settingsService,
     spotifyRequestCache,
-    "interactive",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "interactive",
   );
 
   spotifyFollowedArtistsService = new SpotifyFollowedArtistsService(
     settingsService,
     spotifyAuthService,
-    "user",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "user",
   );
   spotifyPlaylistLibraryService = new SpotifyPlaylistLibraryService(
     settingsService,
     spotifyAuthService,
-    "user",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "user",
   );
   spotifyArtistCatalogService = new SpotifyArtistCatalogService(
     settingsService,
     spotifyAuthService,
-    "user",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "user",
   );
 
   spotifyFollowedArtistsSyncService = new SpotifyFollowedArtistsService(
     settingsService,
     spotifyAuthService,
-    "sync",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "sync",
   );
   spotifyPlaylistLibrarySyncService = new SpotifyPlaylistLibraryService(
     settingsService,
     spotifyAuthService,
-    "sync",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "sync",
   );
   spotifyArtistCatalogSyncService = new SpotifyArtistCatalogService(
     settingsService,
     spotifyAuthService,
-    "sync",
     appTokenCircuitBreaker,
     appTokenRateLimiter,
+    "sync",
   );
 
   spotifyUserLibraryService = {

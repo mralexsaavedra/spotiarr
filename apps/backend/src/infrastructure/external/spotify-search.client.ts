@@ -18,17 +18,17 @@ export class SpotifySearchClient extends SpotifyBaseClient {
     authService: SpotifyAuthService,
     settingsService: SettingsPort,
     requestCache: PromiseCache,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "interactive",
-    appTokenCircuitBreaker?: CircuitBreaker,
-    appTokenRateLimiter?: RateLimiter,
   ) {
     super(
       authService,
       settingsService,
       "SpotifySearchClient",
-      limiterMode,
       appTokenCircuitBreaker,
       appTokenRateLimiter,
+      limiterMode,
     );
     this.requestCache = requestCache;
   }

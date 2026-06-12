@@ -15,17 +15,17 @@ export class SpotifyArtistClient extends SpotifyBaseClient {
     authService: SpotifyAuthService,
     settingsService: SettingsPort,
     requestCache: PromiseCache,
+    appTokenCircuitBreaker: CircuitBreaker,
+    appTokenRateLimiter: RateLimiter,
     limiterMode: SpotifyLimiterMode = "interactive",
-    appTokenCircuitBreaker?: CircuitBreaker,
-    appTokenRateLimiter?: RateLimiter,
   ) {
     super(
       authService,
       settingsService,
       "SpotifyArtistClient",
-      limiterMode,
       appTokenCircuitBreaker,
       appTokenRateLimiter,
+      limiterMode,
     );
     this.requestCache = requestCache;
   }
