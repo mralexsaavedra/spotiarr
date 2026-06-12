@@ -1,7 +1,7 @@
 import type { TokenStorePort } from "@/application/ports/token-store.port";
 import { AppError } from "@/domain/errors/app-error";
+import { getErrorMessage } from "../../application/utils/error.utils";
 import { getEnv } from "../setup/environment";
-import { getErrorMessage } from "../utils/error.utils";
 
 interface SpotifyTokenResponse {
   access_token: string;

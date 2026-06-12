@@ -7,10 +7,7 @@ import { HistoryRepository } from "@/domain/repositories/history.repository";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 import { TrackPostProcessingService } from "../../services/track-post-processing.service";
-
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
+import { getErrorMessage } from "../../utils/error.utils";
 
 export class DownloadTrackUseCase {
   constructor(
@@ -47,9 +44,9 @@ export class DownloadTrackUseCase {
     } catch (err) {
       console.error(
         `Failed to download track: ${track.artist} - ${track.name}`,
-        toErrorMessage(err),
+        getErrorMessage(err),
       );
-      error = toErrorMessage(err);
+      error = getErrorMessage(err);
     }
 
     // Update final status
