@@ -1,7 +1,7 @@
 import { NormalizedTrack } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
-import { getErrorMessage } from "../utils/error.utils";
+import { getErrorMessage } from "../../application/utils/error.utils";
 import { CircuitBreaker } from "./circuit-breaker";
 import { PromiseCache } from "./promise-cache";
 import { RateLimiter } from "./rate-limiter";

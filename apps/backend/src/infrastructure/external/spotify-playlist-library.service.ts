@@ -1,8 +1,8 @@
 import type { SpotifyPlaylist } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
+import { getErrorMessage } from "../../application/utils/error.utils";
 import { getEnv } from "../setup/environment";
-import { getErrorMessage } from "../utils/error.utils";
 import { CircuitBreaker } from "./circuit-breaker";
 import { RateLimiter } from "./rate-limiter";
 import type { SpotifyAuthService } from "./spotify-auth.service";

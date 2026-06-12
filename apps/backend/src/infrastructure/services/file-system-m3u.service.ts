@@ -2,7 +2,7 @@ import { TrackStatusEnum, type IPlaylist, type ITrack } from "@spotiarr/shared";
 import * as fs from "fs";
 import * as path from "path";
 import type { SettingsPort } from "@/application/ports/settings.port";
-import { getErrorMessage } from "../utils/error.utils";
+import { getErrorMessage } from "../../application/utils/error.utils";
 import { FileSystemTrackPathService } from "./file-system-track-path.service";
 
 export class FileSystemM3uService {

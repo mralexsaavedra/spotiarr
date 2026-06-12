@@ -6,12 +6,9 @@ import type {
   MetadataPort,
 } from "@/application/ports/file-system.port";
 import { ArtworkService } from "@/application/services/artwork.service";
+import { getErrorMessage } from "@/application/utils/error.utils";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
-
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
 
 export class TrackPostProcessingService {
   constructor(
@@ -52,7 +49,7 @@ export class TrackPostProcessingService {
       await this.artworkService.saveArtistImageIfNeeded(track, artwork);
     } catch (error) {
       console.error(
-        `Error during post-processing for track ${track.name}: ${toErrorMessage(error)}`,
+        `Error during post-processing for track ${track.name}: ${getErrorMessage(error)}`,
       );
       // We don't throw here to avoid failing the whole download if just metadata fails
     }
@@ -81,7 +78,7 @@ export class TrackPostProcessingService {
         console.debug(`Playlist M3U updated: ${completedCount}/${playlistTracks.length} tracks`);
       }
     } catch (err) {
-      console.error(`Failed to generate M3U file: ${toErrorMessage(err)}`);
+      console.error(`Failed to generate M3U file: ${getErrorMessage(err)}`);
     }
   }
 }

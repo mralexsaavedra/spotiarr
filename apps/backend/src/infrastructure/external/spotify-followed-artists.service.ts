@@ -1,7 +1,7 @@
 import type { FollowedArtist } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
-import { getErrorMessage } from "../utils/error.utils";
+import { getErrorMessage } from "../../application/utils/error.utils";
 import type { CacheEntry } from "./cache.types";
 import { CircuitBreaker } from "./circuit-breaker";
 import { PromiseCache } from "./promise-cache";

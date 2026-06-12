@@ -1,4 +1,5 @@
 import { NormalizedTrack, SpotifyPlaylist, SpotifySearchResults } from "@spotiarr/shared";
+import { getErrorMessage } from "@/application/utils/error.utils";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 
@@ -47,10 +48,6 @@ export interface SpotifyServiceDeps {
   playlistClient: SpotifyPlaylistClientLike;
   searchClient: SpotifySearchClientLike;
   userLibraryService: SpotifyUserLibraryLike;
-}
-
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }
 
 export type PlaylistTrack = NormalizedTrack;
@@ -130,7 +127,7 @@ export class SpotifyService {
 
       throw new AppError(400, "invalid_spotify_url", "Unhandled URL type");
     } catch (error) {
-      console.error(`Error getting playlist details: ${toErrorMessage(error)}`);
+      console.error(`Error getting playlist details: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -200,7 +197,7 @@ export class SpotifyService {
     try {
       return await this.deps.playlistClient.getAllPlaylistTracks(spotifyUrl);
     } catch (error) {
-      console.error(`Error getting playlist tracks: ${toErrorMessage(error)}`);
+      console.error(`Error getting playlist tracks: ${getErrorMessage(error)}`);
       return [];
     }
   }
@@ -213,7 +210,7 @@ export class SpotifyService {
     try {
       return await this.deps.playlistClient.getPlaylistTracksPage(spotifyUrl, offset, limit);
     } catch (error) {
-      console.error(`Error getting playlist tracks page: ${toErrorMessage(error)}`);
+      console.error(`Error getting playlist tracks page: ${getErrorMessage(error)}`);
       throw error;
     }
   }
