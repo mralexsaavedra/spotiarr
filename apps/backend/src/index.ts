@@ -136,12 +136,15 @@ async function bootstrap() {
 const gracefulShutdown = async (signal: string, server: http.Server) => {
   console.log(`\n[${signal}] Signal received: closing application...`);
 
-  // 1. Close HTTP Server
-  server.close(() => {
-    console.log("✅ HTTP server closed");
-  });
-
   try {
+    // 1. Close HTTP Server — await draining in-flight requests before tearing
+    // down queues/workers so SSE and HTTP responses are not cut off.
+    console.log("⏳ Closing HTTP server...");
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve()));
+    });
+    console.log("✅ HTTP server closed");
+
     // 2. Close Queues and Workers
     console.log("⏳ Closing queues and workers...");
     await Promise.allSettled([
