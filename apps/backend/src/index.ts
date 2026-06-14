@@ -10,6 +10,7 @@ import { getEnv, validateEnvironment } from "./infrastructure/setup/environment"
 import { prisma } from "./infrastructure/setup/prisma";
 import { initializeQueues } from "./infrastructure/setup/queues";
 import {
+  getAiPlaylistQueue,
   getArtworkBackfillQueue,
   getCatalogSyncQueue,
   getFeedSyncQueue,
@@ -42,6 +43,7 @@ let searchWorker: import("bullmq").Worker;
 let feedSyncWorker: import("bullmq").Worker;
 let catalogSyncWorker: import("bullmq").Worker;
 let artworkBackfillWorker: import("bullmq").Worker;
+let aiPlaylistWorker: import("bullmq").Worker;
 
 async function bootstrap() {
   console.log("🚀 Starting SpotiArr Backend...\n");
@@ -89,6 +91,9 @@ async function bootstrap() {
   const { createArtworkBackfillWorker } =
     await import("./infrastructure/workers/artwork-backfill.worker");
   artworkBackfillWorker = createArtworkBackfillWorker();
+
+  const { createAiPlaylistWorker } = await import("./infrastructure/workers/ai-playlist.worker");
+  aiPlaylistWorker = createAiPlaylistWorker();
 
   // Listen for settings updates to hot-reload workers
   (container.eventBus as unknown as EventEmitter).on(
@@ -153,11 +158,13 @@ const gracefulShutdown = async (signal: string, server: http.Server) => {
       getFeedSyncQueue().close(),
       getCatalogSyncQueue().close(),
       getArtworkBackfillQueue().close(),
+      getAiPlaylistQueue().close(),
       downloadWorker?.close(),
       searchWorker?.close(),
       feedSyncWorker?.close(),
       catalogSyncWorker?.close(),
       artworkBackfillWorker?.close(),
+      aiPlaylistWorker?.close(),
     ]);
     console.log("✅ Queues and workers closed");
 
