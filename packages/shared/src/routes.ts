@@ -14,4 +14,5 @@ export const ApiRoutes = {
   LIBRARY: "/library",
   SEARCH: "/search",
   EXTERNAL_URL: "/external-url",
+  AI: "/ai",
 } as const;

@@ -33,6 +33,7 @@ export enum PlaylistTypeEnum {
   Album = "album",
   Track = "track",
   Artist = "artist",
+  Ai = "ai",
 }
 
 export enum TrackStatusEnum {
@@ -50,7 +51,8 @@ export type SettingSection =
   | "Playlists"
   | "Releases"
   | "Downloads"
-  | "Maintenance";
+  | "Maintenance"
+  | "AI";
 
 export interface SettingMetadata {
   key: string;
@@ -64,6 +66,35 @@ export interface SettingMetadata {
   description: string;
   options?: string[];
   formatLabel?: (value: string) => string;
+  secret?: boolean;
+}
+
+export type AiPlaylistStage = "llm" | "validating" | "saving" | "done" | "error";
+
+export type AiPlaylistErrorCode =
+  | "provider-misconfig"
+  | "provider-unreachable"
+  | "llm-bad-output"
+  | "zero-resolved";
+
+export interface AiPlaylistProgressEvent {
+  jobId: string;
+  stage: AiPlaylistStage;
+  progress: number;
+  resolvedCount?: number;
+  droppedTitles?: string[];
+  error?: {
+    code: AiPlaylistErrorCode;
+    message: string;
+  };
+}
+
+export interface GenerateAiPlaylistRequest {
+  prompt: string;
+}
+
+export interface GenerateAiPlaylistResponse {
+  jobId: string;
 }
 
 export interface TrackArtist {
