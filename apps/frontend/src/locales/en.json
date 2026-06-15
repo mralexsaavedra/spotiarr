@@ -289,7 +289,7 @@
       },
       "AI_BASE_URL": {
         "label": "AI Base URL",
-        "description": "The base URL of the OpenAI-compatible API endpoint."
+        "description": "Optional override for the provider's default endpoint. Required only for the 'custom' provider."
       },
       "AI_API_KEY": {
         "label": "AI API Key",
@@ -364,6 +364,15 @@
         "description": "How long before a track is considered stuck and eligible for cleanup."
       }
     }
+  },
+  "aiProviders": {
+    "openai": "OpenAI",
+    "openrouter": "OpenRouter",
+    "groq": "Groq",
+    "ollama": "Ollama",
+    "lmstudio": "LM Studio",
+    "vercel": "Vercel AI Gateway",
+    "custom": "Custom"
   },
   "search": {
     "title": "Search",

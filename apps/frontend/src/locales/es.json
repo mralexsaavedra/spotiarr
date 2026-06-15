@@ -289,7 +289,7 @@
       },
       "AI_BASE_URL": {
         "label": "URL base de IA",
-        "description": "La URL base del endpoint de API compatible con OpenAI."
+        "description": "Reemplazo opcional del endpoint predeterminado del proveedor. Obligatorio solo para el proveedor 'custom'."
       },
       "AI_API_KEY": {
         "label": "Clave de API de IA",
@@ -364,6 +364,15 @@
         "description": "Cuánto tiempo antes de que una pista se considere atascada y elegible para limpieza."
       }
     }
+  },
+  "aiProviders": {
+    "openai": "OpenAI",
+    "openrouter": "OpenRouter",
+    "groq": "Groq",
+    "ollama": "Ollama",
+    "lmstudio": "LM Studio",
+    "vercel": "Vercel AI Gateway",
+    "custom": "Personalizado"
   },
   "search": {
     "title": "Buscar",
