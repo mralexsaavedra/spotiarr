@@ -310,6 +310,33 @@ describe("createAiChatPort factory", () => {
     });
   });
 
+  it("nvidia resolves preset baseURL https://integrate.api.nvidia.com/v1 when AI_BASE_URL is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "nvidia",
+      AI_BASE_URL: "",
+      AI_API_KEY: "nvapi-test",
+      AI_MODEL: "meta/llama-3.3-70b-instruct",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await port.generateTracks("test");
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
+  });
+
+  it("nvidia throws provider-misconfig when API key is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "nvidia",
+      AI_BASE_URL: "",
+      AI_API_KEY: "",
+      AI_MODEL: "meta/llama-3.3-70b-instruct",
+    });
+    const port = createAiChatPort(settings);
+    await expect(port.generateTracks("test")).rejects.toMatchObject({
+      code: "provider-misconfig",
+    });
+  });
+
   it("throws provider-misconfig when model is missing", async () => {
     const settings = makeSettings({
       AI_PROVIDER: "openai",

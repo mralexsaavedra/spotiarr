@@ -376,6 +376,7 @@
     "gemini": "Gemini",
     "openrouter": "OpenRouter",
     "groq": "Groq",
+    "nvidia": "NVIDIA NIM",
     "ollama": "Ollama",
     "ollama-cloud": "Ollama Cloud",
     "lmstudio": "LM Studio",
