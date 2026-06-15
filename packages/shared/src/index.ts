@@ -462,6 +462,32 @@ export interface UnlockRequestDto {
   token: string;
 }
 
+// AI Chat History
+
+export type AiChatRole = "user" | "assistant";
+
+export interface AiChatMessageContent {
+  key: string;
+  params?: Record<string, unknown>;
+}
+
+export interface AiChatMessageDto {
+  id: string;
+  role: AiChatRole;
+  content: AiChatMessageContent;
+  playlistId: string | null;
+  errorCode: string | null;
+  createdAt: number; // epoch ms as JS number
+}
+
+export interface AiChatHistoryDto {
+  messages: AiChatMessageDto[];
+}
+
+export interface ClearChatMessagesResponseDto {
+  deleted: number;
+}
+
 export interface AuthSessionResponseDto {
   tokenRequired: boolean;
 }
