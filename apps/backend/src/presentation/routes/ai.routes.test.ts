@@ -1,6 +1,8 @@
 import express, { type Express } from "express";
 import http from "node:http";
 import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
+import type { ClearChatMessagesUseCase } from "@/application/use-cases/ai/clear-chat-messages.use-case";
+import type { GetChatMessagesUseCase } from "@/application/use-cases/ai/get-chat-messages.use-case";
 import type { Container } from "@/container";
 import { AiChatController } from "../controllers/ai.controller";
 import { errorHandler } from "../middleware/error-handler";
@@ -10,6 +12,16 @@ const servers: http.Server[] = [];
 
 function makeQueueService(enqueueGenerate = vi.fn().mockResolvedValue(undefined)) {
   return { enqueueGenerate };
+}
+
+function makeGetChatMessagesUseCase(): GetChatMessagesUseCase {
+  return { execute: vi.fn().mockResolvedValue([]) } as unknown as GetChatMessagesUseCase;
+}
+
+function makeClearChatMessagesUseCase(): ClearChatMessagesUseCase {
+  return {
+    execute: vi.fn().mockResolvedValue({ deleted: 0 }),
+  } as unknown as ClearChatMessagesUseCase;
 }
 
 function buildApp(container: Container): Express {
@@ -53,7 +65,12 @@ describe("POST /api/ai/chat/generate", () => {
 
   it("returns 202 with jobId for a valid prompt", async () => {
     const queueService = makeQueueService(enqueueGenerate);
-    const aiChatController = new AiChatController(queueService);
+    const aiChatController = new AiChatController(
+      queueService,
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = {
       aiChatController,
       aiPlaylistQueueService: queueService,
@@ -74,7 +91,12 @@ describe("POST /api/ai/chat/generate", () => {
 
   it("returns 400 for an empty prompt — enqueue NOT called", async () => {
     const queueService = makeQueueService(enqueueGenerate);
-    const aiChatController = new AiChatController(queueService);
+    const aiChatController = new AiChatController(
+      queueService,
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = {
       aiChatController,
       aiPlaylistQueueService: queueService,
@@ -93,7 +115,12 @@ describe("POST /api/ai/chat/generate", () => {
 
   it("returns 400 for a whitespace-only prompt — enqueue NOT called", async () => {
     const queueService = makeQueueService(enqueueGenerate);
-    const aiChatController = new AiChatController(queueService);
+    const aiChatController = new AiChatController(
+      queueService,
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = {
       aiChatController,
       aiPlaylistQueueService: queueService,
@@ -112,7 +139,12 @@ describe("POST /api/ai/chat/generate", () => {
 
   it("returns 400 when prompt exceeds 500 characters — enqueue NOT called", async () => {
     const queueService = makeQueueService(enqueueGenerate);
-    const aiChatController = new AiChatController(queueService);
+    const aiChatController = new AiChatController(
+      queueService,
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = {
       aiChatController,
       aiPlaylistQueueService: queueService,
@@ -131,7 +163,12 @@ describe("POST /api/ai/chat/generate", () => {
 
   it("returns 400 when prompt is missing from body — enqueue NOT called", async () => {
     const queueService = makeQueueService(enqueueGenerate);
-    const aiChatController = new AiChatController(queueService);
+    const aiChatController = new AiChatController(
+      queueService,
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = {
       aiChatController,
       aiPlaylistQueueService: queueService,
@@ -156,7 +193,12 @@ describe("POST /api/ai/models", () => {
 
   it("returns 200 with sorted model ids", async () => {
     const listModelsFn = vi.fn().mockResolvedValue(["gpt-3.5-turbo", "gpt-4o"]);
-    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      listModelsFn,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = { aiChatController } as unknown as Container;
     const baseUrl = await startServer(buildApp(container));
 
@@ -173,7 +215,12 @@ describe("POST /api/ai/models", () => {
 
   it("returns 200 with empty array when no models", async () => {
     const listModelsFn = vi.fn().mockResolvedValue([]);
-    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      listModelsFn,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = { aiChatController } as unknown as Container;
     const baseUrl = await startServer(buildApp(container));
 
@@ -190,7 +237,12 @@ describe("POST /api/ai/models", () => {
 
   it("passes override body fields to listModelsFn", async () => {
     const listModelsFn = vi.fn().mockResolvedValue(["gpt-4o"]);
-    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      listModelsFn,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = { aiChatController } as unknown as Container;
     const baseUrl = await startServer(buildApp(container));
 
@@ -208,7 +260,12 @@ describe("POST /api/ai/models", () => {
 
   it("accepts empty body", async () => {
     const listModelsFn = vi.fn().mockResolvedValue([]);
-    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      listModelsFn,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
     const container = { aiChatController } as unknown as Container;
     const baseUrl = await startServer(buildApp(container));
 

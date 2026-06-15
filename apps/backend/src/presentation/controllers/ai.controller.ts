@@ -14,9 +14,9 @@ type ListModelsFn = (overrides: ModelOverrides) => Promise<string[]>;
 export class AiChatController {
   constructor(
     private readonly aiPlaylistQueueService: AiPlaylistQueueService,
-    private readonly listModelsFn?: ListModelsFn,
-    private readonly getChatMessagesUseCase?: GetChatMessagesUseCase,
-    private readonly clearChatMessagesUseCase?: ClearChatMessagesUseCase,
+    private readonly listModelsFn: ListModelsFn | undefined,
+    private readonly getChatMessagesUseCase: GetChatMessagesUseCase,
+    private readonly clearChatMessagesUseCase: ClearChatMessagesUseCase,
   ) {}
 
   generate = async (req: Request, res: Response) => {
@@ -36,12 +36,12 @@ export class AiChatController {
   };
 
   getMessages = async (_req: Request, res: Response) => {
-    const messages = await this.getChatMessagesUseCase!.execute();
+    const messages = await this.getChatMessagesUseCase.execute();
     res.status(200).json({ data: { messages } });
   };
 
   clearMessages = async (_req: Request, res: Response) => {
-    const result = await this.clearChatMessagesUseCase!.execute();
+    const result = await this.clearChatMessagesUseCase.execute();
     res.status(200).json({ data: { deleted: result.deleted } });
   };
 }
