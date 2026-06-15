@@ -3,6 +3,7 @@ import http from "node:http";
 import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import type { Container } from "@/container";
 import { AiChatController } from "../controllers/ai.controller";
+import { errorHandler } from "../middleware/error-handler";
 import { createAiRoutes } from "./ai.routes";
 
 const servers: http.Server[] = [];
@@ -15,6 +16,7 @@ function buildApp(container: Container): Express {
   const app = express();
   app.use(express.json());
   app.use("/api/ai", createAiRoutes(container));
+  app.use(errorHandler);
   return app;
 }
 
@@ -144,5 +146,37 @@ describe("POST /api/ai/chat/generate", () => {
 
     expect(res.status).toBe(400);
     expect(enqueueGenerate).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/ai/models", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 200 with sorted model ids", async () => {
+    const listModelsFn = vi.fn().mockResolvedValue(["gpt-3.5-turbo", "gpt-4o"]);
+    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/models`);
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { models: string[] } };
+    expect(body.data.models).toEqual(["gpt-3.5-turbo", "gpt-4o"]);
+  });
+
+  it("returns 200 with empty array when no models", async () => {
+    const listModelsFn = vi.fn().mockResolvedValue([]);
+    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/models`);
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { models: string[] } };
+    expect(body.data.models).toEqual([]);
   });
 });

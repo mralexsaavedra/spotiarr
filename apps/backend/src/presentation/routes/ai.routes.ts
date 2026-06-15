@@ -14,5 +14,7 @@ export function createAiRoutes(container: Container): ExpressRouter {
     asyncHandler(aiChatController.generate),
   );
 
+  router.get("/models", asyncHandler(aiChatController.listModels));
+
   return router;
 }

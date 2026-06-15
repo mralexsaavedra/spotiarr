@@ -56,6 +56,7 @@ import { PrismaSettingsRepository } from "./infrastructure/database/prisma-setti
 import { PrismaTrackRepository } from "./infrastructure/database/prisma-track.repository";
 import { CircuitBreaker } from "./infrastructure/external/circuit-breaker";
 import { PromiseCache } from "./infrastructure/external/promise-cache";
+import { listAiModels } from "./infrastructure/external/providers/ai/list-ai-models";
 import { DeezerArtistLookupAdapter } from "./infrastructure/external/providers/deezer/deezer-artist-lookup.adapter";
 import { DeezerArtworkSourceService } from "./infrastructure/external/providers/deezer/deezer-artwork-source.service";
 import { DeezerCatalogSearchAdapter } from "./infrastructure/external/providers/deezer/deezer-catalog-search.adapter";
@@ -600,7 +601,9 @@ export function createContainer(env: Env) {
   const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
 
   const aiPlaylistQueueService = new BullMqAiPlaylistQueueService();
-  const aiChatController = new AiChatController(aiPlaylistQueueService);
+  const aiChatController = new AiChatController(aiPlaylistQueueService, () =>
+    listAiModels(settingsService),
+  );
 
   const historyUseCases = new HistoryUseCases({ repository: historyRepository });
   const historyController = new HistoryController(historyUseCases);
