@@ -1,7 +1,12 @@
 import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
 import { describe, expect, it } from "vitest";
-import type { Playlist, Track } from "@/types";
-import { buildZeroStats, calculatePlaylistStats, formatPlaylistTitle } from "./playlist";
+import type { Playlist, PlaylistWithStats, Track } from "@/types";
+import {
+  buildZeroStats,
+  calculatePlaylistStats,
+  formatPlaylistTitle,
+  selectLibraryPlaylists,
+} from "./playlist";
 
 const makeTrack = (status: TrackStatusEnum, overrides: Partial<Track> = {}): Track => ({
   id: "t1",
@@ -118,5 +123,42 @@ describe("formatPlaylistTitle", () => {
 
   it("returns raw title when splitting yields no dash for track type", () => {
     expect(formatPlaylistTitle("Single", "track", [])).toBe("Single");
+  });
+});
+
+describe("selectLibraryPlaylists", () => {
+  const makePlaylist = (
+    id: string,
+    type: PlaylistTypeEnum,
+    completedCount: number,
+    totalCount = completedCount,
+  ): PlaylistWithStats => ({
+    id,
+    type,
+    stats: { ...buildZeroStats(totalCount), completedCount },
+  });
+
+  it("includes Spotify playlists only when they have completed tracks", () => {
+    const withCompleted = makePlaylist("a", PlaylistTypeEnum.Playlist, 3, 5);
+    const withoutCompleted = makePlaylist("b", PlaylistTypeEnum.Playlist, 0, 5);
+
+    const result = selectLibraryPlaylists([withCompleted, withoutCompleted]);
+
+    expect(result).toEqual([{ playlist: withCompleted, downloadedCount: 3, totalCount: 5 }]);
+  });
+
+  it("includes AI playlists even while still downloading", () => {
+    const aiPlaylist = makePlaylist("ai-1", PlaylistTypeEnum.Ai, 0, 19);
+
+    const result = selectLibraryPlaylists([aiPlaylist]);
+
+    expect(result).toEqual([{ playlist: aiPlaylist, downloadedCount: 0, totalCount: 19 }]);
+  });
+
+  it("excludes album and artist playlist types", () => {
+    const album = makePlaylist("al", PlaylistTypeEnum.Album, 4, 4);
+    const artist = makePlaylist("ar", PlaylistTypeEnum.Artist, 4, 4);
+
+    expect(selectLibraryPlaylists([album, artist])).toEqual([]);
   });
 });

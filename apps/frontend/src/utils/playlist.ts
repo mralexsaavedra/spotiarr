@@ -1,5 +1,24 @@
-import { TrackStatusEnum } from "@spotiarr/shared";
-import { type Playlist, PlaylistStats, type Track } from "@/types";
+import { PlaylistTypeEnum, TrackStatusEnum } from "@spotiarr/shared";
+import { type Playlist, type PlaylistStats, type PlaylistWithStats, type Track } from "@/types";
+
+export interface ListablePlaylist {
+  playlist: PlaylistWithStats;
+  downloadedCount: number;
+  totalCount: number;
+}
+
+export const selectLibraryPlaylists = (playlists: PlaylistWithStats[]): ListablePlaylist[] =>
+  playlists
+    .filter(
+      (p) =>
+        (p.type === PlaylistTypeEnum.Playlist && p.stats.completedCount > 0) ||
+        p.type === PlaylistTypeEnum.Ai,
+    )
+    .map((p) => ({
+      playlist: p,
+      downloadedCount: p.stats.completedCount,
+      totalCount: p.stats.totalCount,
+    }));
 
 export const buildZeroStats = (totalCount: number): PlaylistStats => ({
   completedCount: 0,

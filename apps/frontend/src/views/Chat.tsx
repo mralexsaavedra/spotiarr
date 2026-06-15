@@ -2,9 +2,11 @@ import { faRobot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/atoms/Button";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { useChatController } from "@/hooks/controllers/useChatController";
+import { Path } from "@/routes/routes";
 import { cn } from "@/utils/cn";
 
 const MAX_PROMPT_LENGTH = 500;
@@ -17,6 +19,8 @@ export const Chat: FC = () => {
     stage,
     resolvedCount,
     droppedTitles,
+    playlistId,
+    playlistName,
     error,
     isGenerating,
     messages,
@@ -76,11 +80,24 @@ export const Chat: FC = () => {
                     <p className="text-text-primary font-medium">
                       {t("ai.result.tracksAdded", { count: resolvedCount ?? 0 })}
                     </p>
+                    {playlistName && (
+                      <p className="text-text-secondary mt-1">
+                        {t("ai.result.savedTo", { name: playlistName })}
+                      </p>
+                    )}
                     {droppedTitles && droppedTitles.length > 0 && (
                       <p className="text-text-secondary mt-1">
                         {t("ai.result.droppedTitles", { count: droppedTitles.length })}:{" "}
                         {droppedTitles.join(", ")}
                       </p>
+                    )}
+                    {playlistId && (
+                      <Link
+                        to={`${Path.PLAYLIST_DETAIL.replace(":id", playlistId)}?mode=library`}
+                        className="text-primary mt-2 inline-block font-medium hover:underline"
+                      >
+                        {t("ai.result.viewPlaylist")}
+                      </Link>
                     )}
                   </div>
                 )}

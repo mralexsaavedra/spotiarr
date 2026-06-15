@@ -85,6 +85,23 @@ describe("useChatController", () => {
     expect(result.current.isGenerating).toBe(true);
   });
 
+  it("clears the prompt after submitting", async () => {
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "job-clear" });
+
+    const { result } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.setPrompt("ambient focus");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(result.current.prompt).toBe("");
+    expect(result.current.messages).toEqual([{ role: "user", text: "ambient focus" }]);
+  });
+
   it("does not call mutation when prompt is empty", async () => {
     const { result } = renderHook(() => useChatController());
 
@@ -161,6 +178,8 @@ describe("useChatController", () => {
         progress: 1,
         resolvedCount: 8,
         droppedTitles: ["Ghost Song"],
+        playlistId: "playlist-2",
+        playlistName: "AI: hip hop classics",
       });
     });
 
@@ -168,6 +187,8 @@ describe("useChatController", () => {
       expect(result.current.stage).toBe("done");
       expect(result.current.resolvedCount).toBe(8);
       expect(result.current.droppedTitles).toEqual(["Ghost Song"]);
+      expect(result.current.playlistId).toBe("playlist-2");
+      expect(result.current.playlistName).toBe("AI: hip hop classics");
       expect(result.current.isGenerating).toBe(false);
     });
   });

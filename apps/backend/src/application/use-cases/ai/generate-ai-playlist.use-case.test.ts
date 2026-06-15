@@ -70,6 +70,8 @@ describe("GenerateAiPlaylistUseCase", () => {
       const doneEvent = deps.onProgress.mock.calls.find((c) => c[0].stage === "done")?.[0];
       expect(doneEvent?.resolvedCount).toBe(2);
       expect(doneEvent?.droppedTitles).toEqual([]);
+      expect(doneEvent?.playlistName).toBe("AI: classic rock");
+      expect(doneEvent?.playlistId).toBe(savedPlaylist.id);
     });
   });
 

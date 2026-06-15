@@ -470,7 +470,9 @@
       "tracksAdded_other": "{{count}} canciones añadidas a tu biblioteca",
       "droppedTitles": "{{count}} canción no pudo encontrarse",
       "droppedTitles_one": "{{count}} canción no pudo encontrarse",
-      "droppedTitles_other": "{{count}} canciones no pudieron encontrarse"
+      "droppedTitles_other": "{{count}} canciones no pudieron encontrarse",
+      "savedTo": "Guardada en la lista «{{name}}»",
+      "viewPlaylist": "Ver lista"
     },
     "errors": {
       "provider-misconfig": "El proveedor de IA no está configurado. Ve a Ajustes > IA para añadir tus credenciales.",

@@ -120,6 +120,8 @@ export class GenerateAiPlaylistUseCase {
         progress: 1,
         resolvedCount: deduped.length,
         droppedTitles,
+        playlistId,
+        playlistName,
       });
     } catch (err) {
       console.error(

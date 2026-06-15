@@ -470,7 +470,9 @@
       "tracksAdded_other": "{{count}} tracks added to your library",
       "droppedTitles": "{{count}} track could not be found",
       "droppedTitles_one": "{{count}} track could not be found",
-      "droppedTitles_other": "{{count}} tracks could not be found"
+      "droppedTitles_other": "{{count}} tracks could not be found",
+      "savedTo": "Saved to playlist \"{{name}}\"",
+      "viewPlaylist": "View playlist"
     },
     "errors": {
       "provider-misconfig": "AI provider is not configured. Please go to Settings > AI to add your credentials.",

@@ -124,6 +124,8 @@ export interface AiPlaylistProgressEvent {
   progress: number;
   resolvedCount?: number;
   droppedTitles?: string[];
+  playlistId?: string;
+  playlistName?: string;
   error?: {
     code: AiPlaylistErrorCode;
     message: string;
