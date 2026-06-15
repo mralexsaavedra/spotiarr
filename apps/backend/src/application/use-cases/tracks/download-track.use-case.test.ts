@@ -42,7 +42,7 @@ describe("DownloadTrackUseCase", () => {
       update: vi.fn().mockResolvedValue(undefined),
       findOneWithPlaylist: vi.fn(),
     };
-    youtubeDownloadService = { downloadAndFormat: vi.fn().mockResolvedValue(undefined) };
+    youtubeDownloadService = { downloadAndFormat: vi.fn().mockResolvedValue({}) };
     trackFileHelper = {
       getFolderName: vi.fn().mockResolvedValue("/music/Artist/Song"),
       ensureParentDirectory: vi.fn().mockResolvedValue(undefined),
@@ -171,6 +171,23 @@ describe("DownloadTrackUseCase", () => {
     await useCase.execute(makeTrack());
 
     expect(trackFileHelper.getFolderName).toHaveBeenCalledWith(expect.anything(), "AI: rock 80s");
+  });
+
+  it("persists the duration returned by the download service", async () => {
+    const track = new Track(makeTrack());
+    trackRepository.findOne.mockResolvedValue(track);
+    trackRepository.findOneWithPlaylist.mockResolvedValue(new Track(makeTrack()));
+    youtubeDownloadService.downloadAndFormat.mockResolvedValue({ durationMs: 215000 });
+
+    const persisted: (number | undefined)[] = [];
+    trackRepository.update.mockImplementation((_id, entity: Track) => {
+      persisted.push(entity.toPrimitive().durationMs);
+      return Promise.resolve(undefined);
+    });
+
+    await useCase.execute(makeTrack());
+
+    expect(persisted.at(-1)).toBe(215000);
   });
 
   it("does not pass a playlist name for album downloads", async () => {

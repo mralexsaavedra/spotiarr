@@ -6,6 +6,7 @@ import {
 } from "@spotiarr/shared";
 import { YtDlp } from "ytdlp-nodejs";
 import type { SettingsPort } from "@/application/ports/settings.port";
+import type { YoutubeDownloadResult } from "@/application/ports/youtube.port";
 import { AppError } from "@/domain/errors/app-error";
 import type { YoutubeSearchService } from "./youtube-search.service";
 import { YOUTUBE_HEADERS } from "./youtube.constants";
@@ -16,7 +17,7 @@ export class YoutubeDownloadService {
     private readonly searchService: YoutubeSearchService,
   ) {}
 
-  async downloadAndFormat(track: ITrack, output: string): Promise<void> {
+  async downloadAndFormat(track: ITrack, output: string): Promise<YoutubeDownloadResult> {
     console.debug(`Downloading ${track.artist} - ${track.name} (${track.youtubeUrl}) from YT`);
     if (!track.youtubeUrl) {
       console.error("youtubeUrl is null or undefined");
@@ -58,5 +59,18 @@ export class YoutubeDownloadService {
       headers: YOUTUBE_HEADERS,
     });
     console.debug(`Downloaded ${track.artist} - ${track.name} to ${output}`);
+
+    return { durationMs: await this.resolveDurationMs(ytdlp, track.youtubeUrl) };
+  }
+
+  private async resolveDurationMs(ytdlp: YtDlp, youtubeUrl: string): Promise<number | undefined> {
+    try {
+      const info = await ytdlp.getInfoAsync(youtubeUrl);
+      const seconds = (info as { duration?: unknown }).duration;
+      return typeof seconds === "number" && seconds > 0 ? Math.round(seconds * 1000) : undefined;
+    } catch (err) {
+      console.debug(`Could not resolve duration for ${youtubeUrl}: ${String(err)}`);
+      return undefined;
+    }
   }
 }

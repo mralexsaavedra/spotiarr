@@ -38,9 +38,10 @@ export class DownloadTrackUseCase {
     this.eventBus.emit("playlists-updated");
 
     let error: string | undefined;
+    let durationMs: number | undefined;
 
     try {
-      await this.downloadAndProcessTrack(track.toPrimitive());
+      ({ durationMs } = await this.downloadAndProcessTrack(track.toPrimitive()));
     } catch (err) {
       console.error(
         `Failed to download track: ${track.artist} - ${track.name}`,
@@ -53,6 +54,9 @@ export class DownloadTrackUseCase {
     if (error) {
       track.markAsError(error);
     } else {
+      if (durationMs) {
+        track.setDurationMs(durationMs);
+      }
       track.markAsCompleted();
     }
 
@@ -87,7 +91,7 @@ export class DownloadTrackUseCase {
     }
   }
 
-  private async downloadAndProcessTrack(track: ITrack): Promise<void> {
+  private async downloadAndProcessTrack(track: ITrack): Promise<{ durationMs?: number }> {
     let playlistName: string | undefined;
 
     if (track.playlistId) {
@@ -105,10 +109,12 @@ export class DownloadTrackUseCase {
     await this.trackFileHelper.ensureParentDirectory(trackFilePath);
 
     // 1. Download Content
-    await this.youtubeDownloadService.downloadAndFormat(track, trackFilePath);
+    const { durationMs } = await this.youtubeDownloadService.downloadAndFormat(track, trackFilePath);
 
     // 2. Post-Processing (Metadata, Covers, M3U)
     // Delegated to dedicated service to keep Use Case clean
     await this.trackPostProcessingService.process(track, trackFilePath);
+
+    return { durationMs };
   }
 }

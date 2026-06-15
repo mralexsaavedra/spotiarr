@@ -41,6 +41,10 @@ export class Track {
     this.props.error = undefined;
   }
 
+  setDurationMs(durationMs: number) {
+    this.props.durationMs = durationMs;
+  }
+
   markAsError(error: string) {
     this.props.status = TrackStatusEnum.Error;
     this.props.error = error;
