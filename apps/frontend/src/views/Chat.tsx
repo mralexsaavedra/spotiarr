@@ -1,5 +1,6 @@
-import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { faRobot, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { type AiChatMessageDto } from "@spotiarr/shared";
 import { FC, KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -10,6 +11,43 @@ import { Path } from "@/routes/routes";
 import { cn } from "@/utils/cn";
 
 const MAX_PROMPT_LENGTH = 500;
+
+const MessageBubble: FC<{ msg: AiChatMessageDto }> = ({ msg }) => {
+  const { t } = useTranslation();
+
+  const params = (msg.content.params ?? {}) as Record<string, unknown>;
+  const text =
+    msg.role === "user"
+      ? String(
+          msg.content.params?.prompt ??
+            t(msg.content.key, { ...params, defaultValue: msg.content.key }),
+        )
+      : t(msg.content.key, { ...params, defaultValue: msg.content.key });
+
+  const playlistLink =
+    msg.role === "assistant" && msg.playlistId ? (
+      <Link
+        to={`${Path.PLAYLIST_DETAIL.replace(":id", msg.playlistId)}?mode=library`}
+        className="text-primary mt-2 inline-block font-medium hover:underline"
+      >
+        {t("ai.result.viewPlaylist")}
+      </Link>
+    ) : null;
+
+  return (
+    <div
+      className={cn(
+        "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+        msg.role === "user"
+          ? "bg-primary self-end text-black"
+          : "bg-background-elevated text-text-primary self-start",
+      )}
+    >
+      <span>{text}</span>
+      {playlistLink}
+    </div>
+  );
+};
 
 export const Chat: FC = () => {
   const { t } = useTranslation();
@@ -23,12 +61,14 @@ export const Chat: FC = () => {
     playlistName,
     error,
     isGenerating,
-    messages,
+    displayMessages,
     handleSubmit,
+    clearMessages,
+    isClearPending,
   } = useChatController();
 
   const canSubmit = prompt.trim().length > 0 && !isGenerating;
-  const showEmptyState = messages.length === 0 && !isGenerating && !stage;
+  const showEmptyState = displayMessages.length === 0 && !isGenerating && !stage;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -37,10 +77,29 @@ export const Chat: FC = () => {
     }
   };
 
+  const handleClearClick = () => {
+    const confirmed = window.confirm(t("aiChat.clearConfirm"));
+    if (confirmed) {
+      clearMessages();
+    }
+  };
+
   return (
     <section className="bg-background flex h-full w-full flex-col px-4 py-6 md:px-8">
       <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
-        <PageHeader title={t("ai.title")} description={t("ai.subtitle")} className="mb-6" />
+        <div className="mb-6 flex items-start justify-between">
+          <PageHeader title={t("ai.title")} description={t("ai.subtitle")} />
+          {displayMessages.length > 0 && (
+            <button
+              onClick={handleClearClick}
+              disabled={isClearPending}
+              className="text-text-secondary hover:text-text-primary mt-1 flex items-center gap-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FontAwesomeIcon icon={faTrash} className="text-xs" />
+              {t("aiChat.clearConversation")}
+            </button>
+          )}
+        </div>
 
         <div className="flex flex-1 flex-col gap-4 overflow-hidden">
           <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
@@ -50,22 +109,12 @@ export const Chat: FC = () => {
                   <FontAwesomeIcon icon={faRobot} className="text-primary text-xl" />
                 </span>
                 <p className="text-text-primary text-lg font-semibold">{t("ai.empty.title")}</p>
-                <p className="text-sm">{t("ai.empty.hint")}</p>
+                <p className="text-sm">{t("aiChat.emptyState")}</p>
               </div>
             ) : (
               <>
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
-                      msg.role === "user"
-                        ? "bg-primary self-end text-black"
-                        : "bg-background-elevated text-text-primary self-start",
-                    )}
-                  >
-                    {msg.text}
-                  </div>
+                {displayMessages.map((msg) => (
+                  <MessageBubble key={msg.id} msg={msg} />
                 ))}
 
                 {isGenerating && stage && (
@@ -104,7 +153,10 @@ export const Chat: FC = () => {
 
                 {stage === "error" && error && (
                   <div className="self-start rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                    {t(`ai.errors.${error.code}`, { defaultValue: error.message, detail: error.message })}
+                    {t(`ai.errors.${error.code}`, {
+                      defaultValue: error.message,
+                      detail: error.message,
+                    })}
                   </div>
                 )}
               </>

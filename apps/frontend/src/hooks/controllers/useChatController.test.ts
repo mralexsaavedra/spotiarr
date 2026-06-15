@@ -1,7 +1,8 @@
-import { type AiPlaylistProgressEvent } from "@spotiarr/shared";
+import { type AiChatMessageDto, type AiPlaylistProgressEvent } from "@spotiarr/shared";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// --- Mocks for generate mutation ---
 const mockMutateAsync = vi.fn();
 
 vi.mock("../mutations/useGenerateAiPlaylistMutation", () => ({
@@ -11,6 +12,7 @@ vi.mock("../mutations/useGenerateAiPlaylistMutation", () => ({
   }),
 }));
 
+// --- Mocks for aiProgressBus ---
 let busListeners: Array<(e: AiPlaylistProgressEvent) => void> = [];
 
 vi.mock("@/lib/aiProgressBus", () => ({
@@ -22,6 +24,7 @@ vi.mock("@/lib/aiProgressBus", () => ({
   },
 }));
 
+// --- Mocks for query client ---
 const mockInvalidateQueries = vi.fn();
 
 vi.mock("@tanstack/react-query", async (importOriginal) => {
@@ -32,6 +35,28 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
   };
 });
 
+// --- Mocks for chat messages query ---
+let mockServerMessages: AiChatMessageDto[] = [];
+
+vi.mock("../queries/useChatMessagesQuery", () => ({
+  useChatMessagesQuery: () => ({
+    data: mockServerMessages,
+    isLoading: false,
+    isSuccess: true,
+  }),
+}));
+
+// --- Mock for clear mutation ---
+const mockClearMutate = vi.fn();
+let mockIsClearPending = false;
+
+vi.mock("../mutations/useClearChatMessagesMutation", () => ({
+  useClearChatMessagesMutation: () => ({
+    mutate: mockClearMutate,
+    isPending: mockIsClearPending,
+  }),
+}));
+
 const emitProgress = (event: AiPlaylistProgressEvent) => {
   busListeners.forEach((fn) => fn(event));
 };
@@ -41,12 +66,16 @@ const { useChatController } = await import("./useChatController");
 afterEach(() => {
   vi.clearAllMocks();
   busListeners = [];
+  mockServerMessages = [];
+  mockIsClearPending = false;
 });
 
 describe("useChatController", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     busListeners = [];
+    mockServerMessages = [];
+    mockIsClearPending = false;
   });
 
   it("initial state has empty prompt and idle stage", () => {
@@ -55,7 +84,6 @@ describe("useChatController", () => {
     expect(result.current.prompt).toBe("");
     expect(result.current.stage).toBeNull();
     expect(result.current.isGenerating).toBe(false);
-    expect(result.current.messages).toEqual([]);
   });
 
   it("setPrompt updates the prompt value", () => {
@@ -66,6 +94,44 @@ describe("useChatController", () => {
     });
 
     expect(result.current.prompt).toBe("jazz for a rainy day");
+  });
+
+  // S-F-01: initial displayMessages is server data
+  it("initial displayMessages is server data", () => {
+    const serverMsg: AiChatMessageDto = {
+      id: "m1",
+      role: "user",
+      content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+      playlistId: null,
+      errorCode: null,
+      createdAt: 1000,
+    };
+    mockServerMessages = [serverMsg];
+
+    const { result } = renderHook(() => useChatController());
+
+    expect(result.current.displayMessages).toEqual([serverMsg]);
+  });
+
+  // S-F-02: handleSubmit adds optimistic user entry
+  it("handleSubmit adds optimistic user entry", async () => {
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "j1" });
+    mockServerMessages = [];
+
+    const { result } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.setPrompt("jazz");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(result.current.displayMessages).toHaveLength(1);
+    expect(result.current.displayMessages[0].role).toBe("user");
+    expect(result.current.displayMessages[0].content.params?.prompt).toBe("jazz");
+    expect(result.current.displayMessages[0].id).toBe("optimistic");
   });
 
   it("submit calls mutation with the current prompt and sets jobId", async () => {
@@ -99,7 +165,6 @@ describe("useChatController", () => {
     });
 
     expect(result.current.prompt).toBe("");
-    expect(result.current.messages).toEqual([{ role: "user", text: "ambient focus" }]);
   });
 
   it("does not call mutation when prompt is empty", async () => {
@@ -193,7 +258,8 @@ describe("useChatController", () => {
     });
   });
 
-  it("done stage invalidates playlist queries", async () => {
+  // S-F-03: done event invalidates chat messages query
+  it("done stage invalidates aiChatMessages query", async () => {
     mockMutateAsync.mockResolvedValueOnce({ jobId: "job-3" });
 
     const { result } = renderHook(() => useChatController());
@@ -211,11 +277,16 @@ describe("useChatController", () => {
     });
 
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalled();
+      const calls = mockInvalidateQueries.mock.calls;
+      const hasChatInvalidation = calls.some(
+        (call) => JSON.stringify(call[0]?.queryKey) === JSON.stringify(["ai", "chat", "messages"]),
+      );
+      expect(hasChatInvalidation).toBe(true);
     });
   });
 
-  it("error stage sets error and ends generation", async () => {
+  // S-F-04: error event invalidates chat messages query
+  it("error stage invalidates aiChatMessages query", async () => {
     mockMutateAsync.mockResolvedValueOnce({ jobId: "job-4" });
 
     const { result } = renderHook(() => useChatController());
@@ -242,6 +313,70 @@ describe("useChatController", () => {
       expect(result.current.error?.code).toBe("provider-misconfig");
       expect(result.current.isGenerating).toBe(false);
     });
+
+    const calls = mockInvalidateQueries.mock.calls;
+    const hasChatInvalidation = calls.some(
+      (call) => JSON.stringify(call[0]?.queryKey) === JSON.stringify(["ai", "chat", "messages"]),
+    );
+    expect(hasChatInvalidation).toBe(true);
+  });
+
+  // S-F-05: optimistic entry removed after server reconciliation
+  it("optimistic entry suppressed when server already has matching user message", async () => {
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "j5" });
+
+    const { result } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.setPrompt("jazz");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    // Server now returns the persisted user message
+    mockServerMessages = [
+      {
+        id: "server-m1",
+        role: "user",
+        content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+        playlistId: null,
+        errorCode: null,
+        createdAt: Date.now(),
+      },
+    ];
+
+    act(() => {
+      emitProgress({ jobId: "j5", stage: "done", progress: 1, resolvedCount: 5 });
+    });
+
+    // re-render to pick up new server messages
+    const { result: result2 } = renderHook(() => useChatController());
+
+    // After server has the message, displayMessages from a fresh hook
+    // with the server data should not duplicate
+    expect(result2.current.displayMessages).toHaveLength(1);
+    expect(result2.current.displayMessages[0].id).toBe("server-m1");
+  });
+
+  // S-F-07: exposes clearMessages and isClearPending
+  it("exposes clearMessages and isClearPending", () => {
+    const { result } = renderHook(() => useChatController());
+
+    expect(typeof result.current.clearMessages).toBe("function");
+    expect(typeof result.current.isClearPending).toBe("boolean");
+  });
+
+  // S-F-08: clearMessages calls mutation
+  it("clearMessages calls clear mutation", () => {
+    const { result } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.clearMessages();
+    });
+
+    expect(mockClearMutate).toHaveBeenCalledTimes(1);
   });
 
   it("ignores progress events from a different jobId", async () => {

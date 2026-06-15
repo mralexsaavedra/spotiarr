@@ -1,3 +1,4 @@
+import { type AiChatMessageDto } from "@spotiarr/shared";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,12 +10,34 @@ vi.mock("@/hooks/controllers/useChatController", () => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, opts?: Record<string, unknown>) => {
+      if (opts && Object.keys(opts).length > 0) {
+        return `${key}(${JSON.stringify(opts)})`;
+      }
+      return key;
+    },
   }),
+}));
+
+vi.mock("react-router-dom", () => ({
+  Link: ({
+    to,
+    children,
+    ...props
+  }: {
+    to: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={String(to)} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 const mockSetPrompt = vi.fn();
 const mockHandleSubmit = vi.fn();
+const mockClearMessages = vi.fn();
 
 const defaultController = {
   prompt: "",
@@ -23,15 +46,20 @@ const defaultController = {
   progress: 0,
   resolvedCount: undefined,
   droppedTitles: [],
+  playlistId: undefined,
+  playlistName: undefined,
   error: null,
   isGenerating: false,
-  messages: [],
+  displayMessages: [] as AiChatMessageDto[],
   handleSubmit: mockHandleSubmit,
+  clearMessages: mockClearMessages,
+  isClearPending: false,
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockUseChatController.mockReturnValue(defaultController);
+  vi.spyOn(window, "confirm").mockReturnValue(false);
 });
 
 const { Chat } = await import("./Chat");
@@ -49,20 +77,21 @@ describe("Chat view", () => {
 
   it("renders the send button", () => {
     render(<Chat />);
-    expect(screen.getByRole("button")).toBeDefined();
+    // Multiple buttons exist now (send + clear), find by aria-label or text
+    expect(screen.getByLabelText("ai.sendButton")).toBeDefined();
   });
 
   it("send button is disabled when prompt is empty", () => {
     mockUseChatController.mockReturnValue({ ...defaultController, prompt: "" });
     render(<Chat />);
-    const btn = screen.getByRole("button");
+    const btn = screen.getByLabelText("ai.sendButton");
     expect(btn).toHaveProperty("disabled", true);
   });
 
   it("send button is enabled when prompt has content", () => {
     mockUseChatController.mockReturnValue({ ...defaultController, prompt: "jazz" });
     render(<Chat />);
-    const btn = screen.getByRole("button");
+    const btn = screen.getByLabelText("ai.sendButton");
     expect(btn).toHaveProperty("disabled", false);
   });
 
@@ -73,7 +102,7 @@ describe("Chat view", () => {
       isGenerating: true,
     });
     render(<Chat />);
-    const btn = screen.getByRole("button");
+    const btn = screen.getByLabelText("ai.sendButton");
     expect(btn).toHaveProperty("disabled", true);
   });
 
@@ -87,7 +116,7 @@ describe("Chat view", () => {
   it("calls handleSubmit when send button is clicked", () => {
     mockUseChatController.mockReturnValue({ ...defaultController, prompt: "jazz" });
     render(<Chat />);
-    const btn = screen.getByRole("button");
+    const btn = screen.getByLabelText("ai.sendButton");
     fireEvent.click(btn);
     expect(mockHandleSubmit).toHaveBeenCalled();
   });
@@ -124,12 +153,134 @@ describe("Chat view", () => {
     expect(screen.getByText(/ai\.errors\.provider-misconfig/)).toBeDefined();
   });
 
-  it("renders user messages from messages list", () => {
+  // S-F-11: renders empty state when no messages
+  it("renders empty state when displayMessages is empty", () => {
     mockUseChatController.mockReturnValue({
       ...defaultController,
-      messages: [{ role: "user", text: "my prompt text" }],
+      displayMessages: [],
     });
     render(<Chat />);
-    expect(screen.getByText("my prompt text")).toBeDefined();
+    expect(screen.getByText("aiChat.emptyState")).toBeDefined();
+  });
+
+  // S-F-12: renders playlist link for assistant done message
+  it("renders playlist link for assistant done message with playlistId", () => {
+    const assistantMsg: AiChatMessageDto = {
+      id: "m1",
+      role: "assistant",
+      content: { key: "aiChat.assistantDone", params: { count: 5 } },
+      playlistId: "pid-1",
+      errorCode: null,
+      createdAt: 1000,
+    };
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      displayMessages: [assistantMsg],
+    });
+    render(<Chat />);
+    const link = screen.getByRole("link");
+    expect(link.getAttribute("href")).toContain("pid-1");
+  });
+
+  // S-F-13: stale playlist link renders disabled/non-navigable when no playlist link available
+  it("renders non-navigable element with accessible label when playlistId has no link", () => {
+    const assistantMsg: AiChatMessageDto = {
+      id: "m1",
+      role: "assistant",
+      content: { key: "aiChat.assistantDone", params: { count: 5 } },
+      playlistId: null,
+      errorCode: null,
+      createdAt: 1000,
+    };
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      displayMessages: [assistantMsg],
+    });
+    render(<Chat />);
+    // When no playlistId, no link should be present
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  // S-F-14: clear button triggers confirmation before mutating
+  it("clear button does NOT call clearMessages when confirm returns false", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      displayMessages: [
+        {
+          id: "m1",
+          role: "user" as const,
+          content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+          playlistId: null,
+          errorCode: null,
+          createdAt: 1000,
+        },
+      ],
+    });
+    render(<Chat />);
+    const clearBtn = screen.getByText("aiChat.clearConversation");
+    fireEvent.click(clearBtn);
+    expect(mockClearMessages).not.toHaveBeenCalled();
+  });
+
+  // S-F-15: clear button calls clearMessages when confirmed
+  it("clear button calls clearMessages when confirm returns true", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      displayMessages: [
+        {
+          id: "m1",
+          role: "user" as const,
+          content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+          playlistId: null,
+          errorCode: null,
+          createdAt: 1000,
+        },
+      ],
+    });
+    render(<Chat />);
+    const clearBtn = screen.getByText("aiChat.clearConversation");
+    fireEvent.click(clearBtn);
+    expect(mockClearMessages).toHaveBeenCalledTimes(1);
+  });
+
+  // S-F-16: clear button disabled while isClearPending
+  it("clear button is disabled while isClearPending", () => {
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      isClearPending: true,
+      displayMessages: [
+        {
+          id: "m1",
+          role: "user" as const,
+          content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+          playlistId: null,
+          errorCode: null,
+          createdAt: 1000,
+        },
+      ],
+    });
+    render(<Chat />);
+    const clearBtn = screen.getByText("aiChat.clearConversation");
+    expect(clearBtn.closest("button")).toHaveProperty("disabled", true);
+  });
+
+  it("renders user messages from displayMessages list", () => {
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      displayMessages: [
+        {
+          id: "m1",
+          role: "user" as const,
+          content: { key: "aiChat.userPrompt", params: { prompt: "my prompt text" } },
+          playlistId: null,
+          errorCode: null,
+          createdAt: 1000,
+        },
+      ],
+    });
+    render(<Chat />);
+    expect(screen.getByText(/my prompt text/)).toBeDefined();
   });
 });

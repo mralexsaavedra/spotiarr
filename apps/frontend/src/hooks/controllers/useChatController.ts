@@ -1,8 +1,14 @@
-import { type AiPlaylistErrorCode, type AiPlaylistStage } from "@spotiarr/shared";
+import {
+  type AiChatMessageDto,
+  type AiPlaylistErrorCode,
+  type AiPlaylistStage,
+} from "@spotiarr/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { aiProgressBus } from "@/lib/aiProgressBus";
+import { useClearChatMessagesMutation } from "../mutations/useClearChatMessagesMutation";
 import { useGenerateAiPlaylistMutation } from "../mutations/useGenerateAiPlaylistMutation";
+import { useChatMessagesQuery } from "../queries/useChatMessagesQuery";
 import { queryKeys } from "../queryKeys";
 
 interface ChatError {
@@ -21,10 +27,27 @@ export const useChatController = () => {
   const [playlistName, setPlaylistName] = useState<string | undefined>(undefined);
   const [error, setError] = useState<ChatError | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
+  const [optimisticMessages, setOptimisticMessages] = useState<AiChatMessageDto[]>([]);
 
   const mutation = useGenerateAiPlaylistMutation();
+  const clearChatMessagesMutation = useClearChatMessagesMutation();
   const queryClient = useQueryClient();
+  const { data: serverMessages = [] } = useChatMessagesQuery();
+
+  // Compute displayMessages: server data + optimistic entries not yet reconciled
+  const displayMessages = useMemo<AiChatMessageDto[]>(() => {
+    const filtered = optimisticMessages.filter((opt) => {
+      if (opt.role !== "user") return true;
+      const prompt = opt.content.params?.prompt as string | undefined;
+      if (!prompt) return true;
+      // Suppress optimistic if server already has a matching user message
+      const alreadyOnServer = serverMessages.some(
+        (s) => s.role === "user" && (s.content.params?.prompt as string | undefined) === prompt,
+      );
+      return !alreadyOnServer;
+    });
+    return [...serverMessages, ...filtered];
+  }, [serverMessages, optimisticMessages]);
 
   useEffect(() => {
     const handler = (event: {
@@ -49,12 +72,17 @@ export const useChatController = () => {
         setPlaylistName(event.playlistName);
         setIsGenerating(false);
         void queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.aiChatMessages });
+        // Clear optimistic entries; server data will take over after invalidation
+        setOptimisticMessages([]);
       }
 
       if (event.stage === "error") {
         setError(event.error ?? null);
         setIsGenerating(false);
         void queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.aiChatMessages });
+        setOptimisticMessages([]);
       }
     };
 
@@ -74,13 +102,26 @@ export const useChatController = () => {
     setDroppedTitles([]);
     setPlaylistId(undefined);
     setPlaylistName(undefined);
-
-    setMessages((prev) => [...prev, { role: "user", text }]);
     setPrompt("");
+
+    // Add optimistic user entry immediately
+    const optimisticEntry: AiChatMessageDto = {
+      id: "optimistic",
+      role: "user",
+      content: { key: "aiChat.userPrompt", params: { prompt: text } },
+      playlistId: null,
+      errorCode: null,
+      createdAt: Date.now(),
+    };
+    setOptimisticMessages([optimisticEntry]);
 
     const result = await mutation.mutateAsync(text);
     setJobId(result.jobId);
     setIsGenerating(true);
+  };
+
+  const clearMessages = () => {
+    clearChatMessagesMutation.mutate();
   };
 
   return {
@@ -94,7 +135,9 @@ export const useChatController = () => {
     playlistName,
     error,
     isGenerating,
-    messages,
+    displayMessages,
     handleSubmit,
+    clearMessages,
+    isClearPending: clearChatMessagesMutation.isPending,
   };
 };
