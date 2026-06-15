@@ -39,7 +39,7 @@ export const Settings: FC = () => {
                     <div className="space-y-6">
                       {sectionSettings.map((setting) => {
                         const isBaseUrl = setting.key === "AI_BASE_URL";
-                        const provider = values["AI_PROVIDER"] as AiProvider | undefined;
+                        const provider = (values["AI_PROVIDER"] || "openai") as AiProvider;
                         const isCustomProvider = provider === "custom";
                         return (
                           <SettingItem
@@ -49,7 +49,7 @@ export const Settings: FC = () => {
                             onChange={handleChange}
                             disabled={isBaseUrl ? !isCustomProvider : undefined}
                             placeholder={
-                              isBaseUrl && provider && !isCustomProvider
+                              isBaseUrl && !isCustomProvider
                                 ? AI_PROVIDER_PRESETS[provider]
                                 : undefined
                             }
