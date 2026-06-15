@@ -20,8 +20,6 @@ function makePrismaRow(overrides: Record<string, unknown> = {}) {
     id: "test-id-1",
     role: "user",
     content: JSON.stringify({ key: "aiChat.userPrompt", params: { prompt: "jazz" } }),
-    contentKey: "aiChat.userPrompt",
-    contentParams: JSON.stringify({ prompt: "jazz" }),
     playlistId: null,
     errorCode: null,
     createdAt: BigInt(1000),
@@ -33,10 +31,11 @@ describe("PrismaAiChatMessageRepository", () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe("S-B-08: list returns messages in ascending createdAt order", () => {
-    it("returns messages ordered ascending by createdAt as JS numbers", async () => {
+    it("passes orderBy clause to Prisma and returns rows in ascending createdAt order", async () => {
+      // Mock returns rows already in ascending order (as Prisma would with orderBy asc)
       const rows = [
-        makePrismaRow({ id: "id-2", createdAt: BigInt(2000) }),
         makePrismaRow({ id: "id-1", createdAt: BigInt(1000) }),
+        makePrismaRow({ id: "id-2", createdAt: BigInt(2000) }),
         makePrismaRow({ id: "id-3", createdAt: BigInt(3000) }),
       ];
       const prisma = {
@@ -48,12 +47,15 @@ describe("PrismaAiChatMessageRepository", () => {
       const repo = new PrismaAiChatMessageRepository(prisma);
       const result = await repo.list();
 
+      // Asserting the orderBy clause is present — removing it would make this test fail
+      // because the mock returns ascending rows and we assert ascending output
       expect(prisma.aiChatMessage.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: { createdAt: "asc" },
+          orderBy: expect.arrayContaining([expect.objectContaining({ createdAt: "asc" })]),
         }),
       );
-      expect(result.map((r) => r.createdAt)).toEqual([2000, 1000, 3000]);
+      // Output must be in ascending order
+      expect(result.map((r) => r.createdAt)).toEqual([1000, 2000, 3000]);
       result.forEach((r) => {
         expect(typeof r.createdAt).toBe("number");
       });
@@ -102,6 +104,74 @@ describe("PrismaAiChatMessageRepository", () => {
       expect(() => JSON.parse(storedContent)).not.toThrow();
       const parsed = JSON.parse(storedContent);
       expect(parsed.key).toBe("aiChat.userPrompt");
+      // Dead columns must not be written
+      expect(createArg.data).not.toHaveProperty("contentKey");
+      expect(createArg.data).not.toHaveProperty("contentParams");
+    });
+  });
+
+  describe("S-B-08b: list passes secondary sort by id and cap to Prisma", () => {
+    it("passes orderBy [createdAt asc, id asc] and take 500 to findMany", async () => {
+      const prisma = {
+        aiChatMessage: {
+          findMany: vi.fn().mockResolvedValue([]),
+        },
+      } as any;
+
+      const repo = new PrismaAiChatMessageRepository(prisma);
+      await repo.list();
+
+      expect(prisma.aiChatMessage.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+          take: 500,
+        }),
+      );
+    });
+  });
+
+  describe("R-INFRA-6: corrupt rows are skipped, valid rows still returned", () => {
+    it("skips rows with invalid JSON content and returns remaining valid rows", async () => {
+      const rows = [
+        makePrismaRow({ id: "id-good-1", createdAt: BigInt(1000) }),
+        makePrismaRow({ id: "id-corrupt", content: "not-json", createdAt: BigInt(2000) }),
+        makePrismaRow({ id: "id-good-2", createdAt: BigInt(3000) }),
+      ];
+      const prisma = {
+        aiChatMessage: {
+          findMany: vi.fn().mockResolvedValue(rows),
+        },
+      } as any;
+
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const repo = new PrismaAiChatMessageRepository(prisma);
+      const result = await repo.list();
+      warnSpy.mockRestore();
+
+      // Corrupt row is skipped; valid rows are returned
+      expect(result).toHaveLength(2);
+      expect(result.map((r) => r.id)).toEqual(["id-good-1", "id-good-2"]);
+    });
+
+    it("skips rows with an invalid role and returns remaining valid rows", async () => {
+      const rows = [
+        makePrismaRow({ id: "id-good-1", createdAt: BigInt(1000) }),
+        makePrismaRow({ id: "id-bad-role", role: "system", createdAt: BigInt(2000) }),
+        makePrismaRow({ id: "id-good-2", createdAt: BigInt(3000) }),
+      ];
+      const prisma = {
+        aiChatMessage: {
+          findMany: vi.fn().mockResolvedValue(rows),
+        },
+      } as any;
+
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const repo = new PrismaAiChatMessageRepository(prisma);
+      const result = await repo.list();
+      warnSpy.mockRestore();
+
+      expect(result).toHaveLength(2);
+      expect(result.map((r) => r.id)).toEqual(["id-good-1", "id-good-2"]);
     });
   });
 
