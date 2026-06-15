@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { AiChatMessage } from "@/domain/entities/ai-chat-message.entity";
+import { AppError } from "@/domain/errors/app-error";
 import { PrismaAiChatMessageRepository } from "../prisma-ai-chat-message.repository";
 
 function makeEntity(overrides: Partial<AiChatMessage> = {}): AiChatMessage {
@@ -101,6 +102,56 @@ describe("PrismaAiChatMessageRepository", () => {
       expect(() => JSON.parse(storedContent)).not.toThrow();
       const parsed = JSON.parse(storedContent);
       expect(parsed.key).toBe("aiChat.userPrompt");
+    });
+  });
+
+  describe("R-INFRA-5: Prisma errors are mapped to AppError before leaving the repository", () => {
+    it("maps a Prisma failure in append() to AppError with internal_server_error", async () => {
+      const prismaError = Object.assign(new Error("Unique constraint failed"), { code: "P2002" });
+      const prisma = {
+        aiChatMessage: {
+          create: vi.fn().mockRejectedValue(prismaError),
+        },
+      } as any;
+
+      const repo = new PrismaAiChatMessageRepository(prisma);
+      await expect(repo.append(makeEntity())).rejects.toBeInstanceOf(AppError);
+      await expect(repo.append(makeEntity())).rejects.toMatchObject({
+        errorCode: "internal_server_error",
+        statusCode: 500,
+      });
+    });
+
+    it("maps a Prisma failure in list() to AppError with internal_server_error", async () => {
+      const prismaError = new Error("Connection reset");
+      const prisma = {
+        aiChatMessage: {
+          findMany: vi.fn().mockRejectedValue(prismaError),
+        },
+      } as any;
+
+      const repo = new PrismaAiChatMessageRepository(prisma);
+      await expect(repo.list()).rejects.toBeInstanceOf(AppError);
+      await expect(repo.list()).rejects.toMatchObject({
+        errorCode: "internal_server_error",
+        statusCode: 500,
+      });
+    });
+
+    it("maps a Prisma failure in clear() to AppError with internal_server_error", async () => {
+      const prismaError = new Error("Disk full");
+      const prisma = {
+        aiChatMessage: {
+          deleteMany: vi.fn().mockRejectedValue(prismaError),
+        },
+      } as any;
+
+      const repo = new PrismaAiChatMessageRepository(prisma);
+      await expect(repo.clear()).rejects.toBeInstanceOf(AppError);
+      await expect(repo.clear()).rejects.toMatchObject({
+        errorCode: "internal_server_error",
+        statusCode: 500,
+      });
     });
   });
 });
