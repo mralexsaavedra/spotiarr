@@ -137,8 +137,11 @@ export const useChatController = () => {
       setJobId(result.jobId);
       setIsGenerating(true);
     } catch (e) {
-      // Mutation rejected — clear the optimistic entry and surface the error
+      // Mutation rejected — clear the optimistic entry and surface the error.
+      // setStage("error") is required so Chat.tsx renders the ephemeral error block
+      // (showEphemeralError is gated on stage === "error").
       setOptimisticMessages([]);
+      setStage("error");
       setError({
         code: "provider-unreachable",
         message: e instanceof Error ? e.message : String(e),

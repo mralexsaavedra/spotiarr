@@ -417,8 +417,8 @@ describe("useChatController", () => {
     expect(mockClearMutate).toHaveBeenCalledTimes(1);
   });
 
-  // S-F-09: optimistic entry is cleared when mutateAsync rejects
-  it("clears optimistic entry and surfaces error when mutateAsync rejects", async () => {
+  // S-F-09: optimistic entry is cleared when mutateAsync rejects; stage becomes "error"
+  it("clears optimistic entry, sets stage to error, and surfaces error when mutateAsync rejects", async () => {
     const rejectionError = new Error("Network failure");
     mockMutateAsync.mockRejectedValueOnce(rejectionError);
 
@@ -438,8 +438,9 @@ describe("useChatController", () => {
       expect(result.current.displayMessages).toHaveLength(0);
     });
 
-    // Error must be surfaced
+    // Error must be surfaced AND stage must be "error" so Chat.tsx renders the error block
     expect(result.current.error).not.toBeNull();
+    expect(result.current.stage).toBe("error");
     expect(result.current.isGenerating).toBe(false);
   });
 

@@ -159,6 +159,22 @@ describe("Chat view", () => {
     expect(screen.getByText(/ai\.errors\.provider-misconfig/)).toBeDefined();
   });
 
+  // S-F-09b: enqueue failure (mutateAsync rejection) renders the error block in Chat.tsx
+  // The catch block must set stage="error" — without it, showEphemeralError is false and the
+  // error div is never rendered even though error state is non-null.
+  it("renders enqueue-failure error when stage is error and error is set (no ephemeral suppression)", () => {
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      stage: "error",
+      error: { code: "provider-unreachable", message: "Connection refused" },
+      // displayMessages is empty — no persisted assistant error message yet,
+      // so showEphemeralError must be true and the error block must be visible
+      displayMessages: [],
+    });
+    render(<Chat />);
+    expect(screen.getByText(/ai\.errors\.provider-unreachable/)).toBeDefined();
+  });
+
   // S-F-11: renders empty state when no messages
   it("renders empty state when displayMessages is empty", () => {
     mockUseChatController.mockReturnValue({
