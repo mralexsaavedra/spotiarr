@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateAiPlaylistSchema } from "./ai.schema";
+import { generateAiPlaylistSchema, listModelsSchema } from "./ai.schema";
 
 describe("generateAiPlaylistSchema", () => {
   it("accepts a valid prompt", () => {
@@ -38,5 +38,34 @@ describe("generateAiPlaylistSchema", () => {
   it("rejects missing prompt field", () => {
     const result = generateAiPlaylistSchema.safeParse({ body: {} });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("listModelsSchema", () => {
+  it("accepts empty body", () => {
+    const result = listModelsSchema.safeParse({ body: {} });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts body with all optional fields", () => {
+    const result = listModelsSchema.safeParse({
+      body: { provider: "openai", baseURL: "https://api.openai.com/v1", apiKey: "sk-test" },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts body with only provider", () => {
+    const result = listModelsSchema.safeParse({ body: { provider: "ollama" } });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts body with only apiKey", () => {
+    const result = listModelsSchema.safeParse({ body: { apiKey: "sk-test" } });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts missing body (all fields optional)", () => {
+    const result = listModelsSchema.safeParse({ body: undefined });
+    expect(result.success).toBe(true);
   });
 });

@@ -297,7 +297,13 @@
       },
       "AI_MODEL": {
         "label": "AI Model",
-        "description": "The model name to use for playlist generation (e.g. gpt-4o, llama-3.1)."
+        "description": "The model name to use for playlist generation (e.g. gpt-4o, llama-3.1).",
+        "loadModels": "Load models",
+        "loadingModels": "Loading...",
+        "modelsLoaded": "{{count}} models loaded",
+        "modelsEmpty": "No models returned. Type a model name manually.",
+        "modelsError": "Could not load models. Check your provider settings.",
+        "toggleModels": "Show models"
       },
       "UI_LANGUAGE": {
         "label": "Interface Language",

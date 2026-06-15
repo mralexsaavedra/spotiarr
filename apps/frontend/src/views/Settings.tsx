@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/atoms/Button";
 import { Loading } from "@/components/atoms/Loading";
 import { AppFooter } from "@/components/layouts/AppFooter";
+import { AiModelField } from "@/components/molecules/AiModelField";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { SettingItem } from "@/components/molecules/SettingItem";
 import { SpotifyAuthCard } from "@/components/organisms/SpotifyAuthCard";
@@ -38,8 +39,31 @@ export const Settings: FC = () => {
                     <div className="space-y-6">
                       {sectionSettings.map((setting) => {
                         const isBaseUrl = setting.key === "AI_BASE_URL";
+                        const isModel = setting.key === "AI_MODEL";
                         const provider = normalizeAiProvider(values["AI_PROVIDER"]);
                         const isCustomProvider = provider === "custom";
+
+                        if (isModel) {
+                          return (
+                            <AiModelField
+                              key={setting.key}
+                              id={setting.key}
+                              label={t(`settings.items.${setting.key}.label`, {
+                                defaultValue: setting.label,
+                              })}
+                              value={values[setting.key] ?? ""}
+                              onChange={handleChange(setting.key)}
+                              description={t(`settings.items.${setting.key}.description`, {
+                                defaultValue: setting.description,
+                              })}
+                              disabled={isSaving}
+                              provider={values["AI_PROVIDER"]}
+                              baseURL={values["AI_BASE_URL"]}
+                              apiKey={values["AI_API_KEY"]}
+                            />
+                          );
+                        }
+
                         return (
                           <SettingItem
                             key={setting.key}
