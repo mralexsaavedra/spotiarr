@@ -1,7 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { AiTrackSuggestion } from "@/application/ports/ai-chat.port";
+import type { SettingsService } from "@/application/services/settings.service";
 import { AiChatError } from "@/domain/errors/ai-chat.error";
-import { OpenAiCompatibleAdapter, type GenerateObjectFn } from "./openai-compatible.adapter";
+import {
+  OpenAiCompatibleAdapter,
+  createAiChatPort,
+  type GenerateObjectFn,
+} from "./openai-compatible.adapter";
 
 const makeAdapter = (
   overrides: Partial<{
@@ -97,6 +102,111 @@ describe("OpenAiCompatibleAdapter", () => {
       await expect(adapter.generateTracks("test")).rejects.toMatchObject({
         code: "llm-bad-output",
       });
+    });
+  });
+});
+
+const makeSettings = (values: Record<string, string>) =>
+  ({
+    getString: vi.fn(async (key: string, fallback = "") => values[key] ?? fallback),
+  }) as unknown as SettingsService;
+
+describe("createAiChatPort factory", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("resolves preset baseURL when AI_BASE_URL is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-test",
+      AI_MODEL: "gpt-4o",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await port.generateTracks("test");
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
+  });
+
+  it("uses AI_BASE_URL override over preset", async () => {
+    const customUrl = "https://my-proxy.example.com/v1";
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: customUrl,
+      AI_API_KEY: "sk-test",
+      AI_MODEL: "gpt-4o",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await port.generateTracks("test");
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
+  });
+
+  it("ollama works without API key (no provider-misconfig)", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "ollama",
+      AI_BASE_URL: "",
+      AI_API_KEY: "",
+      AI_MODEL: "llama3",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await expect(port.generateTracks("test")).resolves.not.toThrow();
+    spy.mockRestore();
+  });
+
+  it("lmstudio works without API key (no provider-misconfig)", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "lmstudio",
+      AI_BASE_URL: "",
+      AI_API_KEY: "",
+      AI_MODEL: "mistral",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await expect(port.generateTracks("test")).resolves.not.toThrow();
+    spy.mockRestore();
+  });
+
+  it("throws provider-misconfig for non-local provider without API key", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "",
+      AI_MODEL: "gpt-4o",
+    });
+    const port = createAiChatPort(settings);
+    await expect(port.generateTracks("test")).rejects.toMatchObject({
+      code: "provider-misconfig",
+    });
+  });
+
+  it("throws provider-misconfig for custom provider with empty base URL", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "custom",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-test",
+      AI_MODEL: "gpt-4o",
+    });
+    const port = createAiChatPort(settings);
+    await expect(port.generateTracks("test")).rejects.toMatchObject({
+      code: "provider-misconfig",
+    });
+  });
+
+  it("throws provider-misconfig when model is missing", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-test",
+      AI_MODEL: "",
+    });
+    const port = createAiChatPort(settings);
+    await expect(port.generateTracks("test")).rejects.toMatchObject({
+      code: "provider-misconfig",
     });
   });
 });

@@ -1,4 +1,9 @@
-import { APP_LOCALES, DEFAULT_AUDIO_FORMAT, type SettingMetadata } from "@spotiarr/shared";
+import {
+  AI_PROVIDERS,
+  APP_LOCALES,
+  DEFAULT_AUDIO_FORMAT,
+  type SettingMetadata,
+} from "@spotiarr/shared";
 
 export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
   UI_LANGUAGE: {
@@ -112,11 +117,11 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
   },
   AI_PROVIDER: {
     key: "AI_PROVIDER",
-    defaultValue: "openai-compatible",
+    defaultValue: "openai",
     type: "string",
     component: "select",
     section: "AI",
-    options: ["openai-compatible"],
+    options: [...AI_PROVIDERS],
     label: "AI Provider",
     description: "The AI provider to use for playlist generation.",
   },
@@ -127,7 +132,8 @@ export const SETTINGS_METADATA: Record<string, SettingMetadata> = {
     component: "input",
     section: "AI",
     label: "AI Base URL",
-    description: "The base URL of the OpenAI-compatible API endpoint.",
+    description:
+      "Optional override for the provider's default endpoint. Required only for the 'custom' provider.",
   },
   AI_API_KEY: {
     key: "AI_API_KEY",
