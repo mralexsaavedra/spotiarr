@@ -11,6 +11,7 @@ import type { PlaylistRepository } from "@/domain/repositories/playlist.reposito
 import type { TrackService } from "../../services/track.service";
 
 const MAX_TRACKS = 50;
+const AI_PLAYLIST_OWNER = "SpotiArr AI";
 const RESOLVE_MAX_CONCURRENCY = 2;
 const RESOLVE_INTERVAL_MS = 300;
 
@@ -90,7 +91,7 @@ export class GenerateAiPlaylistUseCase {
       emit("saving", { progress: 0 });
 
       const syntheticUrl = `spotiarr://ai/${jobId}`;
-      const playlistName = `AI: ${prompt.slice(0, 80)}`;
+      const playlistName = prompt.slice(0, 80);
       const playlistId = crypto.randomUUID();
 
       const playlist = new Playlist({
@@ -98,6 +99,7 @@ export class GenerateAiPlaylistUseCase {
         name: playlistName,
         type: PlaylistTypeEnum.Ai,
         spotifyUrl: syntheticUrl,
+        owner: AI_PLAYLIST_OWNER,
         subscribed: false,
         createdAt: Date.now(),
       });
