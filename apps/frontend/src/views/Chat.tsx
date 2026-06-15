@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/atoms/Button";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { useChatController } from "@/hooks/controllers/useChatController";
+import { usePlaylistsQuery } from "@/hooks/queries/usePlaylistsQuery";
 import { Path } from "@/routes/routes";
 import { cn } from "@/utils/cn";
 
@@ -14,6 +15,7 @@ const MAX_PROMPT_LENGTH = 500;
 
 const MessageBubble: FC<{ msg: AiChatMessageDto }> = ({ msg }) => {
   const { t } = useTranslation();
+  const { data: playlists, isLoading: isPlaylistsLoading } = usePlaylistsQuery();
 
   const params = (msg.content.params ?? {}) as Record<string, unknown>;
   const text =
@@ -24,15 +26,29 @@ const MessageBubble: FC<{ msg: AiChatMessageDto }> = ({ msg }) => {
         )
       : t(msg.content.key, { ...params, defaultValue: msg.content.key });
 
-  const playlistLink =
-    msg.role === "assistant" && msg.playlistId ? (
-      <Link
-        to={`${Path.PLAYLIST_DETAIL.replace(":id", msg.playlistId)}?mode=library`}
-        className="text-primary mt-2 inline-block font-medium hover:underline"
-      >
-        {t("ai.result.viewPlaylist")}
-      </Link>
-    ) : null;
+  let playlistLink: React.ReactNode = null;
+  if (msg.role === "assistant" && msg.playlistId) {
+    const playlistExists = isPlaylistsLoading || playlists?.some((p) => p.id === msg.playlistId);
+    if (playlistExists) {
+      playlistLink = (
+        <Link
+          to={`${Path.PLAYLIST_DETAIL.replace(":id", msg.playlistId)}?mode=library`}
+          className="text-primary mt-2 inline-block font-medium hover:underline"
+        >
+          {t("ai.result.viewPlaylist")}
+        </Link>
+      );
+    } else {
+      playlistLink = (
+        <span
+          aria-label={t("aiChat.playlistGone")}
+          className="text-text-secondary mt-2 inline-block cursor-not-allowed text-sm line-through opacity-60"
+        >
+          {t("ai.result.viewPlaylist")}
+        </span>
+      );
+    }
+  }
 
   return (
     <div

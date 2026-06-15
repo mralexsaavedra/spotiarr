@@ -3,9 +3,14 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockUseChatController = vi.fn();
+const mockUsePlaylistsQuery = vi.fn();
 
 vi.mock("@/hooks/controllers/useChatController", () => ({
   useChatController: () => mockUseChatController(),
+}));
+
+vi.mock("@/hooks/queries/usePlaylistsQuery", () => ({
+  usePlaylistsQuery: () => mockUsePlaylistsQuery(),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -59,6 +64,7 @@ const defaultController = {
 beforeEach(() => {
   vi.clearAllMocks();
   mockUseChatController.mockReturnValue(defaultController);
+  mockUsePlaylistsQuery.mockReturnValue({ data: [], isLoading: false });
   vi.spyOn(window, "confirm").mockReturnValue(false);
 });
 
@@ -163,8 +169,8 @@ describe("Chat view", () => {
     expect(screen.getByText("aiChat.emptyState")).toBeDefined();
   });
 
-  // S-F-12: renders playlist link for assistant done message
-  it("renders playlist link for assistant done message with playlistId", () => {
+  // S-F-12: renders playlist link for assistant done message when playlistId exists in library
+  it("renders playlist link for assistant done message with playlistId present in playlists data", () => {
     const assistantMsg: AiChatMessageDto = {
       id: "m1",
       role: "assistant",
@@ -177,18 +183,22 @@ describe("Chat view", () => {
       ...defaultController,
       displayMessages: [assistantMsg],
     });
+    mockUsePlaylistsQuery.mockReturnValue({
+      data: [{ id: "pid-1", name: "My Playlist" }],
+      isLoading: false,
+    });
     render(<Chat />);
     const link = screen.getByRole("link");
     expect(link.getAttribute("href")).toContain("pid-1");
   });
 
-  // S-F-13: stale playlist link renders disabled/non-navigable when no playlist link available
-  it("renders non-navigable element with accessible label when playlistId has no link", () => {
+  // S-F-13a: stale playlist (playlistId present but NOT in playlists data) renders non-navigable with aria-label
+  it("renders non-navigable element with aria-label when playlistId is not found in playlists data", () => {
     const assistantMsg: AiChatMessageDto = {
       id: "m1",
       role: "assistant",
       content: { key: "aiChat.assistantDone", params: { count: 5 } },
-      playlistId: null,
+      playlistId: "pid-gone",
       errorCode: null,
       createdAt: 1000,
     };
@@ -196,9 +206,33 @@ describe("Chat view", () => {
       ...defaultController,
       displayMessages: [assistantMsg],
     });
+    mockUsePlaylistsQuery.mockReturnValue({ data: [], isLoading: false });
     render(<Chat />);
-    // When no playlistId, no link should be present
+    // No navigable link should be present
     expect(screen.queryByRole("link")).toBeNull();
+    // A non-navigable element with the aria-label must be rendered
+    const staleEl = screen.getByLabelText("aiChat.playlistGone");
+    expect(staleEl).toBeDefined();
+  });
+
+  // S-F-13b: while playlists are loading, render the active link (avoid false-disabled flicker)
+  it("renders active link while playlists are still loading (avoids false-disabled flicker)", () => {
+    const assistantMsg: AiChatMessageDto = {
+      id: "m1",
+      role: "assistant",
+      content: { key: "aiChat.assistantDone", params: { count: 5 } },
+      playlistId: "pid-loading",
+      errorCode: null,
+      createdAt: 1000,
+    };
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      displayMessages: [assistantMsg],
+    });
+    mockUsePlaylistsQuery.mockReturnValue({ data: undefined, isLoading: true });
+    render(<Chat />);
+    const link = screen.getByRole("link");
+    expect(link.getAttribute("href")).toContain("pid-loading");
   });
 
   // S-F-14: clear button triggers confirmation before mutating
