@@ -10,6 +10,7 @@ export const useChatMessagesQuery = () => {
       const result = await aiChatService.getChatMessages();
       return result.messages;
     },
-    staleTime: 0,
+    // 30 s stale window — explicit invalidation on done/error/clear covers freshness
+    staleTime: 30_000,
   });
 };
