@@ -32,7 +32,7 @@ export class PrismaAiChatMessageRepository implements AiChatMessageRepository {
   async list(): Promise<AiChatMessage[]> {
     try {
       const rows = await this.prisma.aiChatMessage.findMany({
-        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: 500,
       });
 
@@ -66,6 +66,7 @@ export class PrismaAiChatMessageRepository implements AiChatMessageRepository {
           );
         }
       }
+      result.reverse();
       return result;
     } catch (e) {
       if (e instanceof AppError) throw e;

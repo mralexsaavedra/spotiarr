@@ -31,12 +31,12 @@ describe("PrismaAiChatMessageRepository", () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe("S-B-08: list returns messages in ascending createdAt order", () => {
-    it("passes orderBy clause to Prisma and returns rows in ascending createdAt order", async () => {
-      // Mock returns rows already in ascending order (as Prisma would with orderBy asc)
+    it("queries with desc orderBy (most-recent 500) and returns rows in ascending createdAt order", async () => {
+      // Mock returns rows in descending order (as Prisma would with orderBy desc)
       const rows = [
-        makePrismaRow({ id: "id-1", createdAt: BigInt(1000) }),
-        makePrismaRow({ id: "id-2", createdAt: BigInt(2000) }),
         makePrismaRow({ id: "id-3", createdAt: BigInt(3000) }),
+        makePrismaRow({ id: "id-2", createdAt: BigInt(2000) }),
+        makePrismaRow({ id: "id-1", createdAt: BigInt(1000) }),
       ];
       const prisma = {
         aiChatMessage: {
@@ -47,14 +47,13 @@ describe("PrismaAiChatMessageRepository", () => {
       const repo = new PrismaAiChatMessageRepository(prisma);
       const result = await repo.list();
 
-      // Asserting the orderBy clause is present — removing it would make this test fail
-      // because the mock returns ascending rows and we assert ascending output
+      // toHaveBeenCalledWith enforces desc orderBy — the ascending OUTPUT alone cannot enforce this
       expect(prisma.aiChatMessage.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: expect.arrayContaining([expect.objectContaining({ createdAt: "asc" })]),
+          orderBy: expect.arrayContaining([expect.objectContaining({ createdAt: "desc" })]),
         }),
       );
-      // Output must be in ascending order
+      // Output must be in ascending order (repository reverses the desc query result)
       expect(result.map((r) => r.createdAt)).toEqual([1000, 2000, 3000]);
       result.forEach((r) => {
         expect(typeof r.createdAt).toBe("number");
@@ -110,32 +109,42 @@ describe("PrismaAiChatMessageRepository", () => {
     });
   });
 
-  describe("S-B-08b: list passes secondary sort by id and cap to Prisma", () => {
-    it("passes orderBy [createdAt asc, id asc] and take 500 to findMany", async () => {
+  describe("S-B-08b: list passes desc orderBy and take 500 to Prisma, returns ascending output", () => {
+    it("passes orderBy [createdAt desc, id desc] and take 500 to findMany, returns rows in ascending order", async () => {
+      // Mock returns rows in descending order (most-recent first, as Prisma would with desc)
+      const rows = [
+        makePrismaRow({ id: "id-3", createdAt: BigInt(3000) }),
+        makePrismaRow({ id: "id-2", createdAt: BigInt(2000) }),
+        makePrismaRow({ id: "id-1", createdAt: BigInt(1000) }),
+      ];
       const prisma = {
         aiChatMessage: {
-          findMany: vi.fn().mockResolvedValue([]),
+          findMany: vi.fn().mockResolvedValue(rows),
         },
       } as any;
 
       const repo = new PrismaAiChatMessageRepository(prisma);
-      await repo.list();
+      const result = await repo.list();
 
+      // toHaveBeenCalledWith asserts the desc clause — the ascending output alone cannot enforce this
       expect(prisma.aiChatMessage.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           take: 500,
         }),
       );
+      // Repository must reverse the desc result so callers receive ascending order
+      expect(result.map((r) => r.createdAt)).toEqual([1000, 2000, 3000]);
     });
   });
 
   describe("R-INFRA-6: corrupt rows are skipped, valid rows still returned", () => {
     it("skips rows with invalid JSON content and returns remaining valid rows", async () => {
+      // Mock returns rows in desc order (most-recent first), as Prisma would with orderBy desc
       const rows = [
-        makePrismaRow({ id: "id-good-1", createdAt: BigInt(1000) }),
-        makePrismaRow({ id: "id-corrupt", content: "not-json", createdAt: BigInt(2000) }),
         makePrismaRow({ id: "id-good-2", createdAt: BigInt(3000) }),
+        makePrismaRow({ id: "id-corrupt", content: "not-json", createdAt: BigInt(2000) }),
+        makePrismaRow({ id: "id-good-1", createdAt: BigInt(1000) }),
       ];
       const prisma = {
         aiChatMessage: {
@@ -148,16 +157,17 @@ describe("PrismaAiChatMessageRepository", () => {
       const result = await repo.list();
       warnSpy.mockRestore();
 
-      // Corrupt row is skipped; valid rows are returned
+      // Corrupt row is skipped; valid rows are returned in ascending order
       expect(result).toHaveLength(2);
       expect(result.map((r) => r.id)).toEqual(["id-good-1", "id-good-2"]);
     });
 
     it("skips rows with an invalid role and returns remaining valid rows", async () => {
+      // Mock returns rows in desc order (most-recent first), as Prisma would with orderBy desc
       const rows = [
-        makePrismaRow({ id: "id-good-1", createdAt: BigInt(1000) }),
-        makePrismaRow({ id: "id-bad-role", role: "system", createdAt: BigInt(2000) }),
         makePrismaRow({ id: "id-good-2", createdAt: BigInt(3000) }),
+        makePrismaRow({ id: "id-bad-role", role: "system", createdAt: BigInt(2000) }),
+        makePrismaRow({ id: "id-good-1", createdAt: BigInt(1000) }),
       ];
       const prisma = {
         aiChatMessage: {
