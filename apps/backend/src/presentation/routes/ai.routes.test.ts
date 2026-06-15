@@ -186,6 +186,104 @@ describe("POST /api/ai/chat/generate", () => {
   });
 });
 
+describe("GET /api/ai/chat/messages", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 200 with an empty messages array when history is empty", async () => {
+    const getChatMessagesUseCase = makeGetChatMessagesUseCase();
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      undefined,
+      getChatMessagesUseCase,
+      makeClearChatMessagesUseCase(),
+    );
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/messages`);
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { messages: unknown[] } };
+    expect(body).toHaveProperty("data.messages");
+    expect(Array.isArray(body.data.messages)).toBe(true);
+    expect(body.data.messages).toHaveLength(0);
+  });
+
+  it("returns 200 with messages returned by the use case", async () => {
+    const message = {
+      id: "msg-1",
+      role: "user",
+      content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+      playlistId: null,
+      errorCode: null,
+      createdAt: 1000,
+    };
+    const getChatMessagesUseCase = {
+      execute: vi.fn().mockResolvedValue([message]),
+    } as unknown as GetChatMessagesUseCase;
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      undefined,
+      getChatMessagesUseCase,
+      makeClearChatMessagesUseCase(),
+    );
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/messages`);
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { messages: (typeof message)[] } };
+    expect(body.data.messages).toHaveLength(1);
+    expect(body.data.messages[0].id).toBe("msg-1");
+  });
+});
+
+describe("DELETE /api/ai/chat/messages", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 200 with deleted count when history is cleared", async () => {
+    const clearChatMessagesUseCase = {
+      execute: vi.fn().mockResolvedValue({ deleted: 5 }),
+    } as unknown as ClearChatMessagesUseCase;
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      undefined,
+      makeGetChatMessagesUseCase(),
+      clearChatMessagesUseCase,
+    );
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/messages`, { method: "DELETE" });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { deleted: number } };
+    expect(body.data.deleted).toBe(5);
+  });
+
+  it("returns 200 with deleted: 0 when history was already empty", async () => {
+    const aiChatController = new AiChatController(
+      makeQueueService(),
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+    );
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/messages`, { method: "DELETE" });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { deleted: number } };
+    expect(body.data.deleted).toBe(0);
+  });
+});
+
 describe("POST /api/ai/models", () => {
   beforeEach(() => {
     vi.clearAllMocks();
