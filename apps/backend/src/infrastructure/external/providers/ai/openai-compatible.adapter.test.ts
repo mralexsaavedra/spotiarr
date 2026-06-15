@@ -103,6 +103,51 @@ describe("OpenAiCompatibleAdapter", () => {
         code: "llm-bad-output",
       });
     });
+
+    it("maps 401 AI_APICallError to provider-auth with parsed reason", async () => {
+      const { adapter, generateFn } = makeAdapter();
+      const apiErr = Object.assign(new Error("Unauthorized"), {
+        name: "AI_APICallError",
+        statusCode: 401,
+        responseBody: '{"error":"invalid api key"}',
+      });
+      generateFn.mockRejectedValue(apiErr);
+
+      await expect(adapter.generateTracks("test")).rejects.toMatchObject({
+        code: "provider-auth",
+        message: "invalid api key",
+      });
+    });
+
+    it("maps 403 AI_APICallError to provider-forbidden with parsed reason", async () => {
+      const { adapter, generateFn } = makeAdapter();
+      const apiErr = Object.assign(new Error("Forbidden"), {
+        name: "AI_APICallError",
+        statusCode: 403,
+        responseBody: '{"error":"this model requires a subscription, upgrade for access"}',
+      });
+      generateFn.mockRejectedValue(apiErr);
+
+      await expect(adapter.generateTracks("test")).rejects.toMatchObject({
+        code: "provider-forbidden",
+        message: "this model requires a subscription, upgrade for access",
+      });
+    });
+
+    it("falls back to raw responseBody when 403 body is not JSON", async () => {
+      const { adapter, generateFn } = makeAdapter();
+      const apiErr = Object.assign(new Error("Forbidden"), {
+        name: "AI_APICallError",
+        statusCode: 403,
+        responseBody: "Forbidden: subscription required",
+      });
+      generateFn.mockRejectedValue(apiErr);
+
+      await expect(adapter.generateTracks("test")).rejects.toMatchObject({
+        code: "provider-forbidden",
+        message: "Forbidden: subscription required",
+      });
+    });
   });
 });
 
@@ -258,6 +303,33 @@ describe("createAiChatPort factory", () => {
       AI_BASE_URL: "",
       AI_API_KEY: "",
       AI_MODEL: "gemini-2.0-flash",
+    });
+    const port = createAiChatPort(settings);
+    await expect(port.generateTracks("test")).rejects.toMatchObject({
+      code: "provider-misconfig",
+    });
+  });
+
+  it("nvidia resolves preset baseURL https://integrate.api.nvidia.com/v1 when AI_BASE_URL is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "nvidia",
+      AI_BASE_URL: "",
+      AI_API_KEY: "nvapi-test",
+      AI_MODEL: "meta/llama-3.3-70b-instruct",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await port.generateTracks("test");
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
+  });
+
+  it("nvidia throws provider-misconfig when API key is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "nvidia",
+      AI_BASE_URL: "",
+      AI_API_KEY: "",
+      AI_MODEL: "meta/llama-3.3-70b-instruct",
     });
     const port = createAiChatPort(settings);
     await expect(port.generateTracks("test")).rejects.toMatchObject({

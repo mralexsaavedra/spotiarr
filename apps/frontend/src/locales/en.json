@@ -376,6 +376,7 @@
     "gemini": "Gemini",
     "openrouter": "OpenRouter",
     "groq": "Groq",
+    "nvidia": "NVIDIA NIM",
     "ollama": "Ollama",
     "ollama-cloud": "Ollama Cloud",
     "lmstudio": "LM Studio",
@@ -469,11 +470,15 @@
       "tracksAdded_other": "{{count}} tracks added to your library",
       "droppedTitles": "{{count}} track could not be found",
       "droppedTitles_one": "{{count}} track could not be found",
-      "droppedTitles_other": "{{count}} tracks could not be found"
+      "droppedTitles_other": "{{count}} tracks could not be found",
+      "savedTo": "Saved to playlist \"{{name}}\"",
+      "viewPlaylist": "View playlist"
     },
     "errors": {
       "provider-misconfig": "AI provider is not configured. Please go to Settings > AI to add your credentials.",
       "provider-unreachable": "Could not reach the AI provider. Please check your URL and API key, then retry.",
+      "provider-auth": "Authentication failed. Check your API key in Settings > AI.",
+      "provider-forbidden": "Access denied by the AI provider: {{detail}}",
       "llm-bad-output": "The AI returned an unexpected response. Try rephrasing your prompt.",
       "zero-resolved": "None of the suggested tracks could be found on Spotify. Try rephrasing your prompt."
     }

@@ -11,7 +11,9 @@ Two files only:
 - `src/index.ts` — all shared exports (enums, DTOs, interfaces, API response types)
 - `src/routes.ts` — `ApiRoutes` constants
 
-**Enums:** `PlaylistTypeEnum` · `TrackStatusEnum` · `PlaylistStatusEnum` · `ApiErrorCode` · `APP_LOCALES` · `SUPPORTED_AUDIO_FORMATS`
+**Enums:** `PlaylistTypeEnum` · `TrackStatusEnum` · `PlaylistStatusEnum` · `ApiErrorCode` · `APP_LOCALES` · `SUPPORTED_AUDIO_FORMATS` · `AI_PROVIDERS` · `AI_PROVIDER_PRESETS` · `DEFAULT_AI_PROVIDER`
+
+**AI types:** `AiProvider` · `AiPlaylistStage` · `AiPlaylistErrorCode` · `AiPlaylistProgressEvent` · `normalizeAiProvider()`
 
 **API shapes:** `ApiErrorShape` · `ApiSuccess<T>` · `ApiResponse<T>`
 
@@ -25,6 +27,7 @@ Two files only:
 - Never add logic or utilities that import Node.js builtins or browser APIs.
 - Changing or removing an export is a breaking change for both apps — run broad validation after any edit.
 - Adding a new enum value to `TrackStatusEnum`, `PlaylistStatusEnum`, or `ApiErrorCode` requires updating all switch/match exhaustiveness checks in both apps.
+- `AiPlaylistErrorCode` is a standalone string-union type, not part of `ApiErrorCode`. Changes to it require updating exhaustiveness checks in the AI worker and chat controller.
 
 ## Validation
 

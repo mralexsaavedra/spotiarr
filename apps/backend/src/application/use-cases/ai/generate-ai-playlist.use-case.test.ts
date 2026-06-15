@@ -55,6 +55,8 @@ describe("GenerateAiPlaylistUseCase", () => {
       const savedPlaylist = deps.playlistRepository.save.mock.calls[0][0];
       expect(savedPlaylist.type).toBe(PlaylistTypeEnum.Ai);
       expect(savedPlaylist.spotifyUrl).toMatch(/^spotiarr:\/\/ai\//);
+      expect(savedPlaylist.name).toBe("classic rock");
+      expect(savedPlaylist.owner).toBe("SpotiArr AI");
 
       expect(deps.trackService.create).toHaveBeenCalledTimes(2);
 
@@ -70,6 +72,8 @@ describe("GenerateAiPlaylistUseCase", () => {
       const doneEvent = deps.onProgress.mock.calls.find((c) => c[0].stage === "done")?.[0];
       expect(doneEvent?.resolvedCount).toBe(2);
       expect(doneEvent?.droppedTitles).toEqual([]);
+      expect(doneEvent?.playlistName).toBe("classic rock");
+      expect(doneEvent?.playlistId).toBe(savedPlaylist.id);
     });
   });
 

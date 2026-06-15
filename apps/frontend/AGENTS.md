@@ -21,16 +21,17 @@ src/
 ├── config/          app.ts, links.ts, navigation.ts, version.ts
 ├── contexts/        DownloadStatusContext, ToastContext
 ├── hooks/
-│   ├── controllers/ view-level logic (useHomeController, useAlbumDetailController…)
+│   ├── controllers/ view-level logic (useHomeController, useAlbumDetailController…, useChatController)
 │   ├── mutations/   TanStack useMutation wrappers
 │   ├── queries/     TanStack useQuery wrappers
 │   ├── useServerEvents.ts  ← SSE / real-time sync
 │   └── useLanguageSync.ts  ← syncs UI_LANGUAGE backend setting
 ├── locales/         en.json, es.json
 ├── routes/          routes.ts, Routing.tsx
-├── services/        raw HTTP clients (artist/history/library/playlist/search/settings/track)
+├── lib/             aiProgressBus.ts (in-memory event bus bridging AI playlist SSE progress)
+├── services/        raw HTTP clients (ai/artist/history/library/playlist/search/settings/track)
 ├── store/           useDownloadStatusStore.ts, usePreferencesStore.ts, usePlayerStore.ts
-├── views/           13 page-level route screens (Home, History, PlaylistDetail…)
+├── views/           14 page-level route screens (Home, History, PlaylistDetail…, Chat)
 └── utils/           cache.ts, cn.ts, date.ts
 ```
 
@@ -38,7 +39,7 @@ src/
 
 - View logic goes in `hooks/controllers/` — NOT inside view components.
 - Server state → `hooks/queries/` and `hooks/mutations/` (TanStack Query). Client state → `store/`.
-- Real-time updates → `useServerEvents` invalidates TanStack Query caches on 4 SSE events. Do NOT add manual `EventSource` subscriptions elsewhere.
+- Real-time updates → `useServerEvents` invalidates TanStack Query caches on SSE events (download progress, queue updates, AI playlist progress, etc.). AI playlist progress events are bridged through `lib/aiProgressBus.ts` — do NOT add manual `EventSource` subscriptions elsewhere.
 - `usePreferencesStore` persists to `localStorage` (`spotiarr-preferences`). `useDownloadStatusStore` is ephemeral.
 - `useLanguageSync` controls the active language from the `UI_LANGUAGE` backend setting — never call `i18n.changeLanguage()` manually.
 - Use `cn()` from `src/utils/cn.ts` for conditional Tailwind classes.

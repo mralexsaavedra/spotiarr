@@ -88,6 +88,7 @@ const METADATA_RENDERERS: Record<string, FC<MetadataRendererProps>> = {
   [PlaylistTypeEnum.Album]: AlbumMetadata,
   [PlaylistTypeEnum.Track]: TrackMetadata,
   [PlaylistTypeEnum.Playlist]: PlaylistOwnerMetadata,
+  [PlaylistTypeEnum.Ai]: PlaylistOwnerMetadata,
 };
 
 export const PlaylistMetadata: FC<PlaylistMetadataProps> = ({ type, tracks, owner, ownerUrl }) => {

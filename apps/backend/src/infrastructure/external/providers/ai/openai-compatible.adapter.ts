@@ -19,7 +19,7 @@ const tracksSchema = z.object({
 });
 
 type GenerateObjectParams = {
-  model: ReturnType<ReturnType<typeof createOpenAI>>;
+  model: ReturnType<ReturnType<typeof createOpenAI>["chat"]>;
   schema: typeof tracksSchema;
   system: string;
   prompt: string;
@@ -36,8 +36,40 @@ interface AdapterConfig {
   generateFn?: GenerateObjectFn;
 }
 
+function extractApiCallErrorReason(err: { responseBody?: string; message?: string }): string {
+  const body = err.responseBody;
+  if (body) {
+    try {
+      const parsed = JSON.parse(body) as { error?: unknown };
+      if (typeof parsed.error === "string" && parsed.error.length > 0) {
+        return parsed.error;
+      }
+    } catch {
+      // responseBody is not JSON; fall back to the raw body below
+    }
+    return body;
+  }
+  return err.message ?? "Unknown provider error";
+}
+
 function mapError(err: unknown): never {
+  const statusCode = (err as { statusCode?: number })?.statusCode;
+  console.error("[OpenAiCompatibleAdapter] upstream error", {
+    name: (err as { name?: string })?.name,
+    statusCode,
+  });
+
   if (err instanceof AiChatError) throw err;
+
+  const apiErr = err as { name?: string; statusCode?: number; responseBody?: string; message?: string };
+  if (apiErr?.name === "AI_APICallError") {
+    if (apiErr.statusCode === 401) {
+      throw new AiChatError("provider-auth", extractApiCallErrorReason(apiErr));
+    }
+    if (apiErr.statusCode === 403) {
+      throw new AiChatError("provider-forbidden", extractApiCallErrorReason(apiErr));
+    }
+  }
 
   if (err instanceof Error) {
     if (
@@ -83,7 +115,7 @@ export class OpenAiCompatibleAdapter implements AiChatPort {
     try {
       const provider = createOpenAI({ baseURL, apiKey });
       const result = await generateFn({
-        model: provider(model),
+        model: provider.chat(model),
         schema: tracksSchema,
         system: SYSTEM_PROMPT,
         prompt,

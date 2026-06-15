@@ -1,4 +1,4 @@
-import { LibraryArtist, PlaylistTypeEnum } from "@spotiarr/shared";
+import { LibraryArtist } from "@spotiarr/shared";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -6,8 +6,8 @@ import { APP_CONFIG } from "@/config/app";
 import { useToast } from "@/contexts/ToastContext";
 import { Path } from "@/routes/routes";
 import { ApiError } from "@/services/httpClient";
-import { PlaylistWithStats } from "@/types";
 import { ACTIVE_BACKFILL_STATUSES } from "@/utils/artworkBackfill";
+import { selectLibraryPlaylists } from "@/utils/playlist";
 import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
 import { useStartArtworkBackfillMutation } from "../mutations/useStartArtworkBackfillMutation";
 import { useArtworkBackfillStatusQuery } from "../queries/useArtworkBackfillStatusQuery";
@@ -153,19 +153,8 @@ export const useHomeController = () => {
     return [...artists].sort((a, b) => a.name.localeCompare(b.name));
   }, [artists]);
 
-  // Playlists that have at least one completed track, enriched with counts
-  const downloadedPlaylists = useMemo(() => {
-    return playlists
-      .filter(
-        (p: PlaylistWithStats) =>
-          p.type === PlaylistTypeEnum.Playlist && p.stats.completedCount > 0,
-      )
-      .map((p: PlaylistWithStats) => ({
-        playlist: p,
-        downloadedCount: p.stats.completedCount,
-        totalCount: p.stats.totalCount,
-      }));
-  }, [playlists]);
+  // Downloaded Spotify playlists plus AI-generated playlists, enriched with counts
+  const downloadedPlaylists = useMemo(() => selectLibraryPlaylists(playlists), [playlists]);
 
   // Filtered by debounced search
   const filteredPlaylists = useMemo(() => {

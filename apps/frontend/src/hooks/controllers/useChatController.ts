@@ -17,6 +17,8 @@ export const useChatController = () => {
   const [progress, setProgress] = useState(0);
   const [resolvedCount, setResolvedCount] = useState<number | undefined>(undefined);
   const [droppedTitles, setDroppedTitles] = useState<string[]>([]);
+  const [playlistId, setPlaylistId] = useState<string | undefined>(undefined);
+  const [playlistName, setPlaylistName] = useState<string | undefined>(undefined);
   const [error, setError] = useState<ChatError | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
@@ -31,6 +33,8 @@ export const useChatController = () => {
       progress: number;
       resolvedCount?: number;
       droppedTitles?: string[];
+      playlistId?: string;
+      playlistName?: string;
       error?: ChatError;
     }) => {
       if (event.jobId !== jobId) return;
@@ -41,6 +45,8 @@ export const useChatController = () => {
       if (event.stage === "done") {
         setResolvedCount(event.resolvedCount);
         setDroppedTitles(event.droppedTitles ?? []);
+        setPlaylistId(event.playlistId);
+        setPlaylistName(event.playlistName);
         setIsGenerating(false);
         void queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
       }
@@ -59,16 +65,20 @@ export const useChatController = () => {
   }, [jobId, queryClient]);
 
   const handleSubmit = async () => {
-    if (!prompt.trim()) return;
+    const text = prompt.trim();
+    if (!text) return;
 
     setError(null);
     setStage(null);
     setResolvedCount(undefined);
     setDroppedTitles([]);
+    setPlaylistId(undefined);
+    setPlaylistName(undefined);
 
-    setMessages((prev) => [...prev, { role: "user", text: prompt }]);
+    setMessages((prev) => [...prev, { role: "user", text }]);
+    setPrompt("");
 
-    const result = await mutation.mutateAsync(prompt);
+    const result = await mutation.mutateAsync(text);
     setJobId(result.jobId);
     setIsGenerating(true);
   };
@@ -80,6 +90,8 @@ export const useChatController = () => {
     progress,
     resolvedCount,
     droppedTitles,
+    playlistId,
+    playlistName,
     error,
     isGenerating,
     messages,

@@ -6,6 +6,7 @@ export const AI_PROVIDERS = [
   "gemini",
   "openrouter",
   "groq",
+  "nvidia",
   "ollama",
   "ollama-cloud",
   "lmstudio",
@@ -20,6 +21,7 @@ export const AI_PROVIDER_PRESETS: Record<AiProvider, string> = {
   gemini: "https://generativelanguage.googleapis.com/v1beta/openai/",
   openrouter: "https://openrouter.ai/api/v1",
   groq: "https://api.groq.com/openai/v1",
+  nvidia: "https://integrate.api.nvidia.com/v1",
   ollama: "http://localhost:11434/v1",
   "ollama-cloud": "https://ollama.com/v1",
   lmstudio: "http://localhost:1234/v1",
@@ -111,6 +113,8 @@ export type AiPlaylistStage = "llm" | "validating" | "saving" | "done" | "error"
 export type AiPlaylistErrorCode =
   | "provider-misconfig"
   | "provider-unreachable"
+  | "provider-auth"
+  | "provider-forbidden"
   | "llm-bad-output"
   | "zero-resolved";
 
@@ -120,6 +124,8 @@ export interface AiPlaylistProgressEvent {
   progress: number;
   resolvedCount?: number;
   droppedTitles?: string[];
+  playlistId?: string;
+  playlistName?: string;
   error?: {
     code: AiPlaylistErrorCode;
     message: string;
