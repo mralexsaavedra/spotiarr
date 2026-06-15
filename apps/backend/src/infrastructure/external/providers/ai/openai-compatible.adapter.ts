@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { AI_LOCAL_PROVIDERS, AI_PROVIDER_PRESETS, type AiProvider } from "@spotiarr/shared";
+import { AI_LOCAL_PROVIDERS, AI_PROVIDER_PRESETS, normalizeAiProvider } from "@spotiarr/shared";
 import { generateObject, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import type { AiChatPort, AiTrackSuggestion } from "@/application/ports/ai-chat.port";
@@ -109,7 +109,7 @@ export function createAiChatPort(settingsService: SettingsService): AiChatPort {
         settingsService.getString("AI_MODEL", ""),
       ]);
 
-      const provider = rawProvider as AiProvider;
+      const provider = normalizeAiProvider(rawProvider);
       const baseURL = rawBaseURL.trim() || AI_PROVIDER_PRESETS[provider] || "";
       const isLocal = AI_LOCAL_PROVIDERS.includes(provider);
       const apiKey = rawApiKey.trim() || (isLocal ? "local" : "");

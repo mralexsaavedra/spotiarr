@@ -78,4 +78,17 @@ describe("Settings — AI base URL field", () => {
     expect(baseUrl.disabled).toBe(false);
     expect(baseUrl.getAttribute("placeholder")).toBeNull();
   });
+
+  it("normalizes a legacy/unknown provider value to the default preset", () => {
+    mockUseSettingsController.mockReturnValue({
+      ...baseController,
+      values: { AI_PROVIDER: "openai-compatible" },
+    });
+
+    render(<Settings />);
+
+    const baseUrl = screen.getByLabelText("AI Base URL") as HTMLInputElement;
+    expect(baseUrl.disabled).toBe(true);
+    expect(baseUrl.getAttribute("placeholder")).toBe("https://api.openai.com/v1");
+  });
 });

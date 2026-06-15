@@ -130,6 +130,20 @@ describe("createAiChatPort factory", () => {
     spy.mockRestore();
   });
 
+  it("normalizes an unknown/legacy provider to the default instead of throwing misconfig", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai-compatible",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-test",
+      AI_MODEL: "gpt-4o",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await expect(port.generateTracks("test")).resolves.toEqual([]);
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
+  });
+
   it("uses AI_BASE_URL override over preset", async () => {
     const customUrl = "https://my-proxy.example.com/v1";
     const settings = makeSettings({

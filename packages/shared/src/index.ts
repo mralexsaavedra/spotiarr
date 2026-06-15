@@ -29,6 +29,14 @@ export const AI_PROVIDER_PRESETS: Record<AiProvider, string> = {
 
 export const AI_LOCAL_PROVIDERS: readonly AiProvider[] = ["ollama", "lmstudio"];
 
+export const DEFAULT_AI_PROVIDER: AiProvider = "openai";
+
+export function normalizeAiProvider(value: string | undefined | null): AiProvider {
+  return value && (AI_PROVIDERS as readonly string[]).includes(value)
+    ? (value as AiProvider)
+    : DEFAULT_AI_PROVIDER;
+}
+
 export const SUPPORTED_AUDIO_FORMATS = [
   "aac",
   "flac",
