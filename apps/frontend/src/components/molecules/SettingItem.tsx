@@ -24,6 +24,7 @@ interface SettingItemProps {
 
 const AI_PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   openai: "OpenAI",
+  gemini: "Gemini",
   openrouter: "OpenRouter",
   groq: "Groq",
   ollama: "Ollama",

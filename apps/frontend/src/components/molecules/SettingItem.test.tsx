@@ -13,6 +13,7 @@ const mockT = vi.fn((key: string, opts?: { defaultValue?: string }) => {
     "aiProviders.lmstudio": "LM Studio",
     "aiProviders.vercel": "Vercel AI Gateway",
     "aiProviders.custom": "Custom",
+    "aiProviders.gemini": "Gemini",
   };
   return map[key] ?? opts?.defaultValue ?? key;
 });
@@ -72,6 +73,12 @@ describe("SettingItem — AI_PROVIDER select label formatter", () => {
   it("renders Ollama Cloud as the display label for ollama-cloud option", () => {
     render(<SettingItem setting={AI_PROVIDER_SETTING} value="openai" onChange={noop} />);
     const option = screen.getByRole("option", { name: "Ollama Cloud" });
+    expect(option).toBeDefined();
+  });
+
+  it("renders Gemini as the display label for gemini option", () => {
+    render(<SettingItem setting={AI_PROVIDER_SETTING} value="openai" onChange={noop} />);
+    const option = screen.getByRole("option", { name: "Gemini" });
     expect(option).toBeDefined();
   });
 });

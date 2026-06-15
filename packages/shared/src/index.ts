@@ -3,6 +3,7 @@ export * from "./identity.js";
 
 export const AI_PROVIDERS = [
   "openai",
+  "gemini",
   "openrouter",
   "groq",
   "ollama",
@@ -16,6 +17,7 @@ export type AiProvider = (typeof AI_PROVIDERS)[number];
 
 export const AI_PROVIDER_PRESETS: Record<AiProvider, string> = {
   openai: "https://api.openai.com/v1",
+  gemini: "https://generativelanguage.googleapis.com/v1beta/openai/",
   openrouter: "https://openrouter.ai/api/v1",
   groq: "https://api.groq.com/openai/v1",
   ollama: "http://localhost:11434/v1",

@@ -367,6 +367,7 @@
   },
   "aiProviders": {
     "openai": "OpenAI",
+    "gemini": "Gemini",
     "openrouter": "OpenRouter",
     "groq": "Groq",
     "ollama": "Ollama",

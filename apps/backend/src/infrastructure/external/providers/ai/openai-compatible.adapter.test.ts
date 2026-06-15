@@ -224,6 +224,33 @@ describe("createAiChatPort factory", () => {
     });
   });
 
+  it("gemini resolves preset baseURL when AI_BASE_URL is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "gemini",
+      AI_BASE_URL: "",
+      AI_API_KEY: "gemini-key",
+      AI_MODEL: "gemini-2.0-flash",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await port.generateTracks("test");
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
+  });
+
+  it("gemini throws provider-misconfig when API key is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "gemini",
+      AI_BASE_URL: "",
+      AI_API_KEY: "",
+      AI_MODEL: "gemini-2.0-flash",
+    });
+    const port = createAiChatPort(settings);
+    await expect(port.generateTracks("test")).rejects.toMatchObject({
+      code: "provider-misconfig",
+    });
+  });
+
   it("throws provider-misconfig when model is missing", async () => {
     const settings = makeSettings({
       AI_PROVIDER: "openai",
