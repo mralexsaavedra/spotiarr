@@ -4,7 +4,7 @@ import {
   type AiPlaylistStage,
 } from "@spotiarr/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { aiProgressBus } from "@/lib/aiProgressBus";
 import { useClearChatMessagesMutation } from "../mutations/useClearChatMessagesMutation";
 import { useGenerateAiPlaylistMutation } from "../mutations/useGenerateAiPlaylistMutation";
@@ -28,11 +28,16 @@ export const useChatController = () => {
   const [error, setError] = useState<ChatError | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState<AiChatMessageDto[]>([]);
+  // Stores the query's dataUpdatedAt value captured at the moment the optimistic entry was added.
+  // The reconciliation effect clears optimistic entries only once a fresh server fetch has
+  // completed after that point (dataUpdatedAt > capturedRef.current). This avoids any
+  // cross-machine clock comparison between client Date.now() and server-written timestamps.
+  const optimisticAddedAtQueryTimestamp = useRef<number>(0);
 
   const mutation = useGenerateAiPlaylistMutation();
   const clearChatMessagesMutation = useClearChatMessagesMutation();
   const queryClient = useQueryClient();
-  const { data: serverMessages = [] } = useChatMessagesQuery();
+  const { data: serverMessages = [], dataUpdatedAt } = useChatMessagesQuery();
 
   // Compute displayMessages: server data + any optimistic entries not yet reconciled.
   // No content-based suppression — each optimistic entry has a unique UUID id, so
@@ -40,34 +45,21 @@ export const useChatController = () => {
   // server messages with the same text.
   const displayMessages: AiChatMessageDto[] = [...serverMessages, ...optimisticMessages];
 
-  // Lifecycle reconciliation: drop optimistic entries whose server counterpart has landed.
-  // An optimistic user entry is considered persisted when serverMessages contains a user
-  // message with the same prompt text and a createdAt >= the optimistic entry's createdAt
-  // (i.e., the message was written after or at the same instant the optimistic was created).
+  // Lifecycle reconciliation: drop optimistic entries once the server data is authoritative.
+  // The clearing signal is a client-only one: dataUpdatedAt (TanStack Query's monotonic fetch
+  // completion timestamp) must have advanced past the value captured when the optimistic entry
+  // was added. This guarantees the fresh server payload was fetched AFTER our submit, so the
+  // data is authoritative — regardless of the server clock or any createdAt value on the DTO.
   // Briefly showing both for one render cycle before this effect fires is acceptable;
   // a PERMANENT duplicate (entry never cleared) is not.
   useEffect(() => {
     if (optimisticMessages.length === 0) return;
 
-    const remaining = optimisticMessages.filter((opt) => {
-      if (opt.role !== "user") return true;
-      const optPrompt = opt.content.params?.prompt as string | undefined;
-      if (!optPrompt) return true;
-      // Check if server now carries a user message with the same prompt that arrived
-      // at or after the optimistic was added
-      const isLanded = serverMessages.some(
-        (s) =>
-          s.role === "user" &&
-          (s.content.params?.prompt as string | undefined) === optPrompt &&
-          s.createdAt >= opt.createdAt,
-      );
-      return !isLanded;
-    });
-
-    if (remaining.length !== optimisticMessages.length) {
-      setOptimisticMessages(remaining);
+    // A fresh refetch has completed after we added the optimistic entry.
+    if (dataUpdatedAt > optimisticAddedAtQueryTimestamp.current) {
+      setOptimisticMessages([]);
     }
-  }, [serverMessages]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dataUpdatedAt, optimisticMessages.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handler = (event: {
@@ -115,6 +107,9 @@ export const useChatController = () => {
   const handleSubmit = async () => {
     const text = prompt.trim();
     if (!text) return;
+    // Defensive guard: the UI disables the submit button while generating, but the hook
+    // must not start a second generation or overwrite the current optimistic entry.
+    if (isGenerating) return;
 
     setError(null);
     setStage(null);
@@ -123,6 +118,11 @@ export const useChatController = () => {
     setPlaylistId(undefined);
     setPlaylistName(undefined);
     setPrompt("");
+
+    // Capture the current query dataUpdatedAt before adding the optimistic entry.
+    // The reconciliation effect will clear the entry only once dataUpdatedAt advances
+    // past this value (i.e., a fresh fetch has completed after this submit).
+    optimisticAddedAtQueryTimestamp.current = dataUpdatedAt;
 
     // Add optimistic user entry with a unique UUID so re-submitting an identical
     // prompt does not collide with an existing server message's id or another optimistic entry.

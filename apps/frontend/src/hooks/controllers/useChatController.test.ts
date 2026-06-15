@@ -37,10 +37,14 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
 
 // --- Mocks for chat messages query ---
 let mockServerMessages: AiChatMessageDto[] = [];
+// Monotonically increasing timestamp that simulates dataUpdatedAt advancing after each refetch.
+// Start at 1 so that advancing it always yields a value strictly greater than the initial 0.
+let mockDataUpdatedAt = 1;
 
 vi.mock("../queries/useChatMessagesQuery", () => ({
   useChatMessagesQuery: () => ({
     data: mockServerMessages,
+    dataUpdatedAt: mockDataUpdatedAt,
     isLoading: false,
     isSuccess: true,
   }),
@@ -67,6 +71,7 @@ afterEach(() => {
   vi.clearAllMocks();
   busListeners = [];
   mockServerMessages = [];
+  mockDataUpdatedAt = 1;
   mockIsClearPending = false;
 });
 
@@ -75,6 +80,7 @@ describe("useChatController", () => {
     vi.clearAllMocks();
     busListeners = [];
     mockServerMessages = [];
+    mockDataUpdatedAt = 1;
     mockIsClearPending = false;
   });
 
@@ -340,7 +346,8 @@ describe("useChatController", () => {
     expect(result.current.displayMessages).toHaveLength(1);
     expect(result.current.displayMessages[0].id).not.toBe("optimistic");
 
-    // Server now returns the persisted user message
+    // Simulate a completed refetch: advance dataUpdatedAt and add the persisted server message
+    mockDataUpdatedAt = 1000;
     mockServerMessages = [
       {
         id: "server-m1",
@@ -348,7 +355,7 @@ describe("useChatController", () => {
         content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
         playlistId: null,
         errorCode: null,
-        createdAt: Date.now(),
+        createdAt: 500,
       },
     ];
 
@@ -418,9 +425,11 @@ describe("useChatController", () => {
   });
 
   // S-F-10b: after refetch brings the persisted message, optimistic is cleared (no permanent duplicate)
-  it("optimistic entry is cleared when server refetch returns the persisted message, leaving no duplicate", async () => {
+  // Uses dataUpdatedAt advancement as the clearing signal — no cross-machine clock comparison.
+  it("optimistic entry is cleared when server refetch completes (dataUpdatedAt advances), leaving no duplicate", async () => {
     mockMutateAsync.mockResolvedValueOnce({ jobId: "j-reconcile" });
     mockServerMessages = [];
+    mockDataUpdatedAt = 10; // baseline before submit
 
     const { result, rerender } = renderHook(() => useChatController());
 
@@ -434,9 +443,11 @@ describe("useChatController", () => {
 
     // Optimistic is visible before server catches up
     expect(result.current.displayMessages).toHaveLength(1);
-    const optimisticCreatedAt = result.current.displayMessages[0].createdAt;
 
-    // Server now returns the persisted user message (createdAt >= optimistic's createdAt)
+    // Simulate a completed refetch: advance dataUpdatedAt past the value captured at submit time.
+    // The server message's createdAt is intentionally EARLIER than the optimistic's createdAt
+    // to prove the clearing signal is dataUpdatedAt, NOT a createdAt comparison.
+    mockDataUpdatedAt = 999;
     mockServerMessages = [
       {
         id: "server-persisted",
@@ -444,11 +455,11 @@ describe("useChatController", () => {
         content: { key: "aiChat.userPrompt", params: { prompt: "ambient" } },
         playlistId: null,
         errorCode: null,
-        createdAt: optimisticCreatedAt, // same or later than optimistic
+        createdAt: 1, // intentionally older than the optimistic entry
       },
     ];
 
-    // Re-render same hook instance to pick up new server data
+    // Re-render same hook instance to pick up new server data and advanced dataUpdatedAt
     rerender();
 
     await waitFor(() => {
@@ -456,6 +467,81 @@ describe("useChatController", () => {
       expect(result.current.displayMessages).toHaveLength(1);
       expect(result.current.displayMessages[0].id).toBe("server-persisted");
     });
+  });
+
+  // S-F-11: dataUpdatedAt NOT advanced → optimistic stays (no premature clearing under clock skew)
+  it("optimistic entry is NOT cleared when dataUpdatedAt has not advanced past the value at submit time", async () => {
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "j-no-advance" });
+    mockServerMessages = [];
+    mockDataUpdatedAt = 10; // same value throughout
+
+    const { result, rerender } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.setPrompt("ambient");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    // Optimistic is visible
+    expect(result.current.displayMessages).toHaveLength(1);
+
+    // dataUpdatedAt does NOT advance (server has NOT completed a fresh fetch)
+    // mockDataUpdatedAt stays at 10
+    mockServerMessages = [
+      {
+        id: "server-stale",
+        role: "user",
+        content: { key: "aiChat.userPrompt", params: { prompt: "ambient" } },
+        playlistId: null,
+        errorCode: null,
+        createdAt: 1,
+      },
+    ];
+
+    rerender();
+
+    // Optimistic entry must still be present because no fresh fetch has landed
+    await waitFor(() => {
+      expect(result.current.displayMessages).toHaveLength(2);
+    });
+  });
+
+  // Fix 2: concurrent submit guard
+  it("handleSubmit is a no-op when isGenerating is true (no second mutateAsync call)", async () => {
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "j-first" });
+
+    const { result } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.setPrompt("house music");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    // isGenerating is now true (SSE done not yet emitted)
+    expect(result.current.isGenerating).toBe(true);
+
+    // Capture the state of displayMessages
+    const messagesBeforeSecondSubmit = result.current.displayMessages.length;
+
+    // Attempt a second submit while generating
+    act(() => {
+      result.current.setPrompt("second prompt");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    // mutateAsync must have been called only once
+    expect(mockMutateAsync).toHaveBeenCalledTimes(1);
+    // optimistic messages must not have been overwritten
+    expect(result.current.displayMessages).toHaveLength(messagesBeforeSecondSubmit);
   });
 
   // S-F-07: exposes clearMessages and isClearPending
