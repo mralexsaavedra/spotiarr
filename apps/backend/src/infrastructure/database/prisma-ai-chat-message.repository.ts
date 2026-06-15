@@ -19,8 +19,6 @@ export class PrismaAiChatMessageRepository implements AiChatMessageRepository {
           id: message.id,
           role: message.role,
           content: JSON.stringify(message.content),
-          contentKey: message.content.key ?? null,
-          contentParams: message.content.params ? JSON.stringify(message.content.params) : null,
           playlistId: message.playlistId ?? null,
           errorCode: message.errorCode ?? null,
           createdAt: BigInt(message.createdAt),
@@ -34,20 +32,41 @@ export class PrismaAiChatMessageRepository implements AiChatMessageRepository {
   async list(): Promise<AiChatMessage[]> {
     try {
       const rows = await this.prisma.aiChatMessage.findMany({
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        take: 500,
       });
 
-      return rows.map(
-        (row) =>
-          new AiChatMessage({
-            id: row.id,
-            role: row.role as "user" | "assistant",
-            content: JSON.parse(row.content) as { key: string; params?: Record<string, unknown> },
-            playlistId: row.playlistId ?? null,
-            errorCode: row.errorCode ?? null,
-            createdAt: Number(row.createdAt),
-          }),
-      );
+      const result: AiChatMessage[] = [];
+      for (const row of rows) {
+        try {
+          const role = row.role;
+          if (role !== "user" && role !== "assistant") {
+            console.warn(
+              `[PrismaAiChatMessageRepository] Skipping row ${row.id}: invalid role "${role}"`,
+            );
+            continue;
+          }
+          const content = JSON.parse(row.content) as {
+            key: string;
+            params?: Record<string, unknown>;
+          };
+          result.push(
+            new AiChatMessage({
+              id: row.id,
+              role,
+              content,
+              playlistId: row.playlistId ?? null,
+              errorCode: row.errorCode ?? null,
+              createdAt: Number(row.createdAt),
+            }),
+          );
+        } catch (rowErr) {
+          console.warn(
+            `[PrismaAiChatMessageRepository] Skipping corrupt row ${row.id}: ${getErrorMessage(rowErr)}`,
+          );
+        }
+      }
+      return result;
     } catch (e) {
       if (e instanceof AppError) throw e;
       throw new AppError(500, "internal_server_error", getErrorMessage(e));

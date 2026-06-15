@@ -185,14 +185,12 @@ model PlaylistCache {
 }
 
 model AiChatMessage {
-  id            String  @id @default(uuid())
-  role          String
-  content       String
-  contentKey    String?
-  contentParams String?
-  playlistId    String?
-  errorCode     String?
-  createdAt     BigInt  @default(0)
+  id        String  @id @default(uuid())
+  role      String
+  content   String
+  playlistId String?
+  errorCode  String?
+  createdAt  BigInt  @default(0)
 
   @@index([createdAt])
 }
