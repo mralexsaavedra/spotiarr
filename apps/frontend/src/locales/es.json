@@ -474,6 +474,8 @@
     "errors": {
       "provider-misconfig": "El proveedor de IA no está configurado. Ve a Ajustes > IA para añadir tus credenciales.",
       "provider-unreachable": "No se pudo conectar con el proveedor de IA. Verifica la URL y la clave de API e inténtalo de nuevo.",
+      "provider-auth": "Error de autenticación. Revisa tu clave de API en Ajustes > IA.",
+      "provider-forbidden": "Acceso denegado por el proveedor de IA: {{detail}}",
       "llm-bad-output": "La IA devolvió una respuesta inesperada. Intenta reformular tu petición.",
       "zero-resolved": "Ninguna de las canciones sugeridas pudo encontrarse en Spotify. Intenta reformular tu petición."
     }

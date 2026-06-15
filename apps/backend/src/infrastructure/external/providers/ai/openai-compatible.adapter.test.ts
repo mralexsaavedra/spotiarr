@@ -103,6 +103,51 @@ describe("OpenAiCompatibleAdapter", () => {
         code: "llm-bad-output",
       });
     });
+
+    it("maps 401 AI_APICallError to provider-auth with parsed reason", async () => {
+      const { adapter, generateFn } = makeAdapter();
+      const apiErr = Object.assign(new Error("Unauthorized"), {
+        name: "AI_APICallError",
+        statusCode: 401,
+        responseBody: '{"error":"invalid api key"}',
+      });
+      generateFn.mockRejectedValue(apiErr);
+
+      await expect(adapter.generateTracks("test")).rejects.toMatchObject({
+        code: "provider-auth",
+        message: "invalid api key",
+      });
+    });
+
+    it("maps 403 AI_APICallError to provider-forbidden with parsed reason", async () => {
+      const { adapter, generateFn } = makeAdapter();
+      const apiErr = Object.assign(new Error("Forbidden"), {
+        name: "AI_APICallError",
+        statusCode: 403,
+        responseBody: '{"error":"this model requires a subscription, upgrade for access"}',
+      });
+      generateFn.mockRejectedValue(apiErr);
+
+      await expect(adapter.generateTracks("test")).rejects.toMatchObject({
+        code: "provider-forbidden",
+        message: "this model requires a subscription, upgrade for access",
+      });
+    });
+
+    it("falls back to raw responseBody when 403 body is not JSON", async () => {
+      const { adapter, generateFn } = makeAdapter();
+      const apiErr = Object.assign(new Error("Forbidden"), {
+        name: "AI_APICallError",
+        statusCode: 403,
+        responseBody: "Forbidden: subscription required",
+      });
+      generateFn.mockRejectedValue(apiErr);
+
+      await expect(adapter.generateTracks("test")).rejects.toMatchObject({
+        code: "provider-forbidden",
+        message: "Forbidden: subscription required",
+      });
+    });
   });
 });
 

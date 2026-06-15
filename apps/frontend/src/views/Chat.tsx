@@ -87,7 +87,7 @@ export const Chat: FC = () => {
 
                 {stage === "error" && error && (
                   <div className="self-start rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                    {t(`ai.errors.${error.code}`, error.message)}
+                    {t(`ai.errors.${error.code}`, { defaultValue: error.message, detail: error.message })}
                   </div>
                 )}
               </>

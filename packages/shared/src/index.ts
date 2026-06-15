@@ -111,6 +111,8 @@ export type AiPlaylistStage = "llm" | "validating" | "saving" | "done" | "error"
 export type AiPlaylistErrorCode =
   | "provider-misconfig"
   | "provider-unreachable"
+  | "provider-auth"
+  | "provider-forbidden"
   | "llm-bad-output"
   | "zero-resolved";
 

@@ -122,6 +122,10 @@ export class GenerateAiPlaylistUseCase {
         droppedTitles,
       });
     } catch (err) {
+      console.error(
+        "[GenerateAiPlaylistUseCase] generateTracks failed",
+        err instanceof Error ? err.message : err,
+      );
       const code =
         err instanceof AiChatError ? (err.code as AiPlaylistErrorCode) : "provider-unreachable";
       const message = err instanceof Error ? err.message : String(err);

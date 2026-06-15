@@ -1,4 +1,9 @@
-export type AiChatErrorCode = "provider-misconfig" | "provider-unreachable" | "llm-bad-output";
+export type AiChatErrorCode =
+  | "provider-misconfig"
+  | "provider-unreachable"
+  | "provider-auth"
+  | "provider-forbidden"
+  | "llm-bad-output";
 
 export class AiChatError extends Error {
   constructor(
