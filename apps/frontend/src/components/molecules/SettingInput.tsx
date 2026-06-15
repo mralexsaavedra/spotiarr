@@ -35,7 +35,12 @@ export const SettingInput: FC<SettingInputProps> = ({
         type={type}
         min={min}
         max={max}
-        className={`bg-background-input text-text-primary focus:ring-text-primary/20 w-full rounded-md border-none px-4 py-2 focus:ring-2 focus:outline-none${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+        className={[
+          "bg-background-input text-text-primary focus:ring-text-primary/20 w-full rounded-md border-none px-4 py-2 focus:ring-2 focus:outline-none",
+          disabled ? "cursor-not-allowed opacity-50" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         value={value}
         onChange={onChange}
         disabled={disabled}
