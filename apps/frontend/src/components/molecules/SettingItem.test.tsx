@@ -1,5 +1,5 @@
 import type { SettingMetadata } from "@spotiarr/shared";
-import { AI_PROVIDERS } from "@spotiarr/shared";
+import { AI_PROVIDER_PRESETS, AI_PROVIDERS } from "@spotiarr/shared";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -43,7 +43,49 @@ const AI_PROVIDER_SETTING: SettingMetadata = {
   description: "The AI provider to use for playlist generation.",
 };
 
+const AI_BASE_URL_SETTING: SettingMetadata = {
+  key: "AI_BASE_URL",
+  defaultValue: "",
+  type: "string",
+  component: "input",
+  section: "AI",
+  label: "AI Base URL",
+  description: "Base URL for the AI provider API.",
+};
+
 const noop = () => () => {};
+
+describe("SettingItem — AI_BASE_URL disabled state", () => {
+  it("disables the input and shows preset placeholder when provider is a preset (openai)", () => {
+    render(
+      <SettingItem
+        setting={AI_BASE_URL_SETTING}
+        value=""
+        onChange={noop}
+        disabled
+        placeholder={AI_PROVIDER_PRESETS["openai"]}
+      />,
+    );
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    expect(input.placeholder).toBe(AI_PROVIDER_PRESETS["openai"]);
+  });
+
+  it("enables the input with no placeholder when provider is custom", () => {
+    render(
+      <SettingItem
+        setting={AI_BASE_URL_SETTING}
+        value=""
+        onChange={noop}
+        disabled={false}
+        placeholder=""
+      />,
+    );
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    expect(input.disabled).toBe(false);
+    expect(input.placeholder).toBe("");
+  });
+});
 
 describe("SettingItem — AI_PROVIDER select label formatter", () => {
   it("renders OpenAI as the display label for openai option", () => {

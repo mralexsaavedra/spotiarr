@@ -9,6 +9,8 @@ interface SettingInputProps {
   min?: number;
   max?: number;
   description: string;
+  disabled?: boolean;
+  placeholder?: string;
 }
 
 export const SettingInput: FC<SettingInputProps> = ({
@@ -20,6 +22,8 @@ export const SettingInput: FC<SettingInputProps> = ({
   min,
   max,
   description,
+  disabled,
+  placeholder,
 }) => {
   return (
     <div>
@@ -31,9 +35,11 @@ export const SettingInput: FC<SettingInputProps> = ({
         type={type}
         min={min}
         max={max}
-        className="bg-background-input text-text-primary focus:ring-text-primary/20 w-full rounded-md border-none px-4 py-2 focus:ring-2 focus:outline-none"
+        className={`bg-background-input text-text-primary focus:ring-text-primary/20 w-full rounded-md border-none px-4 py-2 focus:ring-2 focus:outline-none${disabled ? "cursor-not-allowed opacity-50" : ""}`}
         value={value}
         onChange={onChange}
+        disabled={disabled}
+        placeholder={placeholder}
       />
       <p className="text-text-secondary mt-1 text-xs">{description}</p>
     </div>

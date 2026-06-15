@@ -1,3 +1,5 @@
+import { AI_PROVIDER_PRESETS } from "@spotiarr/shared";
+import type { AiProvider } from "@spotiarr/shared";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/atoms/Button";
@@ -35,14 +37,25 @@ export const Settings: FC = () => {
                       {t(`settings.sections.${section}`, { defaultValue: section })}
                     </h2>
                     <div className="space-y-6">
-                      {sectionSettings.map((setting) => (
-                        <SettingItem
-                          key={setting.key}
-                          setting={setting}
-                          value={values[setting.key]}
-                          onChange={handleChange}
-                        />
-                      ))}
+                      {sectionSettings.map((setting) => {
+                        const isBaseUrl = setting.key === "AI_BASE_URL";
+                        const provider = values["AI_PROVIDER"] as AiProvider | undefined;
+                        const isCustomProvider = provider === "custom";
+                        return (
+                          <SettingItem
+                            key={setting.key}
+                            setting={setting}
+                            value={values[setting.key]}
+                            onChange={handleChange}
+                            disabled={isBaseUrl ? !isCustomProvider : undefined}
+                            placeholder={
+                              isBaseUrl && provider && !isCustomProvider
+                                ? AI_PROVIDER_PRESETS[provider]
+                                : undefined
+                            }
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
