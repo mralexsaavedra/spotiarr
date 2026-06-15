@@ -197,6 +197,33 @@ describe("createAiChatPort factory", () => {
     });
   });
 
+  it("ollama-cloud resolves preset baseURL https://ollama.com/v1 when AI_BASE_URL is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "ollama-cloud",
+      AI_BASE_URL: "",
+      AI_API_KEY: "oc-test-key",
+      AI_MODEL: "llama3",
+    });
+    const port = createAiChatPort(settings);
+    const spy = vi.spyOn(OpenAiCompatibleAdapter.prototype, "generateTracks").mockResolvedValue([]);
+    await port.generateTracks("test");
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
+  });
+
+  it("ollama-cloud throws provider-misconfig when API key is empty", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "ollama-cloud",
+      AI_BASE_URL: "",
+      AI_API_KEY: "",
+      AI_MODEL: "llama3",
+    });
+    const port = createAiChatPort(settings);
+    await expect(port.generateTracks("test")).rejects.toMatchObject({
+      code: "provider-misconfig",
+    });
+  });
+
   it("throws provider-misconfig when model is missing", async () => {
     const settings = makeSettings({
       AI_PROVIDER: "openai",

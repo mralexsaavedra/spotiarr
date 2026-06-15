@@ -27,6 +27,7 @@ const AI_PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   openrouter: "OpenRouter",
   groq: "Groq",
   ollama: "Ollama",
+  "ollama-cloud": "Ollama Cloud",
   lmstudio: "LM Studio",
   vercel: "Vercel AI Gateway",
   custom: "Custom",

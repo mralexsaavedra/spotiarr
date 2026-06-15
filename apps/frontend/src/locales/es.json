@@ -370,6 +370,7 @@
     "openrouter": "OpenRouter",
     "groq": "Groq",
     "ollama": "Ollama",
+    "ollama-cloud": "Ollama Cloud",
     "lmstudio": "LM Studio",
     "vercel": "Vercel AI Gateway",
     "custom": "Personalizado"

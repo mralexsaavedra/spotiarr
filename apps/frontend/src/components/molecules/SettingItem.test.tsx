@@ -9,6 +9,7 @@ const mockT = vi.fn((key: string, opts?: { defaultValue?: string }) => {
     "aiProviders.openrouter": "OpenRouter",
     "aiProviders.groq": "Groq",
     "aiProviders.ollama": "Ollama",
+    "aiProviders.ollama-cloud": "Ollama Cloud",
     "aiProviders.lmstudio": "LM Studio",
     "aiProviders.vercel": "Vercel AI Gateway",
     "aiProviders.custom": "Custom",
@@ -65,6 +66,12 @@ describe("SettingItem — AI_PROVIDER select label formatter", () => {
   it("renders Custom (translated) as the display label for custom option", () => {
     render(<SettingItem setting={AI_PROVIDER_SETTING} value="openai" onChange={noop} />);
     const option = screen.getByRole("option", { name: "Custom" });
+    expect(option).toBeDefined();
+  });
+
+  it("renders Ollama Cloud as the display label for ollama-cloud option", () => {
+    render(<SettingItem setting={AI_PROVIDER_SETTING} value="openai" onChange={noop} />);
+    const option = screen.getByRole("option", { name: "Ollama Cloud" });
     expect(option).toBeDefined();
   });
 });
