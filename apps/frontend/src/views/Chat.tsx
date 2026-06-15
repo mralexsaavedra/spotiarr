@@ -13,9 +13,14 @@ import { cn } from "@/utils/cn";
 
 const MAX_PROMPT_LENGTH = 500;
 
-const MessageBubble: FC<{ msg: AiChatMessageDto }> = ({ msg }) => {
+interface MessageBubbleProps {
+  msg: AiChatMessageDto;
+  playlists: Array<{ id: string }> | undefined;
+  isPlaylistsLoading: boolean;
+}
+
+const MessageBubble: FC<MessageBubbleProps> = ({ msg, playlists, isPlaylistsLoading }) => {
   const { t } = useTranslation();
-  const { data: playlists, isLoading: isPlaylistsLoading } = usePlaylistsQuery();
 
   const params = (msg.content.params ?? {}) as Record<string, unknown>;
   const text =
@@ -82,9 +87,24 @@ export const Chat: FC = () => {
     clearMessages,
     isClearPending,
   } = useChatController();
+  const { data: playlists, isLoading: isPlaylistsLoading } = usePlaylistsQuery();
 
   const canSubmit = prompt.trim().length > 0 && !isGenerating;
   const showEmptyState = displayMessages.length === 0 && !isGenerating && !stage;
+
+  // Hide the ephemeral result block once the transcript contains the persisted message.
+  // This prevents a duplicate card when the server returns the stored assistant message.
+  const showEphemeralDone =
+    stage === "done" &&
+    !displayMessages.some(
+      (m) => m.role === "assistant" && m.playlistId === playlistId && playlistId != null,
+    );
+  const showEphemeralError =
+    stage === "error" &&
+    error != null &&
+    !displayMessages.some(
+      (m) => m.role === "assistant" && m.errorCode === error.code && m.errorCode != null,
+    );
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -130,7 +150,12 @@ export const Chat: FC = () => {
             ) : (
               <>
                 {displayMessages.map((msg) => (
-                  <MessageBubble key={msg.id} msg={msg} />
+                  <MessageBubble
+                    key={msg.id}
+                    msg={msg}
+                    playlists={playlists}
+                    isPlaylistsLoading={isPlaylistsLoading}
+                  />
                 ))}
 
                 {isGenerating && stage && (
@@ -140,7 +165,7 @@ export const Chat: FC = () => {
                   </div>
                 )}
 
-                {stage === "done" && (
+                {showEphemeralDone && (
                   <div className="bg-background-elevated self-start rounded-2xl px-4 py-3 text-sm">
                     <p className="text-text-primary font-medium">
                       {t("ai.result.tracksAdded", { count: resolvedCount ?? 0 })}
@@ -167,7 +192,7 @@ export const Chat: FC = () => {
                   </div>
                 )}
 
-                {stage === "error" && error && (
+                {showEphemeralError && (
                   <div className="self-start rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
                     {t(`ai.errors.${error.code}`, {
                       defaultValue: error.message,

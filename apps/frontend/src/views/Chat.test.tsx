@@ -300,6 +300,73 @@ describe("Chat view", () => {
     expect(clearBtn.closest("button")).toHaveProperty("disabled", true);
   });
 
+  // S-F-17: ephemeral done block is hidden when transcript already contains the persisted assistant message
+  it("hides ephemeral done block when transcript already has assistant message with matching playlistId", () => {
+    const persistedAssistantMsg: AiChatMessageDto = {
+      id: "srv-assistant-1",
+      role: "assistant",
+      content: { key: "aiChat.assistantDone", params: { count: 5 } },
+      playlistId: "pid-1",
+      errorCode: null,
+      createdAt: 2000,
+    };
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      stage: "done",
+      resolvedCount: 5,
+      playlistId: "pid-1",
+      displayMessages: [persistedAssistantMsg],
+    });
+    render(<Chat />);
+    // The ephemeral done card (tracks added) must NOT be rendered — the transcript has it
+    expect(screen.queryByText(/ai\.result\.tracksAdded/)).toBeNull();
+  });
+
+  // S-F-18: ephemeral done block is visible when transcript does NOT have matching assistant message
+  it("shows ephemeral done block when transcript does not yet have the persisted assistant message", () => {
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      stage: "done",
+      resolvedCount: 5,
+      playlistId: "pid-new",
+      displayMessages: [],
+    });
+    render(<Chat />);
+    expect(screen.getByText(/ai\.result\.tracksAdded/)).toBeDefined();
+  });
+
+  // S-F-19: ephemeral error block is hidden when transcript already has assistant error message with matching errorCode
+  it("hides ephemeral error block when transcript already has assistant message with matching errorCode", () => {
+    const persistedErrorMsg: AiChatMessageDto = {
+      id: "srv-error-1",
+      role: "assistant",
+      content: { key: "aiChat.assistantError", params: { code: "provider-misconfig" } },
+      playlistId: null,
+      errorCode: "provider-misconfig",
+      createdAt: 2000,
+    };
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      stage: "error",
+      error: { code: "provider-misconfig", message: "Missing API key" },
+      displayMessages: [persistedErrorMsg],
+    });
+    render(<Chat />);
+    expect(screen.queryByText(/ai\.errors\.provider-misconfig/)).toBeNull();
+  });
+
+  // S-F-20: ephemeral error block is visible when transcript does NOT have matching error message
+  it("shows ephemeral error block when transcript does not yet have the persisted error message", () => {
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      stage: "error",
+      error: { code: "provider-misconfig", message: "Missing API key" },
+      displayMessages: [],
+    });
+    render(<Chat />);
+    expect(screen.getByText(/ai\.errors\.provider-misconfig/)).toBeDefined();
+  });
+
   it("renders user messages from displayMessages list", () => {
     mockUseChatController.mockReturnValue({
       ...defaultController,
