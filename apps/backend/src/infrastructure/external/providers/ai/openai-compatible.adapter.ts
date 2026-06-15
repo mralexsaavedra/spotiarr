@@ -1,4 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
+import { AI_LOCAL_PROVIDERS, AI_PROVIDER_PRESETS, normalizeAiProvider } from "@spotiarr/shared";
 import { generateObject, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import type { AiChatPort, AiTrackSuggestion } from "@/application/ports/ai-chat.port";
@@ -101,17 +102,31 @@ Return at most 50 tracks.`;
 export function createAiChatPort(settingsService: SettingsService): AiChatPort {
   return {
     async generateTracks(prompt: string): Promise<AiTrackSuggestion[]> {
-      const [baseURL, apiKey, model] = await Promise.all([
+      const [rawProvider, rawBaseURL, rawApiKey, model] = await Promise.all([
+        settingsService.getString("AI_PROVIDER", "openai"),
         settingsService.getString("AI_BASE_URL", ""),
         settingsService.getString("AI_API_KEY", ""),
         settingsService.getString("AI_MODEL", ""),
       ]);
 
-      if (!baseURL || !apiKey || !model) {
+      const provider = normalizeAiProvider(rawProvider);
+      const baseURL = rawBaseURL.trim() || AI_PROVIDER_PRESETS[provider] || "";
+      const isLocal = AI_LOCAL_PROVIDERS.includes(provider);
+      const apiKey = rawApiKey.trim() || (isLocal ? "local" : "");
+
+      if (!baseURL) {
         throw new AiChatError(
           "provider-misconfig",
-          "AI_BASE_URL, AI_API_KEY, and AI_MODEL must all be configured in Settings",
+          "AI_BASE_URL is required when using a custom provider",
         );
+      }
+
+      if (!isLocal && !rawApiKey.trim()) {
+        throw new AiChatError("provider-misconfig", "AI_API_KEY must be configured in Settings");
+      }
+
+      if (!model) {
+        throw new AiChatError("provider-misconfig", "AI_MODEL must be configured in Settings");
       }
 
       const adapter = new OpenAiCompatibleAdapter({ baseURL, apiKey, model });

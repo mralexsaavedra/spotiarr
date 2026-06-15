@@ -279,9 +279,26 @@
       "Playlists": "Playlists",
       "Releases": "Releases",
       "Downloads": "Downloads",
-      "Maintenance": "Maintenance"
+      "Maintenance": "Maintenance",
+      "AI": "AI"
     },
     "items": {
+      "AI_PROVIDER": {
+        "label": "AI Provider",
+        "description": "The AI provider to use for playlist generation."
+      },
+      "AI_BASE_URL": {
+        "label": "AI Base URL",
+        "description": "Optional override for the provider's default endpoint. Required only for the 'custom' provider."
+      },
+      "AI_API_KEY": {
+        "label": "AI API Key",
+        "description": "The API key for the AI provider. Stored securely and masked on read."
+      },
+      "AI_MODEL": {
+        "label": "AI Model",
+        "description": "The model name to use for playlist generation (e.g. gpt-4o, llama-3.1)."
+      },
       "UI_LANGUAGE": {
         "label": "Interface Language",
         "description": "Select your preferred language for the interface."
@@ -347,6 +364,17 @@
         "description": "How long before a track is considered stuck and eligible for cleanup."
       }
     }
+  },
+  "aiProviders": {
+    "openai": "OpenAI",
+    "gemini": "Gemini",
+    "openrouter": "OpenRouter",
+    "groq": "Groq",
+    "ollama": "Ollama",
+    "ollama-cloud": "Ollama Cloud",
+    "lmstudio": "LM Studio",
+    "vercel": "Vercel AI Gateway",
+    "custom": "Custom"
   },
   "search": {
     "title": "Search",
@@ -415,6 +443,11 @@
   },
   "ai": {
     "title": "AI Chat",
+    "subtitle": "Describe a playlist in your own words and let AI build it from your library.",
+    "empty": {
+      "title": "Create a playlist with AI",
+      "hint": "Describe a mood, genre, activity or era — for example \"upbeat 90s rock for running\"."
+    },
     "promptPlaceholder": "Describe the playlist you want... (e.g. \"jazz for a rainy afternoon\")",
     "sendButton": "Generate",
     "stages": {

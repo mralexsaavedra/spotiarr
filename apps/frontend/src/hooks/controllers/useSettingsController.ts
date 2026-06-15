@@ -90,7 +90,14 @@ export const useSettingsController = () => {
     ) => {
       if ("target" in event && event.target && "value" in event.target) {
         const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-        setValues((prev) => ({ ...prev, [key]: target.value }));
+        const newValue = target.value;
+        setValues((prev) => {
+          const next = { ...prev, [key]: newValue };
+          if (key === "AI_PROVIDER" && newValue !== "custom") {
+            next["AI_BASE_URL"] = "";
+          }
+          return next;
+        });
       } else {
         event.preventDefault();
         setValues((prev) => ({ ...prev, [key]: prev[key] === "true" ? "false" : "true" }));

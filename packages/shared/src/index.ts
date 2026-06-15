@@ -1,5 +1,42 @@
 export * from "./routes.js";
 export * from "./identity.js";
+
+export const AI_PROVIDERS = [
+  "openai",
+  "gemini",
+  "openrouter",
+  "groq",
+  "ollama",
+  "ollama-cloud",
+  "lmstudio",
+  "vercel",
+  "custom",
+] as const;
+
+export type AiProvider = (typeof AI_PROVIDERS)[number];
+
+export const AI_PROVIDER_PRESETS: Record<AiProvider, string> = {
+  openai: "https://api.openai.com/v1",
+  gemini: "https://generativelanguage.googleapis.com/v1beta/openai/",
+  openrouter: "https://openrouter.ai/api/v1",
+  groq: "https://api.groq.com/openai/v1",
+  ollama: "http://localhost:11434/v1",
+  "ollama-cloud": "https://ollama.com/v1",
+  lmstudio: "http://localhost:1234/v1",
+  vercel: "https://ai-gateway.vercel.sh/v1",
+  custom: "",
+};
+
+export const AI_LOCAL_PROVIDERS: readonly AiProvider[] = ["ollama", "lmstudio"];
+
+export const DEFAULT_AI_PROVIDER: AiProvider = "openai";
+
+export function normalizeAiProvider(value: string | undefined | null): AiProvider {
+  return value && (AI_PROVIDERS as readonly string[]).includes(value)
+    ? (value as AiProvider)
+    : DEFAULT_AI_PROVIDER;
+}
+
 export const SUPPORTED_AUDIO_FORMATS = [
   "aac",
   "flac",
