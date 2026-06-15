@@ -34,17 +34,34 @@ export const useChatController = () => {
   const queryClient = useQueryClient();
   const { data: serverMessages = [] } = useChatMessagesQuery();
 
-  // Compute displayMessages: server data + optimistic entries not yet reconciled
+  // Compute displayMessages: server data + optimistic entries not yet reconciled.
+  // Reconciliation is count/position-based so identical repeated prompts keep both.
+  // An optimistic user entry is suppressed only when there is a not-yet-consumed
+  // server user-message with the same prompt text.
   const displayMessages = useMemo<AiChatMessageDto[]>(() => {
+    // Build a usage-counted map of server user-message prompts
+    const serverPromptCounts = new Map<string, number>();
+    for (const s of serverMessages) {
+      if (s.role !== "user") continue;
+      const p = s.content.params?.prompt as string | undefined;
+      if (!p) continue;
+      serverPromptCounts.set(p, (serverPromptCounts.get(p) ?? 0) + 1);
+    }
+
+    // Working copy to consume server slots one by one
+    const remaining = new Map(serverPromptCounts);
+
     const filtered = optimisticMessages.filter((opt) => {
       if (opt.role !== "user") return true;
-      const prompt = opt.content.params?.prompt as string | undefined;
-      if (!prompt) return true;
-      // Suppress optimistic if server already has a matching user message
-      const alreadyOnServer = serverMessages.some(
-        (s) => s.role === "user" && (s.content.params?.prompt as string | undefined) === prompt,
-      );
-      return !alreadyOnServer;
+      const p = opt.content.params?.prompt as string | undefined;
+      if (!p) return true;
+      const count = remaining.get(p) ?? 0;
+      if (count > 0) {
+        // Consume one server slot — suppress this optimistic entry
+        remaining.set(p, count - 1);
+        return false;
+      }
+      return true;
     });
     return [...serverMessages, ...filtered];
   }, [serverMessages, optimisticMessages]);
@@ -115,9 +132,18 @@ export const useChatController = () => {
     };
     setOptimisticMessages([optimisticEntry]);
 
-    const result = await mutation.mutateAsync(text);
-    setJobId(result.jobId);
-    setIsGenerating(true);
+    try {
+      const result = await mutation.mutateAsync(text);
+      setJobId(result.jobId);
+      setIsGenerating(true);
+    } catch (e) {
+      // Mutation rejected — clear the optimistic entry and surface the error
+      setOptimisticMessages([]);
+      setError({
+        code: "provider-unreachable",
+        message: e instanceof Error ? e.message : String(e),
+      });
+    }
   };
 
   const clearMessages = () => {
