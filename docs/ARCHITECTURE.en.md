@@ -238,7 +238,7 @@ SpotiArr is not just an on-demand downloader, it is an autonomous system.
 2.  **Stuck Process Cleanup:**
     - A job watches for downloads taking too long in "Downloading" state (zombies) and marks them as error to allow retries, preventing eternal deadlocks.
 3.  **AI Playlist Generation (on-demand):**
-    - Triggered from AI Chat, not a cron job. `ai-playlist.worker.ts` runs: LLM generation → Spotify resolution → download → SSE notification. Progress is reported in real-time via `AiPlaylistProgressEvent`.
+    - Triggered from AI Chat, not a cron job. `ai-playlist.worker.ts` runs: LLM generation → Spotify resolution → download → SSE notification. Progress is reported in real-time via `AiPlaylistProgressEvent`. The chat transcript is persisted in SQLite (`AiChatMessage`) and exposed via `GET /api/ai/chat/messages` and `DELETE /api/ai/chat/messages`; the user prompt is saved on enqueue, and the assistant outcome (playlist link or `errorCode`) is saved on done/error (best-effort, never blocks generation).
 
 ## 8. Security & Validation
 
