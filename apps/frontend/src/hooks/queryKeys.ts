@@ -27,4 +27,5 @@ export const queryKeys = {
   search: (query: string, types: string[], limit: number) =>
     ["search", query, types, limit] as const,
   authSession: ["auth", "session"] as const,
+  aiChatMessages: ["ai", "chat", "messages"] as const,
 } as const;
