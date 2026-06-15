@@ -15,16 +15,14 @@ const MAX_PROMPT_LENGTH = 500;
 const MessageBubble: FC<{ msg: AiChatMessageDto }> = ({ msg }) => {
   const { t } = useTranslation();
 
+  const params = (msg.content.params ?? {}) as Record<string, unknown>;
   const text =
     msg.role === "user"
       ? String(
           msg.content.params?.prompt ??
-            t(msg.content.key, msg.content.params as Record<string, unknown>),
+            t(msg.content.key, { ...params, defaultValue: msg.content.key }),
         )
-      : t(msg.content.key, {
-          ...(msg.content.params as Record<string, unknown>),
-          defaultValue: msg.content.key,
-        });
+      : t(msg.content.key, { ...params, defaultValue: msg.content.key });
 
   const playlistLink =
     msg.role === "assistant" && msg.playlistId ? (
