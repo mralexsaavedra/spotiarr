@@ -302,7 +302,8 @@
         "loadingModels": "Cargando...",
         "modelsLoaded": "{{count}} modelos cargados",
         "modelsEmpty": "No se devolvieron modelos. Escribe el nombre del modelo manualmente.",
-        "modelsError": "No se pudieron cargar los modelos. Comprueba la configuración del proveedor."
+        "modelsError": "No se pudieron cargar los modelos. Comprueba la configuración del proveedor.",
+        "toggleModels": "Mostrar modelos"
       },
       "UI_LANGUAGE": {
         "label": "Idioma de la interfaz",

@@ -302,7 +302,8 @@
         "loadingModels": "Loading...",
         "modelsLoaded": "{{count}} models loaded",
         "modelsEmpty": "No models returned. Type a model name manually.",
-        "modelsError": "Could not load models. Check your provider settings."
+        "modelsError": "Could not load models. Check your provider settings.",
+        "toggleModels": "Show models"
       },
       "UI_LANGUAGE": {
         "label": "Interface Language",

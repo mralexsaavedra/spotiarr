@@ -54,15 +54,16 @@ describe("AiModelField", () => {
     expect(input.disabled).toBe(false);
   });
 
-  it("clicking Load models triggers getModels and fills datalist", async () => {
+  it("shows a dropdown listing all models even when the input already has a value, and selecting one calls onChange", async () => {
+    const onChange = vi.fn();
     vi.mocked(aiChatService.getModels).mockResolvedValueOnce(["gpt-4o", "gpt-3.5-turbo"]);
 
     render(
       <AiModelField
         id="AI_MODEL"
         label="AI Model"
-        value=""
-        onChange={vi.fn()}
+        value="already-typed-model"
+        onChange={onChange}
         description=""
         provider="openai"
         baseURL=""
@@ -76,12 +77,13 @@ describe("AiModelField", () => {
       expect(screen.getByText("2 models loaded")).toBeTruthy();
     });
 
-    const datalist = document.getElementById("AI_MODEL-models-list");
-    expect(datalist).not.toBeNull();
-    const options = datalist?.querySelectorAll("option");
-    expect(options?.length).toBe(2);
-    expect(options?.[0].value).toBe("gpt-4o");
-    expect(options?.[1].value).toBe("gpt-3.5-turbo");
+    const options = screen.getAllByRole("option");
+    expect(options.length).toBe(2);
+    expect(options[0].textContent).toBe("gpt-4o");
+    expect(options[1].textContent).toBe("gpt-3.5-turbo");
+
+    fireEvent.click(options[0]);
+    expect(onChange).toHaveBeenCalledWith({ target: { value: "gpt-4o" } });
   });
 
   it("shows loading state while fetching", async () => {
