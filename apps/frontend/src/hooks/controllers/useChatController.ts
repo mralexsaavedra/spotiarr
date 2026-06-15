@@ -4,7 +4,7 @@ import {
   type AiPlaylistStage,
 } from "@spotiarr/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { aiProgressBus } from "@/lib/aiProgressBus";
 import { useClearChatMessagesMutation } from "../mutations/useClearChatMessagesMutation";
 import { useGenerateAiPlaylistMutation } from "../mutations/useGenerateAiPlaylistMutation";
@@ -34,37 +34,40 @@ export const useChatController = () => {
   const queryClient = useQueryClient();
   const { data: serverMessages = [] } = useChatMessagesQuery();
 
-  // Compute displayMessages: server data + optimistic entries not yet reconciled.
-  // Reconciliation is count/position-based so identical repeated prompts keep both.
-  // An optimistic user entry is suppressed only when there is a not-yet-consumed
-  // server user-message with the same prompt text.
-  const displayMessages = useMemo<AiChatMessageDto[]>(() => {
-    // Build a usage-counted map of server user-message prompts
-    const serverPromptCounts = new Map<string, number>();
-    for (const s of serverMessages) {
-      if (s.role !== "user") continue;
-      const p = s.content.params?.prompt as string | undefined;
-      if (!p) continue;
-      serverPromptCounts.set(p, (serverPromptCounts.get(p) ?? 0) + 1);
-    }
+  // Compute displayMessages: server data + any optimistic entries not yet reconciled.
+  // No content-based suppression — each optimistic entry has a unique UUID id, so
+  // re-submitting an identical prompt correctly shows a new bubble alongside existing
+  // server messages with the same text.
+  const displayMessages: AiChatMessageDto[] = [...serverMessages, ...optimisticMessages];
 
-    // Working copy to consume server slots one by one
-    const remaining = new Map(serverPromptCounts);
+  // Lifecycle reconciliation: drop optimistic entries whose server counterpart has landed.
+  // An optimistic user entry is considered persisted when serverMessages contains a user
+  // message with the same prompt text and a createdAt >= the optimistic entry's createdAt
+  // (i.e., the message was written after or at the same instant the optimistic was created).
+  // Briefly showing both for one render cycle before this effect fires is acceptable;
+  // a PERMANENT duplicate (entry never cleared) is not.
+  useEffect(() => {
+    if (optimisticMessages.length === 0) return;
 
-    const filtered = optimisticMessages.filter((opt) => {
+    const remaining = optimisticMessages.filter((opt) => {
       if (opt.role !== "user") return true;
-      const p = opt.content.params?.prompt as string | undefined;
-      if (!p) return true;
-      const count = remaining.get(p) ?? 0;
-      if (count > 0) {
-        // Consume one server slot — suppress this optimistic entry
-        remaining.set(p, count - 1);
-        return false;
-      }
-      return true;
+      const optPrompt = opt.content.params?.prompt as string | undefined;
+      if (!optPrompt) return true;
+      // Check if server now carries a user message with the same prompt that arrived
+      // at or after the optimistic was added
+      const isLanded = serverMessages.some(
+        (s) =>
+          s.role === "user" &&
+          (s.content.params?.prompt as string | undefined) === optPrompt &&
+          s.createdAt >= opt.createdAt,
+      );
+      return !isLanded;
     });
-    return [...serverMessages, ...filtered];
-  }, [serverMessages, optimisticMessages]);
+
+    if (remaining.length !== optimisticMessages.length) {
+      setOptimisticMessages(remaining);
+    }
+  }, [serverMessages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handler = (event: {
@@ -121,9 +124,10 @@ export const useChatController = () => {
     setPlaylistName(undefined);
     setPrompt("");
 
-    // Add optimistic user entry immediately
+    // Add optimistic user entry with a unique UUID so re-submitting an identical
+    // prompt does not collide with an existing server message's id or another optimistic entry.
     const optimisticEntry: AiChatMessageDto = {
-      id: "optimistic",
+      id: crypto.randomUUID(),
       role: "user",
       content: { key: "aiChat.userPrompt", params: { prompt: text } },
       playlistId: null,

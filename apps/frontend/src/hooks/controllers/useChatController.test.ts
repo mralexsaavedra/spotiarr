@@ -131,7 +131,8 @@ describe("useChatController", () => {
     expect(result.current.displayMessages).toHaveLength(1);
     expect(result.current.displayMessages[0].role).toBe("user");
     expect(result.current.displayMessages[0].content.params?.prompt).toBe("jazz");
-    expect(result.current.displayMessages[0].id).toBe("optimistic");
+    // id must not be the old hardcoded "optimistic" — it is now a UUID
+    expect(result.current.displayMessages[0].id).not.toBe("optimistic");
   });
 
   it("submit calls mutation with the current prompt and sets jobId", async () => {
@@ -335,9 +336,9 @@ describe("useChatController", () => {
       await result.current.handleSubmit();
     });
 
-    // Optimistic entry is visible before server catches up
+    // Optimistic entry is visible before server catches up (id is a UUID, not "optimistic")
     expect(result.current.displayMessages).toHaveLength(1);
-    expect(result.current.displayMessages[0].id).toBe("optimistic");
+    expect(result.current.displayMessages[0].id).not.toBe("optimistic");
 
     // Server now returns the persisted user message
     mockServerMessages = [
@@ -361,41 +362,100 @@ describe("useChatController", () => {
     });
   });
 
-  // S-F-10: two server messages for same prompt → two optimistic entries are both suppressed
-  // (count-based: each server slot is consumed individually, not a single "exists" check)
-  it("two server user-messages with the same prompt suppress two optimistic entries independently", () => {
-    // Server has TWO matching user-messages for the same prompt (two separate submissions)
-    mockServerMessages = [
-      {
-        id: "server-m1",
-        role: "user",
-        content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
-        playlistId: null,
-        errorCode: null,
-        createdAt: 1000,
-      },
-      {
-        id: "server-m2",
-        role: "user",
-        content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
-        playlistId: null,
-        errorCode: null,
-        createdAt: 2000,
-      },
-    ];
+  // S-F-02b: each optimistic entry gets a unique id (not hardcoded "optimistic")
+  it("optimistic entry has a unique non-static id (UUID)", async () => {
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "j-uuid-1" });
+    mockServerMessages = [];
 
     const { result } = renderHook(() => useChatController());
 
-    // Manually inject two optimistic entries with the same prompt
     act(() => {
-      // Access internal state directly not possible; test the memo logic via displayMessages
-      // We set up server messages only — optimistic is empty on fresh render
-      // The key assertion: 2 server messages + 0 optimistic = 2 messages
+      result.current.setPrompt("jazz");
     });
 
-    // Without optimistic entries, only server messages are shown
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    const optimisticId = result.current.displayMessages[0]?.id;
+    expect(optimisticId).toBeDefined();
+    expect(optimisticId).not.toBe("optimistic");
+    // UUID format: 8-4-4-4-12 hex chars
+    expect(optimisticId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  });
+
+  // S-F-10a: submitting a prompt identical to an existing server message STILL shows new optimistic bubble
+  it("new optimistic bubble is visible even when an identical prompt is already in serverMessages", async () => {
+    // Pre-existing server message with the same prompt (an old submission)
+    const oldServerMessage: AiChatMessageDto = {
+      id: "server-old",
+      role: "user",
+      content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+      playlistId: null,
+      errorCode: null,
+      createdAt: 500, // old timestamp
+    };
+    mockServerMessages = [oldServerMessage];
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "j-same-prompt" });
+
+    const { result } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.setPrompt("jazz");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    // Both the old server message AND the new optimistic bubble must be visible
     expect(result.current.displayMessages).toHaveLength(2);
-    expect(result.current.displayMessages.map((m) => m.id)).toEqual(["server-m1", "server-m2"]);
+    const ids = result.current.displayMessages.map((m) => m.id);
+    expect(ids).toContain("server-old");
+    // The new optimistic entry must be present (not suppressed by content-match)
+    const hasOptimistic = ids.some((id) => id !== "server-old");
+    expect(hasOptimistic).toBe(true);
+  });
+
+  // S-F-10b: after refetch brings the persisted message, optimistic is cleared (no permanent duplicate)
+  it("optimistic entry is cleared when server refetch returns the persisted message, leaving no duplicate", async () => {
+    mockMutateAsync.mockResolvedValueOnce({ jobId: "j-reconcile" });
+    mockServerMessages = [];
+
+    const { result, rerender } = renderHook(() => useChatController());
+
+    act(() => {
+      result.current.setPrompt("ambient");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    // Optimistic is visible before server catches up
+    expect(result.current.displayMessages).toHaveLength(1);
+    const optimisticCreatedAt = result.current.displayMessages[0].createdAt;
+
+    // Server now returns the persisted user message (createdAt >= optimistic's createdAt)
+    mockServerMessages = [
+      {
+        id: "server-persisted",
+        role: "user",
+        content: { key: "aiChat.userPrompt", params: { prompt: "ambient" } },
+        playlistId: null,
+        errorCode: null,
+        createdAt: optimisticCreatedAt, // same or later than optimistic
+      },
+    ];
+
+    // Re-render same hook instance to pick up new server data
+    rerender();
+
+    await waitFor(() => {
+      // Only the persisted server message remains — no duplicate
+      expect(result.current.displayMessages).toHaveLength(1);
+      expect(result.current.displayMessages[0].id).toBe("server-persisted");
+    });
   });
 
   // S-F-07: exposes clearMessages and isClearPending
