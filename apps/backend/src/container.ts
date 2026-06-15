@@ -610,8 +610,11 @@ export function createContainer(env: Env) {
   const clearChatMessagesUseCase = new ClearChatMessagesUseCase(aiChatMessageRepository);
 
   const aiPlaylistQueueService = new BullMqAiPlaylistQueueService();
-  const aiChatController = new AiChatController(aiPlaylistQueueService, (overrides) =>
-    listAiModels(settingsService, overrides),
+  const aiChatController = new AiChatController(
+    aiPlaylistQueueService,
+    (overrides) => listAiModels(settingsService, overrides),
+    getChatMessagesUseCase,
+    clearChatMessagesUseCase,
   );
 
   const historyUseCases = new HistoryUseCases({ repository: historyRepository });

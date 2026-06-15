@@ -16,5 +16,9 @@ export function createAiRoutes(container: Container): ExpressRouter {
 
   router.post("/models", validate(listModelsSchema), asyncHandler(aiChatController.listModels));
 
+  router.get("/chat/messages", asyncHandler(aiChatController.getMessages));
+
+  router.delete("/chat/messages", asyncHandler(aiChatController.clearMessages));
+
   return router;
 }

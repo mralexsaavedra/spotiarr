@@ -7,8 +7,14 @@ import { getEnv } from "../setup/environment";
 import { AI_PLAYLIST_QUEUE } from "../setup/queues";
 
 export function createAiPlaylistWorker(): Worker {
-  const { spotifyUrlLookupClient, playlistRepository, trackService, eventBus, settingsService } =
-    getContainer();
+  const {
+    spotifyUrlLookupClient,
+    playlistRepository,
+    trackService,
+    eventBus,
+    settingsService,
+    appendChatMessageUseCase,
+  } = getContainer();
 
   const worker = new Worker(
     AI_PLAYLIST_QUEUE,
@@ -28,6 +34,7 @@ export function createAiPlaylistWorker(): Worker {
         trackService,
         eventBus,
         onProgress,
+        appendChatMessage: appendChatMessageUseCase,
       });
 
       await useCase.execute({ jobId, prompt });

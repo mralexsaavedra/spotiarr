@@ -9,6 +9,10 @@ import { AiChatError } from "@/domain/errors/ai-chat.error";
 import type { EventBus } from "@/domain/events/event-bus";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import type { TrackService } from "../../services/track.service";
+import type {
+  AppendChatMessageInput,
+  AppendChatMessageUseCase,
+} from "./append-chat-message.use-case";
 
 const MAX_TRACKS = 50;
 const AI_PLAYLIST_OWNER = "SpotiArr AI";
@@ -33,6 +37,9 @@ interface UseCaseDeps {
   trackService: Pick<TrackService, "create">;
   eventBus: EventBus;
   onProgress?: (event: AiPlaylistProgressEvent) => void;
+  appendChatMessage?:
+    | Pick<AppendChatMessageUseCase, "execute">
+    | { execute: (input: AppendChatMessageInput) => Promise<void> };
   delayMs?: number;
 }
 
@@ -43,6 +50,7 @@ export class GenerateAiPlaylistUseCase {
   private readonly trackService: Pick<TrackService, "create">;
   private readonly eventBus: EventBus;
   private readonly onProgress: (event: AiPlaylistProgressEvent) => void;
+  private readonly appendChatMessage: (input: AppendChatMessageInput) => Promise<void>;
   private readonly resolveDelayMs: number;
 
   constructor(deps: UseCaseDeps) {
@@ -52,6 +60,9 @@ export class GenerateAiPlaylistUseCase {
     this.trackService = deps.trackService;
     this.eventBus = deps.eventBus;
     this.onProgress = deps.onProgress ?? (() => {});
+    this.appendChatMessage = deps.appendChatMessage
+      ? (input) => deps.appendChatMessage!.execute(input)
+      : async () => {};
     this.resolveDelayMs = deps.delayMs ?? RESOLVE_INTERVAL_MS;
   }
 
@@ -66,6 +77,18 @@ export class GenerateAiPlaylistUseCase {
     };
 
     try {
+      // Best-effort: swallow append errors so generation never aborts
+      await this.appendChatMessage({
+        role: "user",
+        contentKey: "aiChat.userPrompt",
+        contentParams: { prompt },
+      }).catch((err) => {
+        console.error(
+          "[GenerateAiPlaylistUseCase] appendChatMessage(user) failed",
+          err instanceof Error ? err.message : err,
+        );
+      });
+
       emit("llm", { progress: 0 });
       const rawSuggestions = await this.aiChatPort.generateTracks(prompt);
       const suggestions = rawSuggestions.slice(0, MAX_TRACKS);
@@ -85,6 +108,19 @@ export class GenerateAiPlaylistUseCase {
           error: { code: "zero-resolved", message: "No tracks could be found on Spotify" },
           droppedTitles,
         });
+
+        this.appendChatMessage({
+          role: "assistant",
+          contentKey: "aiChat.assistantError",
+          contentParams: { code: "zero-resolved" },
+          errorCode: "zero-resolved",
+        }).catch((err) => {
+          console.error(
+            "[GenerateAiPlaylistUseCase] appendChatMessage(zero-resolved) failed",
+            err instanceof Error ? err.message : err,
+          );
+        });
+
         return;
       }
 
@@ -125,6 +161,18 @@ export class GenerateAiPlaylistUseCase {
         playlistId,
         playlistName,
       });
+
+      this.appendChatMessage({
+        role: "assistant",
+        contentKey: "aiChat.assistantDone",
+        contentParams: { count: deduped.length },
+        playlistId,
+      }).catch((err) => {
+        console.error(
+          "[GenerateAiPlaylistUseCase] appendChatMessage(done) failed",
+          err instanceof Error ? err.message : err,
+        );
+      });
     } catch (err) {
       console.error(
         "[GenerateAiPlaylistUseCase] generateTracks failed",
@@ -137,6 +185,18 @@ export class GenerateAiPlaylistUseCase {
       emit("error", {
         progress: 0,
         error: { code, message },
+      });
+
+      this.appendChatMessage({
+        role: "assistant",
+        contentKey: "aiChat.assistantError",
+        contentParams: { code },
+        errorCode: code,
+      }).catch((appendErr) => {
+        console.error(
+          "[GenerateAiPlaylistUseCase] appendChatMessage(error) failed",
+          appendErr instanceof Error ? appendErr.message : appendErr,
+        );
       });
     }
   }
