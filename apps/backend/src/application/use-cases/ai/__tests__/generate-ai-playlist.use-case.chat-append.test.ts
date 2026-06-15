@@ -37,10 +37,21 @@ describe("GenerateAiPlaylistUseCase — chat-append behaviour", () => {
     vi.clearAllMocks();
   });
 
-  describe("S-B-11 — appends user message (fire-and-forget) before emit(llm)", () => {
-    it("calls appendChatMessage with role=user and correct params", async () => {
+  describe("S-B-11 — appends user message fire-and-forget (does not block generation)", () => {
+    it("calls appendChatMessage with role=user and correct params AND generation resolves even when append never settles", async () => {
       const deps = buildBaseDeps();
-      const appendChatMessage = makeAppendSpy();
+
+      // The user-message append returns a promise that never resolves, proving
+      // execute() does NOT await it (fire-and-forget).
+      const neverSettles = new Promise<void>(() => {
+        // Intentionally never resolved or rejected within this test
+      });
+      const appendChatMessage = {
+        execute: vi
+          .fn<(input: AppendChatMessageInput) => Promise<void>>()
+          .mockImplementationOnce((_input) => neverSettles)
+          .mockResolvedValue(undefined),
+      };
 
       deps.aiChatPort.generateTracks.mockResolvedValue([makeTrack("Track A", "Artist A")]);
       deps.resolveTrackUrl.mockResolvedValue("spotify:track:aaa");
@@ -50,9 +61,11 @@ describe("GenerateAiPlaylistUseCase — chat-append behaviour", () => {
         appendChatMessage,
         delayMs: 0,
       });
-      await useCase.execute({ jobId: "j1", prompt: "ambient" });
 
-      // The user-message append must be called (fire-and-forget, order vs LLM not guaranteed)
+      // Must resolve even though the user-append promise never settles
+      await expect(useCase.execute({ jobId: "j1", prompt: "ambient" })).resolves.toBeUndefined();
+
+      // The user-message append must have been called with correct args
       const userCall = appendChatMessage.execute.mock.calls.find((c) => c[0].role === "user");
       expect(userCall).toBeDefined();
       expect(userCall![0].role).toBe("user");
