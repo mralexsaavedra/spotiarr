@@ -14,11 +14,11 @@ Spotiarr is a self-hosted Spotify companion for tracking and downloading music r
 
 | Component | Location          | Tech Stack                                            |
 | --------- | ----------------- | ----------------------------------------------------- |
-| Backend   | `apps/backend`    | Node 22, Express, Prisma (SQLite), BullMQ, Redis, Zod |
+| Backend   | `apps/backend`    | Node 22, Express, Prisma (SQLite), BullMQ, Redis, Zod, Vercel AI SDK |
 | Frontend  | `apps/frontend`   | React 19, Vite, TanStack Query, Zustand, Tailwind 4   |
 | Shared    | `packages/shared` | DTOs, enums, shared utilities                         |
 
-External services: **Redis**, **FFmpeg**, **yt-dlp**, Python 3.11/3.12.
+External services: **Redis**, **FFmpeg**, **yt-dlp**, Python 3.11/3.12. Optional: any OpenAI-compatible LLM provider for AI Playlists — configured via in-app Settings (not env vars).
 
 ---
 

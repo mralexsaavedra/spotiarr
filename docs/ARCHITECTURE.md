@@ -51,6 +51,7 @@ La elección de tecnologías prioriza la **Modernidad**, el **Tipado (TypeScript
 - **Node.js & Express:** Robusto y battle-tested.
 - **Prisma ORM:** Tipado seguro con la DB. SQLite por defecto (fácil deployment).
 - **BullMQ + Redis:** Sistema de colas robusto para manejar descargas pesadas en background.
+- **Vercel AI SDK (`generateObject`):** Respuestas LLM estructuradas para la generación de playlists con IA.
 
 ### Core de Medios
 
@@ -74,7 +75,7 @@ apps/backend/src/
 ├── domain/              # Modelo de dominio puro (entidades, reglas)
 ├── infrastructure/      # Implementaciones concretas
 │   ├── database/        # Repositorios Prisma
-│   ├── external/        # Integraciones (Spotify API, YouTube, Filesystem)
+│   ├── external/        # Integraciones (Spotify API, YouTube, Filesystem); providers/ai/ (adaptador, connection resolver, model listing)
 │   ├── jobs/            # Tareas programadas (Cron Jobs)
 │   └── messaging/       # Colas (BullMQ) y Eventos (SSE)
 ├── presentation/        # API Rest (Rutas y Controladores)
@@ -109,7 +110,8 @@ apps/frontend/src/
 │   ├── atoms/           # Botones, Inputs, Iconos básicos
 │   ├── molecules/       # Campos de búsqueda, Cards simples
 │   └── organisms/       # Cards complejas, Listas, Modales
-├── views/               # Páginas completas (Screens de la aplicación)
+├── views/               # Páginas completas (Screens de la aplicación); incluye Chat
+├── lib/                 # aiProgressBus.ts (bus de eventos en memoria para progreso SSE de IA)
 ├── hooks/               # Custom Hooks Architecture
 │   ├── controllers/     # Lógica de Vistas (ViewModel Pattern)
 │   ├── queries/         # Wrappers de lectura API (React Query)
@@ -205,13 +207,23 @@ La aplicación incluye un reproductor de música nativo robusto para la reproduc
 - **UI Responsiva:** Incluye una `GlobalPlayerBar` estilo Spotify para escritorio y una vista `NowPlayingFullscreen` para dispositivos móviles con gestos táctiles.
 - **Gestión de Cola:** Soporta reordenación mediante drag-and-drop y transiciones fluidas entre pistas.
 
+### 5.9. Generación de Playlists con IA (`AiPlaylistWorker`)
+
+Flujo completo desde el chat hasta el archivo descargado:
+
+1. **Generación LLM:** `GenerateAiPlaylistUseCase` invoca `OpenAiCompatibleAdapter` (Vercel AI SDK `generateObject`); el proveedor se lee de la tabla `Setting` en DB (`AI_PROVIDER`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`). Proveedores soportados: `openai`, `gemini`, `openrouter`, `groq`, `nvidia`, `ollama`, `ollama-cloud`, `lmstudio`, `vercel`, `custom`.
+2. **Resolución Spotify:** Las sugerencias del LLM se resuelven contra la API de Spotify para obtener tracks reales.
+3. **Descarga:** `ai-playlist.worker.ts` reutiliza el pipeline normal de descarga.
+4. **Progreso en tiempo real:** `AiPlaylistProgressEvent` se emite vía SSE → `useServerEvents` → `lib/aiProgressBus.ts` en el frontend.
+5. **Resultado:** La playlist se guarda con `type=ai`, owner "SpotiArr AI", bajo `Playlists/<name>/`. Toda la configuración reside en DB; no hay variables de entorno de IA.
+
 ## 6. Modelo de Datos y Persistencia
 
 Utilizamos **Prisma** con **SQLite** para una gestión de datos relacional robusta pero portable.
 
 **Entidades Principales:**
 
-- **Playlist:** Representa una lista de Spotify (álbum o playlist). Puede estar marcada como `subscribed` para actualizaciones automáticas.
+- **Playlist:** Representa una lista de Spotify (álbum o playlist). Puede estar marcada como `subscribed` para actualizaciones automáticas. Las playlists generadas por IA tienen `type=ai` y owner "SpotiArr AI".
 - **Track:** La unidad mínima. Contiene metadatos de Spotify y el estado de la descarga local (`New` -> `Searching` -> `Downloading` -> `Completed` -> `Error`).
 - **Setting:** Almacenamiento clave-valor para la configuración del usuario (ej: formato de audio, ruta de descargas).
 - **DownloadHistory:** Histórico inmutable de descargas completadas para estadísticas.
@@ -225,6 +237,8 @@ SpotiArr no es solo un descargador bajo demanda, es un sistema autónomo.
     - Compara con Spotify API y si detecta pistas nuevas, las encola automáticamente.
 2.  **Limpieza de Procesos Atascados:**
     - Un job vigila descargas que lleven demasiado tiempo en estado "Downloading" (zombies) y las marca como error para permitir reintentos, evitando bloqueos eternos.
+3.  **Generación de Playlist con IA (bajo demanda):**
+    - Disparado desde el AI Chat, no es un cron job. `ai-playlist.worker.ts` ejecuta: generación LLM → resolución Spotify → descarga → notificación SSE. El progreso se reporta en tiempo real vía `AiPlaylistProgressEvent`.
 
 ## 8. Seguridad y Validación
 

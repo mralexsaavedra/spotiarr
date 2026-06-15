@@ -31,12 +31,13 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 | 🎧 **Native Player**       | Spotify-style playback for downloaded tracks with queue, shuffle, and repeat |
 | 📚 **Built-in Library**    | Browse your downloaded music organized by artists, albums, and tracks        |
 | 🔄 **Auto-Sync Playlists** | Subscribe to playlists for automatic updates when new tracks are added       |
+| 🤖 **AI Playlists**     | Describe a playlist in natural language — an LLM suggests tracks, SpotiArr resolves and downloads them automatically |
 | 📁 **Jellyfin-Ready**      | Organized folder structure (`Playlists/`, `Artist/Album/`) + M3U generation  |
 | 🎨 **Modern UI**           | Spotify-inspired dark theme with real-time progress tracking                 |
 | 🏷️ **Rich Metadata**       | Automatic tagging (artist, album, year, cover art embedded + saved)          |
 | 🐳 **Docker First**        | One-command deployment with Redis included                                   |
 
-**Stack:** Express + Prisma + React 19 + Vite + Tailwind 4 + SQLite + Redis + BullMQ
+**Stack:** Express + Prisma + React 19 + Vite + Tailwind 4 + SQLite + Redis + BullMQ + Vercel AI SDK
 
 > [!IMPORTANT]  
 > **Legal Notice:** Personal use only. Download music you have legal rights to access. The author is not responsible for misuse.
@@ -105,6 +106,7 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 - **💾 My Playlists:** Browse and import your followed Spotify playlists directly.
 - **👥 Artists:** Manage your followed artists and view their discography.
 - **⚙️ Settings:** Configure download preferences, directories, and application behavior.
+- **🤖 AI Chat:** Describe a playlist in natural language; the AI suggests tracks that are resolved on Spotify, downloaded, and saved as an AI-generated playlist (owner: "SpotiArr AI").
 
 ## 🚀 Quick Start
 
@@ -255,6 +257,11 @@ Most options are configured via the **Settings** page (stored in database):
 - **M3U generation** → auto-create playlist files
 - **Download rate limit** → avoid YouTube throttling
 - **Playlist sync interval** → how often to check for new tracks (default: 60 min)
+- **AI Playlist Generation** (stored in DB, never in `.env`):
+  - **AI Provider** → `openai`, `gemini`, `openrouter`, `groq`, `nvidia`, `ollama`, `ollama-cloud`, `lmstudio`, `vercel`, `custom`
+  - **AI Base URL** → pre-filled per provider, overridable
+  - **AI API Key** → stored in DB Settings table, never in environment variables
+  - **AI Model** → select from discovered model list or enter manually
 
 ## 📁 File Organization
 
@@ -273,6 +280,7 @@ downloads/
         └── cover.jpg
 ```
 
+- **AI-generated playlists** (owner "SpotiArr AI") are stored under `Playlists/<name>/` like regular playlists.
 - **Metadata** embedded in files (artist, album, year, cover)
 - **M3U playlists** auto-generated for easy import
 - **Cover art** saved as `cover.jpg` + embedded

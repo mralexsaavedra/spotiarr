@@ -212,6 +212,7 @@ The backend follows a **layered architecture** with strict dependency rules:
        - HTTP clients with authentication & rate limiting
        - Service segregation by responsibility (catalog vs user data)
        - Token management
+       - `providers/ai/` — OpenAI-compatible adapter (Vercel AI SDK `generateObject`), connection resolver, model listing
      - `messaging/` - Queue implementations (BullMQ)
      - `services/` - Technical services (file system, metadata)
 
