@@ -9,4 +9,9 @@ export const aiChatService = {
     );
     return response.data;
   },
+
+  getModels: async (): Promise<string[]> => {
+    const response = await httpClient.get<{ data: { models: string[] } }>(`${ApiRoutes.AI}/models`);
+    return response.data.models;
+  },
 };

@@ -6,6 +6,7 @@ import { aiChatService } from "./aiChat.service";
 vi.mock("@/services/httpClient", () => ({
   httpClient: {
     post: vi.fn(),
+    get: vi.fn(),
   },
 }));
 
@@ -33,5 +34,32 @@ describe("aiChatService", () => {
     vi.mocked(httpClient.post).mockRejectedValueOnce(new Error("Network error"));
 
     await expect(aiChatService.generate("test")).rejects.toThrow("Network error");
+  });
+});
+
+describe("aiChatService.getModels", () => {
+  it("calls GET /ai/models and returns the models array", async () => {
+    vi.mocked(httpClient.get).mockResolvedValueOnce({
+      data: { models: ["gpt-4o", "gpt-3.5-turbo"] },
+    });
+
+    const result = await aiChatService.getModels();
+
+    expect(httpClient.get).toHaveBeenCalledWith(`${ApiRoutes.AI}/models`);
+    expect(result).toEqual(["gpt-4o", "gpt-3.5-turbo"]);
+  });
+
+  it("returns empty array when models is empty", async () => {
+    vi.mocked(httpClient.get).mockResolvedValueOnce({ data: { models: [] } });
+
+    const result = await aiChatService.getModels();
+
+    expect(result).toEqual([]);
+  });
+
+  it("propagates errors thrown by httpClient", async () => {
+    vi.mocked(httpClient.get).mockRejectedValueOnce(new Error("Provider unreachable"));
+
+    await expect(aiChatService.getModels()).rejects.toThrow("Provider unreachable");
   });
 });

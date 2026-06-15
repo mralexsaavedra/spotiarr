@@ -297,7 +297,12 @@
       },
       "AI_MODEL": {
         "label": "Modelo de IA",
-        "description": "El nombre del modelo a usar para la generación de listas (p. ej. gpt-4o, llama-3.1)."
+        "description": "El nombre del modelo a usar para la generación de listas (p. ej. gpt-4o, llama-3.1).",
+        "loadModels": "Cargar modelos",
+        "loadingModels": "Cargando...",
+        "modelsLoaded": "{{count}} modelos cargados",
+        "modelsEmpty": "No se devolvieron modelos. Escribe el nombre del modelo manualmente.",
+        "modelsError": "No se pudieron cargar los modelos. Comprueba la configuración del proveedor."
       },
       "UI_LANGUAGE": {
         "label": "Idioma de la interfaz",

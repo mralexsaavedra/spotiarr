@@ -7,6 +7,12 @@ vi.mock("@/hooks/controllers/useSettingsController", () => ({
   useSettingsController: () => mockUseSettingsController(),
 }));
 
+vi.mock("@/services/aiChat.service", () => ({
+  aiChatService: {
+    getModels: vi.fn().mockResolvedValue([]),
+  },
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? key,
@@ -37,6 +43,15 @@ const aiSettings = {
       defaultValue: "",
       type: "string",
     },
+    {
+      key: "AI_MODEL",
+      component: "input",
+      section: "AI",
+      label: "AI Model",
+      description: "The model name.",
+      defaultValue: "",
+      type: "string",
+    },
   ],
 };
 
@@ -56,6 +71,15 @@ beforeEach(() => {
 });
 
 const { Settings } = await import("./Settings");
+
+describe("Settings — AI model field", () => {
+  it("renders AI Model field with Load models button", () => {
+    render(<Settings />);
+
+    expect(screen.getByLabelText("AI Model")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "settings.items.AI_MODEL.loadModels" })).toBeTruthy();
+  });
+});
 
 describe("Settings — AI base URL field", () => {
   it("disables base URL and shows the default provider preset as placeholder when nothing is saved", () => {
