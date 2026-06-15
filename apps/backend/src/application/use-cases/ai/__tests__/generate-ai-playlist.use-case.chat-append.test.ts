@@ -37,19 +37,12 @@ describe("GenerateAiPlaylistUseCase — chat-append behaviour", () => {
     vi.clearAllMocks();
   });
 
-  describe("S-B-11 — appends user message before LLM call", () => {
-    it("calls appendChatMessage with role=user BEFORE aiChatPort.generateTracks", async () => {
+  describe("S-B-11 — appends user message (fire-and-forget) before emit(llm)", () => {
+    it("calls appendChatMessage with role=user and correct params", async () => {
       const deps = buildBaseDeps();
       const appendChatMessage = makeAppendSpy();
 
-      const callOrder: string[] = [];
-      appendChatMessage.execute.mockImplementation(async () => {
-        callOrder.push("append");
-      });
-      deps.aiChatPort.generateTracks.mockImplementation(async () => {
-        callOrder.push("generateTracks");
-        return [makeTrack("Track A", "Artist A")];
-      });
+      deps.aiChatPort.generateTracks.mockResolvedValue([makeTrack("Track A", "Artist A")]);
       deps.resolveTrackUrl.mockResolvedValue("spotify:track:aaa");
 
       const useCase = new GenerateAiPlaylistUseCase({
@@ -59,17 +52,12 @@ describe("GenerateAiPlaylistUseCase — chat-append behaviour", () => {
       });
       await useCase.execute({ jobId: "j1", prompt: "ambient" });
 
-      // user append must come before LLM call
-      const userAppendIndex = callOrder.indexOf("append");
-      const llmIndex = callOrder.indexOf("generateTracks");
-      expect(userAppendIndex).toBeGreaterThanOrEqual(0);
-      expect(userAppendIndex).toBeLessThan(llmIndex);
-
-      // first append call must be for the user role
-      const firstCall = appendChatMessage.execute.mock.calls[0][0];
-      expect(firstCall.role).toBe("user");
-      expect(firstCall.contentKey).toBe("aiChat.userPrompt");
-      expect(firstCall.contentParams).toMatchObject({ prompt: "ambient" });
+      // The user-message append must be called (fire-and-forget, order vs LLM not guaranteed)
+      const userCall = appendChatMessage.execute.mock.calls.find((c) => c[0].role === "user");
+      expect(userCall).toBeDefined();
+      expect(userCall![0].role).toBe("user");
+      expect(userCall![0].contentKey).toBe("aiChat.userPrompt");
+      expect(userCall![0].contentParams).toMatchObject({ prompt: "ambient" });
     });
   });
 

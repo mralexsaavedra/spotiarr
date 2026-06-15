@@ -77,8 +77,8 @@ export class GenerateAiPlaylistUseCase {
     };
 
     try {
-      // Best-effort: swallow append errors so generation never aborts
-      await this.appendChatMessage({
+      // Fire-and-forget: do not block the critical path waiting for DB write
+      this.appendChatMessage({
         role: "user",
         contentKey: "aiChat.userPrompt",
         contentParams: { prompt },
