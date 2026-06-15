@@ -78,7 +78,7 @@ describe("AiChatController.listModels", () => {
   it("returns 200 with models array on success", async () => {
     const listModelsFn = makeListModelsFn(["gpt-4o", "gpt-3.5-turbo"]);
     const controller = new AiChatController(makeQueueService(), listModelsFn);
-    const req = {} as Request;
+    const req = { body: {} } as Request;
     const res = mockRes();
 
     await controller.listModels(req, res);
@@ -91,7 +91,7 @@ describe("AiChatController.listModels", () => {
   it("returns 200 with empty models array", async () => {
     const listModelsFn = makeListModelsFn([]);
     const controller = new AiChatController(makeQueueService(), listModelsFn);
-    const req = {} as Request;
+    const req = { body: {} } as Request;
     const res = mockRes();
 
     await controller.listModels(req, res);
@@ -101,12 +101,40 @@ describe("AiChatController.listModels", () => {
     expect(jsonCall.data.models).toEqual([]);
   });
 
+  it("passes override fields from request body to listModelsFn", async () => {
+    const listModelsFn = makeListModelsFn(["gpt-4o"]);
+    const controller = new AiChatController(makeQueueService(), listModelsFn);
+    const req = {
+      body: { provider: "openai", baseURL: "https://api.openai.com/v1", apiKey: "sk-body" },
+    } as Request;
+    const res = mockRes();
+
+    await controller.listModels(req, res);
+
+    expect(listModelsFn).toHaveBeenCalledWith({
+      provider: "openai",
+      baseURL: "https://api.openai.com/v1",
+      apiKey: "sk-body",
+    });
+  });
+
+  it("passes empty overrides when body is empty", async () => {
+    const listModelsFn = makeListModelsFn([]);
+    const controller = new AiChatController(makeQueueService(), listModelsFn);
+    const req = { body: {} } as Request;
+    const res = mockRes();
+
+    await controller.listModels(req, res);
+
+    expect(listModelsFn).toHaveBeenCalledWith({});
+  });
+
   it("propagates AiChatError (provider-misconfig) as thrown", async () => {
     const listModelsFn = vi
       .fn()
       .mockRejectedValue(new AiChatError("provider-misconfig", "AI_API_KEY must be configured"));
     const controller = new AiChatController(makeQueueService(), listModelsFn);
-    const req = {} as Request;
+    const req = { body: {} } as Request;
     const res = mockRes();
 
     await expect(controller.listModels(req, res)).rejects.toMatchObject({

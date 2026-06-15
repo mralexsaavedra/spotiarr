@@ -2,7 +2,7 @@ import { Router, type Router as ExpressRouter } from "express";
 import type { Container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
 import { validate } from "../middleware/validate";
-import { generateAiPlaylistSchema } from "./schemas/ai.schema";
+import { generateAiPlaylistSchema, listModelsSchema } from "./schemas/ai.schema";
 
 export function createAiRoutes(container: Container): ExpressRouter {
   const router: ExpressRouter = Router();
@@ -14,7 +14,7 @@ export function createAiRoutes(container: Container): ExpressRouter {
     asyncHandler(aiChatController.generate),
   );
 
-  router.get("/models", asyncHandler(aiChatController.listModels));
+  router.post("/models", validate(listModelsSchema), asyncHandler(aiChatController.listModels));
 
   return router;
 }

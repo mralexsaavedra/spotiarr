@@ -1,7 +1,13 @@
 import type { Request, Response } from "express";
 import type { AiPlaylistQueueService } from "@/domain/services/ai-playlist-queue.service";
 
-type ListModelsFn = () => Promise<string[]>;
+interface ModelOverrides {
+  provider?: string;
+  baseURL?: string;
+  apiKey?: string;
+}
+
+type ListModelsFn = (overrides: ModelOverrides) => Promise<string[]>;
 
 export class AiChatController {
   constructor(
@@ -19,7 +25,9 @@ export class AiChatController {
   };
 
   listModels = async (req: Request, res: Response) => {
-    const models = await this.listModelsFn!();
+    const { provider, baseURL, apiKey } = (req.body ?? {}) as ModelOverrides;
+    const overrides: ModelOverrides = { provider, baseURL, apiKey };
+    const models = await this.listModelsFn!(overrides);
     res.status(200).json({ data: { models } });
   };
 }

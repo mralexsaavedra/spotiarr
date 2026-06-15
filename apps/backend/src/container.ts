@@ -601,8 +601,8 @@ export function createContainer(env: Env) {
   const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
 
   const aiPlaylistQueueService = new BullMqAiPlaylistQueueService();
-  const aiChatController = new AiChatController(aiPlaylistQueueService, () =>
-    listAiModels(settingsService),
+  const aiChatController = new AiChatController(aiPlaylistQueueService, (overrides) =>
+    listAiModels(settingsService, overrides),
   );
 
   const historyUseCases = new HistoryUseCases({ repository: historyRepository });

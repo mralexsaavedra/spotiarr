@@ -1,6 +1,6 @@
 import type { SettingsService } from "@/application/services/settings.service";
 import { AiChatError } from "@/domain/errors/ai-chat.error";
-import { resolveAiConnection } from "./ai-connection.resolver";
+import { resolveAiConnection, type AiConnectionOverrides } from "./ai-connection.resolver";
 
 export type FetchFn = typeof fetch;
 
@@ -10,9 +10,10 @@ interface ModelsApiResponse {
 
 export async function listAiModels(
   settingsService: SettingsService,
+  overrides?: AiConnectionOverrides,
   fetchFn: FetchFn = fetch,
 ): Promise<string[]> {
-  const { baseURL, apiKey } = await resolveAiConnection(settingsService);
+  const { baseURL, apiKey } = await resolveAiConnection(settingsService, overrides);
 
   const url = `${baseURL.replace(/\/$/, "")}/models`;
 

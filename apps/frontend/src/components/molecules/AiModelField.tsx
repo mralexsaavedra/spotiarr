@@ -10,6 +10,9 @@ interface AiModelFieldProps {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   description: string;
   disabled?: boolean;
+  provider?: string;
+  baseURL?: string;
+  apiKey?: string;
 }
 
 type LoadState = "idle" | "loading" | "success" | "empty" | "error";
@@ -21,6 +24,9 @@ export const AiModelField: FC<AiModelFieldProps> = ({
   onChange,
   description,
   disabled,
+  provider,
+  baseURL,
+  apiKey,
 }) => {
   const { t } = useTranslation();
   const [loadState, setLoadState] = useState<LoadState>("idle");
@@ -30,7 +36,7 @@ export const AiModelField: FC<AiModelFieldProps> = ({
   const handleLoadModels = async () => {
     setLoadState("loading");
     try {
-      const result = await aiChatService.getModels();
+      const result = await aiChatService.getModels({ provider, baseURL, apiKey });
       if (result.length === 0) {
         setLoadState("empty");
       } else {

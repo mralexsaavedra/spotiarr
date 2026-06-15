@@ -149,7 +149,7 @@ describe("POST /api/ai/chat/generate", () => {
   });
 });
 
-describe("GET /api/ai/models", () => {
+describe("POST /api/ai/models", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -160,7 +160,11 @@ describe("GET /api/ai/models", () => {
     const container = { aiChatController } as unknown as Container;
     const baseUrl = await startServer(buildApp(container));
 
-    const res = await fetch(`${baseUrl}/api/ai/models`);
+    const res = await fetch(`${baseUrl}/api/ai/models`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as { data: { models: string[] } };
@@ -173,10 +177,47 @@ describe("GET /api/ai/models", () => {
     const container = { aiChatController } as unknown as Container;
     const baseUrl = await startServer(buildApp(container));
 
-    const res = await fetch(`${baseUrl}/api/ai/models`);
+    const res = await fetch(`${baseUrl}/api/ai/models`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as { data: { models: string[] } };
     expect(body.data.models).toEqual([]);
+  });
+
+  it("passes override body fields to listModelsFn", async () => {
+    const listModelsFn = vi.fn().mockResolvedValue(["gpt-4o"]);
+    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/models`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: "openai", apiKey: "sk-body" }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(listModelsFn).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "openai", apiKey: "sk-body" }),
+    );
+  });
+
+  it("accepts empty body", async () => {
+    const listModelsFn = vi.fn().mockResolvedValue([]);
+    const aiChatController = new AiChatController(makeQueueService(), listModelsFn);
+    const container = { aiChatController } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/models`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+
+    expect(res.status).toBe(200);
   });
 });

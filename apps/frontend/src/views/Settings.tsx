@@ -57,6 +57,9 @@ export const Settings: FC = () => {
                                 defaultValue: setting.description,
                               })}
                               disabled={isSaving}
+                              provider={values["AI_PROVIDER"]}
+                              baseURL={values["AI_BASE_URL"]}
+                              apiKey={values["AI_API_KEY"]}
                             />
                           );
                         }

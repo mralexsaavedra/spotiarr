@@ -107,3 +107,123 @@ describe("resolveAiConnection", () => {
     expect(result.baseURL).toBe("https://api.openai.com/v1");
   });
 });
+
+describe("resolveAiConnection — overrides", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("override provider wins over stored provider", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-stored",
+    });
+
+    const result = await resolveAiConnection(settings, {
+      provider: "ollama",
+      apiKey: "",
+    });
+
+    expect(result.provider).toBe("ollama");
+    expect(result.apiKey).toBe("local");
+  });
+
+  it("override baseURL wins over preset", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-stored",
+    });
+
+    const result = await resolveAiConnection(settings, {
+      baseURL: "https://override.example.com/v1",
+    });
+
+    expect(result.baseURL).toBe("https://override.example.com/v1");
+  });
+
+  it("override apiKey wins over stored key", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-stored",
+    });
+
+    const result = await resolveAiConnection(settings, {
+      apiKey: "sk-override",
+    });
+
+    expect(result.apiKey).toBe("sk-override");
+  });
+
+  it("masked sentinel apiKey falls back to stored key", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-stored",
+    });
+
+    const result = await resolveAiConnection(settings, {
+      apiKey: "••••••••",
+    });
+
+    expect(result.apiKey).toBe("sk-stored");
+  });
+
+  it("blank override apiKey falls back to stored key", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-stored",
+    });
+
+    const result = await resolveAiConnection(settings, {
+      apiKey: "",
+    });
+
+    expect(result.apiKey).toBe("sk-stored");
+  });
+
+  it("empty baseURL override falls back to preset", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-stored",
+    });
+
+    const result = await resolveAiConnection(settings, {
+      baseURL: "   ",
+    });
+
+    expect(result.baseURL).toBe("https://api.openai.com/v1");
+  });
+
+  it("override provider is normalized", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-stored",
+    });
+
+    const result = await resolveAiConnection(settings, {
+      provider: "unknown-provider",
+    });
+
+    expect(result.provider).toBe("openai");
+  });
+
+  it("no overrides behaves exactly as before", async () => {
+    const settings = makeSettings({
+      AI_PROVIDER: "openai",
+      AI_BASE_URL: "",
+      AI_API_KEY: "sk-test",
+    });
+
+    const result = await resolveAiConnection(settings);
+
+    expect(result.provider).toBe("openai");
+    expect(result.baseURL).toBe("https://api.openai.com/v1");
+    expect(result.apiKey).toBe("sk-test");
+  });
+});

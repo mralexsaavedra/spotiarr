@@ -46,7 +46,7 @@ describe("listAiModels", () => {
       data: [{ id: "gpt-4o" }, { id: "gpt-3.5-turbo" }, { id: "gpt-4o" }],
     });
 
-    const result = await listAiModels(configuredSettings, fetchMock);
+    const result = await listAiModels(configuredSettings, undefined, fetchMock);
 
     expect(result).toEqual(["gpt-3.5-turbo", "gpt-4o"]);
   });
@@ -54,7 +54,7 @@ describe("listAiModels", () => {
   it("returns empty array when data is missing from response", async () => {
     const fetchMock = makeFetchMock(200, {});
 
-    const result = await listAiModels(configuredSettings, fetchMock);
+    const result = await listAiModels(configuredSettings, undefined, fetchMock);
 
     expect(result).toEqual([]);
   });
@@ -62,7 +62,7 @@ describe("listAiModels", () => {
   it("returns empty array when data array is empty", async () => {
     const fetchMock = makeFetchMock(200, { data: [] });
 
-    const result = await listAiModels(configuredSettings, fetchMock);
+    const result = await listAiModels(configuredSettings, undefined, fetchMock);
 
     expect(result).toEqual([]);
   });
@@ -70,7 +70,7 @@ describe("listAiModels", () => {
   it("throws provider-unreachable on non-2xx response", async () => {
     const fetchMock = makeFetchMock(401, { error: "unauthorized" });
 
-    await expect(listAiModels(configuredSettings, fetchMock)).rejects.toMatchObject({
+    await expect(listAiModels(configuredSettings, undefined, fetchMock)).rejects.toMatchObject({
       code: "provider-unreachable",
     });
   });
@@ -78,7 +78,7 @@ describe("listAiModels", () => {
   it("throws provider-unreachable on network error", async () => {
     const fetchMock: FetchFn = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
 
-    await expect(listAiModels(configuredSettings, fetchMock)).rejects.toMatchObject({
+    await expect(listAiModels(configuredSettings, undefined, fetchMock)).rejects.toMatchObject({
       code: "provider-unreachable",
     });
   });
@@ -86,7 +86,7 @@ describe("listAiModels", () => {
   it("throws provider-misconfig when provider is not configured", async () => {
     const fetchMock = makeFetchMock(200, { data: [] });
 
-    await expect(listAiModels(misconfiguredSettings, fetchMock)).rejects.toMatchObject({
+    await expect(listAiModels(misconfiguredSettings, undefined, fetchMock)).rejects.toMatchObject({
       code: "provider-misconfig",
     });
   });
@@ -94,7 +94,7 @@ describe("listAiModels", () => {
   it("sends Authorization header with apiKey", async () => {
     const fetchMock = makeFetchMock(200, { data: [{ id: "gpt-4o" }] });
 
-    await listAiModels(configuredSettings, fetchMock);
+    await listAiModels(configuredSettings, undefined, fetchMock);
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/models"),
@@ -109,8 +109,52 @@ describe("listAiModels", () => {
   it("calls {baseURL}/models endpoint", async () => {
     const fetchMock = makeFetchMock(200, { data: [{ id: "llama3" }] });
 
-    await listAiModels(ollamaSettings, fetchMock);
+    await listAiModels(ollamaSettings, undefined, fetchMock);
 
     expect(fetchMock).toHaveBeenCalledWith("http://localhost:11434/v1/models", expect.any(Object));
+  });
+});
+
+describe("listAiModels — with overrides", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("uses override baseURL when provided", async () => {
+    const fetchMock = makeFetchMock(200, { data: [{ id: "gpt-4o" }] });
+
+    await listAiModels(
+      configuredSettings,
+      { baseURL: "https://override.example.com/v1" },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://override.example.com/v1/models",
+      expect.any(Object),
+    );
+  });
+
+  it("uses override apiKey in Authorization header", async () => {
+    const fetchMock = makeFetchMock(200, { data: [{ id: "gpt-4o" }] });
+
+    await listAiModels(configuredSettings, { apiKey: "sk-override" }, fetchMock);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer sk-override",
+        }),
+      }),
+    );
+  });
+
+  it("undefined overrides behave identically to no overrides", async () => {
+    const fetchMock = makeFetchMock(200, { data: [{ id: "gpt-4o" }] });
+
+    const result = await listAiModels(configuredSettings, undefined, fetchMock);
+
+    expect(result).toEqual(["gpt-4o"]);
   });
 });

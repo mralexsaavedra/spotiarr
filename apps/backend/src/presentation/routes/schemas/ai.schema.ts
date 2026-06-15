@@ -9,3 +9,13 @@ export const generateAiPlaylistSchema = z.object({
       .max(500, "Prompt must not exceed 500 characters"),
   }),
 });
+
+export const listModelsSchema = z.object({
+  body: z
+    .object({
+      provider: z.string().optional(),
+      baseURL: z.string().optional(),
+      apiKey: z.string().optional(),
+    })
+    .optional(),
+});

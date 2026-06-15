@@ -38,19 +38,31 @@ describe("aiChatService", () => {
 });
 
 describe("aiChatService.getModels", () => {
-  it("calls GET /ai/models and returns the models array", async () => {
-    vi.mocked(httpClient.get).mockResolvedValueOnce({
+  it("calls POST /ai/models with overrides and returns the models array", async () => {
+    vi.mocked(httpClient.post).mockResolvedValueOnce({
       data: { models: ["gpt-4o", "gpt-3.5-turbo"] },
+    });
+
+    const overrides = { provider: "openai", baseURL: "https://api.openai.com/v1", apiKey: "sk-x" };
+    const result = await aiChatService.getModels(overrides);
+
+    expect(httpClient.post).toHaveBeenCalledWith(`${ApiRoutes.AI}/models`, overrides);
+    expect(result).toEqual(["gpt-4o", "gpt-3.5-turbo"]);
+  });
+
+  it("calls POST /ai/models with empty overrides when none provided", async () => {
+    vi.mocked(httpClient.post).mockResolvedValueOnce({
+      data: { models: [] },
     });
 
     const result = await aiChatService.getModels();
 
-    expect(httpClient.get).toHaveBeenCalledWith(`${ApiRoutes.AI}/models`);
-    expect(result).toEqual(["gpt-4o", "gpt-3.5-turbo"]);
+    expect(httpClient.post).toHaveBeenCalledWith(`${ApiRoutes.AI}/models`, {});
+    expect(result).toEqual([]);
   });
 
   it("returns empty array when models is empty", async () => {
-    vi.mocked(httpClient.get).mockResolvedValueOnce({ data: { models: [] } });
+    vi.mocked(httpClient.post).mockResolvedValueOnce({ data: { models: [] } });
 
     const result = await aiChatService.getModels();
 
@@ -58,7 +70,7 @@ describe("aiChatService.getModels", () => {
   });
 
   it("propagates errors thrown by httpClient", async () => {
-    vi.mocked(httpClient.get).mockRejectedValueOnce(new Error("Provider unreachable"));
+    vi.mocked(httpClient.post).mockRejectedValueOnce(new Error("Provider unreachable"));
 
     await expect(aiChatService.getModels()).rejects.toThrow("Provider unreachable");
   });

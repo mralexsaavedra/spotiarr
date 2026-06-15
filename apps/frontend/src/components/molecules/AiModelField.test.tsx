@@ -58,7 +58,16 @@ describe("AiModelField", () => {
     vi.mocked(aiChatService.getModels).mockResolvedValueOnce(["gpt-4o", "gpt-3.5-turbo"]);
 
     render(
-      <AiModelField id="AI_MODEL" label="AI Model" value="" onChange={vi.fn()} description="" />,
+      <AiModelField
+        id="AI_MODEL"
+        label="AI Model"
+        value=""
+        onChange={vi.fn()}
+        description=""
+        provider="openai"
+        baseURL=""
+        apiKey="sk-test"
+      />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Load models" }));
@@ -136,5 +145,50 @@ describe("AiModelField", () => {
     );
 
     expect(aiChatService.getModels).not.toHaveBeenCalled();
+  });
+
+  it("passes provider, baseURL, apiKey overrides to getModels", async () => {
+    vi.mocked(aiChatService.getModels).mockResolvedValueOnce(["gpt-4o"]);
+
+    render(
+      <AiModelField
+        id="AI_MODEL"
+        label="AI Model"
+        value=""
+        onChange={vi.fn()}
+        description=""
+        provider="openai"
+        baseURL="https://api.openai.com/v1"
+        apiKey="sk-form-key"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Load models" }));
+
+    await waitFor(() => {
+      expect(aiChatService.getModels).toHaveBeenCalledWith({
+        provider: "openai",
+        baseURL: "https://api.openai.com/v1",
+        apiKey: "sk-form-key",
+      });
+    });
+  });
+
+  it("calls getModels with empty overrides when no override props provided", async () => {
+    vi.mocked(aiChatService.getModels).mockResolvedValueOnce(["gpt-4o"]);
+
+    render(
+      <AiModelField id="AI_MODEL" label="AI Model" value="" onChange={vi.fn()} description="" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Load models" }));
+
+    await waitFor(() => {
+      expect(aiChatService.getModels).toHaveBeenCalledWith({
+        provider: undefined,
+        baseURL: undefined,
+        apiKey: undefined,
+      });
+    });
   });
 });
