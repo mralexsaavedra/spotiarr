@@ -279,9 +279,26 @@
       "Playlists": "Listas",
       "Releases": "Lanzamientos",
       "Downloads": "Descargas",
-      "Maintenance": "Mantenimiento"
+      "Maintenance": "Mantenimiento",
+      "AI": "IA"
     },
     "items": {
+      "AI_PROVIDER": {
+        "label": "Proveedor de IA",
+        "description": "El proveedor de IA a usar para la generación de listas."
+      },
+      "AI_BASE_URL": {
+        "label": "URL base de IA",
+        "description": "La URL base del endpoint de API compatible con OpenAI."
+      },
+      "AI_API_KEY": {
+        "label": "Clave de API de IA",
+        "description": "La clave de API del proveedor de IA. Se almacena de forma segura y se enmascara al leerla."
+      },
+      "AI_MODEL": {
+        "label": "Modelo de IA",
+        "description": "El nombre del modelo a usar para la generación de listas (p. ej. gpt-4o, llama-3.1)."
+      },
       "UI_LANGUAGE": {
         "label": "Idioma de la interfaz",
         "description": "Selecciona tu idioma preferido para la interfaz."
@@ -415,6 +432,11 @@
   },
   "ai": {
     "title": "Chat con IA",
+    "subtitle": "Describe una lista con tus palabras y deja que la IA la genere desde tu biblioteca.",
+    "empty": {
+      "title": "Crea una lista con IA",
+      "hint": "Describe un estado de ánimo, género, actividad o época — por ejemplo «rock noventero animado para correr»."
+    },
     "promptPlaceholder": "Describe la lista de reproducción que quieres... (p. ej. \"jazz para una tarde lluviosa\")",
     "sendButton": "Generar",
     "stages": {
