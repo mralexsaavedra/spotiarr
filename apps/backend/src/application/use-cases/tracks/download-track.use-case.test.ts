@@ -161,4 +161,26 @@ describe("DownloadTrackUseCase", () => {
 
     expect(trackFileHelper.getFolderName).toHaveBeenCalledWith(expect.anything(), "My Mix");
   });
+
+  it("passes the playlist name to the file helper for AI playlists", async () => {
+    const track = new Track(makeTrack({ playlistId: "pl-ai" }));
+    trackRepository.findOne.mockResolvedValue(track);
+    trackRepository.findOneWithPlaylist.mockResolvedValue(new Track(makeTrack()));
+    playlistRepository.findOne.mockResolvedValue({ type: "ai", name: "AI: rock 80s" });
+
+    await useCase.execute(makeTrack());
+
+    expect(trackFileHelper.getFolderName).toHaveBeenCalledWith(expect.anything(), "AI: rock 80s");
+  });
+
+  it("does not pass a playlist name for album downloads", async () => {
+    const track = new Track(makeTrack({ playlistId: "al-1" }));
+    trackRepository.findOne.mockResolvedValue(track);
+    trackRepository.findOneWithPlaylist.mockResolvedValue(new Track(makeTrack()));
+    playlistRepository.findOne.mockResolvedValue({ type: "album", name: "Some Album" });
+
+    await useCase.execute(makeTrack());
+
+    expect(trackFileHelper.getFolderName).toHaveBeenCalledWith(expect.anything(), undefined);
+  });
 });

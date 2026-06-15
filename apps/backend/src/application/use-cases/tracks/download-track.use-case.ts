@@ -1,4 +1,4 @@
-import { type ITrack } from "@spotiarr/shared";
+import { type ITrack, PlaylistTypeEnum } from "@spotiarr/shared";
 import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
 import type { YoutubeDownloadPort } from "@/application/ports/youtube.port";
 import { AppError } from "@/domain/errors/app-error";
@@ -92,8 +92,11 @@ export class DownloadTrackUseCase {
 
     if (track.playlistId) {
       const playlist = await this.playlistRepository.findOne(track.playlistId);
-      // Check if it's strictly a playlist (not artist or album download)
-      if (playlist && playlist.type === "playlist") {
+      // Playlist-like downloads live under Playlists/; album and artist downloads do not
+      if (
+        playlist &&
+        (playlist.type === PlaylistTypeEnum.Playlist || playlist.type === PlaylistTypeEnum.Ai)
+      ) {
         playlistName = playlist.name;
       }
     }
