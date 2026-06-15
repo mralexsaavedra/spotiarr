@@ -94,7 +94,7 @@ export const Chat: FC = () => {
             )}
           </div>
 
-          <div className="bg-background-elevated focus-within:ring-primary/60 rounded-2xl border border-white/10 transition focus-within:ring-2">
+          <div className="bg-background-elevated focus-within:border-primary/60 rounded-2xl border border-white/10 transition-colors">
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
