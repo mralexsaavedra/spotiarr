@@ -43,6 +43,7 @@ export async function createTrackSearchWorker() {
           ...track,
           status: TrackStatusEnum.Error,
           error: err instanceof Error ? err.message : String(err),
+          searchAttempts: (track.searchAttempts ?? 0) + 1,
         });
         eventsController.emit("playlists-updated");
       } catch (updateError) {

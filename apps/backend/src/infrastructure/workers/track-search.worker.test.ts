@@ -106,4 +106,39 @@ describe("createTrackSearchWorker", () => {
       expect(trackService.update).toHaveBeenCalledWith("track-99", expect.anything());
     });
   });
+
+  // T3.3 — R6-S2: failed handler increments searchAttempts
+  describe("R6-S2: failed handler increments searchAttempts", () => {
+    it("increments searchAttempts by 1 in the failed handler update payload", async () => {
+      const { createTrackSearchWorker } = await import("./track-search.worker");
+      await createTrackSearchWorker();
+
+      const trackWithAttempts = makeTrack({ searchAttempts: 2 });
+      await workerListeners.failed?.(
+        { id: "job-4", data: trackWithAttempts },
+        new Error("worker crash"),
+      );
+
+      expect(trackService.update).toHaveBeenCalledWith(
+        "track-1",
+        expect.objectContaining({
+          searchAttempts: 3,
+        }),
+      );
+    });
+
+    it("starts searchAttempts at 1 when the track has no prior attempts", async () => {
+      const { createTrackSearchWorker } = await import("./track-search.worker");
+      await createTrackSearchWorker();
+
+      await workerListeners.failed?.({ id: "job-5", data: makeTrack() }, new Error("crash"));
+
+      expect(trackService.update).toHaveBeenCalledWith(
+        "track-1",
+        expect.objectContaining({
+          searchAttempts: 1,
+        }),
+      );
+    });
+  });
 });

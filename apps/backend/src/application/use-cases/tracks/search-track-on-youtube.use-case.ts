@@ -5,6 +5,8 @@ import { EventBus } from "@/domain/events/event-bus";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 import type { TrackQueueService } from "@/domain/services/track-queue.service";
 
+const DEFAULT_SEARCH_MAX_ATTEMPTS = 5;
+
 export class SearchTrackOnYoutubeUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
@@ -21,6 +23,16 @@ export class SearchTrackOnYoutubeUseCase {
 
     const existingTrack = await this.trackRepository.findOneWithPlaylist(track.id);
     if (!existingTrack) {
+      return;
+    }
+
+    const maxAttempts = await this.settingsService.getNumber("SEARCH_MAX_ATTEMPTS");
+    const safeMaxAttempts = maxAttempts >= 1 ? maxAttempts : DEFAULT_SEARCH_MAX_ATTEMPTS;
+
+    if (existingTrack.searchAttempts >= safeMaxAttempts) {
+      existingTrack.markAsError(existingTrack.toPrimitive().error || "search_attempts_exceeded");
+      await this.trackRepository.update(track.id, existingTrack);
+      this.eventBus.emit("playlists-updated");
       return;
     }
 

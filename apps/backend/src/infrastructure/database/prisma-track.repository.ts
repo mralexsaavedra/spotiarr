@@ -97,6 +97,7 @@ export class PrismaTrackRepository implements TrackRepository {
         completedAt: data.completedAt ? BigInt(data.completedAt) : undefined,
         lastActivityAt: BigInt(Date.now()),
         playlistIndex: data.playlistIndex ?? undefined,
+        searchAttempts: data.searchAttempts !== undefined ? data.searchAttempts : undefined,
       },
     });
   }
@@ -179,6 +180,7 @@ export class PrismaTrackRepository implements TrackRepository {
       completedAt: track.completedAt ? Number(track.completedAt) : undefined,
       playlistId: track.playlistId ?? undefined,
       playlistIndex: track.playlistIndex ?? undefined,
+      searchAttempts: track.searchAttempts,
     };
     return new Track(iTrack);
   }
