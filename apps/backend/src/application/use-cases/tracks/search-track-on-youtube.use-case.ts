@@ -26,7 +26,10 @@ export class SearchTrackOnYoutubeUseCase {
       return;
     }
 
-    const maxAttempts = await this.settingsService.getNumber("SEARCH_MAX_ATTEMPTS");
+    const maxAttempts = await this.settingsService.getNumber(
+      "SEARCH_MAX_ATTEMPTS",
+      DEFAULT_SEARCH_MAX_ATTEMPTS,
+    );
     const safeMaxAttempts = maxAttempts >= 1 ? maxAttempts : DEFAULT_SEARCH_MAX_ATTEMPTS;
 
     // Stop re-driving when the failure is permanent: a known-terminal error

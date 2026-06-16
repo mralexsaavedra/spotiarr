@@ -66,10 +66,6 @@ export class PlaylistService {
     return this.createPlaylistUseCase.execute(input);
   }
 
-  async save(playlist: IPlaylist): Promise<IPlaylist> {
-    return this.updatePlaylistUseCase.save(playlist);
-  }
-
   async update(id: string, playlist: Partial<IPlaylist>): Promise<void> {
     return this.updatePlaylistUseCase.execute(id, playlist);
   }

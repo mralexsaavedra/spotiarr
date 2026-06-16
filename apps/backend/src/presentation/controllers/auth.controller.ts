@@ -60,8 +60,8 @@ export class AuthController {
 
   status = async (_req: Request, res: Response) => {
     try {
-      const accessToken = await this.settingsService.getString("spotify_user_access_token");
-      const refreshToken = await this.settingsService.getString("spotify_user_refresh_token");
+      const accessToken = await this.settingsService.getString("spotify_user_access_token", "");
+      const refreshToken = await this.settingsService.getString("spotify_user_refresh_token", "");
 
       res.json({
         authenticated: !!accessToken,
