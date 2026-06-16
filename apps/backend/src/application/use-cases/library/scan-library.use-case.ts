@@ -29,16 +29,6 @@ export class ScanLibraryUseCase {
     const artists = await this.scannerService.scanMusicLibrary(libraryPath);
 
     if (this.trackRepository) {
-      // Build the set of scanned file paths once for O(1) membership checks
-      const scannedPaths = new Set<string>();
-      for (const artist of artists) {
-        for (const album of artist.albums) {
-          for (const track of album.tracks) {
-            scannedPaths.add(track.filePath);
-          }
-        }
-      }
-
       try {
         const completedTracks = await this.trackRepository.findAllByStatuses([
           TrackStatusEnum.Completed,
@@ -102,9 +92,13 @@ export class ScanLibraryUseCase {
             try {
               const trackData = track.toPrimitive();
               const playlistName = await resolvePlaylistName(trackData.playlistId);
+              // Check the file directly at the path the download wrote (same
+              // getFolderName derivation), so parity is guaranteed and the
+              // check also covers the Playlists/ zone that the library scan
+              // intentionally skips.
               const expectedPath = await this.pathService.getFolderName(trackData, playlistName);
 
-              if (!scannedPaths.has(expectedPath)) {
+              if (!(await this.scannerService.fileExists(expectedPath))) {
                 await this.retryTrackDownloadUseCase.execute(track.id);
               }
             } catch (err) {

@@ -18,6 +18,7 @@ function makeCompletedTrack(overrides: Partial<ITrack> = {}): Track {
 describe("ScanLibraryUseCase — Completed file reconciliation (Slice 5)", () => {
   const scannerService = {
     scanMusicLibrary: vi.fn(),
+    fileExists: vi.fn(),
   };
 
   const pathService = {
@@ -50,6 +51,9 @@ describe("ScanLibraryUseCase — Completed file reconciliation (Slice 5)", () =>
   beforeEach(() => {
     vi.clearAllMocks();
     scannerService.scanMusicLibrary.mockResolvedValue([]);
+    // Default: file absent on disk (reconciliation triggers). Present-file
+    // tests override fileExists to true.
+    scannerService.fileExists.mockResolvedValue(false);
     settingsService.getNumber.mockImplementation(async (key: string) => {
       if (key === "SEARCH_MAX_ATTEMPTS") return 5;
       return 0;
@@ -60,9 +64,7 @@ describe("ScanLibraryUseCase — Completed file reconciliation (Slice 5)", () =>
     const track = makeCompletedTrack({ id: "track-missing" });
     trackRepository.findAllByStatuses.mockResolvedValue([track]);
     pathService.getFolderName.mockResolvedValue("/music/Artist/Song.mp3");
-
-    // scanMusicLibrary returns no files → the expected path is absent
-    scannerService.scanMusicLibrary.mockResolvedValue([]);
+    scannerService.fileExists.mockResolvedValue(false);
 
     const useCase = new ScanLibraryUseCase(
       scannerService as never,
@@ -83,22 +85,8 @@ describe("ScanLibraryUseCase — Completed file reconciliation (Slice 5)", () =>
 
     const presentFilePath = "/music/Artist/Song.mp3";
     pathService.getFolderName.mockResolvedValue(presentFilePath);
-
-    // scanMusicLibrary returns a structure whose flat file list includes the path
-    scannerService.scanMusicLibrary.mockResolvedValue([
-      {
-        name: "Artist",
-        albumCount: 1,
-        trackCount: 1,
-        totalSize: 1000,
-        albums: [
-          {
-            name: "Album",
-            tracks: [{ name: "Song", filePath: presentFilePath, duration: 180 }],
-          },
-        ],
-      },
-    ]);
+    // File is present on disk → no re-drive.
+    scannerService.fileExists.mockResolvedValue(true);
 
     const useCase = new ScanLibraryUseCase(
       scannerService as never,
@@ -110,6 +98,7 @@ describe("ScanLibraryUseCase — Completed file reconciliation (Slice 5)", () =>
 
     await useCase.execute();
 
+    expect(scannerService.fileExists).toHaveBeenCalledWith(presentFilePath);
     expect(retryTrackDownloadUseCase.execute).not.toHaveBeenCalled();
   });
 
@@ -206,6 +195,7 @@ describe("ScanLibraryUseCase — Completed file reconciliation (Slice 5)", () =>
 describe("ScanLibraryUseCase — T5.2 path-parity: reconciliation uses same getFolderName as DownloadTrackUseCase", () => {
   const scannerService = {
     scanMusicLibrary: vi.fn(),
+    fileExists: vi.fn(),
   };
 
   const pathService = {
@@ -238,6 +228,7 @@ describe("ScanLibraryUseCase — T5.2 path-parity: reconciliation uses same getF
   beforeEach(() => {
     vi.clearAllMocks();
     scannerService.scanMusicLibrary.mockResolvedValue([]);
+    scannerService.fileExists.mockResolvedValue(true);
   });
 
   const playlistRepository = {

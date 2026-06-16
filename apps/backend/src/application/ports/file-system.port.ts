@@ -24,6 +24,7 @@ export interface FileSystemTrackPathPort {
 
 export interface FileSystemScannerPort {
   scanMusicLibrary(libraryPath: string): Promise<LibraryArtist[]>;
+  fileExists(filePath: string): Promise<boolean>;
 }
 
 export interface MetadataPort {
