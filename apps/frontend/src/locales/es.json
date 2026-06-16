@@ -361,6 +361,14 @@
         "label": "Intentos máximos de descarga",
         "description": "Cuántas veces reintentar una descarga fallida antes de rendirse."
       },
+      "SEARCH_MAX_ATTEMPTS": {
+        "label": "Intentos máximos de búsqueda",
+        "description": "Cuántas veces reintentar encontrar una pista en YouTube antes de marcarla como fallida permanentemente."
+      },
+      "RECOVERY_JOB_INTERVAL_MINUTES": {
+        "label": "Intervalo de recuperación de errores (minutos)",
+        "description": "Con qué frecuencia reintentar las pistas con error en todas las listas."
+      },
       "STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES": {
         "label": "Intervalo de limpieza de pistas atascadas (minutos)",
         "description": "¿Con qué frecuencia comprobar y limpiar pistas atascadas?"
