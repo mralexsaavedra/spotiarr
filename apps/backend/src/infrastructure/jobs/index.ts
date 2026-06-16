@@ -6,6 +6,32 @@ import { startFeedSyncJob } from "./feed-sync.job";
 
 let lastPlaylistCheckTimestamp = 0;
 let lastStuckTracksCleanupTimestamp = 0;
+let lastRecoveryTimestamp = 0;
+
+// Global Error-recovery: re-drives Error tracks for ALL playlist origins
+// (subscribed, non-subscribed, synthetic spotiarr://, album, AI). This
+// replaces the subscribed-only re-enqueue that used to live in the playlist
+// sync, so subscribed tracks now recover on this interval (default 5 min)
+// instead of waiting for the 60-min playlist sync.
+export const recoverErroredTracksJob = cron.createTask("* * * * *", async () => {
+  try {
+    const { recoverErroredTracksUseCase, settingsService } = getContainer();
+    const intervalMinutes = await settingsService.getNumber("RECOVERY_JOB_INTERVAL_MINUTES");
+    const safeIntervalMinutes = intervalMinutes > 0 ? intervalMinutes : 5;
+    const now = Date.now();
+
+    if (now - lastRecoveryTimestamp < safeIntervalMinutes * 60_000) {
+      return;
+    }
+
+    lastRecoveryTimestamp = now;
+    console.log("[ScheduledJob] Running errored-tracks recovery...");
+    await recoverErroredTracksUseCase.execute();
+    console.log("[ScheduledJob] Errored-tracks recovery completed");
+  } catch (error) {
+    console.error("[ScheduledJob] Error recovering errored tracks:", error);
+  }
+});
 
 export const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
   try {
@@ -76,6 +102,7 @@ export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
 });
 
 export function startScheduledJobs(): void {
+  recoverErroredTracksJob.start();
   checkPlaylistsJob.start();
   cleanStuckTracksJob.start();
   startFeedSyncJob();

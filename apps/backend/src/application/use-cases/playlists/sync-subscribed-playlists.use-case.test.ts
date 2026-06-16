@@ -8,10 +8,6 @@ const spotifyCircuitBreaker = {
   isOpen: vi.fn(() => false),
 };
 
-const retryTrackDownloadUseCase = {
-  execute: vi.fn(),
-};
-
 describe("SyncSubscribedPlaylistsUseCase", () => {
   const playlist = new Playlist({
     id: "playlist-1",
@@ -68,6 +64,16 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
     trackService.create.mockResolvedValue(undefined);
   });
 
+  function makeUseCase() {
+    return new SyncSubscribedPlaylistsUseCase(
+      playlistRepository as never,
+      spotifyService as never,
+      trackService as never,
+      eventBus as never,
+      spotifyCircuitBreaker as never,
+    );
+  }
+
   it("dedupes using trackUrl instead of legacy spotifyUrl semantics", async () => {
     const existingTrack: ITrack = {
       name: "Song",
@@ -76,21 +82,12 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
     };
     trackService.getAllByPlaylist.mockResolvedValue([existingTrack]);
 
-    const useCase = new SyncSubscribedPlaylistsUseCase(
-      playlistRepository as never,
-      spotifyService as never,
-      trackService as never,
-      eventBus as never,
-      spotifyCircuitBreaker as never,
-      retryTrackDownloadUseCase as never,
-    );
-
-    await useCase.execute();
+    await makeUseCase().execute();
 
     expect(trackService.create).not.toHaveBeenCalled();
   });
 
-  it("re-enqueues previously errored tracks on subscribed playlists", async () => {
+  it("R5-S5: does NOT re-enqueue Error tracks — responsibility moved to global recovery drainer", async () => {
     const erroredTrack: ITrack = {
       id: "track-err",
       name: "Song",
@@ -100,19 +97,10 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
     };
     trackService.getAllByPlaylist.mockResolvedValue([erroredTrack]);
 
-    const useCase = new SyncSubscribedPlaylistsUseCase(
-      playlistRepository as never,
-      spotifyService as never,
-      trackService as never,
-      eventBus as never,
-      spotifyCircuitBreaker as never,
-      retryTrackDownloadUseCase as never,
-    );
-
-    await useCase.execute();
+    await makeUseCase().execute();
 
     expect(trackService.create).not.toHaveBeenCalled();
-    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-err");
+    expect(eventBus.emit).not.toHaveBeenCalled();
   });
 
   it("does not re-enqueue completed tracks", async () => {
@@ -125,33 +113,15 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
     };
     trackService.getAllByPlaylist.mockResolvedValue([completedTrack]);
 
-    const useCase = new SyncSubscribedPlaylistsUseCase(
-      playlistRepository as never,
-      spotifyService as never,
-      trackService as never,
-      eventBus as never,
-      spotifyCircuitBreaker as never,
-      retryTrackDownloadUseCase as never,
-    );
+    await makeUseCase().execute();
 
-    await useCase.execute();
-
-    expect(retryTrackDownloadUseCase.execute).not.toHaveBeenCalled();
+    expect(eventBus.emit).not.toHaveBeenCalled();
   });
 
   it("skips the run entirely when the Spotify circuit breaker is open", async () => {
     spotifyCircuitBreaker.isOpen.mockReturnValue(true);
 
-    const useCase = new SyncSubscribedPlaylistsUseCase(
-      playlistRepository as never,
-      spotifyService as never,
-      trackService as never,
-      eventBus as never,
-      spotifyCircuitBreaker as never,
-      retryTrackDownloadUseCase as never,
-    );
-
-    await useCase.execute();
+    await makeUseCase().execute();
 
     expect(playlistRepository.findAll).not.toHaveBeenCalled();
     expect(spotifyService.getPlaylistDetail).not.toHaveBeenCalled();
@@ -170,16 +140,7 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
       new AppError(403, "playlist_not_accessible", "belongs to another user"),
     );
 
-    const useCase = new SyncSubscribedPlaylistsUseCase(
-      playlistRepository as never,
-      spotifyService as never,
-      trackService as never,
-      eventBus as never,
-      spotifyCircuitBreaker as never,
-      retryTrackDownloadUseCase as never,
-    );
-
-    await useCase.execute();
+    await makeUseCase().execute();
 
     expect(thirdParty.subscribed).toBe(false);
     expect(thirdParty.error).toBe("belongs to another user");
@@ -199,16 +160,7 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
       new AppError(503, "circuit_open", "Spotify rate limit circuit breaker is open"),
     );
 
-    const useCase = new SyncSubscribedPlaylistsUseCase(
-      playlistRepository as never,
-      spotifyService as never,
-      trackService as never,
-      eventBus as never,
-      spotifyCircuitBreaker as never,
-      retryTrackDownloadUseCase as never,
-    );
-
-    await useCase.execute();
+    await makeUseCase().execute();
 
     expect(spotifyService.getPlaylistDetail).toHaveBeenCalledTimes(1);
     expect(playlistRepository.update).not.toHaveBeenCalled();

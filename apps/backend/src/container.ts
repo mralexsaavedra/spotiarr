@@ -40,6 +40,7 @@ import { CreateTrackUseCase } from "./application/use-cases/tracks/create-track.
 import { DeleteTrackUseCase } from "./application/use-cases/tracks/delete-track.use-case";
 import { DownloadTrackUseCase } from "./application/use-cases/tracks/download-track.use-case";
 import { GetTracksUseCase } from "./application/use-cases/tracks/get-tracks.use-case";
+import { RecoverErroredTracksUseCase } from "./application/use-cases/tracks/recover-errored-tracks.use-case";
 import { RescueStuckTracksUseCase } from "./application/use-cases/tracks/rescue-stuck-tracks.use-case";
 import { RetryTrackDownloadUseCase } from "./application/use-cases/tracks/retry-track-download.use-case";
 import { SearchTrackOnYoutubeUseCase } from "./application/use-cases/tracks/search-track-on-youtube.use-case";
@@ -480,13 +481,19 @@ export function createContainer(env: Env) {
   const updatePlaylistUseCase = new UpdatePlaylistUseCase(playlistRepository, eventBus);
 
   const spotifyCircuitBreakerAdapter = new SpotifyCircuitBreakerAdapter(appTokenCircuitBreaker);
+  const recoverErroredTracksUseCase = new RecoverErroredTracksUseCase(
+    trackRepository,
+    retryTrackDownloadUseCase,
+    spotifyCircuitBreakerAdapter,
+    settingsService,
+    eventBus,
+  );
   const syncSubscribedPlaylistsUseCase = new SyncSubscribedPlaylistsUseCase(
     playlistRepository,
     spotifyServiceSync,
     trackService,
     eventBus,
     spotifyCircuitBreakerAdapter,
-    retryTrackDownloadUseCase,
   );
   const retryPlaylistDownloadsUseCase = new RetryPlaylistDownloadsUseCase(
     playlistRepository,
@@ -688,6 +695,7 @@ export function createContainer(env: Env) {
     eventBus,
     trackPostProcessingService,
     rescueStuckTracksUseCase,
+    recoverErroredTracksUseCase,
     libraryService,
     feedRepository,
     artworkBackfillRepository,
