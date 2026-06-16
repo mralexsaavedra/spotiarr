@@ -1,7 +1,7 @@
 import { faRobot, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type AiChatMessageDto } from "@spotiarr/shared";
-import { FC, KeyboardEvent, useState } from "react";
+import { FC, KeyboardEvent, memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/atoms/Button";
@@ -20,7 +20,7 @@ interface MessageBubbleProps {
   isPlaylistsLoading: boolean;
 }
 
-const MessageBubble: FC<MessageBubbleProps> = ({ msg, playlists, isPlaylistsLoading }) => {
+const MessageBubble: FC<MessageBubbleProps> = memo(({ msg, playlists, isPlaylistsLoading }) => {
   const { t } = useTranslation();
 
   const params = (msg.content.params ?? {}) as Record<string, unknown>;
@@ -69,7 +69,8 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg, playlists, isPlaylistsLoad
       {playlistLink}
     </div>
   );
-};
+});
+MessageBubble.displayName = "MessageBubble";
 
 export const Chat: FC = () => {
   const { t } = useTranslation();
