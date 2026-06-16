@@ -21,7 +21,11 @@ export class BullMqTrackQueueService implements TrackQueueService {
         delay: 5000,
       },
       removeOnComplete: true,
-      removeOnFail: false,
+      // Remove failed jobs too: with a deterministic jobId, a lingering
+      // failed job would block any re-enqueue (queue.add with the same id
+      // is a no-op), permanently stranding retries. The failed handler
+      // still fires before removal.
+      removeOnFail: true,
     });
   }
 }

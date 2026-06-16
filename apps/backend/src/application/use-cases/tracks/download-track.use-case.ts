@@ -62,14 +62,17 @@ export class DownloadTrackUseCase {
       track.markAsCompleted();
     }
 
-    await this.trackRepository.updateStatusIf(
+    const written = await this.trackRepository.updateStatusIf(
       track.id,
       TrackStatusEnum.Downloading,
       track.toPrimitive(),
     );
 
-    // Persist in download history when successful
-    if (!error) {
+    // Persist in download history only when the completed write actually
+    // landed. If `written` is false the row was clobbered mid-download (e.g.
+    // recovery flipped it to Error), so we must not record history/M3U for a
+    // state that no longer exists in the DB.
+    if (!error && written) {
       // We need playlist info; reload with relations so playlist is present
       // Note: findOneWithPlaylist returns Track entity now
       const persistedTrack = await this.trackRepository.findOneWithPlaylist(track.id);

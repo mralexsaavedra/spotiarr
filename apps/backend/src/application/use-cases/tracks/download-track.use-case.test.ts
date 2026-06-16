@@ -211,33 +211,22 @@ describe("DownloadTrackUseCase", () => {
 
   // T2.3 — CAS guard: early return when markDownloadingIfNotAlready returns false
   describe("R2-S1 / R3-S1: idempotent guard via CAS claim", () => {
-    beforeEach(() => {
-      // Add markDownloadingIfNotAlready to the mock repository
-      (
-        trackRepository as unknown as Record<string, ReturnType<typeof vi.fn>>
-      ).markDownloadingIfNotAlready = vi.fn();
-    });
-
     it("returns early without writing Completed when CAS claim fails (track already Downloading)", async () => {
       const track = new Track(makeTrack());
       trackRepository.findOne.mockResolvedValue(track);
-      (
-        trackRepository as unknown as Record<string, ReturnType<typeof vi.fn>>
-      ).markDownloadingIfNotAlready.mockResolvedValue(false);
+      trackRepository.markDownloadingIfNotAlready.mockResolvedValue(false);
 
       await useCase.execute(makeTrack());
 
       // No download attempted and no terminal status written
       expect(youtubeDownloadService.downloadAndFormat).not.toHaveBeenCalled();
-      expect(trackRepository.update).not.toHaveBeenCalled();
+      expect(trackRepository.updateStatusIf).not.toHaveBeenCalled();
     });
 
     it("returns early without enqueueing a second download when track is already Downloading", async () => {
       const track = new Track(makeTrack({ status: TrackStatusEnum.Downloading }));
       trackRepository.findOne.mockResolvedValue(track);
-      (
-        trackRepository as unknown as Record<string, ReturnType<typeof vi.fn>>
-      ).markDownloadingIfNotAlready.mockResolvedValue(false);
+      trackRepository.markDownloadingIfNotAlready.mockResolvedValue(false);
 
       await useCase.execute(makeTrack({ status: TrackStatusEnum.Downloading }));
 
@@ -248,22 +237,28 @@ describe("DownloadTrackUseCase", () => {
       const track = new Track(makeTrack());
       trackRepository.findOne.mockResolvedValue(track);
       trackRepository.findOneWithPlaylist.mockResolvedValue(new Track(makeTrack()));
-      (
-        trackRepository as unknown as Record<string, ReturnType<typeof vi.fn>>
-      ).markDownloadingIfNotAlready.mockResolvedValue(true);
-      (trackRepository as unknown as Record<string, ReturnType<typeof vi.fn>>).updateStatusIf = vi
-        .fn()
-        .mockResolvedValue(true);
 
       await useCase.execute(makeTrack());
 
-      expect(
-        (trackRepository as unknown as Record<string, ReturnType<typeof vi.fn>>).updateStatusIf,
-      ).toHaveBeenCalledWith(
+      expect(trackRepository.updateStatusIf).toHaveBeenCalledWith(
         "track-1",
         TrackStatusEnum.Downloading,
         expect.objectContaining({ status: TrackStatusEnum.Completed }),
       );
+    });
+
+    it("skips history and M3U when the completed write was clobbered (updateStatusIf returns false)", async () => {
+      const track = new Track(makeTrack());
+      trackRepository.findOne.mockResolvedValue(track);
+      trackRepository.findOneWithPlaylist.mockResolvedValue(new Track(makeTrack()));
+      // Download succeeds, but the conditional terminal write loses the race
+      // (the row was flipped to Error mid-download by recovery).
+      trackRepository.updateStatusIf.mockResolvedValue(false);
+
+      await useCase.execute(makeTrack());
+
+      expect(downloadHistoryRepository.createFromTrack).not.toHaveBeenCalled();
+      expect(trackPostProcessingService.updatePlaylistM3u).not.toHaveBeenCalled();
     });
   });
 });
