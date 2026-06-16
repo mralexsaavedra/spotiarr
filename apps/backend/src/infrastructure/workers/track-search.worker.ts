@@ -1,10 +1,10 @@
-import { type ITrack } from "@spotiarr/shared";
+import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
 import { getContainer } from "../../container";
 import { getEnv } from "../setup/environment";
 
 export async function createTrackSearchWorker() {
-  const { trackService, settingsService } = getContainer();
+  const { trackService, settingsService, eventsController } = getContainer();
   const concurrency = await settingsService.getNumber("YT_SEARCH_CONCURRENCY");
 
   const worker = new Worker(
@@ -26,8 +26,29 @@ export async function createTrackSearchWorker() {
     console.log(`[TrackSearchWorker] Job ${job.id} completed`);
   });
 
-  worker.on("failed", (job, err) => {
+  worker.on("failed", async (job, err) => {
     console.error(`[TrackSearchWorker] Job ${job?.id} failed:`, err);
+
+    if (job?.data?.id) {
+      const track: ITrack = job.data;
+      const trackId = track.id;
+
+      if (!trackId) {
+        console.error("Cannot update track status: track.id is undefined");
+        return;
+      }
+
+      try {
+        await trackService.update(trackId, {
+          ...track,
+          status: TrackStatusEnum.Error,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        eventsController.emit("playlists-updated");
+      } catch (updateError) {
+        console.error(`Failed to update track ${trackId} status after job failure:`, updateError);
+      }
+    }
   });
 
   console.log(`✅ Track search worker initialized (Concurrency: ${concurrency || 3})`);

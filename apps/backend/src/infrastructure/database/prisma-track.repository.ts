@@ -1,5 +1,5 @@
 import type { PrismaClient, Prisma, Track as DbTrack } from "@prisma/client";
-import type { ITrack, TrackStatusEnum } from "@spotiarr/shared";
+import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { Track } from "@/domain/entities/track.entity";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
 import { prisma as defaultPrisma } from "../setup/prisma";
@@ -128,6 +128,33 @@ export class PrismaTrackRepository implements TrackRepository {
       include: { playlist: true },
     });
     return tracks.map((t) => this.mapToTrack(t));
+  }
+
+  async markDownloadingIfNotAlready(id: string): Promise<boolean> {
+    const result = await this.prisma.track.updateMany({
+      where: { id, status: { not: TrackStatusEnum.Downloading } },
+      data: { status: TrackStatusEnum.Downloading, lastActivityAt: BigInt(Date.now()) },
+    });
+    return result.count === 1;
+  }
+
+  async updateStatusIf(
+    id: string,
+    expectedStatus: TrackStatusEnum,
+    patch: Partial<ITrack>,
+  ): Promise<boolean> {
+    const result = await this.prisma.track.updateMany({
+      where: { id, status: expectedStatus },
+      data: {
+        status: patch.status,
+        error: patch.error,
+        completedAt: patch.completedAt ? BigInt(patch.completedAt) : undefined,
+        durationMs: patch.durationMs,
+        youtubeUrl: patch.youtubeUrl,
+        lastActivityAt: BigInt(Date.now()),
+      },
+    });
+    return result.count === 1;
   }
 
   private mapToTrack(track: DbTrack): Track {

@@ -21,4 +21,12 @@ export interface TrackRepository {
   findStuckTracks(statuses: TrackStatusEnum[], activeBefore: number): Promise<Track[]>;
 
   findAllByStatuses(statuses: TrackStatusEnum[]): Promise<Track[]>;
+
+  markDownloadingIfNotAlready(id: string): Promise<boolean>;
+
+  updateStatusIf(
+    id: string,
+    expectedStatus: TrackStatusEnum,
+    patch: Partial<ITrack>,
+  ): Promise<boolean>;
 }
