@@ -361,6 +361,14 @@
         "label": "Maximum download retries",
         "description": "How many times to retry a failed download before giving up."
       },
+      "SEARCH_MAX_ATTEMPTS": {
+        "label": "Maximum search attempts",
+        "description": "How many times to retry finding a track on YouTube before marking it permanently failed."
+      },
+      "RECOVERY_JOB_INTERVAL_MINUTES": {
+        "label": "Error recovery interval (minutes)",
+        "description": "How often to re-drive errored tracks across all playlists."
+      },
       "STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES": {
         "label": "Stuck tracks cleanup interval (minutes)",
         "description": "How often to check for and clean up stuck tracks."
