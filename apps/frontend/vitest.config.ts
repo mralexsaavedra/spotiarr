@@ -14,10 +14,10 @@ export default defineConfig({
       // Thresholds sit just under the currently measured coverage so the gate is
       // green on merge. Ratchet these up as coverage improves (issue #149).
       thresholds: {
-        lines: 47,
-        statements: 47,
-        functions: 58,
-        branches: 74,
+        lines: 92,
+        statements: 92,
+        functions: 90,
+        branches: 84,
       },
     },
   },
