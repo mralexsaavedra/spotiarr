@@ -12,6 +12,7 @@ export class RescueStuckTracksUseCase {
     console.log("🚑 Checking for stuck tracks...");
 
     const stuckStatuses = [
+      TrackStatusEnum.New,
       TrackStatusEnum.Downloading,
       TrackStatusEnum.Searching,
       TrackStatusEnum.Queued,
