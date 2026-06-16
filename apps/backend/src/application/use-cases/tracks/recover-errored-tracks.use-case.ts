@@ -26,7 +26,10 @@ export class RecoverErroredTracksUseCase {
 
     const erroredTracks = await this.trackRepository.findAllByStatuses([TrackStatusEnum.Error]);
 
-    const maxAttempts = await this.settingsService.getNumber("SEARCH_MAX_ATTEMPTS");
+    const maxAttempts = await this.settingsService.getNumber(
+      "SEARCH_MAX_ATTEMPTS",
+      DEFAULT_SEARCH_MAX_ATTEMPTS,
+    );
     const safeMaxAttempts = maxAttempts >= 1 ? maxAttempts : DEFAULT_SEARCH_MAX_ATTEMPTS;
 
     let recovered = 0;
@@ -37,8 +40,15 @@ export class RecoverErroredTracksUseCase {
         continue;
       }
 
-      await this.retryTrackDownloadUseCase.execute(track.id);
-      recovered++;
+      try {
+        await this.retryTrackDownloadUseCase.execute(track.id);
+        recovered++;
+      } catch (error) {
+        console.error(
+          `[RecoverErroredTracks] Failed to re-drive track ${track.id}:`,
+          error instanceof Error ? error.message : String(error),
+        );
+      }
     }
 
     if (recovered > 0) {

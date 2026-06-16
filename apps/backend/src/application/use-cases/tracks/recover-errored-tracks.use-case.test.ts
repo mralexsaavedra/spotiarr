@@ -138,6 +138,20 @@ describe("RecoverErroredTracksUseCase", () => {
     expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-eligible");
   });
 
+  it("continues recovering other tracks when one track's retry throws", async () => {
+    const failing = makeErrorTrack({ id: "track-fail", searchAttempts: 1 });
+    const ok = makeErrorTrack({ id: "track-ok-2", searchAttempts: 1 });
+    trackRepository.findAllByStatuses.mockResolvedValue([failing, ok]);
+    retryTrackDownloadUseCase.execute.mockImplementation((id: string) =>
+      id === "track-fail" ? Promise.reject(new Error("redis down")) : Promise.resolve(undefined),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(useCase.execute()).resolves.not.toThrow();
+
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-ok-2");
+  });
+
   it("emits playlists-updated when at least one track is recovered", async () => {
     const track = makeErrorTrack({ id: "track-ok" });
     trackRepository.findAllByStatuses.mockResolvedValue([track]);

@@ -59,7 +59,10 @@ export class ScanLibraryUseCase {
         // Completed-file reconciliation pass
         if (this.retryTrackDownloadUseCase) {
           const maxAttempts = this.settingsService
-            ? await this.settingsService.getNumber("SEARCH_MAX_ATTEMPTS")
+            ? await this.settingsService.getNumber(
+                "SEARCH_MAX_ATTEMPTS",
+                DEFAULT_SEARCH_MAX_ATTEMPTS,
+              )
             : DEFAULT_SEARCH_MAX_ATTEMPTS;
           const safeMaxAttempts = maxAttempts >= 1 ? maxAttempts : DEFAULT_SEARCH_MAX_ATTEMPTS;
 

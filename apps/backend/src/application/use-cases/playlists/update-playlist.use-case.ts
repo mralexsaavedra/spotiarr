@@ -18,10 +18,4 @@ export class UpdatePlaylistUseCase {
     await this.playlistRepository.update(id, playlist);
     this.eventBus.emit("playlists-updated");
   }
-
-  async save(playlist: IPlaylist): Promise<IPlaylist> {
-    const savedPlaylist = await this.playlistRepository.save(playlist);
-    this.eventBus.emit("playlists-updated");
-    return savedPlaylist.toPrimitive();
-  }
 }
