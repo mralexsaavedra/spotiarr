@@ -145,3 +145,99 @@ describe("PrismaTrackRepository.update", () => {
     expect(Number(stamped)).toBeGreaterThanOrEqual(before);
   });
 });
+
+// T2.1 — markDownloadingIfNotAlready CAS claim
+describe("PrismaTrackRepository.markDownloadingIfNotAlready", () => {
+  describe("R3-S1: returns false when track is already Downloading", () => {
+    it("returns false and does not mutate when count === 0 (already Downloading)", async () => {
+      const updateMany = vi.fn().mockResolvedValue({ count: 0 });
+      const repo = new PrismaTrackRepository(makePrisma({ updateMany }));
+
+      const result = await repo.markDownloadingIfNotAlready("track-1");
+
+      expect(result).toBe(false);
+      expect(updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: "track-1",
+            status: { not: TrackStatusEnum.Downloading },
+          }),
+        }),
+      );
+    });
+  });
+
+  describe("R3-S1 (complement): returns true when track transitions to Downloading", () => {
+    it("returns true when count === 1 (claim succeeded)", async () => {
+      const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+      const repo = new PrismaTrackRepository(makePrisma({ updateMany }));
+
+      const result = await repo.markDownloadingIfNotAlready("track-1");
+
+      expect(result).toBe(true);
+    });
+
+    it("stamps lastActivityAt on a successful claim", async () => {
+      const before = Date.now();
+      const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+      const repo = new PrismaTrackRepository(makePrisma({ updateMany }));
+
+      await repo.markDownloadingIfNotAlready("track-1");
+
+      const arg = updateMany.mock.calls[0][0];
+      expect(typeof arg.data.lastActivityAt).toBe("bigint");
+      expect(Number(arg.data.lastActivityAt)).toBeGreaterThanOrEqual(before);
+    });
+  });
+});
+
+// T2.2 — updateStatusIf conditional terminal write
+describe("PrismaTrackRepository.updateStatusIf", () => {
+  describe("R2-S1: applies update when expected status matches", () => {
+    it("returns true when the row is updated (count === 1)", async () => {
+      const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+      const repo = new PrismaTrackRepository(makePrisma({ updateMany }));
+
+      const result = await repo.updateStatusIf("track-1", TrackStatusEnum.Downloading, {
+        status: TrackStatusEnum.Completed,
+      });
+
+      expect(result).toBe(true);
+      expect(updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: "track-1",
+            status: TrackStatusEnum.Downloading,
+          }),
+        }),
+      );
+    });
+
+    it("stamps lastActivityAt on a successful conditional update", async () => {
+      const before = Date.now();
+      const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+      const repo = new PrismaTrackRepository(makePrisma({ updateMany }));
+
+      await repo.updateStatusIf("track-1", TrackStatusEnum.Downloading, {
+        status: TrackStatusEnum.Completed,
+      });
+
+      const arg = updateMany.mock.calls[0][0];
+      expect(typeof arg.data.lastActivityAt).toBe("bigint");
+      expect(Number(arg.data.lastActivityAt)).toBeGreaterThanOrEqual(before);
+    });
+  });
+
+  describe("R2-S2: is a no-op when status does not match (stale writer)", () => {
+    it("returns false when count === 0 (status mismatch)", async () => {
+      const updateMany = vi.fn().mockResolvedValue({ count: 0 });
+      const repo = new PrismaTrackRepository(makePrisma({ updateMany }));
+
+      const result = await repo.updateStatusIf("track-1", TrackStatusEnum.Downloading, {
+        status: TrackStatusEnum.Completed,
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+});

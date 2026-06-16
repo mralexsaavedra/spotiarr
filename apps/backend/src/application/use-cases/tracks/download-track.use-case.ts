@@ -1,4 +1,4 @@
-import { type ITrack, PlaylistTypeEnum } from "@spotiarr/shared";
+import { TrackStatusEnum, type ITrack, PlaylistTypeEnum } from "@spotiarr/shared";
 import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
 import type { YoutubeDownloadPort } from "@/application/ports/youtube.port";
 import { AppError } from "@/domain/errors/app-error";
@@ -32,9 +32,11 @@ export class DownloadTrackUseCase {
     // Validate required fields
     this.validateTrack(track.toPrimitive());
 
-    // Update status to Downloading
-    track.markAsDownloading();
-    await this.trackRepository.update(track.id, track);
+    // CAS claim: only proceed if the track is not already Downloading
+    const claimed = await this.trackRepository.markDownloadingIfNotAlready(track.id);
+    if (!claimed) {
+      return;
+    }
     this.eventBus.emit("playlists-updated");
 
     let error: string | undefined;
@@ -50,7 +52,7 @@ export class DownloadTrackUseCase {
       error = getErrorMessage(err);
     }
 
-    // Update final status
+    // Terminal write via CAS so a stale writer cannot clobber a newer state
     if (error) {
       track.markAsError(error);
     } else {
@@ -60,7 +62,11 @@ export class DownloadTrackUseCase {
       track.markAsCompleted();
     }
 
-    await this.trackRepository.update(track.id, track);
+    await this.trackRepository.updateStatusIf(
+      track.id,
+      TrackStatusEnum.Downloading,
+      track.toPrimitive(),
+    );
 
     // Persist in download history when successful
     if (!error) {
@@ -109,7 +115,10 @@ export class DownloadTrackUseCase {
     await this.trackFileHelper.ensureParentDirectory(trackFilePath);
 
     // 1. Download Content
-    const { durationMs } = await this.youtubeDownloadService.downloadAndFormat(track, trackFilePath);
+    const { durationMs } = await this.youtubeDownloadService.downloadAndFormat(
+      track,
+      trackFilePath,
+    );
 
     // 2. Post-Processing (Metadata, Covers, M3U)
     // Delegated to dedicated service to keep Use Case clean

@@ -11,7 +11,7 @@ export class BullMqTrackQueueService implements TrackQueueService {
 
   async enqueueDownloadTrack(track: ITrack, options?: { maxRetries?: number }): Promise<void> {
     const attempts = options?.maxRetries ?? 3;
-    const jobId = `download-${track.id}-${Date.now()}`;
+    const jobId = `download-${track.id}`;
 
     await getTrackDownloadQueue().add("download-track", track, {
       jobId,
