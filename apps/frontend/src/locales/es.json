@@ -454,12 +454,12 @@
     "assistantDone": "Lista creada con {{count}} pistas.",
     "assistantError": "Generación fallida: {{code}}",
     "clearConversation": "Borrar conversación",
-    "clearConfirm": "Esto eliminará permanentemente el historial. ¿Continuar?",
+    "clearConfirm": "Esto eliminará permanentemente el historial.",
     "playlistGone": "Lista ya no existe"
   },
   "ai": {
     "title": "Chat con IA",
-    "subtitle": "Describe una lista con tus palabras y deja que la IA la genere desde tu biblioteca.",
+    "subtitle": "Describe una lista con tus palabras y la IA buscará y descargará las pistas.",
     "empty": {
       "title": "Crea una lista con IA",
       "hint": "Describe un estado de ánimo, género, actividad o época — por ejemplo «rock noventero animado para correr»."

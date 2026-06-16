@@ -454,12 +454,12 @@
     "assistantDone": "Created playlist with {{count}} tracks.",
     "assistantError": "Generation failed: {{code}}",
     "clearConversation": "Clear conversation",
-    "clearConfirm": "This will permanently delete your chat history. Continue?",
+    "clearConfirm": "This will permanently delete your chat history.",
     "playlistGone": "Playlist no longer exists"
   },
   "ai": {
     "title": "AI Chat",
-    "subtitle": "Describe a playlist in your own words and let AI build it from your library.",
+    "subtitle": "Describe a playlist in your own words and AI will find and download the tracks.",
     "empty": {
       "title": "Create a playlist with AI",
       "hint": "Describe a mood, genre, activity or era — for example \"upbeat 90s rock for running\"."
