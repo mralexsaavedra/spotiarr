@@ -1,4 +1,4 @@
-import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Track } from "@/domain/entities/track.entity";
 import { ScanLibraryUseCase } from "./scan-library.use-case";
@@ -240,19 +240,28 @@ describe("ScanLibraryUseCase — T5.2 path-parity: reconciliation uses same getF
     scannerService.scanMusicLibrary.mockResolvedValue([]);
   });
 
-  it("T5.2: reconciliation calls pathService.getFolderName with the same (track, playlistName) args as DownloadTrackUseCase would — playlist-type track", async () => {
+  const playlistRepository = {
+    findOne: vi.fn(),
+  };
+
+  it("T5.2: resolves the playlist name and calls getFolderName with the SAME (track, playlistName) args as DownloadTrackUseCase — playlist-type track", async () => {
     const track = makeCompletedTrack({
       id: "track-playlist",
       playlistId: "playlist-1",
-      // playlistType is not on ITrack directly; the reconciliation uses track.toPrimitive()
     });
     trackRepository.findAllByStatuses.mockResolvedValue([track]);
+    // A Playlist-type playlist contributes its name to the path, exactly as
+    // DownloadTrackUseCase does — so the reconciliation must look it up too.
+    playlistRepository.findOne.mockResolvedValue({
+      type: PlaylistTypeEnum.Playlist,
+      name: "My Playlist",
+    });
 
     const expectedPath = "/music/Playlists/My Playlist/Artist - Song.mp3";
     pathService.getFolderName.mockResolvedValue(expectedPath);
 
-    // File is present — no re-drive expected. Purpose of this test is to
-    // assert getFolderName is called with the track primitives.
+    // File is present — no re-drive expected. Purpose is to assert the path
+    // derivation uses the resolved playlist name.
     scannerService.scanMusicLibrary.mockResolvedValue([
       {
         name: "Artist",
@@ -274,15 +283,14 @@ describe("ScanLibraryUseCase — T5.2 path-parity: reconciliation uses same getF
       trackRepository as never,
       retryTrackDownloadUseCase as never,
       settingsService as never,
+      playlistRepository as never,
     );
 
     await useCase.execute();
 
-    // The reconciliation MUST call getFolderName with (trackPrimitive, undefined)
-    // because the scan use-case has no playlist names — it uses the same
-    // getFolderName path derivation that DownloadTrackUseCase uses for
-    // Artist/Album type tracks (no playlistName → album folder).
-    expect(pathService.getFolderName).toHaveBeenCalledWith(track.toPrimitive(), undefined);
+    expect(playlistRepository.findOne).toHaveBeenCalledWith("playlist-1");
+    expect(pathService.getFolderName).toHaveBeenCalledWith(track.toPrimitive(), "My Playlist");
+    expect(retryTrackDownloadUseCase.execute).not.toHaveBeenCalled();
   });
 
   it("T5.2: when a non-Playlist/non-AI track path is used, getFolderName is called without playlistName — produces the same path as DownloadTrackUseCase for Album/Artist type", async () => {

@@ -1,9 +1,10 @@
-import { TrackStatusEnum, type LibraryScanResult } from "@spotiarr/shared";
+import { PlaylistTypeEnum, TrackStatusEnum, type LibraryScanResult } from "@spotiarr/shared";
 import type {
   FileSystemScannerPort,
   FileSystemTrackPathPort,
 } from "@/application/ports/file-system.port";
 import type { SettingsPort } from "@/application/ports/settings.port";
+import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
 import type { RetryTrackDownloadUseCase } from "../tracks/retry-track-download.use-case";
 
@@ -16,6 +17,7 @@ export class ScanLibraryUseCase {
     private readonly trackRepository?: TrackRepository,
     private readonly retryTrackDownloadUseCase?: RetryTrackDownloadUseCase,
     private readonly settingsService?: SettingsPort,
+    private readonly playlistRepository?: PlaylistRepository,
   ) {}
 
   async execute(): Promise<LibraryScanResult> {
@@ -71,6 +73,24 @@ export class ScanLibraryUseCase {
             : DEFAULT_SEARCH_MAX_ATTEMPTS;
           const safeMaxAttempts = maxAttempts >= 1 ? maxAttempts : DEFAULT_SEARCH_MAX_ATTEMPTS;
 
+          // Resolve playlist names the SAME way DownloadTrackUseCase does, so
+          // the reconciliation path matches what the download actually wrote.
+          // Only Playlist/AI tracks live under the playlist folder; album and
+          // artist downloads do not. Cache per playlistId to avoid N queries.
+          const playlistNameCache = new Map<string, string | undefined>();
+          const resolvePlaylistName = async (playlistId?: string): Promise<string | undefined> => {
+            if (!playlistId || !this.playlistRepository) return undefined;
+            if (playlistNameCache.has(playlistId)) return playlistNameCache.get(playlistId);
+            const playlist = await this.playlistRepository.findOne(playlistId);
+            const name =
+              playlist &&
+              (playlist.type === PlaylistTypeEnum.Playlist || playlist.type === PlaylistTypeEnum.Ai)
+                ? playlist.name
+                : undefined;
+            playlistNameCache.set(playlistId, name);
+            return name;
+          };
+
           for (const track of completedTracks) {
             if (!track.id) continue;
 
@@ -80,18 +100,9 @@ export class ScanLibraryUseCase {
             }
 
             try {
-              // Resolve the expected on-disk path using the SAME derivation as
-              // DownloadTrackUseCase: getFolderName(track, playlistName).
-              // The scan use-case does not have playlist names in scope, so it
-              // passes undefined. This is correct for Album/Artist tracks; for
-              // Playlist/AI tracks the path will differ from what the download
-              // wrote (which included the playlist name). This is a documented
-              // minor divergence — a false-negative (missing detection skipped)
-              // for Playlist/AI tracks rather than a false-positive (spurious re-download).
-              const expectedPath = await this.pathService.getFolderName(
-                track.toPrimitive(),
-                undefined,
-              );
+              const trackData = track.toPrimitive();
+              const playlistName = await resolvePlaylistName(trackData.playlistId);
+              const expectedPath = await this.pathService.getFolderName(trackData, playlistName);
 
               if (!scannedPaths.has(expectedPath)) {
                 await this.retryTrackDownloadUseCase.execute(track.id);
