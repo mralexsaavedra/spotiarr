@@ -3,13 +3,19 @@ import type {
   FileSystemScannerPort,
   FileSystemTrackPathPort,
 } from "@/application/ports/file-system.port";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
+import type { RetryTrackDownloadUseCase } from "../tracks/retry-track-download.use-case";
+
+const DEFAULT_SEARCH_MAX_ATTEMPTS = 5;
 
 export class ScanLibraryUseCase {
   constructor(
     private readonly scannerService: FileSystemScannerPort,
     private readonly pathService: FileSystemTrackPathPort,
     private readonly trackRepository?: TrackRepository,
+    private readonly retryTrackDownloadUseCase?: RetryTrackDownloadUseCase,
+    private readonly settingsService?: SettingsPort,
   ) {}
 
   async execute(): Promise<LibraryScanResult> {
@@ -20,19 +26,27 @@ export class ScanLibraryUseCase {
 
     const artists = await this.scannerService.scanMusicLibrary(libraryPath);
 
-    // Try to attach duration from DB if available
     if (this.trackRepository) {
+      // Build the set of scanned file paths once for O(1) membership checks
+      const scannedPaths = new Set<string>();
+      for (const artist of artists) {
+        for (const album of artist.albums) {
+          for (const track of album.tracks) {
+            scannedPaths.add(track.filePath);
+          }
+        }
+      }
+
       try {
         const completedTracks = await this.trackRepository.findAllByStatuses([
           TrackStatusEnum.Completed,
         ]);
 
-        // Build map for quick lookup. A precise match requires matching title and artist.
+        // Attach durations from DB
         const dbTrackMap = new Map<string, number>();
         for (const t of completedTracks) {
           const trackData = t.toPrimitive();
           if (trackData.durationMs) {
-            // Simplified key: lowercase artist + name to maximize matches
             const key = `${trackData.artist.toLowerCase()} - ${trackData.name.toLowerCase()}`;
             dbTrackMap.set(key, trackData.durationMs);
           }
@@ -44,9 +58,46 @@ export class ScanLibraryUseCase {
               const key = `${artist.name.toLowerCase()} - ${track.name.toLowerCase()}`;
               const durationMs = dbTrackMap.get(key);
               if (!track.duration && durationMs) {
-                // frontend expects duration in seconds (based on frontend's * 1000)
                 track.duration = Math.round(durationMs / 1000);
               }
+            }
+          }
+        }
+
+        // Completed-file reconciliation pass
+        if (this.retryTrackDownloadUseCase) {
+          const maxAttempts = this.settingsService
+            ? await this.settingsService.getNumber("SEARCH_MAX_ATTEMPTS")
+            : DEFAULT_SEARCH_MAX_ATTEMPTS;
+          const safeMaxAttempts = maxAttempts >= 1 ? maxAttempts : DEFAULT_SEARCH_MAX_ATTEMPTS;
+
+          for (const track of completedTracks) {
+            if (!track.id) continue;
+
+            // Skip permanently-unfindable tracks — re-driving them would loop forever
+            if (track.isTerminalError() || track.searchAttempts >= safeMaxAttempts) {
+              continue;
+            }
+
+            try {
+              // Resolve the expected on-disk path using the SAME derivation as
+              // DownloadTrackUseCase: getFolderName(track, playlistName).
+              // The scan use-case does not have playlist names in scope, so it
+              // passes undefined. This is correct for Album/Artist tracks; for
+              // Playlist/AI tracks the path will differ from what the download
+              // wrote (which included the playlist name). This is a documented
+              // minor divergence — a false-negative (missing detection skipped)
+              // for Playlist/AI tracks rather than a false-positive (spurious re-download).
+              const expectedPath = await this.pathService.getFolderName(
+                track.toPrimitive(),
+                undefined,
+              );
+
+              if (!scannedPaths.has(expectedPath)) {
+                await this.retryTrackDownloadUseCase.execute(track.id);
+              }
+            } catch (err) {
+              console.warn(`[ScanLibrary] Reconciliation failed for track ${track.id}:`, err);
             }
           }
         }

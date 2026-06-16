@@ -539,6 +539,8 @@ export function createContainer(env: Env) {
     fileSystemScannerService,
     trackFileHelper,
     trackRepository,
+    retryTrackDownloadUseCase,
+    settingsService,
   );
   const libraryService = new LibraryService(scanLibraryUseCase);
   const libraryAudioService = new FileSystemLibraryAudioService(() => env.DOWNLOADS);
