@@ -28,10 +28,7 @@ export const useChatController = () => {
   const [error, setError] = useState<ChatError | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState<AiChatMessageDto[]>([]);
-  // Stores the query's dataUpdatedAt value captured at the moment the optimistic entry was added.
-  // The reconciliation effect clears optimistic entries only once a fresh server fetch has
-  // completed after that point (dataUpdatedAt > capturedRef.current). This avoids any
-  // cross-machine clock comparison between client Date.now() and server-written timestamps.
+  // dataUpdatedAt captured when the optimistic entry was added (see reconciliation effect).
   const optimisticAddedAtQueryTimestamp = useRef<number>(0);
 
   const mutation = useGenerateAiPlaylistMutation();
@@ -39,23 +36,12 @@ export const useChatController = () => {
   const queryClient = useQueryClient();
   const { data: serverMessages = [], dataUpdatedAt } = useChatMessagesQuery();
 
-  // Compute displayMessages: server data + any optimistic entries not yet reconciled.
-  // No content-based suppression — each optimistic entry has a unique UUID id, so
-  // re-submitting an identical prompt correctly shows a new bubble alongside existing
-  // server messages with the same text.
   const displayMessages: AiChatMessageDto[] = [...serverMessages, ...optimisticMessages];
 
-  // Lifecycle reconciliation: drop optimistic entries once the server data is authoritative.
-  // The clearing signal is a client-only one: dataUpdatedAt (TanStack Query's monotonic fetch
-  // completion timestamp) must have advanced past the value captured when the optimistic entry
-  // was added. This guarantees the fresh server payload was fetched AFTER our submit, so the
-  // data is authoritative — regardless of the server clock or any createdAt value on the DTO.
-  // Briefly showing both for one render cycle before this effect fires is acceptable;
-  // a PERMANENT duplicate (entry never cleared) is not.
+  // Drop optimistic entries once a server refetch has completed after they were added.
+  // Keyed on dataUpdatedAt (client-side fetch clock) to avoid comparing client/server clocks.
   useEffect(() => {
     if (optimisticMessages.length === 0) return;
-
-    // A fresh refetch has completed after we added the optimistic entry.
     if (dataUpdatedAt > optimisticAddedAtQueryTimestamp.current) {
       setOptimisticMessages([]);
     }
@@ -85,7 +71,6 @@ export const useChatController = () => {
         setIsGenerating(false);
         void queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
         void queryClient.invalidateQueries({ queryKey: queryKeys.aiChatMessages });
-        // Clear optimistic entries; server data will take over after invalidation
         setOptimisticMessages([]);
       }
 
@@ -107,9 +92,7 @@ export const useChatController = () => {
   const handleSubmit = async () => {
     const text = prompt.trim();
     if (!text) return;
-    // Defensive guard: the UI disables the submit button while generating, but the hook
-    // must not start a second generation or overwrite the current optimistic entry.
-    if (isGenerating) return;
+    if (isGenerating) return; // guard: don't start a second generation / overwrite optimistic entry
 
     setError(null);
     setStage(null);
@@ -119,13 +102,9 @@ export const useChatController = () => {
     setPlaylistName(undefined);
     setPrompt("");
 
-    // Capture the current query dataUpdatedAt before adding the optimistic entry.
-    // The reconciliation effect will clear the entry only once dataUpdatedAt advances
-    // past this value (i.e., a fresh fetch has completed after this submit).
     optimisticAddedAtQueryTimestamp.current = dataUpdatedAt;
 
-    // Add optimistic user entry with a unique UUID so re-submitting an identical
-    // prompt does not collide with an existing server message's id or another optimistic entry.
+    // Unique id so re-submitting an identical prompt yields a distinct bubble.
     const optimisticEntry: AiChatMessageDto = {
       id: crypto.randomUUID(),
       role: "user",
@@ -141,9 +120,7 @@ export const useChatController = () => {
       setJobId(result.jobId);
       setIsGenerating(true);
     } catch (e) {
-      // Mutation rejected — clear the optimistic entry and surface the error.
-      // setStage("error") is required so Chat.tsx renders the ephemeral error block
-      // (showEphemeralError is gated on stage === "error").
+      // stage="error" so Chat.tsx renders the error block (gated on stage === "error").
       setOptimisticMessages([]);
       setStage("error");
       setError({
