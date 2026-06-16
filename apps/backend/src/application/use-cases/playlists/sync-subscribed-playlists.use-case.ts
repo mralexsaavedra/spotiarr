@@ -55,7 +55,8 @@ export class SyncSubscribedPlaylistsUseCase {
           details.owner,
           details.ownerUrl,
         );
-        await this.playlistRepository.save(playlist);
+        // update, not save: save() inserts and would fail the spotifyUrl unique constraint.
+        await this.playlistRepository.update(playlist.id, playlist);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const errorCode = error instanceof AppError ? error.errorCode : undefined;

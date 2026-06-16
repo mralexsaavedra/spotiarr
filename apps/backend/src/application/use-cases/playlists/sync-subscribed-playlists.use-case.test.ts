@@ -74,6 +74,21 @@ describe("SyncSubscribedPlaylistsUseCase", () => {
     );
   }
 
+  it("persists refreshed details with update (not save) and creates newly-added tracks", async () => {
+    // Regression: an existing subscribed playlist must be persisted via update().
+    // save() does an insert and threw a unique-constraint violation on
+    // spotifyUrl, which aborted the whole sync so new tracks were never created.
+    trackService.getAllByPlaylist.mockResolvedValue([]);
+
+    await makeUseCase().execute();
+
+    expect(playlistRepository.update).toHaveBeenCalledWith("playlist-1", expect.anything());
+    expect(playlistRepository.save).not.toHaveBeenCalled();
+    expect(trackService.create).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Song", playlistId: "playlist-1" }),
+    );
+  });
+
   it("dedupes using trackUrl instead of legacy spotifyUrl semantics", async () => {
     const existingTrack: ITrack = {
       name: "Song",
