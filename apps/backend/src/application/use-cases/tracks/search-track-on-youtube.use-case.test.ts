@@ -237,4 +237,52 @@ describe("SearchTrackOnYoutubeUseCase", () => {
       expect(youtubeSearchService.findOnYoutubeOne).toHaveBeenCalledTimes(1);
     });
   });
+
+  // R4 — terminal error codes short-circuit before the cap is reached
+  describe("terminal error classification short-circuits the search", () => {
+    it("does NOT re-search a track with a terminal error code even when below the cap", async () => {
+      settingsService.getNumber.mockImplementation((key: string) => {
+        if (key === "SEARCH_MAX_ATTEMPTS") return Promise.resolve(5);
+        return Promise.resolve(3);
+      });
+
+      // youtube_not_found is terminal; attempts (1) are well below the cap (5)
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(
+          makeTrack({
+            searchAttempts: 1,
+            status: TrackStatusEnum.Error,
+            error: "youtube_not_found",
+          }),
+        ),
+      );
+
+      await useCase.execute(
+        makeTrack({ searchAttempts: 1, status: TrackStatusEnum.Error, error: "youtube_not_found" }),
+      );
+
+      expect(youtubeSearchService.findOnYoutubeOne).not.toHaveBeenCalled();
+      expect(queueService.enqueueDownloadTrack).not.toHaveBeenCalled();
+    });
+
+    it("DOES re-search a track with a non-terminal (transient) error below the cap", async () => {
+      settingsService.getNumber.mockImplementation((key: string) => {
+        if (key === "SEARCH_MAX_ATTEMPTS") return Promise.resolve(5);
+        return Promise.resolve(3);
+      });
+
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(
+          makeTrack({ searchAttempts: 2, status: TrackStatusEnum.Error, error: "network timeout" }),
+        ),
+      );
+      youtubeSearchService.findOnYoutubeOne.mockResolvedValue("https://youtu.be/abc");
+
+      await useCase.execute(
+        makeTrack({ searchAttempts: 2, status: TrackStatusEnum.Error, error: "network timeout" }),
+      );
+
+      expect(youtubeSearchService.findOnYoutubeOne).toHaveBeenCalledTimes(1);
+    });
+  });
 });
