@@ -5,6 +5,8 @@ import { EventBus } from "@/domain/events/event-bus";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 import type { TrackQueueService } from "@/domain/services/track-queue.service";
 
+const DEFAULT_SEARCH_MAX_ATTEMPTS = 5;
+
 export class SearchTrackOnYoutubeUseCase {
   constructor(
     private readonly trackRepository: TrackRepository,
@@ -21,6 +23,25 @@ export class SearchTrackOnYoutubeUseCase {
 
     const existingTrack = await this.trackRepository.findOneWithPlaylist(track.id);
     if (!existingTrack) {
+      return;
+    }
+
+    const maxAttempts = await this.settingsService.getNumber("SEARCH_MAX_ATTEMPTS");
+    const safeMaxAttempts = maxAttempts >= 1 ? maxAttempts : DEFAULT_SEARCH_MAX_ATTEMPTS;
+
+    // Stop re-driving when the failure is permanent: a known-terminal error
+    // code (e.g. youtube_not_found) is deterministic, so don't burn the
+    // attempt budget re-searching for it; transient errors get re-tried up to
+    // the cap and then settle into a stable terminal Error.
+    const capReached = existingTrack.searchAttempts >= safeMaxAttempts;
+    if (existingTrack.isTerminalError() || capReached) {
+      existingTrack.markAsError(
+        capReached
+          ? "search_attempts_exceeded"
+          : existingTrack.toPrimitive().error || "search_attempts_exceeded",
+      );
+      await this.trackRepository.update(track.id, existingTrack);
+      this.eventBus.emit("playlists-updated");
       return;
     }
 

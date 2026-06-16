@@ -126,4 +126,163 @@ describe("SearchTrackOnYoutubeUseCase", () => {
       maxRetries: expected,
     });
   });
+
+  // T3.1 — R4-S2: searchAttempts increments on youtube_not_found
+  describe("R4-S2: searchAttempts increments on each failed search attempt", () => {
+    it("increments searchAttempts by 1 when youtube_not_found is returned", async () => {
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(makeTrack({ searchAttempts: 2 })),
+      );
+      youtubeSearchService.findOnYoutubeOne.mockResolvedValue("");
+
+      const persisted: ITrack[] = [];
+      trackRepository.update.mockImplementation((_id: string, entity: Track) => {
+        persisted.push(entity.toPrimitive());
+        return Promise.resolve(undefined);
+      });
+
+      await useCase.execute(makeTrack({ searchAttempts: 2 }));
+
+      const finalWrite = persisted.at(-1);
+      expect(finalWrite?.searchAttempts).toBe(3);
+    });
+
+    it("increments searchAttempts when the search throws an exception", async () => {
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(makeTrack({ searchAttempts: 1 })),
+      );
+      youtubeSearchService.findOnYoutubeOne.mockRejectedValue(new Error("yt down"));
+
+      const persisted: ITrack[] = [];
+      trackRepository.update.mockImplementation((_id: string, entity: Track) => {
+        persisted.push(entity.toPrimitive());
+        return Promise.resolve(undefined);
+      });
+
+      await useCase.execute(makeTrack({ searchAttempts: 1 }));
+
+      const finalWrite = persisted.at(-1);
+      expect(finalWrite?.searchAttempts).toBe(2);
+    });
+  });
+
+  // T3.1 — R4-S4: successful search resets searchAttempts to 0 on Queued transition
+  describe("R4-S4: successful search resets searchAttempts to 0", () => {
+    it("resets searchAttempts to 0 when a YouTube URL is found", async () => {
+      // Set SEARCH_MAX_ATTEMPTS high so cap guard doesn't fire on a track with 3 attempts
+      settingsService.getNumber.mockImplementation((key: string) => {
+        if (key === "SEARCH_MAX_ATTEMPTS") return Promise.resolve(5);
+        return Promise.resolve(3);
+      });
+
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(makeTrack({ searchAttempts: 3 })),
+      );
+      youtubeSearchService.findOnYoutubeOne.mockResolvedValue("https://youtu.be/abc");
+
+      const persisted: ITrack[] = [];
+      trackRepository.update.mockImplementation((_id: string, entity: Track) => {
+        persisted.push(entity.toPrimitive());
+        return Promise.resolve(undefined);
+      });
+
+      await useCase.execute(makeTrack({ searchAttempts: 3 }));
+
+      const finalWrite = persisted.at(-1);
+      expect(finalWrite?.searchAttempts).toBe(0);
+      expect(finalWrite?.status).toBe(TrackStatusEnum.Queued);
+    });
+  });
+
+  // T3.1 — R4-S1: track at cap is NOT re-enqueued; terminal error is written
+  describe("R4-S1: track at attempt cap stops being re-enqueued", () => {
+    it("writes terminal Error and does not enqueue when searchAttempts >= SEARCH_MAX_ATTEMPTS", async () => {
+      // SEARCH_MAX_ATTEMPTS default is 5; settingsService.getNumber returns 5 for it
+      settingsService.getNumber.mockImplementation((key: string) => {
+        if (key === "SEARCH_MAX_ATTEMPTS") return Promise.resolve(5);
+        return Promise.resolve(3);
+      });
+
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(makeTrack({ searchAttempts: 5, status: TrackStatusEnum.Error })),
+      );
+
+      const persisted: ITrack[] = [];
+      trackRepository.update.mockImplementation((_id: string, entity: Track) => {
+        persisted.push(entity.toPrimitive());
+        return Promise.resolve(undefined);
+      });
+
+      await useCase.execute(makeTrack({ searchAttempts: 5, status: TrackStatusEnum.Error }));
+
+      expect(youtubeSearchService.findOnYoutubeOne).not.toHaveBeenCalled();
+      expect(queueService.enqueueDownloadTrack).not.toHaveBeenCalled();
+      const finalWrite = persisted.at(-1);
+      expect(finalWrite?.status).toBe(TrackStatusEnum.Error);
+    });
+
+    it("still searches when searchAttempts is below cap", async () => {
+      settingsService.getNumber.mockImplementation((key: string) => {
+        if (key === "SEARCH_MAX_ATTEMPTS") return Promise.resolve(5);
+        return Promise.resolve(3);
+      });
+
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(makeTrack({ searchAttempts: 4 })),
+      );
+      youtubeSearchService.findOnYoutubeOne.mockResolvedValue("https://youtu.be/abc");
+
+      await useCase.execute(makeTrack({ searchAttempts: 4 }));
+
+      expect(youtubeSearchService.findOnYoutubeOne).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // R4 — terminal error codes short-circuit before the cap is reached
+  describe("terminal error classification short-circuits the search", () => {
+    it("does NOT re-search a track with a terminal error code even when below the cap", async () => {
+      settingsService.getNumber.mockImplementation((key: string) => {
+        if (key === "SEARCH_MAX_ATTEMPTS") return Promise.resolve(5);
+        return Promise.resolve(3);
+      });
+
+      // youtube_not_found is terminal; attempts (1) are well below the cap (5)
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(
+          makeTrack({
+            searchAttempts: 1,
+            status: TrackStatusEnum.Error,
+            error: "youtube_not_found",
+          }),
+        ),
+      );
+
+      await useCase.execute(
+        makeTrack({ searchAttempts: 1, status: TrackStatusEnum.Error, error: "youtube_not_found" }),
+      );
+
+      expect(youtubeSearchService.findOnYoutubeOne).not.toHaveBeenCalled();
+      expect(queueService.enqueueDownloadTrack).not.toHaveBeenCalled();
+    });
+
+    it("DOES re-search a track with a non-terminal (transient) error below the cap", async () => {
+      settingsService.getNumber.mockImplementation((key: string) => {
+        if (key === "SEARCH_MAX_ATTEMPTS") return Promise.resolve(5);
+        return Promise.resolve(3);
+      });
+
+      trackRepository.findOneWithPlaylist.mockResolvedValue(
+        new Track(
+          makeTrack({ searchAttempts: 2, status: TrackStatusEnum.Error, error: "network timeout" }),
+        ),
+      );
+      youtubeSearchService.findOnYoutubeOne.mockResolvedValue("https://youtu.be/abc");
+
+      await useCase.execute(
+        makeTrack({ searchAttempts: 2, status: TrackStatusEnum.Error, error: "network timeout" }),
+      );
+
+      expect(youtubeSearchService.findOnYoutubeOne).toHaveBeenCalledTimes(1);
+    });
+  });
 });

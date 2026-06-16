@@ -47,6 +47,7 @@ model Track {
   createdAt             BigInt  @default(0)
   completedAt           BigInt?
   lastActivityAt        BigInt  @default(0)
+  searchAttempts        Int     @default(0)
   playlistIndex         Int?
 
   playlistId            String?

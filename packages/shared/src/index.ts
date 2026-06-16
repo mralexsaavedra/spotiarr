@@ -170,6 +170,7 @@ export interface ITrack {
   completedAt?: number;
   playlistId?: string;
   playlistIndex?: number;
+  searchAttempts?: number;
 }
 
 export interface IPlaylist {
