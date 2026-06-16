@@ -61,6 +61,14 @@ export class TrackService {
     await this.updateTrackUseCase.execute(id, track);
   }
 
+  async updateStatusIf(
+    id: string,
+    expectedStatus: TrackStatusEnum,
+    patch: Partial<ITrack>,
+  ): Promise<boolean> {
+    return this.updateTrackUseCase.executeIfStatus(id, expectedStatus, patch);
+  }
+
   async retry(id: string): Promise<void> {
     return this.retryTrackDownloadUseCase.execute(id);
   }

@@ -82,9 +82,12 @@ export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
     if (stuckTracks.length > 0) {
       console.log(`[ScheduledJob] Found ${stuckTracks.length} stuck tracks, marking as error`);
       for (const track of stuckTracks) {
-        if (track.id) {
-          await trackService.update(track.id, {
-            ...track,
+        if (track.id && track.status) {
+          // CAS: only mark Error if the track is STILL in the stuck status we
+          // observed. If it progressed (e.g. download completed) between the
+          // query and now, the write is a no-op — the killer must not clobber
+          // a track that legitimately moved on.
+          await trackService.updateStatusIf(track.id, track.status, {
             status: TrackStatusEnum.Error,
             error:
               track.error ||
