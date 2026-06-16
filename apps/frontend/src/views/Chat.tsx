@@ -1,11 +1,12 @@
 import { faRobot, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type AiChatMessageDto } from "@spotiarr/shared";
-import { FC, KeyboardEvent } from "react";
+import { FC, KeyboardEvent, memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/atoms/Button";
 import { PageHeader } from "@/components/molecules/PageHeader";
+import { ConfirmModal } from "@/components/organisms/ConfirmModal";
 import { useChatController } from "@/hooks/controllers/useChatController";
 import { usePlaylistsQuery } from "@/hooks/queries/usePlaylistsQuery";
 import { Path } from "@/routes/routes";
@@ -19,7 +20,7 @@ interface MessageBubbleProps {
   isPlaylistsLoading: boolean;
 }
 
-const MessageBubble: FC<MessageBubbleProps> = ({ msg, playlists, isPlaylistsLoading }) => {
+const MessageBubble: FC<MessageBubbleProps> = memo(({ msg, playlists, isPlaylistsLoading }) => {
   const { t } = useTranslation();
 
   const params = (msg.content.params ?? {}) as Record<string, unknown>;
@@ -64,11 +65,12 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg, playlists, isPlaylistsLoad
           : "bg-background-elevated text-text-primary self-start",
       )}
     >
-      <span>{text}</span>
+      <p>{text}</p>
       {playlistLink}
     </div>
   );
-};
+});
+MessageBubble.displayName = "MessageBubble";
 
 export const Chat: FC = () => {
   const { t } = useTranslation();
@@ -88,6 +90,7 @@ export const Chat: FC = () => {
     isClearPending,
   } = useChatController();
   const { data: playlists, isLoading: isPlaylistsLoading } = usePlaylistsQuery();
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
 
   const canSubmit = prompt.trim().length > 0 && !isGenerating;
   const showEmptyState = displayMessages.length === 0 && !isGenerating && !stage;
@@ -113,11 +116,9 @@ export const Chat: FC = () => {
     }
   };
 
-  const handleClearClick = () => {
-    const confirmed = window.confirm(t("aiChat.clearConfirm"));
-    if (confirmed) {
-      clearMessages();
-    }
+  const handleClearConfirm = () => {
+    setIsClearConfirmOpen(false);
+    clearMessages();
   };
 
   return (
@@ -127,7 +128,7 @@ export const Chat: FC = () => {
           <PageHeader title={t("ai.title")} description={t("ai.subtitle")} />
           {displayMessages.length > 0 && (
             <button
-              onClick={handleClearClick}
+              onClick={() => setIsClearConfirmOpen(true)}
               disabled={isClearPending}
               className="text-text-secondary hover:text-text-primary mt-1 flex items-center gap-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -233,6 +234,17 @@ export const Chat: FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isClearConfirmOpen}
+        title={t("aiChat.clearConversation")}
+        description={t("aiChat.clearConfirm")}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={handleClearConfirm}
+        onCancel={() => setIsClearConfirmOpen(false)}
+        isDestructive
+      />
     </section>
   );
 };

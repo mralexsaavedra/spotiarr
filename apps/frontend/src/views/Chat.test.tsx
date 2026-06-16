@@ -65,7 +65,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockUseChatController.mockReturnValue(defaultController);
   mockUsePlaylistsQuery.mockReturnValue({ data: [], isLoading: false });
-  vi.spyOn(window, "confirm").mockReturnValue(false);
 });
 
 const { Chat } = await import("./Chat");
@@ -251,9 +250,8 @@ describe("Chat view", () => {
     expect(link.getAttribute("href")).toContain("pid-loading");
   });
 
-  // S-F-14: clear button triggers confirmation before mutating
-  it("clear button does NOT call clearMessages when confirm returns false", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+  // S-F-14: clear button opens the confirm modal without mutating (no native confirm)
+  it("clear button opens the confirm modal and does NOT call clearMessages yet", () => {
     mockUseChatController.mockReturnValue({
       ...defaultController,
       displayMessages: [
@@ -268,14 +266,16 @@ describe("Chat view", () => {
       ],
     });
     render(<Chat />);
-    const clearBtn = screen.getByText("aiChat.clearConversation");
-    fireEvent.click(clearBtn);
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(screen.getByText("aiChat.clearConversation"));
+
+    expect(screen.getByRole("dialog")).toBeDefined();
     expect(mockClearMessages).not.toHaveBeenCalled();
   });
 
-  // S-F-15: clear button calls clearMessages when confirmed
-  it("clear button calls clearMessages when confirm returns true", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+  // S-F-14b: cancelling the modal closes it without mutating
+  it("clear modal cancel button closes the modal without calling clearMessages", () => {
     mockUseChatController.mockReturnValue({
       ...defaultController,
       displayMessages: [
@@ -290,9 +290,34 @@ describe("Chat view", () => {
       ],
     });
     render(<Chat />);
-    const clearBtn = screen.getByText("aiChat.clearConversation");
-    fireEvent.click(clearBtn);
+    fireEvent.click(screen.getByText("aiChat.clearConversation"));
+    fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
+
+    expect(mockClearMessages).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  // S-F-15: confirming the modal calls clearMessages and closes the modal
+  it("clear modal confirm button calls clearMessages once and closes the modal", () => {
+    mockUseChatController.mockReturnValue({
+      ...defaultController,
+      displayMessages: [
+        {
+          id: "m1",
+          role: "user" as const,
+          content: { key: "aiChat.userPrompt", params: { prompt: "jazz" } },
+          playlistId: null,
+          errorCode: null,
+          createdAt: 1000,
+        },
+      ],
+    });
+    render(<Chat />);
+    fireEvent.click(screen.getByText("aiChat.clearConversation"));
+    fireEvent.click(screen.getByRole("button", { name: "common.delete" }));
+
     expect(mockClearMessages).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   // S-F-16: clear button disabled while isClearPending
