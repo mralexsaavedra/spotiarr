@@ -1,5 +1,7 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 
+export const TERMINAL_TRACK_ERROR_CODES = new Set(["youtube_not_found"]);
+
 export class Track {
   constructor(private readonly props: ITrack) {}
 
@@ -27,6 +29,13 @@ export class Track {
   get trackUrl() {
     return this.props.trackUrl;
   }
+  get searchAttempts(): number {
+    return this.props.searchAttempts ?? 0;
+  }
+
+  isTerminalError(): boolean {
+    return !!this.props.error && TERMINAL_TRACK_ERROR_CODES.has(this.props.error);
+  }
 
   markAsDownloading() {
     if (this.props.status === TrackStatusEnum.Completed) {
@@ -53,10 +62,12 @@ export class Track {
   markAsQueued(youtubeUrl: string) {
     this.props.youtubeUrl = youtubeUrl;
     this.props.status = TrackStatusEnum.Queued;
+    this.props.searchAttempts = 0;
   }
 
   markAsSearching() {
     this.props.status = TrackStatusEnum.Searching;
+    this.props.searchAttempts = (this.props.searchAttempts ?? 0) + 1;
   }
 
   markAsNew() {
