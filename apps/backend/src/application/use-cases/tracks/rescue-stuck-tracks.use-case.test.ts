@@ -69,6 +69,21 @@ describe("RescueStuckTracksUseCase", () => {
     expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-new");
   });
 
+  it("re-enqueues every stuck track across mixed statuses", async () => {
+    trackRepository.findAllByStatuses.mockResolvedValue([
+      makeTrack({ id: "track-new", status: TrackStatusEnum.New }),
+      makeTrack({ id: "track-searching", status: TrackStatusEnum.Searching }),
+      makeTrack({ id: "track-queued", status: TrackStatusEnum.Queued }),
+    ]);
+
+    await useCase.execute();
+
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledTimes(3);
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-new");
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-searching");
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-queued");
+  });
+
   it("does nothing when there are no stuck tracks", async () => {
     trackRepository.findAllByStatuses.mockResolvedValue([]);
 
