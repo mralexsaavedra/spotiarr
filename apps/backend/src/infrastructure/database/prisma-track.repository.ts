@@ -1,13 +1,19 @@
-import type { Prisma, Track as DbTrack } from "@prisma/client";
+import type { PrismaClient, Prisma, Track as DbTrack } from "@prisma/client";
 import type { ITrack, TrackStatusEnum } from "@spotiarr/shared";
 import { Track } from "@/domain/entities/track.entity";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
-import { prisma } from "../setup/prisma";
+import { prisma as defaultPrisma } from "../setup/prisma";
 import { jsonToTrackArtists, toTrackStatus, trackArtistsToJson } from "./types";
 
 export class PrismaTrackRepository implements TrackRepository {
+  private readonly prisma: PrismaClient;
+
+  constructor(prismaClient?: PrismaClient) {
+    this.prisma = prismaClient ?? defaultPrisma;
+  }
+
   async findAll(where?: Partial<ITrack>): Promise<Track[]> {
-    const tracks = await prisma.track.findMany({
+    const tracks = await this.prisma.track.findMany({
       where: where as Prisma.TrackWhereInput | undefined,
       include: { playlist: true },
     });
@@ -15,7 +21,7 @@ export class PrismaTrackRepository implements TrackRepository {
   }
 
   async findAllByPlaylist(playlistId: string): Promise<Track[]> {
-    const tracks = await prisma.track.findMany({
+    const tracks = await this.prisma.track.findMany({
       where: { playlistId },
       include: { playlist: true },
       orderBy: { playlistIndex: "asc" },
@@ -24,12 +30,12 @@ export class PrismaTrackRepository implements TrackRepository {
   }
 
   async findOne(id: string): Promise<Track | null> {
-    const track = await prisma.track.findUnique({ where: { id } });
+    const track = await this.prisma.track.findUnique({ where: { id } });
     return track ? this.mapToTrack(track) : null;
   }
 
   async findOneWithPlaylist(id: string): Promise<Track | null> {
-    const track = await prisma.track.findUnique({
+    const track = await this.prisma.track.findUnique({
       where: { id },
       include: { playlist: true },
     });
@@ -39,7 +45,7 @@ export class PrismaTrackRepository implements TrackRepository {
   async save(track: ITrack | Track): Promise<Track> {
     const data = track instanceof Track ? track.toPrimitive() : track;
 
-    const created = await prisma.track.create({
+    const created = await this.prisma.track.create({
       data: {
         id: data.id,
         name: data.name,
@@ -59,6 +65,7 @@ export class PrismaTrackRepository implements TrackRepository {
         error: data.error,
         createdAt: data.createdAt ? BigInt(data.createdAt) : BigInt(Date.now()),
         completedAt: data.completedAt ? BigInt(data.completedAt) : null,
+        lastActivityAt: BigInt(Date.now()),
         playlistId: data.playlistId,
         playlistIndex: data.playlistIndex,
       },
@@ -69,7 +76,7 @@ export class PrismaTrackRepository implements TrackRepository {
   async update(id: string, track: Partial<ITrack> | Track): Promise<void> {
     const data = track instanceof Track ? track.toPrimitive() : track;
 
-    await prisma.track.update({
+    await this.prisma.track.update({
       where: { id },
       data: {
         name: data.name,
@@ -88,24 +95,25 @@ export class PrismaTrackRepository implements TrackRepository {
         status: data.status,
         error: data.error,
         completedAt: data.completedAt ? BigInt(data.completedAt) : undefined,
+        lastActivityAt: BigInt(Date.now()),
         playlistIndex: data.playlistIndex ?? undefined,
       },
     });
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.track.delete({ where: { id } });
+    await this.prisma.track.delete({ where: { id } });
   }
 
   async deleteAll(ids: string[]): Promise<void> {
-    await prisma.track.deleteMany({ where: { id: { in: ids } } });
+    await this.prisma.track.deleteMany({ where: { id: { in: ids } } });
   }
 
-  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<Track[]> {
-    const tracks = await prisma.track.findMany({
+  async findStuckTracks(statuses: TrackStatusEnum[], activeBefore: number): Promise<Track[]> {
+    const tracks = await this.prisma.track.findMany({
       where: {
         status: { in: statuses },
-        createdAt: { lt: BigInt(createdBefore) },
+        lastActivityAt: { lt: BigInt(activeBefore) },
       },
       include: { playlist: true },
     });
@@ -113,7 +121,7 @@ export class PrismaTrackRepository implements TrackRepository {
   }
 
   async findAllByStatuses(statuses: TrackStatusEnum[]): Promise<Track[]> {
-    const tracks = await prisma.track.findMany({
+    const tracks = await this.prisma.track.findMany({
       where: {
         status: { in: statuses },
       },

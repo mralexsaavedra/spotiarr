@@ -18,7 +18,7 @@ export interface TrackRepository {
 
   deleteAll(ids: string[]): Promise<void>;
 
-  findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<Track[]>;
+  findStuckTracks(statuses: TrackStatusEnum[], activeBefore: number): Promise<Track[]>;
 
   findAllByStatuses(statuses: TrackStatusEnum[]): Promise<Track[]>;
 }

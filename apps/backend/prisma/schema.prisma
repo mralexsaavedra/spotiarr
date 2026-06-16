@@ -46,6 +46,7 @@ model Track {
   error                 String?
   createdAt             BigInt  @default(0)
   completedAt           BigInt?
+  lastActivityAt        BigInt  @default(0)
   playlistIndex         Int?
 
   playlistId            String?
