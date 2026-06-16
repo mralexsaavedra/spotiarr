@@ -52,8 +52,8 @@ export class GetTracksUseCase {
     return track ? track.toPrimitive() : null;
   }
 
-  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
-    const tracks = await this.trackRepository.findStuckTracks(statuses, createdBefore);
+  async findStuckTracks(statuses: TrackStatusEnum[], activeBefore: number): Promise<ITrack[]> {
+    const tracks = await this.trackRepository.findStuckTracks(statuses, activeBefore);
     return tracks.map((t) => t.toPrimitive());
   }
 }

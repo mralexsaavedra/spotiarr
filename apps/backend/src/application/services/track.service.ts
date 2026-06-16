@@ -73,7 +73,7 @@ export class TrackService {
     return this.downloadTrackUseCase.execute(track);
   }
 
-  async findStuckTracks(statuses: TrackStatusEnum[], createdBefore: number): Promise<ITrack[]> {
-    return this.getTracksUseCase.findStuckTracks(statuses, createdBefore);
+  async findStuckTracks(statuses: TrackStatusEnum[], activeBefore: number): Promise<ITrack[]> {
+    return this.getTracksUseCase.findStuckTracks(statuses, activeBefore);
   }
 }

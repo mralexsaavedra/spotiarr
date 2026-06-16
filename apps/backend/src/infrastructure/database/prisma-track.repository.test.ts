@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@prisma/client";
 import { TrackStatusEnum } from "@spotiarr/shared";
 import { describe, expect, it, vi } from "vitest";
 import { PrismaTrackRepository } from "./prisma-track.repository";
@@ -31,22 +32,21 @@ function makeDbTrack(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function makePrisma(track: Record<string, ReturnType<typeof vi.fn>>): PrismaClient {
+  return { track } as unknown as PrismaClient;
+}
+
 describe("PrismaTrackRepository.findStuckTracks", () => {
   describe("R1-S1: recently-active row is NOT returned even if createdAt is old", () => {
     it("excludes a track whose lastActivityAt is within the timeout window", async () => {
       const now = Date.now();
       const threshold = now - 10 * 60 * 1000;
 
-      const prisma = {
-        track: {
-          findMany: vi.fn().mockResolvedValue([]),
-        },
-      } as unknown as { track: { findMany: ReturnType<typeof vi.fn> } };
-
-      const repo = new PrismaTrackRepository(prisma);
+      const findMany = vi.fn().mockResolvedValue([]);
+      const repo = new PrismaTrackRepository(makePrisma({ findMany }));
       await repo.findStuckTracks([TrackStatusEnum.Downloading], threshold);
 
-      expect(prisma.track.findMany).toHaveBeenCalledWith(
+      expect(findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             lastActivityAt: expect.objectContaining({ lt: BigInt(threshold) }),
@@ -54,7 +54,7 @@ describe("PrismaTrackRepository.findStuckTracks", () => {
         }),
       );
 
-      expect(prisma.track.findMany).toHaveBeenCalledWith(
+      expect(findMany).toHaveBeenCalledWith(
         expect.not.objectContaining({
           where: expect.objectContaining({
             createdAt: expect.anything(),
@@ -76,13 +76,8 @@ describe("PrismaTrackRepository.findStuckTracks", () => {
         lastActivityAt: BigInt(now - 20 * 60 * 1000),
       });
 
-      const prisma = {
-        track: {
-          findMany: vi.fn().mockResolvedValue([staleTrack]),
-        },
-      } as unknown as { track: { findMany: ReturnType<typeof vi.fn> } };
-
-      const repo = new PrismaTrackRepository(prisma);
+      const findMany = vi.fn().mockResolvedValue([staleTrack]);
+      const repo = new PrismaTrackRepository(makePrisma({ findMany }));
       const result = await repo.findStuckTracks([TrackStatusEnum.Searching], threshold);
 
       expect(result).toHaveLength(1);
@@ -95,16 +90,11 @@ describe("PrismaTrackRepository.findStuckTracks", () => {
       const now = Date.now();
       const threshold = now - 10 * 60 * 1000;
 
-      const prisma = {
-        track: {
-          findMany: vi.fn().mockResolvedValue([]),
-        },
-      } as unknown as { track: { findMany: ReturnType<typeof vi.fn> } };
-
-      const repo = new PrismaTrackRepository(prisma);
+      const findMany = vi.fn().mockResolvedValue([]);
+      const repo = new PrismaTrackRepository(makePrisma({ findMany }));
       const result = await repo.findStuckTracks([TrackStatusEnum.New], threshold);
 
-      expect(prisma.track.findMany).toHaveBeenCalledWith(
+      expect(findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             lastActivityAt: { lt: BigInt(threshold) },
@@ -120,26 +110,21 @@ describe("PrismaTrackRepository.save", () => {
   it("stamps lastActivityAt with current epoch-ms on create", async () => {
     const before = Date.now();
 
-    const prisma = {
-      track: {
-        create: vi.fn().mockImplementation(({ data }: { data: Record<string, unknown> }) =>
-          Promise.resolve({
-            ...makeDbTrack(),
-            ...data,
-            playlist: null,
-          }),
-        ),
-      },
-    } as unknown as { track: { create: ReturnType<typeof vi.fn> } };
-
-    const repo = new PrismaTrackRepository(prisma);
+    const create = vi.fn().mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve({
+        ...makeDbTrack(),
+        ...data,
+        playlist: null,
+      }),
+    );
+    const repo = new PrismaTrackRepository(makePrisma({ create }));
     await repo.save({
       name: "Song",
       artist: "Artist",
       status: TrackStatusEnum.New,
     });
 
-    const createArg = (prisma.track.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const createArg = create.mock.calls[0][0];
     const stamped = createArg.data.lastActivityAt;
     expect(typeof stamped).toBe("bigint");
     expect(Number(stamped)).toBeGreaterThanOrEqual(before);
@@ -150,16 +135,11 @@ describe("PrismaTrackRepository.update", () => {
   it("stamps lastActivityAt with current epoch-ms on update", async () => {
     const before = Date.now();
 
-    const prisma = {
-      track: {
-        update: vi.fn().mockResolvedValue(undefined),
-      },
-    } as unknown as { track: { update: ReturnType<typeof vi.fn> } };
-
-    const repo = new PrismaTrackRepository(prisma);
+    const update = vi.fn().mockResolvedValue(undefined);
+    const repo = new PrismaTrackRepository(makePrisma({ update }));
     await repo.update("track-1", { status: TrackStatusEnum.Downloading });
 
-    const updateArg = (prisma.track.update as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const updateArg = update.mock.calls[0][0];
     const stamped = updateArg.data.lastActivityAt;
     expect(typeof stamped).toBe("bigint");
     expect(Number(stamped)).toBeGreaterThanOrEqual(before);
