@@ -64,6 +64,9 @@ describe("RecoverErroredTracksUseCase", () => {
     await useCase.execute();
 
     expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-synthetic");
+    // Contract guard: the drain query must be by Error status only, with no
+    // playlist-type/subscription filter — that is what makes recovery global.
+    expect(trackRepository.findAllByStatuses).toHaveBeenCalledWith([TrackStatusEnum.Error]);
   });
 
   it("R5-S2: re-enqueues a track from an Album-type playlist", async () => {
