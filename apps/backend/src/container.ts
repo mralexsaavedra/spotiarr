@@ -9,6 +9,9 @@ import { SettingsService } from "./application/services/settings.service";
 import { SpotifyService } from "./application/services/spotify.service";
 import { TrackPostProcessingService } from "./application/services/track-post-processing.service";
 import { TrackService } from "./application/services/track.service";
+import { AppendChatMessageUseCase } from "./application/use-cases/ai/append-chat-message.use-case";
+import { ClearChatMessagesUseCase } from "./application/use-cases/ai/clear-chat-messages.use-case";
+import { GetChatMessagesUseCase } from "./application/use-cases/ai/get-chat-messages.use-case";
 import { GetAlbumTracksUseCase } from "./application/use-cases/artists/get-album-tracks.use-case";
 import { GetArtistAlbumsUseCase } from "./application/use-cases/artists/get-artist-albums.use-case";
 import { GetArtistDetailUseCase } from "./application/use-cases/artists/get-artist-detail.use-case";
@@ -50,6 +53,7 @@ import { ExternalUrlCacheRepository } from "./infrastructure/database/external-u
 import { FeedCacheEvictionRepository } from "./infrastructure/database/feed-cache-eviction.repository";
 import { FeedSyncStateRepository } from "./infrastructure/database/feed-sync-state.repository";
 import { FollowedArtistRepository } from "./infrastructure/database/followed-artist.repository";
+import { PrismaAiChatMessageRepository } from "./infrastructure/database/prisma-ai-chat-message.repository";
 import { PrismaHistoryRepository } from "./infrastructure/database/prisma-history.repository";
 import { PrismaPlaylistRepository } from "./infrastructure/database/prisma-playlist.repository";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
@@ -127,6 +131,7 @@ export function createContainer(env: Env) {
   const playlistRepository = new PrismaPlaylistRepository();
   const trackRepository = new PrismaTrackRepository();
   const historyRepository = new PrismaHistoryRepository();
+  const aiChatMessageRepository = new PrismaAiChatMessageRepository();
   const settingsRepository = new PrismaSettingsRepository();
   const followedArtistRepository = new FollowedArtistRepository(prisma);
   const artistAlbumCacheRepository = new ArtistAlbumCacheRepository(prisma);
@@ -600,9 +605,16 @@ export function createContainer(env: Env) {
   const searchController = new SearchController(catalogSearchPort);
   const settingsController = new SettingsController(getSettingsUseCase, updateSettingUseCase);
 
+  const appendChatMessageUseCase = new AppendChatMessageUseCase(aiChatMessageRepository);
+  const getChatMessagesUseCase = new GetChatMessagesUseCase(aiChatMessageRepository);
+  const clearChatMessagesUseCase = new ClearChatMessagesUseCase(aiChatMessageRepository);
+
   const aiPlaylistQueueService = new BullMqAiPlaylistQueueService();
-  const aiChatController = new AiChatController(aiPlaylistQueueService, (overrides) =>
-    listAiModels(settingsService, overrides),
+  const aiChatController = new AiChatController(
+    aiPlaylistQueueService,
+    (overrides) => listAiModels(settingsService, overrides),
+    getChatMessagesUseCase,
+    clearChatMessagesUseCase,
   );
 
   const historyUseCases = new HistoryUseCases({ repository: historyRepository });
@@ -682,6 +694,9 @@ export function createContainer(env: Env) {
     processArtworkBackfillBatchUseCase,
     aiPlaylistQueueService,
     aiChatController,
+    appendChatMessageUseCase,
+    getChatMessagesUseCase,
+    clearChatMessagesUseCase,
     spotifyUrlLookupClient,
     playlistRepository,
   };

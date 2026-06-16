@@ -183,3 +183,14 @@ model PlaylistCache {
 
   @@index([expiresAt])
 }
+
+model AiChatMessage {
+  id        String  @id @default(uuid())
+  role      String
+  content   String
+  playlistId String?
+  errorCode  String?
+  createdAt  BigInt  @default(0)
+
+  @@index([createdAt])
+}

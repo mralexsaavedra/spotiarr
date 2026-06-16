@@ -238,7 +238,7 @@ SpotiArr no es solo un descargador bajo demanda, es un sistema autónomo.
 2.  **Limpieza de Procesos Atascados:**
     - Un job vigila descargas que lleven demasiado tiempo en estado "Downloading" (zombies) y las marca como error para permitir reintentos, evitando bloqueos eternos.
 3.  **Generación de Playlist con IA (bajo demanda):**
-    - Disparado desde el AI Chat, no es un cron job. `ai-playlist.worker.ts` ejecuta: generación LLM → resolución Spotify → descarga → notificación SSE. El progreso se reporta en tiempo real vía `AiPlaylistProgressEvent`.
+    - Disparado desde el AI Chat, no es un cron job. `ai-playlist.worker.ts` ejecuta: generación LLM → resolución Spotify → descarga → notificación SSE. El progreso se reporta en tiempo real vía `AiPlaylistProgressEvent`. La transcripción del chat se persiste en SQLite (`AiChatMessage`) y se expone mediante `GET /api/ai/chat/messages` y `DELETE /api/ai/chat/messages`; el prompt del usuario se guarda al encolar la solicitud, y el resultado del asistente (enlace a la playlist o `errorCode`) se guarda al completar o fallar la generación (best-effort, nunca bloquea la generación).
 
 ## 8. Seguridad y Validación
 

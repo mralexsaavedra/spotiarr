@@ -448,6 +448,15 @@
       "repeatOne": "Repetir una"
     }
   },
+  "aiChat": {
+    "emptyState": "Aún no hay conversación. Pídeme que genere una lista.",
+    "userPrompt": "{{prompt}}",
+    "assistantDone": "Lista creada con {{count}} pistas.",
+    "assistantError": "Generación fallida: {{code}}",
+    "clearConversation": "Borrar conversación",
+    "clearConfirm": "Esto eliminará permanentemente el historial. ¿Continuar?",
+    "playlistGone": "Lista ya no existe"
+  },
   "ai": {
     "title": "Chat con IA",
     "subtitle": "Describe una lista con tus palabras y deja que la IA la genere desde tu biblioteca.",

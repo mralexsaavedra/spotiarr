@@ -656,6 +656,23 @@ export async function installAppShellMocks(
     });
   }
 
+  // AI chat transcript: the Chat view loads history on mount (GET) and can
+  // clear it (DELETE). Default to an empty thread so every test is covered.
+  await page.route("**/api/ai/chat/messages", async (route) => {
+    if (route.request().method() === "DELETE") {
+      await fulfillJson(route, { data: { deleted: 0 } });
+      return;
+    }
+    await fulfillJson(route, { data: { messages: [] } });
+  });
+
+  // Chat message bubbles resolve playlist links via the playlists list query.
+  // Default to an empty list; tests that need real playlists register their own
+  // route afterwards (last route wins in Playwright).
+  await page.route("**/api/playlist", async (route) => {
+    await fulfillJson(route, { data: [] });
+  });
+
   return {
     async assertNoUnhandledRequests(timeoutMs = 250): Promise<void> {
       if (unhandledRequestMessage) {

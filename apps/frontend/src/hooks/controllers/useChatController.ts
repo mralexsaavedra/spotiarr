@@ -1,8 +1,14 @@
-import { type AiPlaylistErrorCode, type AiPlaylistStage } from "@spotiarr/shared";
+import {
+  type AiChatMessageDto,
+  type AiPlaylistErrorCode,
+  type AiPlaylistStage,
+} from "@spotiarr/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { aiProgressBus } from "@/lib/aiProgressBus";
+import { useClearChatMessagesMutation } from "../mutations/useClearChatMessagesMutation";
 import { useGenerateAiPlaylistMutation } from "../mutations/useGenerateAiPlaylistMutation";
+import { useChatMessagesQuery } from "../queries/useChatMessagesQuery";
 import { queryKeys } from "../queryKeys";
 
 interface ChatError {
@@ -21,10 +27,25 @@ export const useChatController = () => {
   const [playlistName, setPlaylistName] = useState<string | undefined>(undefined);
   const [error, setError] = useState<ChatError | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
+  const [optimisticMessages, setOptimisticMessages] = useState<AiChatMessageDto[]>([]);
+  // dataUpdatedAt captured when the optimistic entry was added (see reconciliation effect).
+  const optimisticAddedAtQueryTimestamp = useRef<number>(0);
 
   const mutation = useGenerateAiPlaylistMutation();
+  const clearChatMessagesMutation = useClearChatMessagesMutation();
   const queryClient = useQueryClient();
+  const { data: serverMessages = [], dataUpdatedAt } = useChatMessagesQuery();
+
+  const displayMessages: AiChatMessageDto[] = [...serverMessages, ...optimisticMessages];
+
+  // Drop optimistic entries once a server refetch has completed after they were added.
+  // Keyed on dataUpdatedAt (client-side fetch clock) to avoid comparing client/server clocks.
+  useEffect(() => {
+    if (optimisticMessages.length === 0) return;
+    if (dataUpdatedAt > optimisticAddedAtQueryTimestamp.current) {
+      setOptimisticMessages([]);
+    }
+  }, [dataUpdatedAt, optimisticMessages.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handler = (event: {
@@ -49,12 +70,16 @@ export const useChatController = () => {
         setPlaylistName(event.playlistName);
         setIsGenerating(false);
         void queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.aiChatMessages });
+        setOptimisticMessages([]);
       }
 
       if (event.stage === "error") {
         setError(event.error ?? null);
         setIsGenerating(false);
         void queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.aiChatMessages });
+        setOptimisticMessages([]);
       }
     };
 
@@ -67,6 +92,7 @@ export const useChatController = () => {
   const handleSubmit = async () => {
     const text = prompt.trim();
     if (!text) return;
+    if (isGenerating) return; // guard: don't start a second generation / overwrite optimistic entry
 
     setError(null);
     setStage(null);
@@ -74,13 +100,38 @@ export const useChatController = () => {
     setDroppedTitles([]);
     setPlaylistId(undefined);
     setPlaylistName(undefined);
-
-    setMessages((prev) => [...prev, { role: "user", text }]);
     setPrompt("");
 
-    const result = await mutation.mutateAsync(text);
-    setJobId(result.jobId);
-    setIsGenerating(true);
+    optimisticAddedAtQueryTimestamp.current = dataUpdatedAt;
+
+    // Unique id so re-submitting an identical prompt yields a distinct bubble.
+    const optimisticEntry: AiChatMessageDto = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: { key: "aiChat.userPrompt", params: { prompt: text } },
+      playlistId: null,
+      errorCode: null,
+      createdAt: Date.now(),
+    };
+    setOptimisticMessages([optimisticEntry]);
+
+    try {
+      const result = await mutation.mutateAsync(text);
+      setJobId(result.jobId);
+      setIsGenerating(true);
+    } catch (e) {
+      // stage="error" so Chat.tsx renders the error block (gated on stage === "error").
+      setOptimisticMessages([]);
+      setStage("error");
+      setError({
+        code: "provider-unreachable",
+        message: e instanceof Error ? e.message : String(e),
+      });
+    }
+  };
+
+  const clearMessages = () => {
+    clearChatMessagesMutation.mutate();
   };
 
   return {
@@ -94,7 +145,9 @@ export const useChatController = () => {
     playlistName,
     error,
     isGenerating,
-    messages,
+    displayMessages,
     handleSubmit,
+    clearMessages,
+    isClearPending: clearChatMessagesMutation.isPending,
   };
 };
