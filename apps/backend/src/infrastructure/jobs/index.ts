@@ -44,7 +44,12 @@ export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
     }
 
     const stuckTracks = await trackService.findStuckTracks(
-      [TrackStatusEnum.Queued, TrackStatusEnum.Downloading, TrackStatusEnum.Searching],
+      [
+        TrackStatusEnum.New,
+        TrackStatusEnum.Queued,
+        TrackStatusEnum.Downloading,
+        TrackStatusEnum.Searching,
+      ],
       now - safeTimeout * 60 * 1000,
     );
 
