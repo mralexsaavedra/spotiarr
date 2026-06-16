@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.19.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.18.0...v1.19.0) (2026-06-16)
+
+### Features
+
+- **Configurable recovery tuning**: Two new Settings let you tune automatic recovery — "Maximum search attempts" (how many times a track is re-searched on YouTube before it is marked permanently failed) and "Error recovery interval" (how often errored tracks across all playlists are retried). ([#178](https://github.com/mralexsaavedra/spotiarr/pull/178), [#179](https://github.com/mralexsaavedra/spotiarr/pull/179), [#181](https://github.com/mralexsaavedra/spotiarr/pull/181))
+
+### Bug Fixes
+
+- **Subscribed playlist never downloaded newly-added songs**: After subscribing to a playlist, songs added later on Spotify were detected but never downloaded — the playlist sat below 100% forever. The periodic re-sync was aborting on an internal database error before it could create the new tracks, and the error was swallowed silently. Re-sync now persists correctly and downloads songs added after you subscribe. ([#193](https://github.com/mralexsaavedra/spotiarr/pull/193))
+- **Tracks could get stuck and never recover (recovery redesign)**: Tracks stranded mid-search, mid-queue or mid-download now self-heal; a track that keeps failing to be found on YouTube stops being retried forever (bounded attempts) instead of hammering YouTube; errored tracks now recover automatically on every kind of playlist, not only subscribed Spotify ones; and large or slow libraries no longer get healthy in-progress downloads wrongly flagged as "stuck". ([#175](https://github.com/mralexsaavedra/spotiarr/pull/175), [#176](https://github.com/mralexsaavedra/spotiarr/pull/176), [#177](https://github.com/mralexsaavedra/spotiarr/pull/177), [#178](https://github.com/mralexsaavedra/spotiarr/pull/178), [#182](https://github.com/mralexsaavedra/spotiarr/pull/182))
+- **Deleted files are re-downloaded**: If a completed track's audio file is removed from disk (manual cleanup, volume remount, permission change), the library scan now detects it is missing and re-downloads it automatically — including tracks stored under the Playlists folder. ([#180](https://github.com/mralexsaavedra/spotiarr/pull/180))
+- **Recovery features now actually run**: Two recovery settings were read at runtime without being registered, which on a fresh install threw an error that silently disabled the new recovery jobs and could push tracks into an error state. They are now registered with sensible defaults and hardened so a missing setting can never disable recovery. ([#181](https://github.com/mralexsaavedra/spotiarr/pull/181), [#195](https://github.com/mralexsaavedra/spotiarr/pull/195))
+
 ## [1.18.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.17.1...v1.18.0) (2026-06-16)
 
 ### Features
