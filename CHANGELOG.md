@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.18.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.17.1...v1.18.0) (2026-06-16)
+
+### Features
+
+- **AI Chat — generate playlists in natural language**: A new AI Chat view lets you describe a playlist in your own words; an LLM suggests real tracks, which SpotiArr resolves and downloads automatically, with live progress while it works. It supports OpenAI-compatible providers, NVIDIA NIM, and local engines (Ollama, LM Studio), and you can browse and pick available models directly from Settings. ([#144](https://github.com/mralexsaavedra/spotiarr/pull/144), [#165](https://github.com/mralexsaavedra/spotiarr/pull/165), [#166](https://github.com/mralexsaavedra/spotiarr/pull/166))
+- **Persistent chat history**: Your AI Chat conversation is now saved on the server in a single shared thread, so it survives page reloads and new sessions. A "Clear conversation" action lets you wipe the history when you want a fresh start. ([#168](https://github.com/mralexsaavedra/spotiarr/pull/168), [#171](https://github.com/mralexsaavedra/spotiarr/pull/171))
+
+### Performance
+
+- **AI Chat**: Message bubbles are memoized so typing in the prompt box no longer re-renders the whole transcript — the view stays responsive as conversations grow. ([#173](https://github.com/mralexsaavedra/spotiarr/pull/173))
+
+### Bug Fixes
+
+- **AI Chat**: Polished the chat UI before launch — corrected the subtitle that wrongly implied playlists were built from your existing library (tracks are found and downloaded), fixed a missing space before the "View playlist" link, and replaced the browser's native delete confirmation with a proper in-app dialog. ([#173](https://github.com/mralexsaavedra/spotiarr/pull/173))
+
 ## [1.17.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.17.0...v1.17.1) (2026-06-11)
 
 ### Bug Fixes
