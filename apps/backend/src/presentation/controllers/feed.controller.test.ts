@@ -88,4 +88,42 @@ describe("FeedController", () => {
       expect(res.json).toHaveBeenCalledWith([]);
     });
   });
+
+  describe("getArtists", () => {
+    it("returns cached artists from the repository when it has entries", async () => {
+      const cachedArtists = [makeFollowedArtist({ id: "a-cached" })];
+      vi.mocked(mocks.feedRepository.getArtists).mockResolvedValue(cachedArtists);
+
+      const res = mockRes();
+      await controller.getArtists(mockReq(), res);
+
+      expect(mocks.feedRepository.getArtists).toHaveBeenCalledTimes(1);
+      expect(mocks.spotifyUserLibraryService.getFollowedArtists).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(cachedArtists);
+    });
+
+    it("falls back to Spotify when repository returns an empty array", async () => {
+      vi.mocked(mocks.feedRepository.getArtists).mockResolvedValue([]);
+      const spotifyArtists = [makeFollowedArtist({ id: "a-spotify" })];
+      vi.mocked(mocks.spotifyUserLibraryService.getFollowedArtists).mockResolvedValue(
+        spotifyArtists,
+      );
+
+      const res = mockRes();
+      await controller.getArtists(mockReq(), res);
+
+      expect(mocks.spotifyUserLibraryService.getFollowedArtists).toHaveBeenCalledTimes(1);
+      expect(res.json).toHaveBeenCalledWith(spotifyArtists);
+    });
+
+    it("responds with an empty array when both repository and Spotify return nothing", async () => {
+      vi.mocked(mocks.feedRepository.getArtists).mockResolvedValue([]);
+      vi.mocked(mocks.spotifyUserLibraryService.getFollowedArtists).mockResolvedValue([]);
+
+      const res = mockRes();
+      await controller.getArtists(mockReq(), res);
+
+      expect(res.json).toHaveBeenCalledWith([]);
+    });
+  });
 });

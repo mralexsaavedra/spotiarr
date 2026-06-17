@@ -242,3 +242,172 @@ describe("AuthController.session", () => {
     expect(res.json).toHaveBeenCalledWith({ tokenRequired: true });
   });
 });
+
+// ─── login ────────────────────────────────────────────────────────────────────
+
+describe("AuthController.login", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("redirects to the Spotify authorization URL", async () => {
+    const controller = makeController();
+    const req = {} as Request;
+    const res = mockRes();
+
+    await controller.login(req, res);
+
+    expect(res.redirect).toHaveBeenCalledTimes(1);
+    const redirectUrl = (res.redirect as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
+    expect(redirectUrl).toContain("https://accounts.spotify.com/authorize");
+    expect(redirectUrl).toContain("client_id=client-id");
+    expect(redirectUrl).toContain("response_type=code");
+  });
+});
+
+// ─── callback ─────────────────────────────────────────────────────────────────
+
+describe("AuthController.callback", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 400 when no code is in the query string", async () => {
+    const controller = makeController();
+    const req = { query: {} } as unknown as Request;
+    const res = mockRes();
+
+    await controller.callback(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: "missing_code" }));
+  });
+
+  it("exchanges the code and redirects to / on success", async () => {
+    const spotifyAuth = makeSpotifyAuthService();
+    const controller = new AuthController(
+      spotifyAuth,
+      makeSettingsService(),
+      "client-id",
+      "http://localhost/callback",
+      VALID_TOKEN,
+      SESSION_TTL_HOURS,
+    );
+    const req = { query: { code: "spotify-auth-code" } } as unknown as Request;
+    const res = mockRes();
+
+    await controller.callback(req, res);
+
+    expect(spotifyAuth.exchangeCodeForToken).toHaveBeenCalledWith("spotify-auth-code");
+    expect(res.redirect).toHaveBeenCalledWith("/");
+  });
+});
+
+// ─── status ───────────────────────────────────────────────────────────────────
+
+describe("AuthController.status", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns authenticated:true when access token exists", async () => {
+    const settings = makeSettingsService();
+    vi.mocked(settings.getString)
+      .mockResolvedValueOnce("access-token-value")
+      .mockResolvedValueOnce("refresh-token-value");
+
+    const controller = new AuthController(
+      makeSpotifyAuthService(),
+      settings,
+      "client-id",
+      "http://localhost/callback",
+      VALID_TOKEN,
+      SESSION_TTL_HOURS,
+    );
+    const req = {} as Request;
+    const res = mockRes();
+
+    await controller.status(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      authenticated: true,
+      hasRefreshToken: true,
+    });
+  });
+
+  it("returns authenticated:false when access token is empty", async () => {
+    const settings = makeSettingsService();
+    vi.mocked(settings.getString).mockResolvedValueOnce("").mockResolvedValueOnce("");
+
+    const controller = new AuthController(
+      makeSpotifyAuthService(),
+      settings,
+      "client-id",
+      "http://localhost/callback",
+      VALID_TOKEN,
+      SESSION_TTL_HOURS,
+    );
+    const req = {} as Request;
+    const res = mockRes();
+
+    await controller.status(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      authenticated: false,
+      hasRefreshToken: false,
+    });
+  });
+
+  it("returns authenticated:false when settings service throws", async () => {
+    const settings = makeSettingsService();
+    vi.mocked(settings.getString).mockRejectedValue(new Error("settings unavailable"));
+
+    const controller = new AuthController(
+      makeSpotifyAuthService(),
+      settings,
+      "client-id",
+      "http://localhost/callback",
+      VALID_TOKEN,
+      SESSION_TTL_HOURS,
+    );
+    const req = {} as Request;
+    const res = mockRes();
+
+    await controller.status(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      authenticated: false,
+      hasRefreshToken: false,
+    });
+  });
+});
+
+// ─── logout ───────────────────────────────────────────────────────────────────
+
+describe("AuthController.logout", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("calls spotifyAuthService.logout and responds with success", async () => {
+    const spotifyAuth = makeSpotifyAuthService();
+    const controller = new AuthController(
+      spotifyAuth,
+      makeSettingsService(),
+      "client-id",
+      "http://localhost/callback",
+      VALID_TOKEN,
+      SESSION_TTL_HOURS,
+    );
+    const req = {} as Request;
+    const res = mockRes();
+
+    await controller.logout(req, res);
+
+    expect(spotifyAuth.logout).toHaveBeenCalledTimes(1);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: "Successfully logged out from Spotify",
+    });
+  });
+});
