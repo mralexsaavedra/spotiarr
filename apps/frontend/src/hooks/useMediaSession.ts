@@ -56,6 +56,7 @@ function applyPositionState(el: HTMLAudioElement): void {
 }
 
 function applyMetadata(currentItem: QueueItem | null): void {
+  if (!isMediaSessionSupported()) return;
   if (!currentItem) {
     navigator.mediaSession.metadata = null;
     return;

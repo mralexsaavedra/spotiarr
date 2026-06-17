@@ -144,7 +144,12 @@ export const usePlayerStore = create<PlayerState>()(
         if (shuffleMode) {
           if (shuffleOrderIndex >= shuffleOrder.length - 1) {
             if (repeatMode === "all") {
-              set({ shuffleOrderIndex: 0, currentIndex: shuffleOrder[0]!, currentTime: 0 });
+              set({
+                shuffleOrderIndex: 0,
+                currentIndex: shuffleOrder[0]!,
+                currentTime: 0,
+                isBuffering: false,
+              });
             } else {
               set({ isPlaying: false });
             }
@@ -155,18 +160,19 @@ export const usePlayerStore = create<PlayerState>()(
             shuffleOrderIndex: nextOrderIndex,
             currentIndex: shuffleOrder[nextOrderIndex]!,
             currentTime: 0,
+            isBuffering: false,
           });
           return;
         }
         if (currentIndex >= queue.length - 1) {
           if (repeatMode === "all") {
-            set({ currentIndex: 0, currentTime: 0 });
+            set({ currentIndex: 0, currentTime: 0, isBuffering: false });
           } else {
             set({ isPlaying: false });
           }
           return;
         }
-        set({ currentIndex: currentIndex + 1, currentTime: 0 });
+        set({ currentIndex: currentIndex + 1, currentTime: 0, isBuffering: false });
       }
 
       return {
@@ -185,6 +191,7 @@ export const usePlayerStore = create<PlayerState>()(
             currentTime: 0,
             error: null,
             consecutiveErrors: 0,
+            isBuffering: false,
           });
           if (get().shuffleMode && items.length > 0) {
             const order = shuffleIndices(items.length, startIndex);
@@ -229,6 +236,7 @@ export const usePlayerStore = create<PlayerState>()(
                 shuffleOrderIndex: nextOrderIndex,
                 currentIndex: shuffleOrder[nextOrderIndex]!,
                 currentTime: 0,
+                isBuffering: false,
               });
               return;
             }
@@ -238,16 +246,17 @@ export const usePlayerStore = create<PlayerState>()(
                 shuffleOrderIndex: nextOrderIndex,
                 currentIndex: shuffleOrder[nextOrderIndex]!,
                 currentTime: 0,
+                isBuffering: false,
               });
             }
             return;
           }
           if (currentIndex > 0) {
-            set({ currentIndex: currentIndex - 1, currentTime: 0 });
+            set({ currentIndex: currentIndex - 1, currentTime: 0, isBuffering: false });
             return;
           }
           if (repeatMode === "all") {
-            set({ currentIndex: queue.length - 1, currentTime: 0 });
+            set({ currentIndex: queue.length - 1, currentTime: 0, isBuffering: false });
           }
         },
 
@@ -370,6 +379,7 @@ export const usePlayerStore = create<PlayerState>()(
             currentTime: 0,
             error: null,
             consecutiveErrors: 0,
+            isBuffering: false,
           });
           if (_audioElement) _audioElement.currentTime = 0;
           if (shuffleMode) {

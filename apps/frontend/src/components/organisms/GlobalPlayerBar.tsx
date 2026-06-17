@@ -229,9 +229,15 @@ export const GlobalPlayerBar: FC = () => {
     if (!el || !currentItem) return;
     const startAt = usePlayerStore.getState().currentTime;
     if (startAt <= 0) return;
+    const restoreIndex = usePlayerStore.getState().currentIndex;
 
     const onFirstMetadata = () => {
       if (!seekRestoredRef.current) {
+        if (usePlayerStore.getState().currentIndex !== restoreIndex) {
+          seekRestoredRef.current = true;
+          el.removeEventListener("loadedmetadata", onFirstMetadata);
+          return;
+        }
         el.currentTime = startAt;
         seekRestoredRef.current = true;
       }
@@ -267,7 +273,7 @@ export const GlobalPlayerBar: FC = () => {
       if (playPromise && typeof playPromise.catch === "function") {
         void playPromise.catch((err: { name?: string } | null) => {
           if (err?.name === "NotAllowedError") {
-            usePlayerStore.setState({ isPlaying: false });
+            usePlayerStore.getState()._onPause();
           }
         });
       }

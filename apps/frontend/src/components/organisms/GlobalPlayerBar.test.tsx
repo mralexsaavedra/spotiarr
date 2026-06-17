@@ -1079,4 +1079,23 @@ describe("resume playback position on reload", () => {
 
     expect(audio.currentTime).toBe(0);
   });
+
+  it("does NOT seek when currentIndex changed before loadedmetadata fires", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a"), makeItem("b")],
+      currentIndex: 0,
+      currentTime: 42,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    usePlayerStore.setState({ currentIndex: 1 });
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+
+    expect(audio.currentTime).not.toBe(42);
+  });
 });

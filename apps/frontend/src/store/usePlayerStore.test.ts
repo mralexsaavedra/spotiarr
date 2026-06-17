@@ -391,11 +391,11 @@ describe("_onError", () => {
 });
 
 // ---------------------------------------------------------------------------
-// persist partialize: only volume, isMuted, shuffleMode, repeatMode survive
+// persist partialize: 9 approved keys survive (volume, isMuted, shuffleMode, repeatMode, queue, currentIndex, currentTime, shuffleOrder, shuffleOrderIndex)
 // ---------------------------------------------------------------------------
 
 describe("persist partialize", () => {
-  it("serializes volume, isMuted, shuffleMode, repeatMode", async () => {
+  it("serializes volume, isMuted, shuffleMode, repeatMode, queue, currentIndex, currentTime, shuffleOrder, shuffleOrderIndex", async () => {
     const mod = await import("./usePlayerStore");
     const partialize = mod.__partialize;
 
@@ -448,8 +448,8 @@ describe("persist partialize", () => {
 // __partialize allowlist regression (REQ-5)
 // ---------------------------------------------------------------------------
 
-describe("__partialize allowlist — persisted keys are exactly volume, isMuted, shuffleMode, repeatMode", () => {
-  it("result keys are exactly the 4 approved keys", async () => {
+describe("__partialize allowlist — persisted keys are exactly volume, isMuted, shuffleMode, repeatMode, queue, currentIndex, currentTime, shuffleOrder, shuffleOrderIndex", () => {
+  it("result keys are exactly the 9 approved keys", async () => {
     const { __partialize: p } = await import("./usePlayerStore");
     const fullState = {
       queue: [makeItem("a")],
@@ -1377,6 +1377,47 @@ describe("isBuffering", () => {
     } as unknown as Parameters<typeof p>[0];
     const result = p(fakeState);
     expect("isBuffering" in result).toBe(false);
+  });
+
+  it("next() resets isBuffering to false when advancing to a different track", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ isBuffering: true });
+
+    usePlayerStore.getState().next();
+
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("prev() resets isBuffering to false when changing track", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ isBuffering: true, currentTime: 0 });
+
+    usePlayerStore.getState().prev();
+
+    expect(usePlayerStore.getState().currentIndex).toBe(0);
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("playFromIndex() resets isBuffering to false", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ isBuffering: true });
+
+    usePlayerStore.getState().playFromIndex(2);
+
+    expect(usePlayerStore.getState().currentIndex).toBe(2);
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("playQueue() resets isBuffering to false when starting a new queue", () => {
+    usePlayerStore.setState({ isBuffering: true });
+
+    usePlayerStore.getState().playQueue([makeItem("a"), makeItem("b")], 0);
+
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
   });
 });
 

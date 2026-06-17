@@ -112,6 +112,7 @@ export const TransportControls: FC<TransportControlsProps> = ({
               : t("player.transport.play")
         }
         aria-pressed={isPlaying}
+        aria-busy={isBuffering || undefined}
         disabled={allDisabled}
         aria-disabled={allDisabled || undefined}
         onClick={onPlayPause}

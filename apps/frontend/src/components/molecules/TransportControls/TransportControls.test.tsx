@@ -154,4 +154,16 @@ describe("TransportControls", () => {
     render(<TransportControls {...defaultProps} isBuffering={false} isPlaying={false} />);
     expect(screen.getByRole("button", { name: "player.transport.play" })).not.toBeNull();
   });
+
+  it("isBuffering=true: play/pause button has aria-busy='true'", () => {
+    render(<TransportControls {...defaultProps} isBuffering={true} />);
+    const btn = screen.getByRole("button", { name: "player.transport.loading" });
+    expect(btn.getAttribute("aria-busy")).toBe("true");
+  });
+
+  it("isBuffering=false: play/pause button does not have aria-busy attribute", () => {
+    render(<TransportControls {...defaultProps} isBuffering={false} />);
+    const btn = screen.getByRole("button", { name: "player.transport.play" });
+    expect(btn.getAttribute("aria-busy")).toBeNull();
+  });
 });
