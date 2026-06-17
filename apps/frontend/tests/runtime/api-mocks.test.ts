@@ -48,14 +48,18 @@ const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 
 function createRouteRecorder() {
   const routes: RegisteredRoute[] = [];
+  const initScripts: unknown[] = [];
 
   const page = {
     route: async (pattern: RoutePattern, handler: RouteHandler) => {
       routes.push({ pattern, handler });
     },
+    addInitScript: async (script: unknown) => {
+      initScripts.push(script);
+    },
   } as unknown as Page;
 
-  return { page, routes };
+  return { page, routes, initScripts };
 }
 
 async function invokeJsonRoute(handler: RouteHandler, url: string) {
@@ -319,12 +323,13 @@ describe("api mock installers", () => {
   });
 
   test("installs a hermetic library audio route for playback-capable specs", async () => {
-    const { page, routes } = createRouteRecorder();
+    const { page, routes, initScripts } = createRouteRecorder();
 
     await installLibraryAudioMocks(page);
 
     expect(routes).toHaveLength(1);
     expect(String(routes[0]!.pattern)).toBe("**/api/library/audio**");
+    expect(initScripts).toHaveLength(1);
   });
 });
 

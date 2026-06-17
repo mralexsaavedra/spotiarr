@@ -134,11 +134,33 @@ const DEFAULT_TIMESTAMP = new Date(0).toISOString();
 
 const DEFAULT_COMPLETED_AT = 1_700_000_000_000;
 
-const SILENT_WAV_BUFFER = Buffer.from([
-  0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6d, 0x74, 0x20,
-  0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x44, 0xac, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00,
-  0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00,
-]);
+function buildSilentWav(seconds: number): Buffer {
+  const sampleRate = 44_100;
+  const channels = 1;
+  const bitsPerSample = 16;
+  const blockAlign = (channels * bitsPerSample) / 8;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = byteRate * seconds;
+
+  const header = Buffer.alloc(44);
+  header.write("RIFF", 0, "ascii");
+  header.writeUInt32LE(36 + dataSize, 4);
+  header.write("WAVE", 8, "ascii");
+  header.write("fmt ", 12, "ascii");
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(channels, 22);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(byteRate, 28);
+  header.writeUInt16LE(blockAlign, 32);
+  header.writeUInt16LE(bitsPerSample, 34);
+  header.write("data", 36, "ascii");
+  header.writeUInt32LE(dataSize, 40);
+
+  return Buffer.concat([header, Buffer.alloc(dataSize)]);
+}
+
+const SILENT_WAV_BUFFER = buildSilentWav(10);
 
 const SETTINGS_PAYLOAD = {
   data: [
@@ -516,6 +538,16 @@ export async function installTrackMocks(
 }
 
 export async function installLibraryAudioMocks(page: Page): Promise<void> {
+  // No-op playback so `ended` never fires: real playback auto-advances the queue
+  // non-deterministically and races "current track" assertions (#226).
+  await page.addInitScript(() => {
+    const proto = HTMLMediaElement.prototype;
+    proto.play = function play() {
+      return Promise.resolve();
+    };
+    proto.pause = function pause() {};
+  });
+
   await page.route(`**${buildApiUrl(`${ApiRoutes.LIBRARY}/audio**`)}`, async (route) => {
     await route.fulfill({
       status: 200,

@@ -108,9 +108,7 @@ test.describe("SESSION EXPIRED re-lock", () => {
     await installPlaylistMocks(page, { playlists: [] });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Library", exact: true })).toBeVisible({
-      timeout: 5_000,
-    });
+    await expect(page.getByRole("heading", { name: "Library", exact: true })).toBeVisible();
 
     loadPhase = "reload";
     await page.reload({ waitUntil: "domcontentloaded" });
