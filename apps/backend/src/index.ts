@@ -6,6 +6,7 @@ import { initializeContainer } from "./container";
 import { PrismaSettingsRepository } from "./infrastructure/database/prisma-settings.repository";
 import { configureSpotifyRateLimiters } from "./infrastructure/external/spotify-http.client";
 import { startScheduledJobs } from "./infrastructure/jobs";
+import { logger } from "./infrastructure/logging/logger";
 import { getEnv, validateEnvironment } from "./infrastructure/setup/environment";
 import { prisma } from "./infrastructure/setup/prisma";
 import { initializeQueues } from "./infrastructure/setup/queues";
@@ -26,7 +27,7 @@ validateEnvironment();
 const env = getEnv();
 
 if (env.SPOTIARR_TOKEN && !env.SPOTIARR_TRUST_PROXY) {
-  console.warn(
+  logger.warn(
     "⚠️  [Auth] SPOTIARR_TOKEN is set but SPOTIARR_TRUST_PROXY is not. " +
       "Behind a reverse proxy you MUST set SPOTIARR_TRUST_PROXY (e.g. 1), otherwise: " +
       "(a) the session cookie will NOT get the Secure flag (req.secure stays false), and " +
@@ -46,7 +47,7 @@ let artworkBackfillWorker: import("bullmq").Worker;
 let aiPlaylistWorker: import("bullmq").Worker;
 
 async function bootstrap() {
-  console.log("🚀 Starting SpotiArr Backend...\n");
+  logger.info("Starting SpotiArr Backend...");
 
   const container = initializeContainer(env);
 
@@ -54,7 +55,7 @@ async function bootstrap() {
   const downloadsPath = env.DOWNLOADS;
   if (!fs.existsSync(downloadsPath)) {
     fs.mkdirSync(downloadsPath, { recursive: true });
-    console.log(`✅ Created downloads directory: ${downloadsPath}`);
+    logger.info({ downloadsPath }, "Created downloads directory");
   }
 
   // Initialize BullMQ queues
@@ -70,7 +71,7 @@ async function bootstrap() {
   }
   container.appTokenCircuitBreaker.setOnOpenCallback(async (openUntilMs) => {
     await settingsRepo.set(CIRCUIT_BREAKER_OPEN_UNTIL_KEY, openUntilMs.toString()).catch((err) => {
-      console.error("[CircuitBreaker] Failed to persist open-until timestamp", err);
+      logger.error({ err }, "[CircuitBreaker] Failed to persist open-until timestamp");
     });
   });
 
@@ -100,12 +101,12 @@ async function bootstrap() {
     "settings:updated",
     async ({ key }: { key: string }) => {
       if (key === "YT_SEARCH_CONCURRENCY") {
-        console.log("♻️  Settings changed: Reloading search worker...");
+        logger.info("Settings changed: Reloading search worker...");
         await searchWorker.close();
         searchWorker = await createTrackSearchWorker();
       }
       if (key === "YT_DOWNLOADS_PER_MINUTE") {
-        console.log("♻️  Settings changed: Reloading download worker...");
+        logger.info("Settings changed: Reloading download worker...");
         await downloadWorker.close();
         downloadWorker = await createTrackDownloadWorker();
       }
@@ -124,14 +125,12 @@ async function bootstrap() {
 
   // Start server
   server.listen(PORT, "0.0.0.0", () => {
-    console.log(`\n✅ SpotiArr is running!`);
-    console.log(`-------------------------------------------`);
-    console.log(`🌍 Web UI:   http://localhost:${PORT}`);
-    console.log(`📡 API URL:  http://localhost:${PORT}/api`);
-    console.log(`-------------------------------------------`);
+    logger.info(`SpotiArr is running on port ${PORT}`);
+    logger.info(`Web UI:   http://localhost:${PORT}`);
+    logger.info(`API URL:  http://localhost:${PORT}/api`);
 
     if (env.NODE_ENV === "development") {
-      console.log(`💻 Dev Frontend: http://localhost:5173`);
+      logger.info(`Dev Frontend: http://localhost:5173`);
     }
   });
 
@@ -139,19 +138,19 @@ async function bootstrap() {
 }
 
 const gracefulShutdown = async (signal: string, server: http.Server) => {
-  console.log(`\n[${signal}] Signal received: closing application...`);
+  logger.info({ signal }, "Signal received: closing application...");
 
   try {
     // 1. Close HTTP Server — await draining in-flight requests before tearing
     // down queues/workers so SSE and HTTP responses are not cut off.
-    console.log("⏳ Closing HTTP server...");
+    logger.info("Closing HTTP server...");
     await new Promise<void>((resolve, reject) => {
       server.close((err) => (err ? reject(err) : resolve()));
     });
-    console.log("✅ HTTP server closed");
+    logger.info("HTTP server closed");
 
     // 2. Close Queues and Workers
-    console.log("⏳ Closing queues and workers...");
+    logger.info("Closing queues and workers...");
     await Promise.allSettled([
       getTrackDownloadQueue().close(),
       getTrackSearchQueue().close(),
@@ -166,17 +165,17 @@ const gracefulShutdown = async (signal: string, server: http.Server) => {
       artworkBackfillWorker?.close(),
       aiPlaylistWorker?.close(),
     ]);
-    console.log("✅ Queues and workers closed");
+    logger.info("Queues and workers closed");
 
     // 3. Disconnect Database
-    console.log("⏳ Disconnecting database...");
+    logger.info("Disconnecting database...");
     await prisma.$disconnect();
-    console.log("✅ Database disconnected");
+    logger.info("Database disconnected");
 
-    console.log("👋 Graceful shutdown complete. Exiting.");
+    logger.info("Graceful shutdown complete. Exiting.");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error during graceful shutdown:", error);
+    logger.error({ err: error }, "Error during graceful shutdown");
     process.exit(1);
   }
 };
@@ -187,6 +186,7 @@ bootstrap()
     process.on("SIGINT", () => gracefulShutdown("SIGINT", server));
   })
   .catch((error) => {
-    console.error("❌ Failed to start server:", error);
+    // bootstrap-console: pre-logger startup path (see design)
+    console.error("Failed to start server:", error);
     process.exit(1);
   });
