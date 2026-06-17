@@ -6,8 +6,11 @@ import { EventBus } from "@/domain/events/event-bus";
 import { HistoryRepository } from "@/domain/repositories/history.repository";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import { TrackPostProcessingService } from "../../services/track-post-processing.service";
 import { getErrorMessage } from "../../utils/error.utils";
+
+const log = logger.child({ component: "download-track" });
 
 export class DownloadTrackUseCase {
   constructor(
@@ -45,9 +48,9 @@ export class DownloadTrackUseCase {
     try {
       ({ durationMs } = await this.downloadAndProcessTrack(track.toPrimitive()));
     } catch (err) {
-      console.error(
-        `Failed to download track: ${track.artist} - ${track.name}`,
-        getErrorMessage(err),
+      log.error(
+        { err, trackId: track.id, artist: track.artist, name: track.name },
+        "Failed to download track",
       );
       error = getErrorMessage(err);
     }
@@ -95,7 +98,7 @@ export class DownloadTrackUseCase {
   private validateTrack(track: ITrack): void {
     if (!track.name || !track.artist) {
       const errorMsg = `Track field is null or undefined: name=${track.name}, artist=${track.artist}`;
-      console.error(errorMsg);
+      log.error({ trackId: track.id }, errorMsg);
       throw new AppError(400, "internal_server_error", errorMsg);
     }
   }

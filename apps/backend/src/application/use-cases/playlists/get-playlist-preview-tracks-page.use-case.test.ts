@@ -18,7 +18,6 @@ const makeUseCase = (spotifyService: Pick<SpotifyService, "getPlaylistTracksPage
 describe("GetPlaylistPreviewTracksPageUseCase", () => {
   it("calls Spotify and maps the tracks page response", async () => {
     const { spotifyService } = makeDeps();
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     spotifyService.getPlaylistTracksPage.mockResolvedValue({
       tracks: [
         {
@@ -55,8 +54,6 @@ describe("GetPlaylistPreviewTracksPageUseCase", () => {
       hasMore: true,
       nextOffset: 50,
     });
-    expect(errorSpy).not.toHaveBeenCalled();
-    errorSpy.mockRestore();
   });
 
   it("returns the latest Spotify page across consecutive executions", async () => {

@@ -4,8 +4,10 @@ import * as path from "path";
 import type { ArtworkAssetsPort } from "@/application/ports/artwork-assets.port";
 import type { FileSystemTrackPathPort } from "@/application/ports/file-system.port";
 import type { SpotifyService } from "@/application/services/spotify.service";
-import { getErrorMessage } from "@/application/utils/error.utils";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
+import { logger } from "@/infrastructure/logging/logger";
+
+const log = logger.child({ component: "artwork-service" });
 
 export interface ResolvedArtwork {
   tagCoverBuffer: Buffer | null;
@@ -47,9 +49,7 @@ export class ArtworkService {
           try {
             trackCoverBuffer = await this.artworkAssets.downloadImage(track.albumCoverUrl);
           } catch (error) {
-            console.warn(
-              `Failed to download Deezer album cover for ${track.name}: ${getErrorMessage(error)}`,
-            );
+            log.warn({ err: error, name: track.name }, "Failed to download Deezer album cover");
           }
         }
         // If albumCoverUrl is absent, fall through — trackCoverBuffer stays null and
@@ -61,9 +61,7 @@ export class ArtworkService {
             trackCoverBuffer = await this.artworkAssets.downloadImage(resolvedTrackCoverUrl);
           }
         } catch (error) {
-          console.warn(
-            `Failed to resolve track cover for ${track.name}: ${getErrorMessage(error)}`,
-          );
+          log.warn({ err: error, name: track.name }, "Failed to resolve track cover");
         }
       }
     }
@@ -109,7 +107,7 @@ export class ArtworkService {
         artwork.artistImageBuffer,
       );
     } catch (error) {
-      console.warn(`Failed to save artist image for ${track.name}: ${getErrorMessage(error)}`);
+      log.warn({ err: error, name: track.name }, "Failed to save artist image");
     }
   }
 

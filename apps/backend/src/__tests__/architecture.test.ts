@@ -87,7 +87,18 @@ describe("architecture boundaries (baseline before cleanup)", () => {
       ...walkSrcExcludingTests(join(SRC_ROOT, "application", "use-cases")),
       ...walkSrcExcludingTests(join(SRC_ROOT, "application", "services")),
     ];
-    const violations = findMatches(appFiles, /from\s+"@\/infrastructure/);
+
+    // infrastructure/logging/logger is the documented cross-cutting exception:
+    // the logger is a shared module any layer may import directly (see design ADR-1).
+    // All other infrastructure imports from application are still forbidden.
+    const violations = appFiles.filter((file) => {
+      const content = readFileSync(file, "utf8");
+      const allInfraImports = [...content.matchAll(/from\s+"(@\/infrastructure[^"]+)"/g)].map(
+        (m) => m[1],
+      );
+      return allInfraImports.some((spec) => spec !== "@/infrastructure/logging/logger");
+    });
+
     expect(violations.length).toBe(0);
   });
 

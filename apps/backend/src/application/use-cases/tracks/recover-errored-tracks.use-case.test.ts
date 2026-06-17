@@ -3,6 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Track } from "@/domain/entities/track.entity";
 import { RecoverErroredTracksUseCase } from "./recover-errored-tracks.use-case";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), child: vi.fn() };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+
+vi.mock("../../../infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 function makeErrorTrack(overrides: Partial<ITrack> = {}): Track {
   return new Track({
     id: "track-err-1",
@@ -145,7 +153,6 @@ describe("RecoverErroredTracksUseCase", () => {
     retryTrackDownloadUseCase.execute.mockImplementation((id: string) =>
       id === "track-fail" ? Promise.reject(new Error("redis down")) : Promise.resolve(undefined),
     );
-    vi.spyOn(console, "error").mockImplementation(() => {});
 
     await expect(useCase.execute()).resolves.not.toThrow();
 

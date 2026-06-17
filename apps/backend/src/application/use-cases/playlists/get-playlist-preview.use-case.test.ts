@@ -17,14 +17,12 @@ const makePreviewUseCase = (
   spotifyService: Pick<SpotifyService, "getPlaylistDetail" | "getPlaylistTracksPage">,
 ) => new GetPlaylistPreviewUseCase(spotifyService as unknown as SpotifyService);
 
-const makeTracksPageUseCase = (
-  spotifyService: Pick<SpotifyService, "getPlaylistTracksPage">,
-) => new GetPlaylistPreviewTracksPageUseCase(spotifyService as unknown as SpotifyService);
+const makeTracksPageUseCase = (spotifyService: Pick<SpotifyService, "getPlaylistTracksPage">) =>
+  new GetPlaylistPreviewTracksPageUseCase(spotifyService as unknown as SpotifyService);
 
 describe("GetPlaylistPreviewUseCase", () => {
   it("calls Spotify and returns the preview payload directly", async () => {
     const { spotifyService } = makeDeps();
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     spotifyService.getPlaylistDetail.mockResolvedValue({
       name: "Fresh Playlist",
       type: "playlist",
@@ -45,8 +43,6 @@ describe("GetPlaylistPreviewUseCase", () => {
         totalTracks: 0,
       }),
     );
-    expect(errorSpy).not.toHaveBeenCalled();
-    errorSpy.mockRestore();
   });
 
   it("uses the live Spotify payload instead of relying on cache-key versioning", async () => {

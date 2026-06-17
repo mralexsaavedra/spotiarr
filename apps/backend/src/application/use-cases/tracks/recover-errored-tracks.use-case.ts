@@ -3,7 +3,10 @@ import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyCircuitBreakerPort } from "@/application/ports/spotify-circuit-breaker.port";
 import { EventBus } from "@/domain/events/event-bus";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import type { RetryTrackDownloadUseCase } from "./retry-track-download.use-case";
+
+const log = logger.child({ component: "recover-errored-tracks" });
 
 const DEFAULT_SEARCH_MAX_ATTEMPTS = 5;
 
@@ -18,8 +21,8 @@ export class RecoverErroredTracksUseCase {
 
   async execute(): Promise<void> {
     if (this.spotifyCircuitBreaker.isOpen()) {
-      console.warn(
-        "[RecoverErroredTracks] Skipping run — Spotify circuit breaker is open. Tracks remain in Error and will be retried on next tick.",
+      log.warn(
+        "Skipping run — Spotify circuit breaker is open. Tracks remain in Error and will be retried on next tick",
       );
       return;
     }
@@ -44,10 +47,7 @@ export class RecoverErroredTracksUseCase {
         await this.retryTrackDownloadUseCase.execute(track.id);
         recovered++;
       } catch (error) {
-        console.error(
-          `[RecoverErroredTracks] Failed to re-drive track ${track.id}:`,
-          error instanceof Error ? error.message : String(error),
-        );
+        log.error({ err: error, trackId: track.id }, "Failed to re-drive track");
       }
     }
 

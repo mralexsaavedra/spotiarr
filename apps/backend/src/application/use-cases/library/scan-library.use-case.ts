@@ -6,7 +6,10 @@ import type {
 import type { SettingsPort } from "@/application/ports/settings.port";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import type { RetryTrackDownloadUseCase } from "../tracks/retry-track-download.use-case";
+
+const log = logger.child({ component: "scan-library" });
 
 const DEFAULT_SEARCH_MAX_ATTEMPTS = 5;
 
@@ -24,7 +27,7 @@ export class ScanLibraryUseCase {
     const startTime = Date.now();
     const libraryPath = this.pathService.getMusicLibraryPath();
 
-    console.log(`🔍 Scanning music library at: ${libraryPath}`);
+    log.info({ libraryPath }, "Scanning music library");
 
     const artists = await this.scannerService.scanMusicLibrary(libraryPath);
 
@@ -105,12 +108,12 @@ export class ScanLibraryUseCase {
                 await this.retryTrackDownloadUseCase.execute(track.id);
               }
             } catch (err) {
-              console.warn(`[ScanLibrary] Reconciliation failed for track ${track.id}:`, err);
+              log.warn({ err, trackId: track.id }, "Reconciliation failed for track");
             }
           }
         }
       } catch (err) {
-        console.warn("Failed to attach track durations from database:", err);
+        log.warn({ err }, "Failed to attach track durations from database");
       }
     }
 
@@ -121,9 +124,16 @@ export class ScanLibraryUseCase {
 
     const scanDuration = Date.now() - startTime;
 
-    console.log(`✅ Library scan completed in ${scanDuration}ms`);
-    console.log(`   Found: ${totalArtists} artists, ${totalAlbums} albums, ${totalTracks} tracks`);
-    console.log(`   Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+    log.info(
+      {
+        scanDuration,
+        totalArtists,
+        totalAlbums,
+        totalTracks,
+        totalSizeMb: (totalSize / 1024 / 1024).toFixed(2),
+      },
+      "Library scan completed",
+    );
 
     return {
       artists,

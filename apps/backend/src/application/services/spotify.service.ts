@@ -1,7 +1,9 @@
 import { NormalizedTrack, SpotifyPlaylist, SpotifySearchResults } from "@spotiarr/shared";
-import { getErrorMessage } from "@/application/utils/error.utils";
 import { AppError } from "@/domain/errors/app-error";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
+import { logger } from "@/infrastructure/logging/logger";
+
+const log = logger.child({ component: "spotify-service" });
 
 type SpotifyArtistClientLike = {
   getArtistDetails(id: string): Promise<{
@@ -127,7 +129,7 @@ export class SpotifyService {
 
       throw new AppError(400, "invalid_spotify_url", "Unhandled URL type");
     } catch (error) {
-      console.error(`Error getting playlist details: ${getErrorMessage(error)}`);
+      log.error({ err: error, spotifyUrl }, "Error getting playlist details");
       throw error;
     }
   }
@@ -197,7 +199,7 @@ export class SpotifyService {
     try {
       return await this.deps.playlistClient.getAllPlaylistTracks(spotifyUrl);
     } catch (error) {
-      console.error(`Error getting playlist tracks: ${getErrorMessage(error)}`);
+      log.error({ err: error, spotifyUrl }, "Error getting playlist tracks");
       return [];
     }
   }
@@ -210,7 +212,7 @@ export class SpotifyService {
     try {
       return await this.deps.playlistClient.getPlaylistTracksPage(spotifyUrl, offset, limit);
     } catch (error) {
-      console.error(`Error getting playlist tracks page: ${getErrorMessage(error)}`);
+      log.error({ err: error, spotifyUrl }, "Error getting playlist tracks page");
       throw error;
     }
   }

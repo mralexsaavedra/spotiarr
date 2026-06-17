@@ -6,6 +6,14 @@ import type { SettingsPort } from "@/application/ports/settings.port";
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import { GetRecentReleasesUseCase } from "./get-recent-releases.use-case";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), child: vi.fn() };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+
+vi.mock("../../../infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 function makeArtist(overrides: Partial<FollowedArtist> = {}): FollowedArtist {
   return {
     id: "a1",
@@ -64,8 +72,8 @@ describe("GetRecentReleasesUseCase", () => {
       deps.releaseFeedService,
       deps.settingsService,
     );
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    loggerMock.info.mockClear();
+    loggerMock.warn.mockClear();
   });
 
   it("returns cached releases without triggering warm when cache is fresh", async () => {
