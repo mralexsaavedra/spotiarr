@@ -1229,6 +1229,148 @@ describe("playFromIndex — M5 stale error clear", () => {
 });
 
 // ---------------------------------------------------------------------------
+// _onError auto-skip (E1-1 through E1-8)
+// ---------------------------------------------------------------------------
+
+describe("_onError auto-skip", () => {
+  it("E1-1: error mid-queue advances to next track", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.getState()._onError("x");
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.isPlaying).toBe(true);
+    expect(state.consecutiveErrors).toBe(1);
+    expect(state.error).toBe("x");
+  });
+
+  it("E1-2: every track fails stops queue with sticky error", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    // 3 errors for a 3-track queue: each advances, last one hits the ceiling
+    usePlayerStore.getState()._onError("e1");
+    usePlayerStore.getState()._onError("e2");
+    usePlayerStore.getState()._onError("e3");
+
+    const state = usePlayerStore.getState();
+    expect(state.isPlaying).toBe(false);
+    expect(state.error).toBe("e3");
+    expect(state.consecutiveErrors).toBe(0);
+  });
+
+  it("E1-3: single-track queue error is sticky", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.getState()._onError("fail");
+
+    const state = usePlayerStore.getState();
+    expect(state.isPlaying).toBe(false);
+    expect(state.error).toBe("fail");
+    expect(state.currentIndex).toBe(0);
+    expect(state.consecutiveErrors).toBe(0);
+  });
+
+  it("E1-4: repeatMode one + error moves to next track", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ repeatMode: "one" });
+    usePlayerStore.getState()._onError("err");
+
+    const state = usePlayerStore.getState();
+    expect(state.currentIndex).toBe(1);
+    expect(state.isPlaying).toBe(true);
+  });
+
+  it("E1-5: _onLoadedMetadata resets consecutiveErrors", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ consecutiveErrors: 2 });
+    usePlayerStore.getState()._onLoadedMetadata(180);
+
+    expect(usePlayerStore.getState().consecutiveErrors).toBe(0);
+  });
+
+  it("E1-6: playFromIndex resets consecutiveErrors", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ consecutiveErrors: 2 });
+    usePlayerStore.getState().playFromIndex(1);
+
+    expect(usePlayerStore.getState().consecutiveErrors).toBe(0);
+  });
+
+  it("E1-7: playQueue resets consecutiveErrors", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ consecutiveErrors: 2 });
+    usePlayerStore.getState().playQueue([makeItem("b"), makeItem("c")], 0);
+
+    expect(usePlayerStore.getState().consecutiveErrors).toBe(0);
+  });
+
+  it("E1-8: null currentIndex error sets error and stops without throw", () => {
+    usePlayerStore.getState()._onError("no-track");
+
+    const state = usePlayerStore.getState();
+    expect(state.error).toBe("no-track");
+    expect(state.isPlaying).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isBuffering — _onWaiting, _onCanPlay, clear, _onError, __partialize
+// ---------------------------------------------------------------------------
+
+describe("isBuffering", () => {
+  it("initial value is false", () => {
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("_onWaiting sets isBuffering to true", () => {
+    usePlayerStore.getState()._onWaiting();
+    expect(usePlayerStore.getState().isBuffering).toBe(true);
+  });
+
+  it("_onCanPlay sets isBuffering to false", () => {
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState()._onCanPlay();
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("clear() resets isBuffering to false", () => {
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState().clear();
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("_onError leaves isBuffering false (sticky-stop path)", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState()._onError("fail");
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("_onError leaves isBuffering false (skip path)", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState()._onError("skip-error");
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("isBuffering is NOT in persisted state (__partialize does not include it)", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fakeState = {
+      isBuffering: true,
+      volume: 1,
+      isMuted: false,
+      shuffleMode: false,
+      repeatMode: "off" as const,
+    } as unknown as Parameters<typeof p>[0];
+    const result = p(fakeState);
+    expect("isBuffering" in result).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // playQueue() with shuffle (S3-1, S3-2)
 // ---------------------------------------------------------------------------
 
