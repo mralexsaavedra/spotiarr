@@ -404,8 +404,8 @@ describe("keyboard space toggle", () => {
     const playBtn = screen.getByRole("button", { name: "Play" });
     fireEvent.keyDown(playBtn, { key: " " });
 
-    // The region onKeyDown should be a no-op when target is BUTTON
-    // so isPlaying remains unchanged from before the keyDown
+    // The global shortcut hook ignores BUTTON targets (native activation
+    // handles Space there), so the keydown does not toggle play.
     expect(usePlayerStore.getState().isPlaying).toBe(false);
   });
 });
