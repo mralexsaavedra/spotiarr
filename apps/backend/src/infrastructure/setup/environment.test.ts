@@ -8,6 +8,7 @@ const innerShape = (envSchema as unknown as AnyDef)._def.in._def.shape;
 const tokenSchema = innerShape.SPOTIARR_TOKEN;
 const corsOriginSchema = innerShape.SPOTIARR_CORS_ORIGIN;
 const trustProxySchema = innerShape.SPOTIARR_TRUST_PROXY;
+const logLevelSchema = innerShape.LOG_LEVEL;
 const sessionTtlSchema = innerShape.SPOTIARR_SESSION_TTL_HOURS;
 const unlockRatelimitSchema = innerShape.SPOTIARR_UNLOCK_RATELIMIT;
 
@@ -210,6 +211,29 @@ describe("SPOTIARR_UNLOCK_RATELIMIT schema", () => {
   });
 });
 
+describe("LOG_LEVEL schema", () => {
+  it("accepts 'info'", () => {
+    expect(logLevelSchema.safeParse("info").success).toBe(true);
+  });
+
+  it("accepts all valid pino levels", () => {
+    const validLevels = ["trace", "debug", "info", "warn", "error", "fatal", "silent"];
+    for (const level of validLevels) {
+      expect(logLevelSchema.safeParse(level).success, `level "${level}" should be valid`).toBe(
+        true,
+      );
+    }
+  });
+
+  it("rejects 'verbose' (invalid level)", () => {
+    expect(logLevelSchema.safeParse("verbose").success).toBe(false);
+  });
+
+  it("rejects 'WARNING' (case-sensitive)", () => {
+    expect(logLevelSchema.safeParse("WARNING").success).toBe(false);
+  });
+});
+
 const REQUIRED_ENV = {
   SPOTIFY_CLIENT_ID: "client-id",
   SPOTIFY_CLIENT_SECRET: "client-secret",
@@ -250,5 +274,37 @@ describe("environment setup", () => {
     expect(getEnv().SPOTIFY_SYNC_MAX_CONCURRENCY).toBe(1);
     expect(getEnv().SPOTIFY_SYNC_QUEUE_TIMEOUT_MS).toBe(600000);
     expect(getEnv().SPOTIFY_SYNC_MIN_INTERVAL_MS).toBe(3000);
+  });
+
+  it("defaults LOG_LEVEL to 'silent' when NODE_ENV=test", async () => {
+    process.env.NODE_ENV = "test";
+    delete process.env.LOG_LEVEL;
+    const { getEnv, validateEnvironment } = await import("./environment");
+    validateEnvironment();
+    expect(getEnv().LOG_LEVEL).toBe("silent");
+  });
+
+  it("defaults LOG_LEVEL to 'debug' when NODE_ENV=development", async () => {
+    process.env.NODE_ENV = "development";
+    delete process.env.LOG_LEVEL;
+    const { getEnv, validateEnvironment } = await import("./environment");
+    validateEnvironment();
+    expect(getEnv().LOG_LEVEL).toBe("debug");
+  });
+
+  it("defaults LOG_LEVEL to 'info' when NODE_ENV=production", async () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.LOG_LEVEL;
+    const { getEnv, validateEnvironment } = await import("./environment");
+    validateEnvironment();
+    expect(getEnv().LOG_LEVEL).toBe("info");
+  });
+
+  it("explicit LOG_LEVEL overrides the NODE_ENV default", async () => {
+    process.env.NODE_ENV = "production";
+    process.env.LOG_LEVEL = "debug";
+    const { getEnv, validateEnvironment } = await import("./environment");
+    validateEnvironment();
+    expect(getEnv().LOG_LEVEL).toBe("debug");
   });
 });
