@@ -171,6 +171,7 @@ test.describe("player — queue reorder @smoke", () => {
 
     await awake.dragTo(dayvanCowboy);
 
+    await expect(queueItems).toHaveCount(2);
     await expect(queueItems.first()).toContainText("Awake");
     await expect(queueItems.nth(1)).toContainText("Dayvan Cowboy");
   });
@@ -237,7 +238,8 @@ test.describe("Mocked global player flows", () => {
       playerBar.getByRole("button", { name: /Open Dayvan Cowboy by Boards of Canada/ }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Play track" }).nth(1).click();
+    // Advance via transport, not the row button: non-current rows reveal play on hover (#226).
+    await playerBar.getByRole("button", { name: "Next track" }).click();
 
     await expect(playerBar.getByRole("button", { name: /Open Awake by Tycho/ })).toBeVisible();
   });

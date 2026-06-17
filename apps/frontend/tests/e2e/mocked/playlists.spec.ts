@@ -179,7 +179,10 @@ test.describe("Mocked my playlists flows", () => {
       });
     });
     await page.route("**/api/playlist/created-playlist-2", async (route) => {
-      updatedPayload = route.request().postDataJSON();
+      // Skip GET: a refetch has no body and would clobber updatedPayload with null.
+      if (route.request().method() !== "GET") {
+        updatedPayload = route.request().postDataJSON();
+      }
       await route.fulfill({
         status: 200,
         contentType: "application/json",

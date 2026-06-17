@@ -42,6 +42,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
+  // Give visibility/state assertions headroom over the cold-CI render chain
+  // (route fulfil -> store update -> React re-render) instead of racing the 5s default.
+  expect: { timeout: 10_000 },
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     trace: "on-first-retry",

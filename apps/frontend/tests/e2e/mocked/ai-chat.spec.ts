@@ -128,7 +128,7 @@ test.describe("Mocked AI Chat flows", () => {
 
     await expect(page.getByText("jazz for a rainy afternoon").first()).toBeVisible();
 
-    await expect(page.getByText(/tracks added/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/tracks added/i)).toBeVisible();
   });
 
   test("error path: provider-misconfig shows settings redirect message", async ({ page }) => {
@@ -161,7 +161,7 @@ test.describe("Mocked AI Chat flows", () => {
     const sendBtn = page.getByRole("button", { name: /Generate/i });
     await sendBtn.click();
 
-    await expect(page.getByText(/Settings/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Settings/i)).toBeVisible();
   });
 
   test("empty prompt guard: send button is disabled when textarea is empty", async ({ page }) => {
@@ -255,6 +255,7 @@ test.describe("Mocked AI Chat flows", () => {
     await expect(page.getByText(/Created playlist with 7 tracks/i)).toBeVisible();
 
     // User bubbles must render in chronological order (oldest first).
+    await expect(page.getByText(/prompt$/)).toHaveCount(2); // settle before the snapshot below
     const promptTexts = await page.getByText(/prompt$/).allTextContents();
     expect(promptTexts).toEqual(["first prompt", "second prompt"]);
   });
@@ -292,7 +293,10 @@ test.describe("Mocked AI Chat flows", () => {
 
     // Confirming the destructive action clears the transcript.
     await page.getByRole("button", { name: /Clear conversation/i }).click();
-    await page.getByRole("dialog").getByRole("button", { name: /^Delete$/ }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: /^Delete$/ })
+      .click();
 
     await expect(page.getByText("drum and bass set")).toBeHidden();
     await expect(page.getByText(/No conversation yet/i)).toBeVisible();
