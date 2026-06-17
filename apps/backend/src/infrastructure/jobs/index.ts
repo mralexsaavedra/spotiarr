@@ -1,8 +1,11 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import cron from "node-cron";
 import { getContainer } from "../../container";
+import { logger } from "../logging/logger";
 import { startCatalogSyncJob } from "./catalog-sync.job";
 import { startFeedSyncJob } from "./feed-sync.job";
+
+const log = logger.child({ component: "scheduled-jobs" });
 
 let lastPlaylistCheckTimestamp = 0;
 let lastStuckTracksCleanupTimestamp = 0;
@@ -25,11 +28,11 @@ export const recoverErroredTracksJob = cron.createTask("* * * * *", async () => 
     }
 
     lastRecoveryTimestamp = now;
-    console.log("[ScheduledJob] Running errored-tracks recovery...");
+    log.info("Running errored-tracks recovery...");
     await recoverErroredTracksUseCase.execute();
-    console.log("[ScheduledJob] Errored-tracks recovery completed");
+    log.info("Errored-tracks recovery completed");
   } catch (error) {
-    console.error("[ScheduledJob] Error recovering errored tracks:", error);
+    log.error({ err: error }, "Error recovering errored tracks");
   }
 });
 
@@ -44,12 +47,12 @@ export const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
       return;
     }
 
-    console.log("[ScheduledJob] Running playlist check...");
+    log.info("Running playlist check...");
     await playlistService.checkSubscribedPlaylists();
     lastPlaylistCheckTimestamp = now;
-    console.log("[ScheduledJob] Playlist check completed");
+    log.info("Playlist check completed");
   } catch (error) {
-    console.error("[ScheduledJob] Error checking playlists:", error);
+    log.error({ err: error }, "Error checking playlists");
   }
 });
 
@@ -80,7 +83,7 @@ export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
     );
 
     if (stuckTracks.length > 0) {
-      console.log(`[ScheduledJob] Found ${stuckTracks.length} stuck tracks, marking as error`);
+      log.info({ count: stuckTracks.length }, "Found stuck tracks, marking as error");
       for (const track of stuckTracks) {
         if (track.id && track.status) {
           // CAS: only mark Error if the track is STILL in the stuck status we
@@ -100,7 +103,7 @@ export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
 
     lastStuckTracksCleanupTimestamp = now;
   } catch (error) {
-    console.error("[ScheduledJob] Error cleaning stuck tracks:", error);
+    log.error({ err: error }, "Error cleaning stuck tracks");
   }
 });
 
@@ -110,5 +113,5 @@ export function startScheduledJobs(): void {
   cleanStuckTracksJob.start();
   startFeedSyncJob();
   startCatalogSyncJob();
-  console.log("✅ Scheduled jobs started (intervals configurable in Settings)");
+  log.info("Scheduled jobs started (intervals configurable in Settings)");
 }
