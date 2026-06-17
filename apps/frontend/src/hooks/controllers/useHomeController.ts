@@ -7,7 +7,6 @@ import { useToast } from "@/contexts/ToastContext";
 import { Path } from "@/routes/routes";
 import { ApiError } from "@/services/httpClient";
 import { ACTIVE_BACKFILL_STATUSES } from "@/utils/artworkBackfill";
-import { formatLibrarySize } from "@/utils/formatLibrarySize";
 import { selectLibraryPlaylists } from "@/utils/playlist";
 import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
 import { useStartArtworkBackfillMutation } from "../mutations/useStartArtworkBackfillMutation";
@@ -25,7 +24,7 @@ export const useHomeController = () => {
   const [isRetryBackfillOnly, setIsRetryBackfillOnly] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, APP_CONFIG.DEBOUNCE.SEARCH_DELAY);
-  const { data: stats, isLoading: isStatsLoading } = useLibraryStatsQuery();
+  const { isLoading: isStatsLoading } = useLibraryStatsQuery();
   const { data: artists, isLoading: isArtistsLoading } = useLibraryArtistsQuery();
   const { data: artworkBackfillStatus } = useArtworkBackfillStatusQuery();
   const { data: playlists = [] } = usePlaylistsQuery();
@@ -133,16 +132,6 @@ export const useHomeController = () => {
     [navigate],
   );
 
-  const statsData = useMemo(() => {
-    if (!stats) return null;
-    return {
-      artists: stats.totalArtists,
-      albums: stats.totalAlbums,
-      tracks: stats.totalTracks,
-      size: formatLibrarySize(stats.totalSize),
-    };
-  }, [stats]);
-
   // Sort artists alphabetically if not already
   const sortedArtists = useMemo(() => {
     if (!artists) return [];
@@ -169,7 +158,6 @@ export const useHomeController = () => {
 
   return {
     t,
-    stats: statsData,
     artists: sortedArtists,
     isScanModalOpen,
     isLoading,
