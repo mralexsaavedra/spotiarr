@@ -1,4 +1,5 @@
 import type { ArtistDetail, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { expect, test } from "../../fixtures/test";
 import { buildRelease, installArtistMocks } from "../../helpers/api-mocks";
 
@@ -103,6 +104,132 @@ test.describe("Mocked album detail flows", () => {
 
       await expect(page.getByRole("button", { name: "Go back" })).toBeVisible();
     });
+
+    test("shows the Retry Failed button when a track has Error status", async ({ page }) => {
+      await installArtistMocks(page, {
+        artistId,
+        detail: artistDetail,
+        albums: [release],
+        tracks: [track],
+      });
+
+      // Override the appShell playlist/status mock — last route wins in Playwright
+      await page.route("**/api/playlist/status", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            playlistStatusMap: {},
+            trackStatusMap: {
+              [track.trackUrl!]: TrackStatusEnum.Error,
+            },
+            albumTrackCountMap: {},
+          }),
+        });
+      });
+
+      await page.goto(`/album/${artistId}/${albumId}`, { waitUntil: "domcontentloaded" });
+
+      await expect(page.getByText("Track One")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Retry Failed" })).toBeVisible();
+    });
+
+    test("clicking Retry Failed fires a POST for the failed track", async ({ page }) => {
+      let retryPayload: unknown = null;
+
+      await installArtistMocks(page, {
+        artistId,
+        detail: artistDetail,
+        albums: [release],
+        tracks: [track],
+      });
+
+      // Override the appShell playlist/status mock — last route wins in Playwright
+      await page.route("**/api/playlist/status", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            playlistStatusMap: {},
+            trackStatusMap: {
+              [track.trackUrl!]: TrackStatusEnum.Error,
+            },
+            albumTrackCountMap: {},
+          }),
+        });
+      });
+
+      await page.route("**/api/playlist", async (route) => {
+        if (route.request().method() === "POST") {
+          retryPayload = route.request().postDataJSON();
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({ id: "retried-playlist-1" }),
+          });
+          return;
+        }
+
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ data: [] }),
+        });
+      });
+
+      await page.goto(`/album/${artistId}/${albumId}`, { waitUntil: "domcontentloaded" });
+
+      await expect(page.getByRole("button", { name: "Retry Failed" })).toBeVisible();
+      await page.getByRole("button", { name: "Retry Failed" }).click();
+
+      await expect
+        .poll(() => retryPayload)
+        .toEqual({
+          kind: "spotifyUrl",
+          spotifyUrl: track.trackUrl,
+        });
+    });
+  });
+
+  test("shows delete confirm modal when the delete button is clicked", async ({ page }) => {
+    const completedTrack: NormalizedTrack = {
+      ...track,
+      id: "track-completed",
+      name: "Completed Track",
+    };
+
+    await installArtistMocks(page, {
+      artistId,
+      detail: artistDetail,
+      albums: [release],
+      tracks: [completedTrack],
+    });
+
+    // Override playlist/status to mark the track as completed so isSaved=true and delete is enabled
+    await page.route("**/api/playlist/status", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          playlistStatusMap: {},
+          trackStatusMap: {
+            [completedTrack.trackUrl!]: TrackStatusEnum.Completed,
+          },
+          albumTrackCountMap: {},
+        }),
+      });
+    });
+
+    await page.goto(`/album/${artistId}/${albumId}`, { waitUntil: "domcontentloaded" });
+
+    await expect(page.getByText("Completed Track")).toBeVisible();
+    await page.getByTitle("Delete Playlist").click();
+
+    const confirmDialog = page.getByRole("dialog");
+
+    await expect(confirmDialog).toBeVisible();
+    await expect(confirmDialog.getByRole("button", { name: "Cancel" })).toBeVisible();
+    await expect(confirmDialog.getByRole("button", { name: "Delete" })).toBeVisible();
   });
 
   test("fires the download CTA and captures the playlist creation POST", async ({ page }) => {

@@ -101,4 +101,116 @@ test.describe("Mocked playlist detail flows", () => {
 
     await expect(page.getByRole("button", { name: "Play track" })).toBeVisible();
   });
+
+  test.describe("error state", () => {
+    test("shows the Retry Failed button when a track has Error status", async ({ page }) => {
+      const playlist = buildPlaylist({
+        id: "error-pl-1",
+        name: "Error Playlist",
+        type: PlaylistTypeEnum.Playlist,
+        subscribed: false,
+        tracks: [],
+      });
+      const errorTrack = buildTrack({
+        id: "error-track-1",
+        name: "Failed Track",
+        playlistId: "error-pl-1",
+        status: TrackStatusEnum.Error,
+      });
+
+      await installPlaylistMocks(page, { playlists: [playlist] });
+      await installTrackMocks(page, { tracksByPlaylistId: { "error-pl-1": [errorTrack] } });
+
+      await page.goto("/playlist/error-pl-1", { waitUntil: "domcontentloaded" });
+
+      await expect(page.getByText("Failed Track")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Retry Failed" })).toBeVisible();
+    });
+
+    test("clicking Retry Failed posts to the playlist retry endpoint", async ({ page }) => {
+      let retryFired = false;
+
+      const playlist = buildPlaylist({
+        id: "retry-pl-1",
+        name: "Retry Playlist",
+        type: PlaylistTypeEnum.Playlist,
+        subscribed: false,
+        tracks: [],
+      });
+      const errorTrack = buildTrack({
+        id: "retry-track-1",
+        name: "Retry Track",
+        playlistId: "retry-pl-1",
+        status: TrackStatusEnum.Error,
+      });
+
+      await installPlaylistMocks(page, { playlists: [playlist] });
+      await installTrackMocks(page, { tracksByPlaylistId: { "retry-pl-1": [errorTrack] } });
+
+      await page.route("**/api/playlist/retry-pl-1/retry", async (route) => {
+        retryFired = true;
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({}),
+        });
+      });
+
+      await page.goto("/playlist/retry-pl-1", { waitUntil: "domcontentloaded" });
+
+      await expect(page.getByRole("button", { name: "Retry Failed" })).toBeVisible();
+      await page.getByRole("button", { name: "Retry Failed" }).click();
+
+      await expect.poll(() => retryFired).toBe(true);
+    });
+
+    test("confirms delete fires DELETE request after confirm modal", async ({ page }) => {
+      let deletePayload: { method: string } | null = null;
+
+      const playlist = buildPlaylist({
+        id: "delete-pl-1",
+        name: "Delete Playlist",
+        type: PlaylistTypeEnum.Playlist,
+        subscribed: false,
+        tracks: [],
+      });
+      const completedTrack = buildTrack({
+        id: "delete-track-1",
+        name: "Completed Track",
+        playlistId: "delete-pl-1",
+        status: TrackStatusEnum.Completed,
+      });
+
+      await installPlaylistMocks(page, { playlists: [playlist] });
+      await installTrackMocks(page, { tracksByPlaylistId: { "delete-pl-1": [completedTrack] } });
+
+      await page.route("**/api/playlist/delete-pl-1", async (route) => {
+        const method = route.request().method();
+
+        if (method === "DELETE") {
+          deletePayload = { method };
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({}),
+          });
+          return;
+        }
+
+        await route.continue();
+      });
+
+      await page.goto("/playlist/delete-pl-1", { waitUntil: "domcontentloaded" });
+
+      await expect(page.getByText("Completed Track")).toBeVisible();
+      await page.getByTitle("Delete Playlist").click();
+
+      const confirmDialog = page.getByRole("dialog");
+
+      await expect(confirmDialog).toBeVisible();
+      await confirmDialog.getByRole("button", { name: "Delete" }).click();
+
+      await expect.poll(() => deletePayload).toMatchObject({ method: "DELETE" });
+    });
+  });
 });
