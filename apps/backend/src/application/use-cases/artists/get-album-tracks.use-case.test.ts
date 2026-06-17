@@ -476,3 +476,147 @@ describe("GetAlbumTracksUseCase — AlbumTracksCachePort", () => {
     });
   });
 });
+
+describe("GetAlbumTracksUseCase — release-cache fallback and album backfill", () => {
+  let repo: FeedRepositoryPort;
+  let deezerClient: DeezerAlbumPort;
+  let musicBrainzClient: MusicBrainzReleasePort;
+
+  beforeEach(() => {
+    repo = mockRepo();
+    deezerClient = mockDeezerClient();
+    musicBrainzClient = mockMusicBrainzClient();
+  });
+
+  it("falls back to getArtistReleaseWithArtist when getArtistAlbumWithArtist returns null", async () => {
+    const deezerTracks = [makeNormalizedTrack({ name: "Release Track" })];
+    vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue(null);
+    vi.mocked(repo.getArtistReleaseWithArtist).mockResolvedValue({
+      id: "rel-1",
+      albumId: "album-1",
+      albumName: "Release Album",
+      albumType: "album",
+      releaseDate: "2024-01-01",
+      coverUrl: null,
+      spotifyUrl: null,
+      artistName: "Release Artist",
+    } as any);
+    vi.mocked(deezerClient.searchAlbum).mockResolvedValue({ id: 789 });
+    vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue(deezerTracks);
+
+    const useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
+    const result = await useCase.execute("sp-artist-1", "album-1");
+
+    expect(result).toEqual(deezerTracks);
+    expect(deezerClient.searchAlbum).toHaveBeenCalledWith("Release Artist", "Release Album");
+  });
+
+  it("uses deezerAlbumId when albumId is a numeric Deezer ID in release-cache fallback", async () => {
+    const deezerTracks = [makeNormalizedTrack({ name: "Deezer Track" })];
+    vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue(null);
+    vi.mocked(repo.getArtistReleaseWithArtist).mockResolvedValue({
+      id: "rel-2",
+      albumId: "123456789",
+      albumName: "Numeric Album",
+      albumType: "album",
+      releaseDate: "2024-01-01",
+      coverUrl: null,
+      spotifyUrl: null,
+      artistName: "Numeric Artist",
+    } as any);
+    vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue(deezerTracks);
+
+    const useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
+    const result = await useCase.execute("sp-artist-1", "123456789");
+
+    // isDeezerAlbumId("123456789") = true → deezerAlbumId set → getAlbumTracks called directly
+    expect(deezerClient.getAlbumTracks).toHaveBeenCalledWith("123456789");
+    expect(result).toEqual(deezerTracks);
+  });
+
+  it("backfills empty album on track with albumName from cache", async () => {
+    vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
+      id: "sp-artist-1:album-1",
+      spotifyArtistId: "sp-artist-1",
+      albumId: "album-1",
+      albumName: "Great Album",
+      albumType: "album",
+      releaseDate: "2024-01-01",
+      coverUrl: null,
+      spotifyUrl: null,
+      totalTracks: 10,
+      deezerAlbumId: "dz-42",
+      mbAlbumId: null,
+      artistName: "Great Artist",
+    });
+    vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue([makeNormalizedTrack({ album: "" })]);
+
+    const useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
+    const result = await useCase.execute("sp-artist-1", "album-1");
+
+    expect(result[0].album).toBe("Great Album");
+  });
+
+  it("backfills whitespace-only album on track with albumName from cache", async () => {
+    vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
+      id: "sp-artist-1:album-1",
+      spotifyArtistId: "sp-artist-1",
+      albumId: "album-1",
+      albumName: "Great Album",
+      albumType: "album",
+      releaseDate: "2024-01-01",
+      coverUrl: null,
+      spotifyUrl: null,
+      totalTracks: 10,
+      deezerAlbumId: "dz-42",
+      mbAlbumId: null,
+      artistName: "Great Artist",
+    });
+    vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue([
+      makeNormalizedTrack({ album: "   " }),
+    ]);
+
+    const useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
+    const result = await useCase.execute("sp-artist-1", "album-1");
+
+    expect(result[0].album).toBe("Great Album");
+  });
+
+  it("does NOT replace album when track already has a populated album name", async () => {
+    vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue({
+      id: "sp-artist-1:album-1",
+      spotifyArtistId: "sp-artist-1",
+      albumId: "album-1",
+      albumName: "Great Album",
+      albumType: "album",
+      releaseDate: "2024-01-01",
+      coverUrl: null,
+      spotifyUrl: null,
+      totalTracks: 10,
+      deezerAlbumId: "dz-42",
+      mbAlbumId: null,
+      artistName: "Great Artist",
+    });
+    vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue([
+      makeNormalizedTrack({ album: "Original Album" }),
+    ]);
+
+    const useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
+    const result = await useCase.execute("sp-artist-1", "album-1");
+
+    expect(result[0].album).toBe("Original Album");
+  });
+
+  it("skips album backfill when albumName is empty (both caches miss)", async () => {
+    vi.mocked(repo.getArtistAlbumWithArtist).mockResolvedValue(null);
+    vi.mocked(repo.getArtistReleaseWithArtist).mockResolvedValue(null);
+    vi.mocked(deezerClient.searchAlbum).mockResolvedValue({ id: 999 });
+    vi.mocked(deezerClient.getAlbumTracks).mockResolvedValue([makeNormalizedTrack({ album: "" })]);
+
+    const useCase = new GetAlbumTracksUseCase(repo, deezerClient, musicBrainzClient);
+    const result = await useCase.execute("sp-artist-1", "album-1");
+
+    // albumName is "" so backfill map is skipped — track's album stays as-is
+    expect(result[0].album).toBe("");
+  });
+});

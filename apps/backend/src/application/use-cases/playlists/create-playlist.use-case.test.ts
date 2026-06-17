@@ -792,3 +792,546 @@ describe("CreatePlaylistUseCase — SettingsPort seam", () => {
     expect(savedArg.toPrimitive().subscribed).toBe(true);
   });
 });
+
+describe("CreatePlaylistUseCase — executeSpotifyUrl branch", () => {
+  let stubs: ReturnType<typeof makeStubs>;
+
+  beforeEach(() => {
+    stubs = makeStubs();
+  });
+
+  it("saves playlist and processes tracks on happy path", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "My Song",
+          artist: "Band",
+          primaryArtist: "Band",
+          artists: [{ name: "Band", url: undefined }],
+          album: "My Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/abc",
+        },
+      ],
+      name: "My Album",
+      image: "img.jpg",
+      type: "album",
+      owner: "user",
+      ownerUrl: "http://u",
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/album/abc123",
+    });
+
+    expect(stubs.playlistRepository.save).toHaveBeenCalled();
+    expect(stubs.trackService.create).toHaveBeenCalledTimes(1);
+    expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
+  });
+
+  it("displayName for album type: prepends primaryArtist to name", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "OK Computer",
+          artist: "Radiohead",
+          primaryArtist: "Radiohead",
+          artists: [{ name: "Radiohead", url: undefined }],
+          album: "OK Computer",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "OK Computer",
+      image: "",
+      type: "album",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/album/abc" });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedPlaylist.toPrimitive().name).toBe("Radiohead - OK Computer");
+  });
+
+  it("displayName for track type: prepends artist to name", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Karma Police",
+          artist: "Radiohead",
+          primaryArtist: "Radiohead",
+          artists: [{ name: "Radiohead", url: undefined }],
+          album: "OK Computer",
+          trackNumber: 3,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "Karma Police",
+      image: "",
+      type: "track",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/track/abc" });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedPlaylist.toPrimitive().name).toBe("Radiohead - Karma Police");
+  });
+
+  it("displayName for artist type: uses plain name", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [],
+      name: "Radiohead",
+      image: "http://artist-image.jpg",
+      type: "artist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/artist/abc",
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedPlaylist.toPrimitive().name).toBe("Radiohead");
+  });
+
+  it("artistImageUrl from artist type uses image field", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [],
+      name: "Radiohead",
+      image: "http://artist-image.jpg",
+      type: "artist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/artist/abc",
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedPlaylist.toPrimitive().artistImageUrl).toBe("http://artist-image.jpg");
+  });
+
+  it("artistImageUrl from non-artist type uses first track primaryArtistImage", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Track 1",
+          artist: "Artist",
+          primaryArtistImage: "http://track-artist.jpg",
+          artists: [{ name: "Artist", url: undefined }],
+          album: "Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "My Playlist",
+      image: "http://playlist-cover.jpg",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/playlist/abc",
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedPlaylist.toPrimitive().artistImageUrl).toBe("http://track-artist.jpg");
+  });
+
+  it("autoSubscribe: marks playlist subscribed when setting is true", async () => {
+    stubs.settingsService.getBoolean.mockResolvedValue(true);
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [],
+      name: "My Playlist",
+      image: "",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/playlist/abc",
+    });
+
+    const savedPlaylist = stubs.playlistRepository.save.mock.calls[0]?.[0] as Playlist;
+    expect(savedPlaylist.toPrimitive().subscribed).toBe(true);
+  });
+
+  it("error in getPlaylistDetail: still saves and emits, does not process tracks", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockRejectedValue(new Error("Spotify down"));
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/album/abc" });
+
+    expect(stubs.playlistRepository.save).toHaveBeenCalled();
+    expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
+    expect(stubs.trackService.create).not.toHaveBeenCalled();
+  });
+
+  it("no tracks in detail: save happens but trackService.create is not called", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [],
+      name: "Empty Playlist",
+      image: "",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/playlist/abc",
+    });
+
+    expect(stubs.playlistRepository.save).toHaveBeenCalled();
+    expect(stubs.trackService.create).not.toHaveBeenCalled();
+    expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
+  });
+
+  it("duplicate spotifyUrl throws 409 with playlist_already_exists", async () => {
+    const existingEntity = makePlaylistEntity({ spotifyUrl: "https://open.spotify.com/album/abc" });
+    stubs.playlistRepository.findAll.mockResolvedValue([existingEntity]);
+
+    const useCase = makeUseCase(stubs);
+    const thrown = await useCase
+      .execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/album/abc" })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).errorCode).toBe("playlist_already_exists");
+  });
+});
+
+describe("CreatePlaylistUseCase — missing optional deps (500 guards)", () => {
+  let stubs: ReturnType<typeof makeStubs>;
+
+  beforeEach(() => {
+    stubs = makeStubs();
+  });
+
+  it("executeAlbumRef throws 500 when getAlbumTracksUseCase not provided", async () => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const useCase = new CreatePlaylistUseCase(
+      stubs.playlistRepository as any,
+      stubs.spotifyService as any,
+      stubs.trackService as any,
+      stubs.settingsService as any,
+      stubs.eventBus as any,
+      undefined, // no getAlbumTracksUseCase
+      undefined, // no feedRepository
+    );
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    const thrown = await useCase
+      .execute({ kind: "album", artistId: "artist-1", albumId: "album-1" })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).statusCode).toBe(500);
+  });
+
+  it("executeAlbumTrackRef throws 500 when deps not configured", async () => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const useCase = new CreatePlaylistUseCase(
+      stubs.playlistRepository as any,
+      stubs.spotifyService as any,
+      stubs.trackService as any,
+      stubs.settingsService as any,
+      stubs.eventBus as any,
+      undefined,
+      undefined,
+    );
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    const thrown = await useCase
+      .execute({ kind: "albumTrack", artistId: "artist-1", albumId: "album-1", trackIndex: 0 })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).statusCode).toBe(500);
+  });
+
+  it("executeDeezerTrack throws 500 when deezerClient not provided", async () => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const useCase = new CreatePlaylistUseCase(
+      stubs.playlistRepository as any,
+      stubs.spotifyService as any,
+      stubs.trackService as any,
+      stubs.settingsService as any,
+      stubs.eventBus as any,
+      stubs.getAlbumTracksUseCase as any,
+      stubs.feedRepository as any,
+      undefined, // no deezerClient
+    );
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    const thrown = await useCase
+      .execute({ kind: "deezerTrack", deezerTrackId: "123", deezerAlbumId: "456" })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect((thrown as AppError).statusCode).toBe(500);
+  });
+});
+
+describe("CreatePlaylistUseCase — executePlaylistTrack non-P2002 error", () => {
+  it("non-P2002 error on parent save re-throws without swallowing", async () => {
+    const stubs = makeStubs();
+    const PARENT_URL = "https://open.spotify.com/playlist/parent-id";
+    const TRACK_URL = "https://open.spotify.com/track/track-id";
+
+    stubs.playlistRepository.findAll.mockResolvedValue([]);
+    stubs.spotifyService.getPlaylistMetadata.mockResolvedValue({
+      name: "Parent Playlist",
+      image: "",
+      owner: "user1",
+      ownerUrl: undefined,
+    });
+    // Non-P2002 error (no .code property)
+    stubs.playlistRepository.save.mockRejectedValue(new Error("DB down"));
+
+    const useCase = makeUseCase(stubs);
+    const thrown = await useCase
+      .execute({ kind: "playlistTrack", parentSpotifyUrl: PARENT_URL, trackUrl: TRACK_URL })
+      .catch((e) => e);
+
+    expect(thrown).toBeInstanceOf(Error);
+    expect((thrown as Error).message).toBe("DB down");
+  });
+});
+
+describe("CreatePlaylistUseCase — processTrack edge cases", () => {
+  let stubs: ReturnType<typeof makeStubs>;
+
+  beforeEach(() => {
+    stubs = makeStubs();
+  });
+
+  it("skips track when artist is missing", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Track Without Artist",
+          artist: "",
+          artists: [],
+          album: "Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "My Playlist",
+      image: "",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/playlist/abc",
+    });
+
+    expect(stubs.trackService.create).not.toHaveBeenCalled();
+  });
+
+  it("skips track when name is missing", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "",
+          artist: "Artist",
+          artists: [{ name: "Artist", url: undefined }],
+          album: "Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "My Playlist",
+      image: "",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/playlist/abc",
+    });
+
+    expect(stubs.trackService.create).not.toHaveBeenCalled();
+  });
+
+  it("skips unavailable track", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Unavailable Track",
+          artist: "Artist",
+          artists: [{ name: "Artist", url: undefined }],
+          album: "Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+          unavailable: true,
+        },
+      ],
+      name: "My Playlist",
+      image: "",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({
+      kind: "spotifyUrl",
+      spotifyUrl: "https://open.spotify.com/playlist/abc",
+    });
+
+    expect(stubs.trackService.create).not.toHaveBeenCalled();
+  });
+
+  it("uses primaryArtist for album-type playlist when primaryArtist is set", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Song",
+          artist: "Secondary",
+          primaryArtist: "Primary",
+          artists: [{ name: "Primary", url: undefined }],
+          album: "Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "Album",
+      image: "",
+      type: "album",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/album/abc" });
+
+    expect(stubs.trackService.create).toHaveBeenCalledWith(
+      expect.objectContaining({ artist: "Primary" }),
+    );
+  });
+
+  it("uses artist fallback when primaryArtist is absent for album type", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Song",
+          artist: "Secondary",
+          primaryArtist: undefined,
+          artists: [{ name: "Secondary", url: undefined }],
+          album: "Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "Album",
+      image: "",
+      type: "album",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/album/abc" });
+
+    expect(stubs.trackService.create).toHaveBeenCalledWith(
+      expect.objectContaining({ artist: "Secondary" }),
+    );
+  });
+
+  it("album defaults to Singles when track has no album and context is track type", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Single Song",
+          artist: "Artist",
+          primaryArtist: "Artist",
+          artists: [{ name: "Artist", url: undefined }],
+          album: undefined,
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "Single Song",
+      image: "",
+      type: "track",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+
+    const useCase = makeUseCase(stubs);
+    await useCase.execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/track/abc" });
+
+    expect(stubs.trackService.create).toHaveBeenCalledWith(
+      expect.objectContaining({ album: "Singles" }),
+    );
+  });
+
+  it("trackService.create error does not throw from execute — eventBus still emits", async () => {
+    stubs.spotifyService.getPlaylistDetail.mockResolvedValue({
+      tracks: [
+        {
+          name: "Failing Track",
+          artist: "Artist",
+          artists: [{ name: "Artist", url: undefined }],
+          album: "Album",
+          trackNumber: 1,
+          durationMs: 200000,
+          trackUrl: "https://open.spotify.com/track/t1",
+        },
+      ],
+      name: "My Playlist",
+      image: "",
+      type: "playlist",
+      owner: "user",
+      ownerUrl: undefined,
+    });
+    stubs.trackService.create.mockRejectedValue(new Error("DB constraint"));
+
+    const useCase = makeUseCase(stubs);
+    await expect(
+      useCase.execute({ kind: "spotifyUrl", spotifyUrl: "https://open.spotify.com/playlist/abc" }),
+    ).resolves.toBeDefined();
+
+    expect(stubs.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
+  });
+});

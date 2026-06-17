@@ -1,6 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import * as fsMock from "fs";
+import * as pathMock from "path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MASKED_SENTINEL } from "./get-settings.use-case";
 import { UpdateSettingUseCase } from "./update-setting.use-case";
+
+vi.mock("fs", () => ({
+  existsSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  writeFileSync: vi.fn(),
+}));
+
+vi.mock("path", () => ({
+  join: vi.fn(),
+}));
 
 function makeStubs() {
   const repository = {
@@ -61,5 +73,97 @@ describe("UpdateSettingUseCase — masked sentinel guard", () => {
       key: "AI_API_KEY",
       value: "sk-new-key",
     });
+  });
+});
+
+describe("UpdateSettingUseCase — YT_COOKIES branch", () => {
+  beforeEach(() => {
+    vi.mocked(pathMock.join)
+      .mockReturnValueOnce("/fake/config") // configDir = path.join(cwd, "config")
+      .mockReturnValueOnce("/fake/config/cookies.txt"); // cookiePath = path.join(configDir, "cookies.txt")
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("writes cookies file when value contains newline and sets repository value to file path", async () => {
+    vi.mocked(fsMock.existsSync).mockReturnValue(true);
+    const { repository, spotifyUserLibraryService, eventBus } = makeStubs();
+    const useCase = new UpdateSettingUseCase(repository, spotifyUserLibraryService, eventBus);
+    const cookieContent = "# Netscape HTTP Cookie File\nfoo=bar\nbaz=qux";
+
+    await useCase.execute("YT_COOKIES", cookieContent);
+
+    expect(fsMock.writeFileSync).toHaveBeenCalledWith(
+      "/fake/config/cookies.txt",
+      cookieContent,
+      "utf-8",
+    );
+    expect(repository.set).toHaveBeenCalledWith("YT_COOKIES", "/fake/config/cookies.txt");
+    expect(eventBus.emit).toHaveBeenCalledWith("settings:updated", {
+      key: "YT_COOKIES",
+      value: "/fake/config/cookies.txt",
+    });
+  });
+
+  it("writes cookies file when value starts with hash (# comment) and sets repository value to file path", async () => {
+    vi.mocked(fsMock.existsSync).mockReturnValue(true);
+    vi.mocked(pathMock.join)
+      .mockReset()
+      .mockReturnValueOnce("/fake/config")
+      .mockReturnValueOnce("/fake/config/cookies.txt");
+    const { repository, spotifyUserLibraryService, eventBus } = makeStubs();
+    const useCase = new UpdateSettingUseCase(repository, spotifyUserLibraryService, eventBus);
+    const cookieContent = "# Netscape HTTP Cookie File\nfoo=bar";
+
+    await useCase.execute("YT_COOKIES", cookieContent);
+
+    expect(fsMock.writeFileSync).toHaveBeenCalledWith(
+      "/fake/config/cookies.txt",
+      cookieContent,
+      "utf-8",
+    );
+    expect(repository.set).toHaveBeenCalledWith("YT_COOKIES", "/fake/config/cookies.txt");
+  });
+
+  it("does NOT write file and passes raw path through when value is a plain path", async () => {
+    const { repository, spotifyUserLibraryService, eventBus } = makeStubs();
+    const useCase = new UpdateSettingUseCase(repository, spotifyUserLibraryService, eventBus);
+
+    await useCase.execute("YT_COOKIES", "/etc/cookies.txt");
+
+    expect(fsMock.writeFileSync).not.toHaveBeenCalled();
+    expect(repository.set).toHaveBeenCalledWith("YT_COOKIES", "/etc/cookies.txt");
+  });
+
+  it("does NOT call mkdirSync when configDir already exists", async () => {
+    vi.mocked(fsMock.existsSync).mockReturnValue(true);
+    vi.mocked(pathMock.join)
+      .mockReset()
+      .mockReturnValueOnce("/fake/config")
+      .mockReturnValueOnce("/fake/config/cookies.txt");
+    const { repository, spotifyUserLibraryService, eventBus } = makeStubs();
+    const useCase = new UpdateSettingUseCase(repository, spotifyUserLibraryService, eventBus);
+
+    await useCase.execute("YT_COOKIES", "line1\nline2");
+
+    expect(fsMock.mkdirSync).not.toHaveBeenCalled();
+    expect(fsMock.writeFileSync).toHaveBeenCalled();
+  });
+
+  it("calls mkdirSync with recursive:true when configDir does not exist", async () => {
+    vi.mocked(fsMock.existsSync).mockReturnValue(false);
+    vi.mocked(pathMock.join)
+      .mockReset()
+      .mockReturnValueOnce("/fake/config")
+      .mockReturnValueOnce("/fake/config/cookies.txt");
+    const { repository, spotifyUserLibraryService, eventBus } = makeStubs();
+    const useCase = new UpdateSettingUseCase(repository, spotifyUserLibraryService, eventBus);
+
+    await useCase.execute("YT_COOKIES", "line1\nline2");
+
+    expect(fsMock.mkdirSync).toHaveBeenCalledWith("/fake/config", { recursive: true });
+    expect(fsMock.writeFileSync).toHaveBeenCalled();
   });
 });
