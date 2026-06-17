@@ -86,6 +86,7 @@
   "navigation": {
     "home": "Biblioteca",
     "history": "Historial",
+    "dashboard": "Panel",
     "releases": "Lanzamientos",
     "myPlaylists": "Mis Listas",
     "artists": "Mis Artistas",
@@ -117,6 +118,13 @@
     "recreate": "Recrear",
     "playlistExists": "La lista ya existe",
     "recreateTooltip": "Recrear lista y suscribirse de nuevo"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "statsSection": "Estadísticas de Biblioteca",
+    "historySection": "Historial de Descargas",
+    "mostListenedTitle": "Más Escuchado",
+    "mostListenedComingSoon": "Próximamente"
   },
   "library": {
     "title": "Biblioteca",
