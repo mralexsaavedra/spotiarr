@@ -194,5 +194,259 @@ describe("SpotifySearchClient", () => {
       const calledUrl = fetchMock.mock.calls[0][0] as string;
       expect(calledUrl).not.toContain("market=");
     });
+
+    it("throws AppError(429) on 429 response from search", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(new Response("", { status: 429, headers: { "Retry-After": "1" } })),
+      );
+
+      const client = new SpotifySearchClient(
+        authService,
+        settingsService,
+        requestCache,
+        circuitBreaker,
+        rateLimiter,
+      );
+      await expect(client.searchCatalog("test")).rejects.toMatchObject({
+        statusCode: 429,
+        errorCode: "spotify_rate_limited",
+      });
+    });
+
+    it("maps albums in search results", async () => {
+      const fetchMock = vi.fn().mockImplementation((url: string) => {
+        if (url.includes("type=album")) {
+          return Promise.resolve(
+            jsonResponse({
+              albums: {
+                items: [
+                  {
+                    id: "alb1",
+                    name: "Great Album",
+                    album_type: "album",
+                    release_date: "2022-01-01",
+                    total_tracks: 10,
+                    images: [{ url: "http://album.jpg" }],
+                    external_urls: { spotify: "https://open.spotify.com/album/alb1" },
+                    artists: [{ id: "a1", name: "The Band" }],
+                  },
+                ],
+              },
+            }),
+          );
+        }
+        // artist group
+        return Promise.resolve(jsonResponse({ artists: { items: [] } }));
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = new SpotifySearchClient(
+        authService,
+        settingsService,
+        requestCache,
+        circuitBreaker,
+        rateLimiter,
+      );
+      const result = await client.searchCatalog("band", ["album"]);
+      expect(result.albums).toHaveLength(1);
+      expect(result.albums[0]?.albumName).toBe("Great Album");
+    });
+
+    it("maps artists in search results", async () => {
+      const fetchMock = vi.fn().mockImplementation((url: string) => {
+        if (url.includes("type=artist")) {
+          return Promise.resolve(
+            jsonResponse({
+              artists: {
+                items: [
+                  {
+                    id: "ar1",
+                    name: "Solo Artist",
+                    images: [{ url: "http://artist.jpg" }],
+                    external_urls: { spotify: "https://open.spotify.com/artist/ar1" },
+                  },
+                ],
+              },
+            }),
+          );
+        }
+        return Promise.resolve(jsonResponse({ tracks: { items: [] }, albums: { items: [] } }));
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = new SpotifySearchClient(
+        authService,
+        settingsService,
+        requestCache,
+        circuitBreaker,
+        rateLimiter,
+      );
+      const result = await client.searchCatalog("solo", ["artist"]);
+      expect(result.artists).toHaveLength(1);
+      expect(result.artists[0]?.name).toBe("Solo Artist");
+    });
+
+    it("getArtistImagesBatch returns null for artists without id", async () => {
+      const fetchMock = vi.fn().mockImplementation((url: string) => {
+        if (url.includes("/v1/artists?ids=")) {
+          // Return artist without id field
+          return Promise.resolve(
+            jsonResponse({
+              artists: [{ images: [{ url: "http://img.jpg" }] }],
+            }),
+          );
+        }
+        if (url.includes("type=track")) {
+          return Promise.resolve(
+            jsonResponse({
+              tracks: {
+                items: [
+                  {
+                    name: "Track",
+                    artists: [
+                      {
+                        id: "a1",
+                        name: "Artist",
+                        external_urls: { spotify: "https://open.spotify.com/artist/a1" },
+                      },
+                    ],
+                    album: {
+                      name: "Album",
+                      images: [],
+                      release_date: "2020",
+                      total_tracks: 1,
+                      external_urls: { spotify: "https://open.spotify.com/album/x" },
+                    },
+                    preview_url: null,
+                    external_urls: { spotify: "https://open.spotify.com/track/t1" },
+                    track_number: 1,
+                    duration_ms: 180000,
+                  },
+                ],
+              },
+              albums: { items: [] },
+            }),
+          );
+        }
+        return Promise.resolve(jsonResponse({ artists: { items: [] } }));
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = new SpotifySearchClient(
+        authService,
+        settingsService,
+        requestCache,
+        circuitBreaker,
+        rateLimiter,
+      );
+      // Should not throw — null image path
+      const result = await client.searchCatalog("Track", ["track"]);
+      expect(result.tracks).toHaveLength(1);
+    });
+
+    it("getArtistImagesBatch falls back gracefully when artist batch request fails", async () => {
+      const fetchMock = vi.fn().mockImplementation((url: string) => {
+        if (url.includes("/v1/artists?ids=")) {
+          return Promise.resolve(new Response("", { status: 500 }));
+        }
+        if (url.includes("type=track")) {
+          return Promise.resolve(
+            jsonResponse({
+              tracks: {
+                items: [
+                  {
+                    name: "Track",
+                    artists: [
+                      {
+                        id: "a1",
+                        name: "Artist",
+                        external_urls: { spotify: "https://open.spotify.com/artist/a1" },
+                      },
+                    ],
+                    album: {
+                      name: "Album",
+                      images: [],
+                      release_date: "2020",
+                      total_tracks: 1,
+                      external_urls: { spotify: "https://open.spotify.com/album/x" },
+                    },
+                    preview_url: null,
+                    external_urls: { spotify: "https://open.spotify.com/track/t1" },
+                    track_number: 1,
+                    duration_ms: 180000,
+                  },
+                ],
+              },
+              albums: { items: [] },
+            }),
+          );
+        }
+        return Promise.resolve(jsonResponse({ artists: { items: [] } }));
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = new SpotifySearchClient(
+        authService,
+        settingsService,
+        requestCache,
+        circuitBreaker,
+        rateLimiter,
+      );
+      const result = await client.searchCatalog("Track", ["track"]);
+      // Should still return tracks, just with null images
+      expect(result.tracks).toHaveLength(1);
+    });
+
+    it("handles empty artist IDs array (no artist batch call)", async () => {
+      const fetchMock = vi.fn().mockImplementation((url: string) => {
+        if (url.includes("type=track")) {
+          return Promise.resolve(
+            jsonResponse({
+              tracks: {
+                items: [
+                  {
+                    // no artists field
+                    name: "No Artist Track",
+                    artists: [],
+                    album: {
+                      name: "Album",
+                      images: [],
+                      release_date: "2020",
+                      total_tracks: 1,
+                      external_urls: { spotify: "https://open.spotify.com/album/x" },
+                    },
+                    preview_url: null,
+                    external_urls: { spotify: "https://open.spotify.com/track/t1" },
+                    track_number: 1,
+                    duration_ms: 180000,
+                  },
+                ],
+              },
+              albums: { items: [] },
+            }),
+          );
+        }
+        return Promise.resolve(jsonResponse({ artists: { items: [] } }));
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = new SpotifySearchClient(
+        authService,
+        settingsService,
+        requestCache,
+        circuitBreaker,
+        rateLimiter,
+      );
+      const result = await client.searchCatalog("Track", ["track"]);
+      expect(result.tracks).toHaveLength(1);
+      // No /v1/artists?ids= call should have been made
+      const artistBatchCall = fetchMock.mock.calls.find(([url]: [string]) =>
+        url.includes("/v1/artists?ids="),
+      );
+      expect(artistBatchCall).toBeUndefined();
+    });
   });
 });

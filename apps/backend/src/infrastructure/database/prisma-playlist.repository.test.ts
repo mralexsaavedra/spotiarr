@@ -172,5 +172,103 @@ describe("PrismaPlaylistRepository", () => {
       expect(result!.tracks).toHaveLength(1);
       expect(result!.tracks![0].id).toBe("tr-1");
     });
+
+    it("maps null name, type, error, coverUrl, artistImageUrl, owner, ownerUrl to undefined", async () => {
+      const dbRow = makeDbPlaylist({
+        name: null,
+        type: null,
+        error: null,
+        coverUrl: null,
+        artistImageUrl: null,
+        owner: null,
+        ownerUrl: null,
+        createdAt: BigInt(0),
+      });
+      vi.mocked(prisma.playlist.findUnique).mockResolvedValue(dbRow as any);
+
+      const repo = new PrismaPlaylistRepository();
+      const result = await repo.findOne("pl-1");
+
+      expect(result!.name).toBeUndefined();
+      expect(result!.type).toBeUndefined();
+      expect(result!.error).toBeUndefined();
+      expect(result!.coverUrl).toBeUndefined();
+      expect(result!.artistImageUrl).toBeUndefined();
+      expect(result!.owner).toBeUndefined();
+      expect(result!.ownerUrl).toBeUndefined();
+    });
+
+    it("converts createdAt BigInt 0 to 0 (falsy → undefined via ternary)", async () => {
+      // When createdAt is BigInt(0), the ternary `playlist.createdAt ? ...` is falsy → undefined
+      const dbRow = makeDbPlaylist({ createdAt: BigInt(0) });
+      vi.mocked(prisma.playlist.findUnique).mockResolvedValue(dbRow as any);
+
+      const repo = new PrismaPlaylistRepository();
+      const result = await repo.findOne("pl-1");
+
+      expect(result!.createdAt).toBeUndefined();
+    });
+
+    it("converts track completedAt BigInt to Number when present", async () => {
+      const completedTs = 1700000000000;
+      const dbRow = makeDbPlaylist({
+        tracks: [
+          {
+            id: "tr-2",
+            name: "Track Two",
+            artist: "Artist",
+            album: null,
+            albumYear: null,
+            trackNumber: null,
+            spotifyUrl: null,
+            trackUrl: null,
+            albumUrl: null,
+            artists: null,
+            youtubeUrl: null,
+            status: "completed",
+            error: null,
+            createdAt: BigInt(completedTs),
+            completedAt: BigInt(completedTs),
+            playlistId: "pl-1",
+          },
+        ],
+      });
+      vi.mocked(prisma.playlist.findUnique).mockResolvedValue(dbRow as any);
+
+      const repo = new PrismaPlaylistRepository();
+      const result = await repo.findOne("pl-1");
+
+      expect(result!.tracks![0].completedAt).toBe(completedTs);
+    });
+  });
+
+  describe("update", () => {
+    it("calls prisma.playlist.update with the given id and data", async () => {
+      vi.mocked(prisma.playlist.update).mockResolvedValue(makeDbPlaylist() as any);
+
+      const repo = new PrismaPlaylistRepository();
+      await repo.update("pl-1", { name: "Updated Name", subscribed: true });
+
+      expect(prisma.playlist.update).toHaveBeenCalledOnce();
+      expect(prisma.playlist.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "pl-1" },
+          data: expect.objectContaining({ name: "Updated Name", subscribed: true }),
+        }),
+      );
+    });
+  });
+
+  describe("findAll with where clause", () => {
+    it("passes where clause to findMany", async () => {
+      vi.mocked(prisma.playlist.findMany).mockResolvedValue([]);
+
+      const repo = new PrismaPlaylistRepository();
+      await repo.findAll(false, { subscribed: true } as any);
+
+      expect(prisma.playlist.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { subscribed: true } }),
+      );
+    });
   });
 });

@@ -63,4 +63,197 @@ describe("MetadataService", () => {
 
     expect(service.saveCoverArt).toBeUndefined();
   });
+
+  describe("performerInfo (album artist)", () => {
+    it("uses albumArtist for performerInfo when provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+        albumArtist: "Album Artist",
+      });
+
+      expect(writeMock).toHaveBeenCalledWith(
+        expect.objectContaining({ performerInfo: "Album Artist" }),
+        "/library/song.mp3",
+      );
+    });
+
+    it("falls back to artist for performerInfo when albumArtist is not provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Solo Artist",
+      });
+
+      expect(writeMock).toHaveBeenCalledWith(
+        expect.objectContaining({ performerInfo: "Solo Artist" }),
+        "/library/song.mp3",
+      );
+    });
+  });
+
+  describe("album", () => {
+    it("sets tags.album when album is provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+        album: "My Album",
+      });
+
+      expect(writeMock).toHaveBeenCalledWith(
+        expect.objectContaining({ album: "My Album" }),
+        "/library/song.mp3",
+      );
+    });
+
+    it("does not set tags.album when album is not provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+      });
+
+      const [tags] = writeMock.mock.calls[0];
+      expect(tags).not.toHaveProperty("album");
+    });
+  });
+
+  describe("albumYear", () => {
+    it("sets tags.year as string when albumYear is provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+        albumYear: 2024,
+      });
+
+      expect(writeMock).toHaveBeenCalledWith(
+        expect.objectContaining({ year: "2024" }),
+        "/library/song.mp3",
+      );
+    });
+
+    it("does not set tags.year when albumYear is not provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+      });
+
+      const [tags] = writeMock.mock.calls[0];
+      expect(tags).not.toHaveProperty("year");
+    });
+  });
+
+  describe("trackNumber", () => {
+    it("sets tags.trackNumber as 'n/total' when both trackNumber and totalTracks are provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+        trackNumber: 3,
+        totalTracks: 10,
+      });
+
+      expect(writeMock).toHaveBeenCalledWith(
+        expect.objectContaining({ trackNumber: "3/10" }),
+        "/library/song.mp3",
+      );
+    });
+
+    it("sets tags.trackNumber as plain string when trackNumber is provided without totalTracks", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+        trackNumber: 3,
+      });
+
+      expect(writeMock).toHaveBeenCalledWith(
+        expect.objectContaining({ trackNumber: "3" }),
+        "/library/song.mp3",
+      );
+    });
+
+    it("does not set tags.trackNumber when trackNumber is not provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+      });
+
+      const [tags] = writeMock.mock.calls[0];
+      expect(tags).not.toHaveProperty("trackNumber");
+    });
+  });
+
+  describe("discNumber", () => {
+    it("sets tags.partOfSet when discNumber is provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+        discNumber: 2,
+      });
+
+      expect(writeMock).toHaveBeenCalledWith(
+        expect.objectContaining({ partOfSet: "2" }),
+        "/library/song.mp3",
+      );
+    });
+
+    it("does not set tags.partOfSet when discNumber is not provided", async () => {
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+      });
+
+      const [tags] = writeMock.mock.calls[0];
+      expect(tags).not.toHaveProperty("partOfSet");
+    });
+  });
+
+  describe("NodeID3.write result handling", () => {
+    it("calls console.warn when NodeID3.write returns false", async () => {
+      writeMock.mockReturnValue(false);
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("/library/song.mp3"));
+      warnSpy.mockRestore();
+    });
+
+    it("does not call console.warn when NodeID3.write returns true", async () => {
+      writeMock.mockReturnValue(true);
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const service = new MetadataService();
+
+      await service.writeTags("/library/song.mp3", {
+        title: "Track",
+        artist: "Artist",
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+  });
 });
