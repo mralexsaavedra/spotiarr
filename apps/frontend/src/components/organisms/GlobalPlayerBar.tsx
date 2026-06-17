@@ -136,6 +136,8 @@ export const GlobalPlayerBar: FC = () => {
   const _onError = usePlayerStore((s) => s._onError);
   const _onWaiting = usePlayerStore((s) => s._onWaiting);
   const _onCanPlay = usePlayerStore((s) => s._onCanPlay);
+  const _onPlay = usePlayerStore((s) => s._onPlay);
+  const _onPause = usePlayerStore((s) => s._onPause);
   const isBuffering = usePlayerStore((s) => s.isBuffering);
 
   const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
@@ -183,6 +185,10 @@ export const GlobalPlayerBar: FC = () => {
     const onStalled = () => _onWaiting();
     const onPlaying = () => _onCanPlay();
     const onCanPlay = () => _onCanPlay();
+    const onPlay = () => _onPlay();
+    const onPause = () => {
+      if (!el.ended) _onPause();
+    };
 
     el.addEventListener("timeupdate", onTimeUpdate);
     el.addEventListener("loadedmetadata", onLoadedMetadata);
@@ -192,6 +198,8 @@ export const GlobalPlayerBar: FC = () => {
     el.addEventListener("stalled", onStalled);
     el.addEventListener("playing", onPlaying);
     el.addEventListener("canplay", onCanPlay);
+    el.addEventListener("play", onPlay);
+    el.addEventListener("pause", onPause);
 
     return () => {
       el.removeEventListener("timeupdate", onTimeUpdate);
@@ -202,8 +210,19 @@ export const GlobalPlayerBar: FC = () => {
       el.removeEventListener("stalled", onStalled);
       el.removeEventListener("playing", onPlaying);
       el.removeEventListener("canplay", onCanPlay);
+      el.removeEventListener("play", onPlay);
+      el.removeEventListener("pause", onPause);
     };
-  }, [_onTimeUpdate, _onLoadedMetadata, _onEnded, _onError, _onWaiting, _onCanPlay]);
+  }, [
+    _onTimeUpdate,
+    _onLoadedMetadata,
+    _onEnded,
+    _onError,
+    _onWaiting,
+    _onCanPlay,
+    _onPlay,
+    _onPause,
+  ]);
 
   useEffect(() => {
     const el = audioRef.current;
