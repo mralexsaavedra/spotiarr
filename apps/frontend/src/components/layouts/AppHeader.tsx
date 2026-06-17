@@ -1,15 +1,10 @@
-import {
-  faDownload,
-  faLink,
-  faMagnifyingGlass,
-  faSliders,
-} from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faLink, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { MOBILE_HEADER_ITEMS } from "@/config/navigation";
 import { useHeaderController } from "@/hooks/controllers/useHeaderController";
-import { Path } from "@/routes/routes";
 import { cn } from "@/utils/cn";
 
 export const AppHeader: FC = () => {
@@ -64,13 +59,19 @@ export const AppHeader: FC = () => {
           </div>
         </div>
 
-        {/* Settings: Mobile Only */}
-        <Link
-          to={Path.SETTINGS}
-          className="text-text-secondary hover:text-text-primary hover:bg-background-elevated flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors md:hidden"
-        >
-          <FontAwesomeIcon icon={faSliders} className="text-xl" />
-        </Link>
+        {/* Secondary destinations: Mobile Only */}
+        <nav className="flex shrink-0 items-center gap-1 md:hidden">
+          {MOBILE_HEADER_ITEMS.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              aria-label={item.label}
+              className="text-text-secondary hover:text-text-primary hover:bg-background-elevated flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+            >
+              <FontAwesomeIcon icon={item.icon} className="text-xl" />
+            </Link>
+          ))}
+        </nav>
       </div>
     </header>
   );

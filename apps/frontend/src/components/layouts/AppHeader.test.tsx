@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Path } from "@/routes/routes";
 import { AppHeader } from "./AppHeader";
 
 vi.mock("react-i18next", () => ({
@@ -67,5 +68,11 @@ describe("AppHeader", () => {
   it("renders at least one navigation link", () => {
     renderHeader();
     expect(screen.getAllByRole("link").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders History and Settings as secondary destinations", () => {
+    renderHeader();
+    expect(screen.getByLabelText("History").getAttribute("href")).toBe(Path.HISTORY);
+    expect(screen.getByLabelText("Settings").getAttribute("href")).toBe(Path.SETTINGS);
   });
 });

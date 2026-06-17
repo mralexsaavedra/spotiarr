@@ -26,4 +26,20 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Settings", icon: faSliders, to: Path.SETTINGS },
 ];
 
-export const MOBILE_NAV_ITEMS: NavItem[] = NAV_ITEMS.filter((item) => item.to !== Path.SETTINGS);
+const byPath = (path: Path): NavItem => {
+  const item = NAV_ITEMS.find((navItem) => navItem.to === path);
+  if (!item) throw new Error(`Missing nav item for path: ${path}`);
+  return item;
+};
+
+// Mobile bottom tab bar: primary destinations only, Home centered.
+export const MOBILE_NAV_ITEMS: NavItem[] = [
+  Path.RELEASES,
+  Path.MY_PLAYLISTS,
+  Path.HOME,
+  Path.ARTISTS,
+  Path.CHAT,
+].map(byPath);
+
+// Mobile top bar: secondary destinations rendered as icons next to search.
+export const MOBILE_HEADER_ITEMS: NavItem[] = [Path.HISTORY, Path.SETTINGS].map(byPath);

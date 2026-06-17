@@ -40,9 +40,9 @@ describe("BottomNavigation", () => {
 
   it("does not apply text-white to inactive route links", () => {
     renderNav(Path.HOME);
-    const historyItem = MOBILE_NAV_ITEMS.find((i) => i.to === Path.HISTORY)!;
-    const historyLink = screen.getByText(historyItem.label).closest("a")!;
-    expect(historyLink.className).not.toContain("text-white");
+    const releasesItem = MOBILE_NAV_ITEMS.find((i) => i.to === Path.RELEASES)!;
+    const releasesLink = screen.getByText(releasesItem.label).closest("a")!;
+    expect(releasesLink.className).not.toContain("text-white");
   });
 
   it("each link points to the correct path", () => {
@@ -51,5 +51,20 @@ describe("BottomNavigation", () => {
       const link = screen.getByText(item.label).closest("a")!;
       expect(link.getAttribute("href")).toBe(item.to);
     }
+  });
+
+  it("does not render History or Settings in the bottom bar", () => {
+    renderNav(Path.HOME);
+    expect(MOBILE_NAV_ITEMS.some((i) => i.to === Path.HISTORY)).toBe(false);
+    expect(MOBILE_NAV_ITEMS.some((i) => i.to === Path.SETTINGS)).toBe(false);
+    expect(screen.queryByText("History")).toBeNull();
+    expect(screen.queryByText("Settings")).toBeNull();
+  });
+
+  it("renders Home centered among five primary destinations", () => {
+    renderNav(Path.HOME);
+    expect(MOBILE_NAV_ITEMS.length).toBe(5);
+    const homeIndex = MOBILE_NAV_ITEMS.findIndex((i) => i.to === Path.HOME);
+    expect(homeIndex).toBe(2);
   });
 });
