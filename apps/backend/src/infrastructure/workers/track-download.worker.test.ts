@@ -17,6 +17,16 @@ const settingsService = { getNumber: vi.fn() };
 const libraryService = { scan: vi.fn() };
 const eventsController = { emit: vi.fn() };
 
+// Logger mock — child logger returned for the worker scope
+const loggerMock = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+  child: vi.fn(),
+};
+loggerMock.child.mockReturnValue(loggerMock);
+
 vi.mock("bullmq", () => ({ Worker: WorkerMock }));
 
 vi.mock("../../container", () => ({
@@ -26,6 +36,8 @@ vi.mock("../../container", () => ({
 vi.mock("../setup/environment", () => ({
   getEnv: () => ({ REDIS_HOST: "localhost", REDIS_PORT: 6379 }),
 }));
+
+vi.mock("../logging/logger", () => ({ logger: loggerMock }));
 
 function makeTrack(overrides: Partial<ITrack> = {}): ITrack {
   return { id: "track-1", name: "Song", artist: "Artist", ...overrides };
@@ -38,8 +50,7 @@ describe("createTrackDownloadWorker", () => {
     settingsService.getNumber.mockResolvedValue(10);
     libraryService.scan.mockResolvedValue(undefined);
     trackService.update.mockResolvedValue(undefined);
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    loggerMock.child.mockReturnValue(loggerMock);
   });
 
   it("configures the BullMQ limiter from the per-minute setting", async () => {
@@ -71,7 +82,7 @@ describe("createTrackDownloadWorker", () => {
 
     await expect(workerListeners.drained?.()).resolves.toBeUndefined();
     expect(eventsController.emit).not.toHaveBeenCalledWith("library-updated");
-    expect(console.error).toHaveBeenCalled();
+    expect(loggerMock.error).toHaveBeenCalled();
   });
 
   it("marks the track as Error and emits playlists-updated on a failed job", async () => {
@@ -112,13 +123,16 @@ describe("createTrackDownloadWorker", () => {
     expect(trackService.downloadFromYoutube).toHaveBeenCalledWith(track);
   });
 
-  it("logs the job id in the completed listener", async () => {
+  it("logs the job id in the completed listener via structured logger", async () => {
     const { createTrackDownloadWorker } = await import("./track-download.worker");
     await createTrackDownloadWorker();
 
     workerListeners.completed?.({ id: "job-completed-1" });
 
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("job-completed-1"));
+    expect(loggerMock.info).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: "job-completed-1" }),
+      expect.any(String),
+    );
   });
 
   it("logs but does not throw when trackService.update fails in the failed handler", async () => {
@@ -131,9 +145,9 @@ describe("createTrackDownloadWorker", () => {
       workerListeners.failed?.({ id: "job-3", data: makeTrack() }, new Error("download failed")),
     ).resolves.toBeUndefined();
 
-    expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining("track-1"),
-      expect.any(Error),
+    expect(loggerMock.error).toHaveBeenCalledWith(
+      expect.objectContaining({ trackId: "track-1" }),
+      expect.any(String),
     );
   });
 });

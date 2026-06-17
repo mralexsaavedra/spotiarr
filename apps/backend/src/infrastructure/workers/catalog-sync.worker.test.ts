@@ -60,9 +60,6 @@ describe("CatalogSyncWorker — runCatalogSyncJob", () => {
 
   beforeEach(() => {
     deps = makeMockDeps();
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   describe("REQ-1: Artist list sourced from DB cache", () => {

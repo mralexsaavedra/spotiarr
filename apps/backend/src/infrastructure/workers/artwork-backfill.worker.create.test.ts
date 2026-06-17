@@ -8,6 +8,16 @@ const workerOn = vi.fn((event: string, cb: (...args: unknown[]) => unknown) => {
 
 const WorkerMock = vi.fn(() => ({ on: workerOn }));
 
+// Logger mock — child logger returned for the worker scope
+const loggerMock = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+  child: vi.fn(),
+};
+loggerMock.child.mockReturnValue(loggerMock);
+
 vi.mock("bullmq", () => ({ Worker: WorkerMock }));
 
 vi.mock("@/container", () => ({
@@ -32,13 +42,13 @@ vi.mock("../setup/queues", () => ({
   ARTWORK_BACKFILL_QUEUE: "artwork-backfill-processor",
 }));
 
+vi.mock("../logging/logger", () => ({ logger: loggerMock }));
+
 describe("createArtworkBackfillWorker", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Object.keys(workerListeners).forEach((key) => delete workerListeners[key]);
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    loggerMock.child.mockReturnValue(loggerMock);
   });
 
   it("creates a BullMQ Worker with the artwork-backfill queue name", async () => {
@@ -60,23 +70,29 @@ describe("createArtworkBackfillWorker", () => {
     expect(workerOn).toHaveBeenCalledWith("failed", expect.any(Function));
   });
 
-  it("completed listener logs the finished job id", async () => {
+  it("completed listener logs the finished job id via structured logger", async () => {
     const { createArtworkBackfillWorker } = await import("./artwork-backfill.worker");
     createArtworkBackfillWorker();
 
     workerListeners.completed?.({ id: "job-99" });
 
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("job-99"));
+    expect(loggerMock.info).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: "job-99" }),
+      expect.any(String),
+    );
   });
 
-  it("failed listener logs the job id and error", async () => {
+  it("failed listener logs the job id and error via structured logger", async () => {
     const { createArtworkBackfillWorker } = await import("./artwork-backfill.worker");
     createArtworkBackfillWorker();
 
     const err = new Error("backfill crash");
     workerListeners.failed?.({ id: "job-1" }, err);
 
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("job-1"), err);
+    expect(loggerMock.error).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: "job-1", err }),
+      expect.any(String),
+    );
   });
 
   it("failed listener handles a null job without throwing", async () => {

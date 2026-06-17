@@ -14,6 +14,16 @@ const WorkerMock = vi.fn(() => ({
 const executeUseCase = vi.fn();
 const emitEventBus = vi.fn();
 
+// Logger mock — child logger returned for the worker scope
+const loggerMock = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+  child: vi.fn(),
+};
+loggerMock.child.mockReturnValue(loggerMock);
+
 vi.mock("bullmq", () => ({
   Worker: WorkerMock,
 }));
@@ -49,15 +59,15 @@ vi.mock("@/application/use-cases/ai/generate-ai-playlist.use-case", () => ({
   })),
 }));
 
+vi.mock("../logging/logger", () => ({ logger: loggerMock }));
+
 describe("createAiPlaylistWorker", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Object.keys(workerListeners).forEach((key) => {
       delete workerListeners[key];
     });
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    loggerMock.child.mockReturnValue(loggerMock);
   });
 
   it("creates a Worker with the AI_PLAYLIST_QUEUE and concurrency 1", async () => {
@@ -122,7 +132,7 @@ describe("createAiPlaylistWorker", () => {
     expect(emitEventBus).toHaveBeenCalledWith("ai-playlist-progress", event);
   });
 
-  it("failed handler logs the error", async () => {
+  it("failed handler logs the error via structured logger", async () => {
     const { createAiPlaylistWorker } = await import("./ai-playlist.worker");
     createAiPlaylistWorker();
 
@@ -131,6 +141,6 @@ describe("createAiPlaylistWorker", () => {
 
     failedHandler?.({ id: "job-1" }, new Error("job failed"));
 
-    expect(console.error).toHaveBeenCalled();
+    expect(loggerMock.error).toHaveBeenCalled();
   });
 });
