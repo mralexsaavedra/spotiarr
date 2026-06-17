@@ -6,6 +6,8 @@ import type { SettingsPort } from "@/application/ports/settings.port";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { runCatalogSyncJob, type CatalogSyncJobDependencies } from "./catalog-sync.worker";
 
+// createCatalogSyncWorker factory tests live in catalog-sync.worker.create.test.ts
+
 function makeFollowedArtist(overrides: Partial<FollowedArtist> = {}): FollowedArtist {
   return {
     id: "artist-1",
@@ -235,6 +237,20 @@ describe("CatalogSyncWorker — runCatalogSyncJob", () => {
 
       expect(deps.releaseFeedService.getArtistDiscography).not.toHaveBeenCalled();
       expect(deps.feedRepository.setCatalogSyncState).toHaveBeenLastCalledWith(SYNC_STATUS.Idle);
+    });
+
+    it("SHALL use 'No artists were synced' message when IDs returned but none match artist map", async () => {
+      // getArtists returns one artist, but getArtistIdsNeedingCatalogSync returns IDs not in the map.
+      // artistsToSync ends up empty → successCount === 0, failedArtistIds.length === 0.
+      vi.mocked(deps.feedRepository.getArtistIdsNeedingCatalogSync).mockResolvedValue([
+        "unknown-id",
+      ]);
+
+      await expect(runCatalogSyncJob(deps)).rejects.toThrow("No artists were synced");
+      expect(deps.feedRepository.setCatalogSyncState).toHaveBeenCalledWith(
+        SYNC_STATUS.Error,
+        "No artists were synced",
+      );
     });
   });
 });

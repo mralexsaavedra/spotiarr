@@ -141,4 +141,45 @@ describe("createTrackSearchWorker", () => {
       );
     });
   });
+
+  it("calls findOnYoutube with the job track data in the processor", async () => {
+    const { createTrackSearchWorker } = await import("./track-search.worker");
+    await createTrackSearchWorker();
+
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as (job: {
+      data: unknown;
+    }) => Promise<void>;
+
+    const track = makeTrack({ id: "track-search-7" });
+    trackService.findOnYoutube.mockResolvedValueOnce(undefined);
+
+    await processor({ data: track });
+
+    expect(trackService.findOnYoutube).toHaveBeenCalledWith(track);
+  });
+
+  it("logs the job id in the completed listener", async () => {
+    const { createTrackSearchWorker } = await import("./track-search.worker");
+    await createTrackSearchWorker();
+
+    workerListeners.completed?.({ id: "job-completed-search" });
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("job-completed-search"));
+  });
+
+  it("logs but does not throw when trackService.update fails in the failed handler", async () => {
+    const { createTrackSearchWorker } = await import("./track-search.worker");
+    await createTrackSearchWorker();
+
+    trackService.update.mockRejectedValueOnce(new Error("search db error"));
+
+    await expect(
+      workerListeners.failed?.({ id: "job-err", data: makeTrack() }, new Error("search failed")),
+    ).resolves.toBeUndefined();
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("track-1"),
+      expect.any(Error),
+    );
+  });
 });

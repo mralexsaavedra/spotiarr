@@ -95,4 +95,45 @@ describe("createTrackDownloadWorker", () => {
 
     expect(trackService.update).not.toHaveBeenCalled();
   });
+
+  it("calls downloadFromYoutube with the job track data in the processor", async () => {
+    const { createTrackDownloadWorker } = await import("./track-download.worker");
+    await createTrackDownloadWorker();
+
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as (job: {
+      data: unknown;
+    }) => Promise<void>;
+
+    const track = makeTrack({ id: "track-7" });
+    trackService.downloadFromYoutube.mockResolvedValueOnce(undefined);
+
+    await processor({ data: track });
+
+    expect(trackService.downloadFromYoutube).toHaveBeenCalledWith(track);
+  });
+
+  it("logs the job id in the completed listener", async () => {
+    const { createTrackDownloadWorker } = await import("./track-download.worker");
+    await createTrackDownloadWorker();
+
+    workerListeners.completed?.({ id: "job-completed-1" });
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("job-completed-1"));
+  });
+
+  it("logs but does not throw when trackService.update fails in the failed handler", async () => {
+    const { createTrackDownloadWorker } = await import("./track-download.worker");
+    await createTrackDownloadWorker();
+
+    trackService.update.mockRejectedValueOnce(new Error("db write error"));
+
+    await expect(
+      workerListeners.failed?.({ id: "job-3", data: makeTrack() }, new Error("download failed")),
+    ).resolves.toBeUndefined();
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("track-1"),
+      expect.any(Error),
+    );
+  });
 });
