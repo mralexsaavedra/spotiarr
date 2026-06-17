@@ -5,14 +5,29 @@ import { describe, expect, it, vi } from "vitest";
 import { Path } from "@/routes/routes";
 import { useLibraryAlbumDetailController } from "./useLibraryAlbumDetailController";
 
-const { mockUseParams, mockUseLibraryArtistQuery, mockPlayQueue, mockSetState } = vi.hoisted(
-  () => ({
+const {
+  mockUseParams,
+  mockUseLibraryArtistQuery,
+  mockPlayQueue,
+  mockToggleShuffle,
+  mockTogglePlay,
+  mockStoreState,
+} = vi.hoisted(() => {
+  const storeState = {
+    isPlaying: false,
+    currentIndex: null as number | null,
+    queue: [] as Array<{ id: string; contextPath?: string }>,
+    shuffleMode: false,
+  };
+  return {
     mockUseParams: vi.fn(),
     mockUseLibraryArtistQuery: vi.fn(),
     mockPlayQueue: vi.fn(),
-    mockSetState: vi.fn(),
-  }),
-);
+    mockToggleShuffle: vi.fn(),
+    mockTogglePlay: vi.fn(),
+    mockStoreState: storeState,
+  };
+});
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
@@ -34,14 +49,18 @@ vi.mock("@/store/usePlayerStore", () => ({
         selector: (state: {
           isPlaying: boolean;
           currentIndex: number | null;
-          queue: Array<{ id: string }>;
+          queue: Array<{ id: string; contextPath?: string }>;
           shuffleMode: boolean;
         }) => unknown,
-      ) => selector({ isPlaying: false, currentIndex: null, queue: [], shuffleMode: false }),
+      ) => selector(mockStoreState),
     ),
     {
-      getState: vi.fn(() => ({ playQueue: mockPlayQueue, togglePlay: vi.fn() })),
-      setState: mockSetState,
+      getState: vi.fn(() => ({
+        playQueue: mockPlayQueue,
+        togglePlay: mockTogglePlay,
+        toggleShuffle: mockToggleShuffle,
+        shuffleMode: mockStoreState.shuffleMode,
+      })),
     },
   ),
 }));
@@ -92,18 +111,18 @@ const makeArtist = (): LibraryArtist => ({
   ],
 });
 
+const setupParams = () => {
+  mockUseParams.mockReturnValue({ name: "Sigur%20R%C3%B3s", albumName: "%28%20%29" });
+  mockUseLibraryArtistQuery.mockReturnValue({ data: makeArtist(), isLoading: false, error: null });
+  mockStoreState.isPlaying = false;
+  mockStoreState.currentIndex = null;
+  mockStoreState.queue = [];
+  mockStoreState.shuffleMode = false;
+};
+
 describe("useLibraryAlbumDetailController", () => {
   it("decodes params, resolves album and maps tracks to AlbumPageLayout shape", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
+    setupParams();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
 
@@ -165,17 +184,7 @@ describe("useLibraryAlbumDetailController", () => {
   });
 
   it("dispatches playQueue to usePlayerStore with normalized QueueItems when onPlayTrack is called", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
+    setupParams();
     mockPlayQueue.mockClear();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
@@ -194,7 +203,6 @@ describe("useLibraryAlbumDetailController", () => {
     expect(startIndex).toBe(1);
     expect(items).toHaveLength(2);
 
-    // audioUrl is normalized from track.trackUrl
     expect(items[0]!.audioUrl).toBe(
       `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/audio?path=${encodeURIComponent("/tmp/01.mp3")}`,
     );
@@ -202,23 +210,12 @@ describe("useLibraryAlbumDetailController", () => {
       `${ApiRoutes.BASE}${ApiRoutes.LIBRARY}/audio?path=${encodeURIComponent("/tmp/02.mp3")}`,
     );
 
-    // QueueItem fields
     expect(items[0]!.name).toBe("Vaka");
     expect(items[0]!.artist).toBe("Sigur Rós");
   });
 
   it("dispatches playQueue starting at index 0 when onPlayPlaylist is called with no current track", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
+    setupParams();
     mockPlayQueue.mockClear();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
@@ -232,19 +229,54 @@ describe("useLibraryAlbumDetailController", () => {
     expect(startIndex).toBe(0);
   });
 
+  it("onPlayPlaylist calls togglePlay when isActiveContext is true", () => {
+    setupParams();
+    const albumContextPath = generatePath(Path.LIBRARY_ALBUM, {
+      name: "Sigur Rós",
+      albumName: "( )",
+    });
+    mockStoreState.queue = [
+      { id: "Sigur Rós-( )-0", contextPath: albumContextPath },
+      { id: "Sigur Rós-( )-1", contextPath: albumContextPath },
+    ];
+    mockStoreState.isPlaying = true;
+    mockPlayQueue.mockClear();
+    mockTogglePlay.mockClear();
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onPlayPlaylist();
+    });
+
+    expect(mockTogglePlay).toHaveBeenCalledTimes(1);
+    expect(mockPlayQueue).not.toHaveBeenCalled();
+  });
+
+  it("onPlayPlaylist calls playQueue at random index when isActiveContext is false and shuffleMode is on", () => {
+    setupParams();
+    mockStoreState.shuffleMode = true;
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+    mockPlayQueue.mockClear();
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    act(() => {
+      result.current.onPlayPlaylist();
+    });
+
+    // Math.floor(0.5 * 2) = 1 (2 tracks)
+    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
+    const [, startIndex] = mockPlayQueue.mock.calls[0] as [unknown[], number];
+    expect(startIndex).toBe(1);
+
+    vi.restoreAllMocks();
+    mockStoreState.shuffleMode = false;
+  });
+
   // T1.3 — artworkUrl regression: library album controller is unaffected
   it("[T1.3] dispatched QueueItems carry artworkUrl equal to coverUrl", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
+    setupParams();
     mockPlayQueue.mockClear();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
@@ -260,7 +292,6 @@ describe("useLibraryAlbumDetailController", () => {
       number,
     ];
 
-    // All items should carry artworkUrl equal to the album's coverUrl
     const expectedCoverUrl = result.current.coverUrl;
     items.forEach((item) => {
       expect(item.artworkUrl).toBe(expectedCoverUrl);
@@ -269,17 +300,7 @@ describe("useLibraryAlbumDetailController", () => {
 
   // T2.4 — contextPath on library album queue items
   it("[T2.4] every dispatched QueueItem carries contextPath equal to the library album route", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
+    setupParams();
     mockPlayQueue.mockClear();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
@@ -305,108 +326,87 @@ describe("useLibraryAlbumDetailController", () => {
     });
   });
 
-  it("exposes onShufflePlay and isShuffleActive in return value", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
+  it("exposes onToggleShuffle and isShuffleActive in return value", () => {
+    setupParams();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
 
-    expect(typeof result.current.onShufflePlay).toBe("function");
+    expect(typeof result.current.onToggleShuffle).toBe("function");
     expect(typeof result.current.isShuffleActive).toBe("boolean");
   });
 
-  it("onShufflePlay calls setState({shuffleMode:true}) BEFORE playFromIndex(0)", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
-
-    mockSetState.mockClear();
+  it("onToggleShuffle calls toggleShuffle without starting playback", () => {
+    setupParams();
+    mockToggleShuffle.mockClear();
     mockPlayQueue.mockClear();
-
-    const callOrder: string[] = [];
-    mockSetState.mockImplementation(() => {
-      callOrder.push("setState");
-    });
-    mockPlayQueue.mockImplementation(() => {
-      callOrder.push("playQueue");
-    });
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
 
     act(() => {
-      result.current.onShufflePlay();
+      result.current.onToggleShuffle();
     });
 
-    expect(mockSetState).toHaveBeenCalledWith({ shuffleMode: true });
-    expect(mockPlayQueue).toHaveBeenCalledTimes(1);
-    expect(callOrder[0]).toBe("setState");
-    expect(callOrder[1]).toBe("playQueue");
+    expect(mockToggleShuffle).toHaveBeenCalledTimes(1);
+    expect(mockPlayQueue).not.toHaveBeenCalled();
   });
 
-  it("onShufflePlay is a no-op when hasPlayableTracks is false", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "missing",
-    });
+  it("onToggleShuffle is a no-op when hasPlayableTracks is false", () => {
+    mockUseParams.mockReturnValue({ name: "Sigur%20R%C3%B3s", albumName: "missing" });
     mockUseLibraryArtistQuery.mockReturnValue({
       data: makeArtist(),
       isLoading: false,
       error: null,
     });
-
-    mockSetState.mockClear();
+    mockToggleShuffle.mockClear();
     mockPlayQueue.mockClear();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
 
     act(() => {
-      result.current.onShufflePlay();
+      result.current.onToggleShuffle();
     });
 
-    expect(mockSetState).not.toHaveBeenCalled();
+    expect(mockToggleShuffle).not.toHaveBeenCalled();
     expect(mockPlayQueue).not.toHaveBeenCalled();
   });
 
   it("isShuffleActive is false when store shuffleMode is false", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
-    });
+    setupParams();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
 
     expect(result.current.isShuffleActive).toBe(false);
   });
 
-  it("does not expose audioRef, audioSrc, or playbackError in return shape", () => {
-    mockUseParams.mockReturnValue({
-      name: "Sigur%20R%C3%B3s",
-      albumName: "%28%20%29",
-    });
+  it("isPlaying exposed is false when isActiveContext is false even if store isPlaying is true", () => {
+    setupParams();
+    mockStoreState.isPlaying = true;
+    mockStoreState.queue = [];
 
-    mockUseLibraryArtistQuery.mockReturnValue({
-      data: makeArtist(),
-      isLoading: false,
-      error: null,
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    expect(result.current.isPlaying).toBe(false);
+  });
+
+  it("isPlaying exposed is true when isActiveContext is true and store isPlaying is true", () => {
+    setupParams();
+    const albumContextPath = generatePath(Path.LIBRARY_ALBUM, {
+      name: "Sigur Rós",
+      albumName: "( )",
     });
+    mockStoreState.queue = [
+      { id: "Sigur Rós-( )-0", contextPath: albumContextPath },
+      { id: "Sigur Rós-( )-1", contextPath: albumContextPath },
+    ];
+    mockStoreState.isPlaying = true;
+
+    const { result } = renderHook(() => useLibraryAlbumDetailController());
+
+    expect(result.current.isPlaying).toBe(true);
+  });
+
+  it("does not expose audioRef, audioSrc, or playbackError in return shape", () => {
+    setupParams();
 
     const { result } = renderHook(() => useLibraryAlbumDetailController());
 

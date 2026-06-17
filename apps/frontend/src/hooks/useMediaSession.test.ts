@@ -48,10 +48,12 @@ const makeActions = (): MediaSessionActions & {
 
 function setupMediaSessionStub() {
   const setActionHandler = vi.fn();
+  const setPositionState = vi.fn();
   const stub = {
     metadata: null as unknown,
     playbackState: "none" as string,
     setActionHandler,
+    setPositionState,
   };
 
   Object.defineProperty(navigator, "mediaSession", {
@@ -85,7 +87,7 @@ function setupMediaSessionStub() {
     vi.unstubAllGlobals();
   }
 
-  return { stub, setActionHandler, restore };
+  return { stub, setActionHandler, setPositionState, restore };
 }
 
 // ---------------------------------------------------------------------------
@@ -300,5 +302,213 @@ describe("useMediaSession with stubbed navigator.mediaSession", () => {
     expect(clearedActions).toContain("seekto");
 
     expect(stub.metadata).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T3.9 — iOS skips the seekto handler to preserve lock-screen prev/next
+// ---------------------------------------------------------------------------
+
+describe("useMediaSession on iOS (seekto suppression)", () => {
+  let setActionHandler: ReturnType<typeof vi.fn>;
+  let restore: () => void;
+  let originalUA: PropertyDescriptor | undefined;
+
+  beforeEach(() => {
+    originalUA = Object.getOwnPropertyDescriptor(navigator, "userAgent");
+    Object.defineProperty(navigator, "userAgent", {
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      configurable: true,
+    });
+    const result = setupMediaSessionStub();
+    setActionHandler = result.setActionHandler;
+    restore = result.restore;
+  });
+
+  afterEach(() => {
+    restore();
+    if (originalUA) {
+      Object.defineProperty(navigator, "userAgent", originalUA);
+    }
+  });
+
+  it("[T3.9] explicitly nulls seek actions on iOS so prev/next can surface", () => {
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), false, actions));
+
+    // null != "not registered" on WebKit: each seek action must be set to null.
+    const seekCalls = (setActionHandler.mock.calls as unknown[][]).filter((call) =>
+      ["seekbackward", "seekforward", "seekto"].includes(call[0] as string),
+    );
+    expect(seekCalls).toHaveLength(3);
+    seekCalls.forEach((call) => {
+      expect(call[1]).toBeNull();
+    });
+  });
+
+  it("[T3.9] still registers previoustrack and nexttrack on iOS", () => {
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), false, actions));
+
+    const registeredActions = (setActionHandler.mock.calls as unknown[][]).map((call) => call[0]);
+    expect(registeredActions).toContain("previoustrack");
+    expect(registeredActions).toContain("nexttrack");
+    expect(registeredActions).toContain("play");
+    expect(registeredActions).toContain("pause");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T3.10 — re-apply metadata + handlers on the audio "playing" event
+// ---------------------------------------------------------------------------
+
+describe("useMediaSession re-applies on the audio playing event", () => {
+  let setActionHandler: ReturnType<typeof vi.fn>;
+  let restore: () => void;
+
+  beforeEach(() => {
+    const result = setupMediaSessionStub();
+    setActionHandler = result.setActionHandler;
+    restore = result.restore;
+  });
+
+  afterEach(() => {
+    restore();
+  });
+
+  it("[T3.10] re-registers action handlers when the element fires 'playing'", () => {
+    const actions = makeActions();
+    const el = document.createElement("audio");
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setActionHandler.mockClear();
+
+    // iOS clears handlers on playback start; the 'playing' event must re-apply them.
+    el.dispatchEvent(new Event("playing"));
+
+    const reRegistered = (setActionHandler.mock.calls as unknown[][]).map((call) => call[0]);
+    expect(reRegistered).toContain("previoustrack");
+    expect(reRegistered).toContain("nexttrack");
+    expect(reRegistered).toContain("play");
+    expect(reRegistered).toContain("pause");
+  });
+
+  it("[T3.10] does not attach a listener when audioEl is null", () => {
+    const actions = makeActions();
+
+    // No element provided → nothing to re-apply against, must not throw.
+    expect(() => {
+      renderHook(() => useMediaSession(makeItem(), true, actions, null));
+    }).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T3.11 — applyPositionState via audio element events
+// ---------------------------------------------------------------------------
+
+describe("useMediaSession setPositionState", () => {
+  let setPositionState: ReturnType<typeof vi.fn>;
+  let restore: () => void;
+
+  beforeEach(() => {
+    const result = setupMediaSessionStub();
+    setPositionState = result.setPositionState;
+    restore = result.restore;
+  });
+
+  afterEach(() => {
+    restore();
+  });
+
+  function makeAudioEl(duration: number, currentTime: number, playbackRate = 1): HTMLAudioElement {
+    const el = document.createElement("audio");
+    Object.defineProperty(el, "duration", { get: () => duration, configurable: true });
+    Object.defineProperty(el, "currentTime", { get: () => currentTime, configurable: true });
+    Object.defineProperty(el, "playbackRate", { get: () => playbackRate, configurable: true });
+    return el;
+  }
+
+  it("[T3.11] calls setPositionState with correct values on loadedmetadata", () => {
+    const el = makeAudioEl(300, 42, 1);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(setPositionState).toHaveBeenCalledOnce();
+    expect(setPositionState).toHaveBeenCalledWith({ duration: 300, playbackRate: 1, position: 42 });
+  });
+
+  it("[T3.11] does NOT call setPositionState when duration is NaN", () => {
+    const el = makeAudioEl(NaN, 0);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(setPositionState).not.toHaveBeenCalled();
+  });
+
+  it("[T3.11] does NOT call setPositionState when duration is Infinity", () => {
+    const el = makeAudioEl(Infinity, 0);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(setPositionState).not.toHaveBeenCalled();
+  });
+
+  it("[T3.11] clamps position to duration when currentTime > duration", () => {
+    const el = makeAudioEl(100, 150);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("seeked"));
+
+    expect(setPositionState).toHaveBeenCalledWith({
+      duration: 100,
+      playbackRate: 1,
+      position: 100,
+    });
+  });
+
+  it("[T3.11] re-pushes position state on the playing event", () => {
+    const el = makeAudioEl(200, 60);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("playing"));
+
+    expect(setPositionState).toHaveBeenCalledWith({ duration: 200, playbackRate: 1, position: 60 });
+  });
+
+  it("[T3.11] no-op when setPositionState is absent from navigator.mediaSession", () => {
+    const el = makeAudioEl(300, 42);
+    const actions = makeActions();
+
+    // Simulate older browser: remove setPositionState from the stub
+    const ms = navigator.mediaSession as unknown as Record<string, unknown>;
+    delete ms.setPositionState;
+
+    expect(() => {
+      renderHook(() => useMediaSession(makeItem(), true, actions, el));
+      el.dispatchEvent(new Event("loadedmetadata"));
+    }).not.toThrow();
   });
 });

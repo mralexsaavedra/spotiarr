@@ -34,6 +34,8 @@ export interface PlayerState extends PlayerUISlice {
   repeatMode: RepeatMode;
   shuffleOrder: number[];
   shuffleOrderIndex: number;
+  consecutiveErrors: number;
+  isBuffering: boolean;
 
   playQueue: (items: QueueItem[], startIndex: number) => void;
   togglePlay: () => void;
@@ -54,15 +56,35 @@ export interface PlayerState extends PlayerUISlice {
   _onTimeUpdate: (currentTime: number) => void;
   _onEnded: () => void;
   _onError: (message: string) => void;
+  _onWaiting: () => void;
+  _onCanPlay: () => void;
+  _onPlay: () => void;
+  _onPause: () => void;
 }
 
 export const __partialize = (
   state: PlayerState,
-): Pick<PlayerState, "volume" | "isMuted" | "shuffleMode" | "repeatMode"> => ({
+): Pick<
+  PlayerState,
+  | "volume"
+  | "isMuted"
+  | "shuffleMode"
+  | "repeatMode"
+  | "queue"
+  | "currentIndex"
+  | "currentTime"
+  | "shuffleOrder"
+  | "shuffleOrderIndex"
+> => ({
   volume: state.volume,
   isMuted: state.isMuted,
   shuffleMode: state.shuffleMode,
   repeatMode: state.repeatMode,
+  queue: state.queue,
+  currentIndex: state.currentIndex,
+  currentTime: state.currentTime,
+  shuffleOrder: state.shuffleOrder,
+  shuffleOrderIndex: state.shuffleOrderIndex,
 });
 
 let _audioElement: HTMLAudioElement | null = null;
@@ -99,9 +121,11 @@ const INITIAL_STATE = {
   repeatMode: "off" as RepeatMode,
   shuffleOrder: [] as number[],
   shuffleOrderIndex: -1,
+  consecutiveErrors: 0,
+  isBuffering: false,
 };
 
-type AdvanceSource = "user" | "ended";
+type AdvanceSource = "user" | "ended" | "error";
 
 export const usePlayerStore = create<PlayerState>()(
   persist(
@@ -120,7 +144,12 @@ export const usePlayerStore = create<PlayerState>()(
         if (shuffleMode) {
           if (shuffleOrderIndex >= shuffleOrder.length - 1) {
             if (repeatMode === "all") {
-              set({ shuffleOrderIndex: 0, currentIndex: shuffleOrder[0]!, currentTime: 0 });
+              set({
+                shuffleOrderIndex: 0,
+                currentIndex: shuffleOrder[0]!,
+                currentTime: 0,
+                isBuffering: false,
+              });
             } else {
               set({ isPlaying: false });
             }
@@ -131,18 +160,19 @@ export const usePlayerStore = create<PlayerState>()(
             shuffleOrderIndex: nextOrderIndex,
             currentIndex: shuffleOrder[nextOrderIndex]!,
             currentTime: 0,
+            isBuffering: false,
           });
           return;
         }
         if (currentIndex >= queue.length - 1) {
           if (repeatMode === "all") {
-            set({ currentIndex: 0, currentTime: 0 });
+            set({ currentIndex: 0, currentTime: 0, isBuffering: false });
           } else {
             set({ isPlaying: false });
           }
           return;
         }
-        set({ currentIndex: currentIndex + 1, currentTime: 0 });
+        set({ currentIndex: currentIndex + 1, currentTime: 0, isBuffering: false });
       }
 
       return {
@@ -160,6 +190,8 @@ export const usePlayerStore = create<PlayerState>()(
             isPlaying: true,
             currentTime: 0,
             error: null,
+            consecutiveErrors: 0,
+            isBuffering: false,
           });
           if (get().shuffleMode && items.length > 0) {
             const order = shuffleIndices(items.length, startIndex);
@@ -204,6 +236,7 @@ export const usePlayerStore = create<PlayerState>()(
                 shuffleOrderIndex: nextOrderIndex,
                 currentIndex: shuffleOrder[nextOrderIndex]!,
                 currentTime: 0,
+                isBuffering: false,
               });
               return;
             }
@@ -213,22 +246,24 @@ export const usePlayerStore = create<PlayerState>()(
                 shuffleOrderIndex: nextOrderIndex,
                 currentIndex: shuffleOrder[nextOrderIndex]!,
                 currentTime: 0,
+                isBuffering: false,
               });
             }
             return;
           }
           if (currentIndex > 0) {
-            set({ currentIndex: currentIndex - 1, currentTime: 0 });
+            set({ currentIndex: currentIndex - 1, currentTime: 0, isBuffering: false });
             return;
           }
           if (repeatMode === "all") {
-            set({ currentIndex: queue.length - 1, currentTime: 0 });
+            set({ currentIndex: queue.length - 1, currentTime: 0, isBuffering: false });
           }
         },
 
         seek(seconds) {
           const { duration } = get();
-          const clamped = Math.max(0, Math.min(seconds, duration));
+          const clamped =
+            duration > 0 ? Math.max(0, Math.min(seconds, duration)) : Math.max(0, seconds);
           set({ currentTime: clamped });
           if (_audioElement) {
             _audioElement.currentTime = clamped;
@@ -262,6 +297,7 @@ export const usePlayerStore = create<PlayerState>()(
             error: null,
             isQueuePanelOpen: false,
             isNowPlayingOpen: false,
+            isBuffering: false,
           });
         },
 
@@ -270,7 +306,10 @@ export const usePlayerStore = create<PlayerState>()(
         },
 
         _onLoadedMetadata(duration) {
-          set({ duration });
+          set({
+            duration: Number.isFinite(duration) && duration > 0 ? duration : 0,
+            consecutiveErrors: 0,
+          });
         },
 
         _onTimeUpdate(currentTime) {
@@ -301,13 +340,47 @@ export const usePlayerStore = create<PlayerState>()(
         },
 
         _onError(message) {
-          set({ error: message, isPlaying: false });
+          const { currentIndex, queue, consecutiveErrors } = get();
+          if (currentIndex === null) {
+            set({ error: message, isPlaying: false, isBuffering: false });
+            return;
+          }
+          const errs = consecutiveErrors + 1;
+          if (errs >= queue.length) {
+            set({ error: message, isPlaying: false, consecutiveErrors: 0, isBuffering: false });
+            return;
+          }
+          set({ consecutiveErrors: errs, error: message, isBuffering: false });
+          advance("error");
+        },
+
+        _onWaiting() {
+          set({ isBuffering: true });
+        },
+
+        _onCanPlay() {
+          set({ isBuffering: false });
+        },
+
+        _onPlay() {
+          if (!get().isPlaying) set({ isPlaying: true });
+        },
+
+        _onPause() {
+          if (get().isPlaying) set({ isPlaying: false });
         },
 
         playFromIndex(index) {
           const { queue, shuffleMode } = get();
           if (index < 0 || index >= queue.length) return;
-          set({ currentIndex: index, isPlaying: true, currentTime: 0 });
+          set({
+            currentIndex: index,
+            isPlaying: true,
+            currentTime: 0,
+            error: null,
+            consecutiveErrors: 0,
+            isBuffering: false,
+          });
           if (_audioElement) _audioElement.currentTime = 0;
           if (shuffleMode) {
             const order = shuffleIndices(queue.length, index);

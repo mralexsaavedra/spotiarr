@@ -456,7 +456,8 @@
       "seek": "Avanzar",
       "repeatEnable": "Activar repetición",
       "repeatAll": "Repetir todo",
-      "repeatOne": "Repetir una"
+      "repeatOne": "Repetir una",
+      "loading": "Cargando"
     }
   },
   "aiChat": {

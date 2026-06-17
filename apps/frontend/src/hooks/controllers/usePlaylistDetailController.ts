@@ -37,21 +37,34 @@ export const usePlaylistDetailController = () => {
       }));
   }, [mode, tracks, playlist, id]);
 
-  const { currentTrackId, isPlaying, hasPlayableTracks, playFromIndex, onPlayTrack, onPauseTrack } =
-    usePlayerQueueBinding(queueItems);
+  const {
+    currentTrackId,
+    isPlaying: globalIsPlaying,
+    isActiveContext,
+    hasPlayableTracks,
+    playFromIndex,
+    onPlayTrack,
+    onPauseTrack,
+  } = usePlayerQueueBinding(queueItems);
 
   const isShuffleActive = usePlayerStore((s) => s.shuffleMode);
 
   const onPlayPlaylist = useCallback(() => {
     if (!hasPlayableTracks) return;
-    playFromIndex(0);
-  }, [hasPlayableTracks, playFromIndex]);
+    if (isActiveContext) {
+      usePlayerStore.getState().togglePlay();
+      return;
+    }
+    const len = queueItems.length;
+    const startIndex =
+      usePlayerStore.getState().shuffleMode && len > 0 ? Math.floor(Math.random() * len) : 0;
+    playFromIndex(startIndex);
+  }, [hasPlayableTracks, isActiveContext, queueItems, playFromIndex]);
 
-  const onShufflePlay = useCallback(() => {
+  const onToggleShuffle = useCallback(() => {
     if (!hasPlayableTracks) return;
-    usePlayerStore.setState({ shuffleMode: true });
-    playFromIndex(0);
-  }, [hasPlayableTracks, playFromIndex]);
+    usePlayerStore.getState().toggleShuffle();
+  }, [hasPlayableTracks]);
 
   const {
     isDownloading,
@@ -89,14 +102,14 @@ export const usePlaylistDetailController = () => {
     handleRetryTrack,
     handleGoHome,
     currentTrackId,
-    isPlaying,
+    isPlaying: isActiveContext && globalIsPlaying,
     onPlayTrack,
     onPauseTrack,
     onPlayPlaylist,
     onPausePlaylist: onPauseTrack,
     hasPlayableTracks,
     isShuffleActive,
-    onShufflePlay,
+    onToggleShuffle,
     mode,
   };
 };

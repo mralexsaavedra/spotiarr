@@ -5,6 +5,7 @@ import {
   faPlay,
   faRepeat,
   faShuffle,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
@@ -25,6 +26,7 @@ export interface TransportControlsProps {
   onRepeatCycle: () => void;
   isPrevDisabled?: boolean;
   isNextDisabled?: boolean;
+  isBuffering?: boolean;
   size?: "default" | "large";
   className?: string;
 }
@@ -41,6 +43,7 @@ export const TransportControls: FC<TransportControlsProps> = ({
   onRepeatCycle,
   isPrevDisabled = false,
   isNextDisabled = false,
+  isBuffering = false,
   size,
   className,
 }) => {
@@ -101,8 +104,15 @@ export const TransportControls: FC<TransportControlsProps> = ({
 
       <button
         type="button"
-        aria-label={isPlaying ? t("player.transport.pause") : t("player.transport.play")}
+        aria-label={
+          isBuffering
+            ? t("player.transport.loading")
+            : isPlaying
+              ? t("player.transport.pause")
+              : t("player.transport.play")
+        }
         aria-pressed={isPlaying}
+        aria-busy={isBuffering || undefined}
         disabled={allDisabled}
         aria-disabled={allDisabled || undefined}
         onClick={onPlayPause}
@@ -112,7 +122,10 @@ export const TransportControls: FC<TransportControlsProps> = ({
           allDisabled && "cursor-not-allowed opacity-40",
         )}
       >
-        <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className={iconSize} />
+        <FontAwesomeIcon
+          icon={isBuffering ? faSpinner : isPlaying ? faPause : faPlay}
+          className={cn(iconSize, isBuffering && "animate-spin")}
+        />
       </button>
 
       <button

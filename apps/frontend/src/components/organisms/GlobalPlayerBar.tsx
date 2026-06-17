@@ -5,10 +5,11 @@ import {
   faVolumeXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useEffect, useMemo, useRef } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
+import { useGlobalPlayerShortcuts } from "@/hooks/useGlobalPlayerShortcuts";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
@@ -94,8 +95,14 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
+  const registerAudioEl = useCallback((el: HTMLAudioElement | null) => {
+    audioRef.current = el;
+    setAudioEl(el);
+  }, []);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const nowPlayingTriggerRef = useRef<HTMLButtonElement>(null);
+  const seekRestoredRef = useRef(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
@@ -111,6 +118,9 @@ export const GlobalPlayerBar: FC = () => {
   const shuffleMode = usePlayerStore((s) => s.shuffleMode);
   const repeatMode = usePlayerStore((s) => s.repeatMode);
 
+  const volume = usePlayerStore((s) => s.volume);
+  const isMuted = usePlayerStore((s) => s.isMuted);
+
   const setAudioElement = usePlayerStore((s) => s.setAudioElement);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
@@ -124,6 +134,11 @@ export const GlobalPlayerBar: FC = () => {
   const _onTimeUpdate = usePlayerStore((s) => s._onTimeUpdate);
   const _onEnded = usePlayerStore((s) => s._onEnded);
   const _onError = usePlayerStore((s) => s._onError);
+  const _onWaiting = usePlayerStore((s) => s._onWaiting);
+  const _onCanPlay = usePlayerStore((s) => s._onCanPlay);
+  const _onPlay = usePlayerStore((s) => s._onPlay);
+  const _onPause = usePlayerStore((s) => s._onPause);
+  const isBuffering = usePlayerStore((s) => s.isBuffering);
 
   const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
 
@@ -141,7 +156,8 @@ export const GlobalPlayerBar: FC = () => {
     }),
     [next, prev, seek],
   );
-  useMediaSession(currentItem, isPlaying, mediaSessionActions);
+  useMediaSession(currentItem, isPlaying, mediaSessionActions, audioEl);
+  useGlobalPlayerShortcuts();
   useFocusReturnOnClose(isQueuePanelOpen, triggerRef);
   useFocusReturnOnClose(isNowPlayingOpen, nowPlayingTriggerRef);
 
@@ -165,19 +181,81 @@ export const GlobalPlayerBar: FC = () => {
       const msg = el.error?.message ?? "Playback error";
       _onError(msg);
     };
+    const onWaiting = () => _onWaiting();
+    const onStalled = () => _onWaiting();
+    const onPlaying = () => _onCanPlay();
+    const onCanPlay = () => _onCanPlay();
+    const onPlay = () => _onPlay();
+    const onPause = () => {
+      if (!el.ended) _onPause();
+    };
 
     el.addEventListener("timeupdate", onTimeUpdate);
     el.addEventListener("loadedmetadata", onLoadedMetadata);
     el.addEventListener("ended", onEnded);
     el.addEventListener("error", onError);
+    el.addEventListener("waiting", onWaiting);
+    el.addEventListener("stalled", onStalled);
+    el.addEventListener("playing", onPlaying);
+    el.addEventListener("canplay", onCanPlay);
+    el.addEventListener("play", onPlay);
+    el.addEventListener("pause", onPause);
 
     return () => {
       el.removeEventListener("timeupdate", onTimeUpdate);
       el.removeEventListener("loadedmetadata", onLoadedMetadata);
       el.removeEventListener("ended", onEnded);
       el.removeEventListener("error", onError);
+      el.removeEventListener("waiting", onWaiting);
+      el.removeEventListener("stalled", onStalled);
+      el.removeEventListener("playing", onPlaying);
+      el.removeEventListener("canplay", onCanPlay);
+      el.removeEventListener("play", onPlay);
+      el.removeEventListener("pause", onPause);
     };
-  }, [_onTimeUpdate, _onLoadedMetadata, _onEnded, _onError]);
+  }, [
+    _onTimeUpdate,
+    _onLoadedMetadata,
+    _onEnded,
+    _onError,
+    _onWaiting,
+    _onCanPlay,
+    _onPlay,
+    _onPause,
+  ]);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !currentItem) return;
+    const startAt = usePlayerStore.getState().currentTime;
+    if (startAt <= 0) return;
+    const restoreIndex = usePlayerStore.getState().currentIndex;
+
+    const onFirstMetadata = () => {
+      if (!seekRestoredRef.current) {
+        if (usePlayerStore.getState().currentIndex !== restoreIndex) {
+          seekRestoredRef.current = true;
+          el.removeEventListener("loadedmetadata", onFirstMetadata);
+          return;
+        }
+        el.currentTime = startAt;
+        seekRestoredRef.current = true;
+      }
+      el.removeEventListener("loadedmetadata", onFirstMetadata);
+    };
+
+    el.addEventListener("loadedmetadata", onFirstMetadata);
+    return () => {
+      el.removeEventListener("loadedmetadata", onFirstMetadata);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    el.volume = volume;
+    el.muted = isMuted;
+  }, [volume, isMuted]);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -193,7 +271,11 @@ export const GlobalPlayerBar: FC = () => {
     if (isPlaying) {
       const playPromise = el.play();
       if (playPromise && typeof playPromise.catch === "function") {
-        void playPromise.catch(() => {});
+        void playPromise.catch((err: { name?: string } | null) => {
+          if (err?.name === "NotAllowedError") {
+            usePlayerStore.getState()._onPause();
+          }
+        });
       }
     } else {
       el.pause();
@@ -216,17 +298,14 @@ export const GlobalPlayerBar: FC = () => {
     repeatMode !== "all" &&
     (currentIndex === null || currentIndex >= queue.length - 1);
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key !== " ") return;
-    const tag = (e.target as HTMLElement).tagName;
-    if (tag === "BUTTON" || tag === "INPUT") return;
-    e.preventDefault();
-    togglePlay();
-  };
-
   return (
     <>
-      <audio ref={audioRef} aria-label="Audio player" preload="metadata" className="hidden" />
+      <audio
+        ref={registerAudioEl}
+        aria-label="Audio player"
+        preload="metadata"
+        className="hidden"
+      />
       <QueueSidePanel />
       <NowPlayingFullscreen />
 
@@ -234,7 +313,6 @@ export const GlobalPlayerBar: FC = () => {
         <section
           role="region"
           aria-label="Now playing"
-          onKeyDown={onKeyDown}
           className={cn(
             "bg-black",
             "fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 transition-[left] duration-300 md:bottom-0",
@@ -299,6 +377,7 @@ export const GlobalPlayerBar: FC = () => {
                   onRepeatCycle={cycleRepeat}
                   isPrevDisabled={isAtFirst}
                   isNextDisabled={isAtLast}
+                  isBuffering={isBuffering}
                 />
 
                 <button

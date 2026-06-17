@@ -131,4 +131,39 @@ describe("TransportControls", () => {
       true,
     );
   });
+
+  it("isBuffering=true: play/pause button shows spinner icon", () => {
+    render(<TransportControls {...defaultProps} isBuffering={true} />);
+    const btn = screen.getByRole("button", { name: "player.transport.loading" });
+    const icon = btn.querySelector("[data-icon='spinner']");
+    expect(icon).not.toBeNull();
+  });
+
+  it("isBuffering=true: play/pause button has loading aria-label", () => {
+    render(<TransportControls {...defaultProps} isBuffering={true} />);
+    expect(screen.getByRole("button", { name: "player.transport.loading" })).not.toBeNull();
+  });
+
+  it("isBuffering=true: play/pause button is still enabled (not disabled)", () => {
+    render(<TransportControls {...defaultProps} isBuffering={true} />);
+    const btn = screen.getByRole("button", { name: "player.transport.loading" });
+    expect(btn).toHaveProperty("disabled", false);
+  });
+
+  it("isBuffering=false: shows play or pause as before", () => {
+    render(<TransportControls {...defaultProps} isBuffering={false} isPlaying={false} />);
+    expect(screen.getByRole("button", { name: "player.transport.play" })).not.toBeNull();
+  });
+
+  it("isBuffering=true: play/pause button has aria-busy='true'", () => {
+    render(<TransportControls {...defaultProps} isBuffering={true} />);
+    const btn = screen.getByRole("button", { name: "player.transport.loading" });
+    expect(btn.getAttribute("aria-busy")).toBe("true");
+  });
+
+  it("isBuffering=false: play/pause button does not have aria-busy attribute", () => {
+    render(<TransportControls {...defaultProps} isBuffering={false} />);
+    const btn = screen.getByRole("button", { name: "player.transport.play" });
+    expect(btn.getAttribute("aria-busy")).toBeNull();
+  });
 });

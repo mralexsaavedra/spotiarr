@@ -404,8 +404,8 @@ describe("keyboard space toggle", () => {
     const playBtn = screen.getByRole("button", { name: "Play" });
     fireEvent.keyDown(playBtn, { key: " " });
 
-    // The region onKeyDown should be a no-op when target is BUTTON
-    // so isPlaying remains unchanged from before the keyDown
+    // The global shortcut hook ignores BUTTON targets (native activation
+    // handles Space there), so the keydown does not toggle play.
     expect(usePlayerStore.getState().isPlaying).toBe(false);
   });
 });
@@ -782,6 +782,50 @@ describe("isAtFirst / isAtLast with modes", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Buffering audio events — waiting/playing/canplay
+// ---------------------------------------------------------------------------
+
+describe("buffering audio events", () => {
+  it("dispatching 'waiting' event on audio element sets store isBuffering to true", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    act(() => {
+      fireEvent(audio, new Event("waiting"));
+    });
+
+    expect(usePlayerStore.getState().isBuffering).toBe(true);
+  });
+
+  it("dispatching 'playing' event on audio element sets store isBuffering to false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isBuffering: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    act(() => {
+      fireEvent(audio, new Event("playing"));
+    });
+
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("dispatching 'canplay' event on audio element sets store isBuffering to false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isBuffering: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    act(() => {
+      fireEvent(audio, new Event("canplay"));
+    });
+
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // mobile chevron affordance (Item 3 / S3-chevron)
 // ---------------------------------------------------------------------------
 
@@ -801,6 +845,65 @@ describe("mobile chevron affordance", () => {
 
     const mobileBtn = screen.queryByRole("button", { name: "Open Now Playing" });
     expect(mobileBtn).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// B3 — persisted volume/mute not applied to audio element on mount
+// ---------------------------------------------------------------------------
+
+describe("B3 — persisted volume/mute applied on mount", () => {
+  it("B3-1: audio element gets store volume and muted on mount", () => {
+    usePlayerStore.setState({ volume: 0.3, isMuted: true });
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    expect(audio.volume).toBe(0.3);
+    expect(audio.muted).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// E4 — autoplay rejection swallowed, isPlaying lies
+// ---------------------------------------------------------------------------
+
+describe("E4 — autoplay NotAllowedError sets isPlaying false", () => {
+  it("E4-1: NotAllowedError rejection sets isPlaying to false", async () => {
+    const notAllowed = Object.assign(new Error("NotAllowedError"), { name: "NotAllowedError" });
+    const mockPlay = vi.fn().mockRejectedValue(notAllowed);
+    HTMLMediaElement.prototype.play = mockPlay;
+
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+
+    await act(async () => {
+      render(<GlobalPlayerBar />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+
+  it("E4-2: AbortError rejection leaves isPlaying true", async () => {
+    const abortError = Object.assign(new Error("AbortError"), { name: "AbortError" });
+    const mockPlay = vi.fn().mockRejectedValue(abortError);
+    HTMLMediaElement.prototype.play = mockPlay;
+
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+
+    await act(async () => {
+      render(<GlobalPlayerBar />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
   });
 });
 
@@ -862,5 +965,137 @@ describe("mobile now-playing trigger", () => {
 
     const btn = screen.getByRole("button", { name: "Open Now Playing" });
     expect(document.activeElement).toBe(btn);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Element→store play/pause bridge
+// ---------------------------------------------------------------------------
+
+describe("element→store play/pause bridge", () => {
+  it("dispatching 'pause' event with el.ended=false sets store isPlaying to false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    Object.defineProperty(audio, "ended", { value: false, configurable: true });
+
+    act(() => {
+      fireEvent(audio, new Event("pause"));
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+
+  it("dispatching 'pause' event with el.ended=true does NOT change isPlaying (end-of-track guard)", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    Object.defineProperty(audio, "ended", { value: true, configurable: true });
+
+    act(() => {
+      fireEvent(audio, new Event("pause"));
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+
+  it("dispatching 'play' event sets store isPlaying to true", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: false });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    act(() => {
+      fireEvent(audio, new Event("play"));
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Resume playback position on reload
+// ---------------------------------------------------------------------------
+
+describe("resume playback position on reload", () => {
+  it("seeks audio to persisted currentTime on first loadedmetadata", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      currentTime: 42,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+
+    expect(audio.currentTime).toBe(42);
+  });
+
+  it("does NOT re-seek on subsequent loadedmetadata events (one-shot guard)", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      currentTime: 42,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+    expect(audio.currentTime).toBe(42);
+
+    audio.currentTime = 10;
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+    expect(audio.currentTime).toBe(10);
+  });
+
+  it("does NOT seek when persisted currentTime is 0", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      currentTime: 0,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    audio.currentTime = 0;
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+
+    expect(audio.currentTime).toBe(0);
+  });
+
+  it("does NOT seek when currentIndex changed before loadedmetadata fires", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a"), makeItem("b")],
+      currentIndex: 0,
+      currentTime: 42,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    usePlayerStore.setState({ currentIndex: 1 });
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+
+    expect(audio.currentTime).not.toBe(42);
   });
 });
