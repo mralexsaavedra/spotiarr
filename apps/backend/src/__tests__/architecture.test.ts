@@ -115,6 +115,12 @@ describe("architecture boundaries (baseline before cleanup)", () => {
         continue;
       }
 
+      // logger.ts reads process.env at init (not via getEnv()) to avoid the
+      // bootstrap ordering trap — see design ADR-2.
+      if (rel === "infrastructure/logging/logger.ts") {
+        continue;
+      }
+
       if (rel === "container.ts" && /process\.env\.DOWNLOADS/.test(content)) {
         const lines = content.split("\n").filter((line) => /process\.env/.test(line));
         const bad = lines.filter((line) => !/process\.env\.DOWNLOADS/.test(line));
