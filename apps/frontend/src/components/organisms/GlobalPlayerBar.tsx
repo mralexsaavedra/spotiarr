@@ -5,7 +5,7 @@ import {
   faVolumeXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useEffect, useMemo, useRef } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
@@ -95,6 +95,11 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
+  const registerAudioEl = useCallback((el: HTMLAudioElement | null) => {
+    audioRef.current = el;
+    setAudioEl(el);
+  }, []);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const nowPlayingTriggerRef = useRef<HTMLButtonElement>(null);
   const seekRestoredRef = useRef(false);
@@ -149,7 +154,7 @@ export const GlobalPlayerBar: FC = () => {
     }),
     [next, prev, seek],
   );
-  useMediaSession(currentItem, isPlaying, mediaSessionActions);
+  useMediaSession(currentItem, isPlaying, mediaSessionActions, audioEl);
   useGlobalPlayerShortcuts();
   useFocusReturnOnClose(isQueuePanelOpen, triggerRef);
   useFocusReturnOnClose(isNowPlayingOpen, nowPlayingTriggerRef);
@@ -270,7 +275,12 @@ export const GlobalPlayerBar: FC = () => {
 
   return (
     <>
-      <audio ref={audioRef} aria-label="Audio player" preload="metadata" className="hidden" />
+      <audio
+        ref={registerAudioEl}
+        aria-label="Audio player"
+        preload="metadata"
+        className="hidden"
+      />
       <QueueSidePanel />
       <NowPlayingFullscreen />
 
