@@ -28,9 +28,7 @@ export const DownloadHistorySection: FC<DownloadHistorySectionProps> = ({
 
   return (
     <section>
-      <h2 className="text-text-primary mb-4 text-lg font-semibold">
-        {t("dashboard.historySection")}
-      </h2>
+      <h2 className="text-text-primary mb-4 text-lg font-semibold">{t("history.title")}</h2>
 
       {isLoading ? (
         <Loading />

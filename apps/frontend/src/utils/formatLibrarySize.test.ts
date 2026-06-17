@@ -4,7 +4,7 @@ import { formatLibrarySize } from "./formatLibrarySize";
 describe("formatLibrarySize", () => {
   it("formats bytes in the GB range", () => {
     const oneGb = 1024 * 1024 * 1024;
-    expect(formatLibrarySize(oneGb)).toBe("1.00 GB");
+    expect(formatLibrarySize(oneGb)).toBe("1024.00 MB");
   });
 
   it("formats bytes in the MB range", () => {

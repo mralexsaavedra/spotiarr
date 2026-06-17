@@ -122,7 +122,6 @@
   "dashboard": {
     "title": "Dashboard",
     "statsSection": "Library Stats",
-    "historySection": "Download History",
     "mostListenedTitle": "Most Listened",
     "mostListenedComingSoon": "Coming soon"
   },
