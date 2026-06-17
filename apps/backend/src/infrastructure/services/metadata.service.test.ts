@@ -1,6 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MetadataService } from "./metadata.service";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 const { writeMock } = vi.hoisted(() => ({
   writeMock: vi.fn(),
 }));
@@ -228,9 +241,9 @@ describe("MetadataService", () => {
   });
 
   describe("NodeID3.write result handling", () => {
-    it("calls console.warn when NodeID3.write returns false", async () => {
+    it("calls logger.warn when NodeID3.write returns false", async () => {
       writeMock.mockReturnValue(false);
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      loggerMock.warn.mockClear();
       const service = new MetadataService();
 
       await service.writeTags("/library/song.mp3", {
@@ -238,13 +251,15 @@ describe("MetadataService", () => {
         artist: "Artist",
       });
 
-      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("/library/song.mp3"));
-      warnSpy.mockRestore();
+      expect(loggerMock.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ filePath: "/library/song.mp3" }),
+        expect.stringContaining("NodeID3.write returned false"),
+      );
     });
 
-    it("does not call console.warn when NodeID3.write returns true", async () => {
+    it("does not call logger.warn when NodeID3.write returns true", async () => {
       writeMock.mockReturnValue(true);
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      loggerMock.warn.mockClear();
       const service = new MetadataService();
 
       await service.writeTags("/library/song.mp3", {
@@ -252,8 +267,7 @@ describe("MetadataService", () => {
         artist: "Artist",
       });
 
-      expect(warnSpy).not.toHaveBeenCalled();
-      warnSpy.mockRestore();
+      expect(loggerMock.warn).not.toHaveBeenCalled();
     });
   });
 });

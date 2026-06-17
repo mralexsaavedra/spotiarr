@@ -1,4 +1,5 @@
 import type { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
+import { logger } from "@/infrastructure/logging/logger";
 import { namesMatch } from "../normalize-name";
 import { pickBestCover } from "./cover-url";
 
@@ -76,12 +77,15 @@ export class DeezerClient {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        console.warn(`[DeezerClient] ${response.status} for ${url}`);
+        logger.warn(
+          { component: "deezer-client", status: response.status, url },
+          `HTTP ${response.status} for ${url}`,
+        );
         return null;
       }
       return (await response.json()) as T;
     } catch (err) {
-      console.warn(`[DeezerClient] Network error for ${url}:`, err);
+      logger.warn({ component: "deezer-client", url, err }, `Network error for ${url}`);
       return null;
     }
   }

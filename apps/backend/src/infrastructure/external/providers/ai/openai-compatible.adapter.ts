@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { AiChatPort, AiTrackSuggestion } from "@/application/ports/ai-chat.port";
 import type { SettingsService } from "@/application/services/settings.service";
 import { AiChatError } from "@/domain/errors/ai-chat.error";
+import { logger } from "@/infrastructure/logging/logger";
 import { resolveAiConnection } from "./ai-connection.resolver";
 
 const tracksSchema = z.object({
@@ -54,14 +55,19 @@ function extractApiCallErrorReason(err: { responseBody?: string; message?: strin
 
 function mapError(err: unknown): never {
   const statusCode = (err as { statusCode?: number })?.statusCode;
-  console.error("[OpenAiCompatibleAdapter] upstream error", {
-    name: (err as { name?: string })?.name,
-    statusCode,
-  });
+  logger.error(
+    { component: "openai-compatible-adapter", name: (err as { name?: string })?.name, statusCode },
+    "upstream error",
+  );
 
   if (err instanceof AiChatError) throw err;
 
-  const apiErr = err as { name?: string; statusCode?: number; responseBody?: string; message?: string };
+  const apiErr = err as {
+    name?: string;
+    statusCode?: number;
+    responseBody?: string;
+    message?: string;
+  };
   if (apiErr?.name === "AI_APICallError") {
     if (apiErr.statusCode === 401) {
       throw new AiChatError("provider-auth", extractApiCallErrorReason(apiErr));

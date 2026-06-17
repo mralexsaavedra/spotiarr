@@ -3,6 +3,7 @@ import { getErrorMessage } from "@/application/utils/error.utils";
 import { AiChatMessage } from "@/domain/entities/ai-chat-message.entity";
 import { AppError } from "@/domain/errors/app-error";
 import type { AiChatMessageRepository } from "@/domain/repositories/ai-chat-message.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import { prisma as defaultPrisma } from "../setup/prisma";
 
 export class PrismaAiChatMessageRepository implements AiChatMessageRepository {
@@ -41,8 +42,9 @@ export class PrismaAiChatMessageRepository implements AiChatMessageRepository {
         try {
           const role = row.role;
           if (role !== "user" && role !== "assistant") {
-            console.warn(
-              `[PrismaAiChatMessageRepository] Skipping row ${row.id}: invalid role "${role}"`,
+            logger.warn(
+              { component: "prisma-ai-chat-message-repository", rowId: row.id, role },
+              `Skipping row ${row.id}: invalid role "${role}"`,
             );
             continue;
           }
@@ -61,8 +63,9 @@ export class PrismaAiChatMessageRepository implements AiChatMessageRepository {
             }),
           );
         } catch (rowErr) {
-          console.warn(
-            `[PrismaAiChatMessageRepository] Skipping corrupt row ${row.id}: ${getErrorMessage(rowErr)}`,
+          logger.warn(
+            { component: "prisma-ai-chat-message-repository", rowId: row.id, err: rowErr },
+            `Skipping corrupt row ${row.id}: ${getErrorMessage(rowErr)}`,
           );
         }
       }

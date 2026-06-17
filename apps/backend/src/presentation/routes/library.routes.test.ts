@@ -12,6 +12,19 @@ import { asyncHandler } from "../middleware/async-handler";
 import { validate } from "../middleware/validate";
 import { libraryAudioRequestSchema } from "./schemas/library.schema";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 const tempDirs: string[] = [];
 const servers: http.Server[] = [];
 
@@ -137,7 +150,7 @@ describe("GET /image integration", () => {
   it("returns 400 for missing path query", async () => {
     const downloadsRoot = await makeTempDir("lib-route-root-");
     const baseUrl = await startTestServer(downloadsRoot);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    loggerMock.warn.mockClear();
 
     const response = await fetch(`${baseUrl}/image`);
     const body = (await response.json()) as { error: string; message: string };
@@ -147,15 +160,16 @@ describe("GET /image integration", () => {
       error: "invalid_request",
       message: "Image path is required",
     });
-    expect(warnSpy).toHaveBeenCalledWith("[LibraryImageService] Request rejected", {
-      reason: "missing-path",
-    });
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "missing-path" }),
+      "Request rejected",
+    );
   });
 
   it("returns 400 for non-string path query", async () => {
     const downloadsRoot = await makeTempDir("lib-route-root-");
     const baseUrl = await startTestServer(downloadsRoot);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    loggerMock.warn.mockClear();
 
     const response = await fetch(`${baseUrl}/image?path=a&path=b`);
     const body = (await response.json()) as { error: string; message: string };
@@ -165,9 +179,10 @@ describe("GET /image integration", () => {
       error: "invalid_request",
       message: "Image path is required",
     });
-    expect(warnSpy).toHaveBeenCalledWith("[LibraryImageService] Request rejected", {
-      reason: "missing-path",
-    });
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "missing-path" }),
+      "Request rejected",
+    );
   });
 
   it("returns 404 for non-existent image path inside downloads root", async () => {

@@ -1,5 +1,6 @@
 import type { TokenStorePort } from "@/application/ports/token-store.port";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 import { getErrorMessage } from "../../application/utils/error.utils";
 import { getEnv } from "../setup/environment";
 
@@ -19,10 +20,9 @@ export class SpotifyAuthService {
   ) {}
 
   private log(message: string, level: "debug" | "error" | "warn" = "debug") {
-    const prefix = `[SpotifyAuthService]`;
-    if (level === "error") console.error(prefix, message);
-    else if (level === "warn") console.warn(prefix, message);
-    else if (getEnv().NODE_ENV === "development") console.log(prefix, message);
+    if (level === "error") logger.error({ component: "spotify-auth" }, message);
+    else if (level === "warn") logger.warn({ component: "spotify-auth" }, message);
+    else logger.debug({ component: "spotify-auth" }, message);
   }
 
   async getAppToken(): Promise<string> {

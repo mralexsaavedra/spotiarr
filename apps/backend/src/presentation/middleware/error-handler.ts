@@ -1,6 +1,7 @@
 import type { ApiErrorCode, ApiErrorShape } from "@spotiarr/shared";
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 
 export const errorHandler = (
   error: Error | AppError,
@@ -8,7 +9,7 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ) => {
-  console.error("Error:", error);
+  logger.error({ component: "error-handler", err: error }, "Unhandled error");
 
   const isAppError = error instanceof AppError;
 

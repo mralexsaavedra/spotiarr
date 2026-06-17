@@ -1,6 +1,7 @@
 import type { AlbumType, ArtistRelease } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 import type { CacheEntry } from "./cache.types";
 import { CircuitBreaker } from "./circuit-breaker";
 import { RateLimiter } from "./rate-limiter";
@@ -91,8 +92,13 @@ export class SpotifyArtistCatalogService extends SpotifyHttpClient {
               "Rate limited by Spotify API while fetching artist catalog.",
             );
           }
-          console.warn(
-            `[SpotifyArtistCatalogService] Failed to fetch catalog for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
+          logger.warn(
+            {
+              component: "spotify-artist-catalog",
+              artistId: artist.id,
+              status: albumsResponse.status,
+            },
+            `Failed to fetch catalog for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
           );
           break;
         }

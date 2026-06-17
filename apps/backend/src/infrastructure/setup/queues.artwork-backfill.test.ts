@@ -1,6 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import { ARTWORK_BACKFILL_QUEUE, getArtworkBackfillQueue, initializeQueues } from "./queues";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 vi.mock("bullmq", () => ({
   Queue: vi.fn().mockImplementation((_name: string) => ({ add: vi.fn() })),
 }));

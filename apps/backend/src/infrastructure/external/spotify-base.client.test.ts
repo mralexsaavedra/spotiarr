@@ -6,6 +6,19 @@ import { RateLimiter } from "./rate-limiter";
 import { SpotifyAuthService } from "./spotify-auth.service";
 import { SpotifyBaseClient } from "./spotify-base.client";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 beforeAll(() => {
   process.env.SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID ?? "test-client-id";
   process.env.SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET ?? "test-client-secret";
@@ -104,51 +117,49 @@ describe("SpotifyBaseClient", () => {
   });
 
   describe("log()", () => {
-    it("calls console.error on 'error' level", () => {
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    beforeEach(() => {
+      loggerMock.error.mockClear();
+      loggerMock.warn.mockClear();
+      loggerMock.debug.mockClear();
+      loggerMock.info.mockClear();
+    });
 
+    it("calls logger.error on 'error' level", () => {
       base.callLog("something went wrong", "error");
 
-      expect(spy).toHaveBeenCalledWith("[TestCtx]", "something went wrong");
+      expect(loggerMock.error).toHaveBeenCalledWith(
+        expect.objectContaining({ context: "TestCtx" }),
+        "something went wrong",
+      );
     });
 
-    it("calls console.warn on 'warn' level", () => {
-      const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
+    it("calls logger.warn on 'warn' level", () => {
       base.callLog("heads up", "warn");
 
-      expect(spy).toHaveBeenCalledWith("[TestCtx]", "heads up");
+      expect(loggerMock.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ context: "TestCtx" }),
+        "heads up",
+      );
     });
 
-    it("does not call console.log for 'debug' level when NODE_ENV is not 'development'", () => {
-      // getEnv() returns the validated env captured at validateEnvironment() time.
-      // In the test environment NODE_ENV is typically "test", so console.log is never called.
-      const spy = vi.spyOn(console, "log").mockImplementation(() => {});
-
+    it("calls logger.debug for 'debug' level", () => {
       base.callLog("debug message", "debug");
 
-      // Characterization: log is suppressed unless NODE_ENV === "development"
-      // We cannot guarantee NODE_ENV during tests, so we assert the actual behavior.
-      const nodeEnv = process.env.NODE_ENV;
-      if (nodeEnv !== "development") {
-        expect(spy).not.toHaveBeenCalled();
-      } else {
-        expect(spy).toHaveBeenCalledWith("[TestCtx]", "debug message");
-      }
+      expect(loggerMock.debug).toHaveBeenCalledWith(
+        expect.objectContaining({ context: "TestCtx" }),
+        "debug message",
+      );
     });
 
     it("defaults to 'debug' level when no level is provided", () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
       base.callLog("implicit debug");
 
-      // Neither error nor warn should be called for the default level
-      expect(errorSpy).not.toHaveBeenCalled();
-      expect(warnSpy).not.toHaveBeenCalled();
-      // console.log may or may not be called depending on NODE_ENV — no assertion needed
-      consoleSpy.mockRestore();
+      expect(loggerMock.debug).toHaveBeenCalledWith(
+        expect.objectContaining({ context: "TestCtx" }),
+        "implicit debug",
+      );
+      expect(loggerMock.error).not.toHaveBeenCalled();
+      expect(loggerMock.warn).not.toHaveBeenCalled();
     });
   });
 });

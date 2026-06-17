@@ -7,6 +7,7 @@ import type {
   AudioRejectReason,
   AudioByteRange,
 } from "@/application/ports/library-audio.port";
+import { logger } from "@/infrastructure/logging/logger";
 
 type DownloadsRootResolver = () => string;
 
@@ -31,7 +32,7 @@ export class FileSystemLibraryAudioService implements LibraryAudioPort {
   }
 
   private logRejection(reason: AudioRejectReason): void {
-    console.warn("[LibraryAudioService] Request rejected", { reason });
+    logger.warn({ component: "library-audio-service", reason }, "Request rejected");
   }
 
   async resolveAudio(rawPath: string | undefined): Promise<ResolveAudioResult> {

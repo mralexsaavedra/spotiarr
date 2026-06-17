@@ -2,6 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "@/domain/errors/app-error";
 import { YoutubeSearchService } from "./youtube-search.service";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 const execFileMock = vi.fn();
 const detectYtDlpPathMock = vi.fn().mockReturnValue("/usr/bin/yt-dlp");
 
@@ -49,9 +62,6 @@ describe("YoutubeSearchService.findOnYoutubeOne", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1_700_000_000_000);
     execFileMock.mockReset();
-    vi.spyOn(console, "debug").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -169,8 +179,6 @@ describe("YoutubeSearchService — constructor fallback", () => {
     // Re-apply the default AFTER any prior restoreAllMocks wiped the
     // module-level mock, so each test starts with a resolved path.
     detectYtDlpPathMock.mockReturnValue("/usr/bin/yt-dlp");
-    vi.spyOn(console, "debug").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -209,9 +217,6 @@ describe("YoutubeSearchService — rate limit enforcement", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1_700_000_000_000);
     execFileMock.mockReset();
-    vi.spyOn(console, "debug").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -255,9 +260,6 @@ describe("YoutubeSearchService — isRateLimitError string patterns", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1_700_000_000_000);
     execFileMock.mockReset();
-    vi.spyOn(console, "debug").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {

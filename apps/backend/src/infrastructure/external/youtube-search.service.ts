@@ -2,6 +2,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 import { detectYtDlpPath } from "./youtube-binary";
 import { YOUTUBE_USER_AGENT } from "./youtube.constants";
 
@@ -18,9 +19,12 @@ export class YoutubeSearchService {
     // start so an upgraded system binary propagates instead of going stale.
     try {
       this.ytDlpPath = detectYtDlpPath();
-      console.debug(`Using yt-dlp from: ${this.ytDlpPath}`);
+      logger.debug({ component: "youtube-search" }, `Using yt-dlp from: ${this.ytDlpPath}`);
     } catch (e) {
-      console.warn("yt-dlp not found in PATH, will try default 'yt-dlp' command", e);
+      logger.warn(
+        { component: "youtube-search", err: e },
+        "yt-dlp not found in PATH, will try default 'yt-dlp' command",
+      );
       this.ytDlpPath = "yt-dlp";
     }
   }
@@ -44,7 +48,10 @@ export class YoutubeSearchService {
 
     if (timeSinceLastSearch < minDelay) {
       const waitTime = minDelay - timeSinceLastSearch;
-      console.debug(`Rate limiting: waiting ${waitTime}ms before next search`);
+      logger.debug(
+        { component: "youtube-search", waitTimeMs: waitTime },
+        "Rate limiting: waiting before next search",
+      );
       await this.sleep(waitTime);
     }
 
@@ -94,7 +101,8 @@ export class YoutubeSearchService {
       if (this.isRateLimitError(error) && retryCount < maxRetries) {
         // Exponential backoff: 5s, 15s, 45s
         const backoffMs = 5000 * 3 ** retryCount;
-        console.warn(
+        logger.warn(
+          { component: "youtube-search", retryCount: retryCount + 1, maxRetries, backoffMs },
           `Rate limit detected. Retry ${retryCount + 1}/${maxRetries} after ${backoffMs / 1000}s`,
         );
         await this.sleep(backoffMs);
@@ -106,7 +114,7 @@ export class YoutubeSearchService {
   }
 
   async findOnYoutubeOne(artist: string, name: string): Promise<string> {
-    console.debug(`Searching ${artist} - ${name} on YT`);
+    logger.debug({ component: "youtube-search", artist, name }, "Searching on YouTube");
 
     // Enforce rate limiting before making the request
     await this.enforceRateLimit();
@@ -143,10 +151,16 @@ export class YoutubeSearchService {
         throw new AppError(404, "track_not_found", "No results found");
       }
 
-      console.debug(`Found ${artist} - ${name} on ${firstUrl}`);
+      logger.debug(
+        { component: "youtube-search", artist, name, url: firstUrl },
+        "Found track on YouTube",
+      );
       return firstUrl;
     } catch (error: unknown) {
-      console.error(`Error searching ${artist} - ${name} with yt-dlp:`, error);
+      logger.error(
+        { component: "youtube-search", artist, name, err: error },
+        "Error searching with yt-dlp",
+      );
       throw error;
     }
   }

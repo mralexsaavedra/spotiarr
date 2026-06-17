@@ -104,10 +104,22 @@ describe("architecture boundaries (baseline before cleanup)", () => {
 
   it("R3: presentation has zero infra/prisma imports (production files only)", () => {
     const presentationFiles = walkSrcExcludingTests(join(SRC_ROOT, "presentation"));
-    const violations = findMatches(
-      presentationFiles,
-      /from\s+"@\/infrastructure|from\s+"@prisma\/client|\bprisma\b/,
-    );
+
+    // infrastructure/logging/logger is the documented cross-cutting exception:
+    // the logger is a shared module any layer may import directly (see design ADR-1).
+    // All other infrastructure imports from presentation are still forbidden.
+    const violations = presentationFiles.filter((file) => {
+      const content = readFileSync(file, "utf8");
+      const allInfraImports = [...content.matchAll(/from\s+"(@\/infrastructure[^"]+)"/g)].map(
+        (m) => m[1],
+      );
+      const hasPrismaImport = /from\s+"@prisma\/client|\bprisma\b/.test(content);
+      const hasForbiddenInfraImport = allInfraImports.some(
+        (spec) => spec !== "@/infrastructure/logging/logger",
+      );
+      return hasPrismaImport || hasForbiddenInfraImport;
+    });
+
     expect(violations.length).toBe(0);
   });
 

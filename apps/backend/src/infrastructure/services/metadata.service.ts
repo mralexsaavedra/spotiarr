@@ -1,4 +1,5 @@
 import * as NodeID3 from "node-id3";
+import { logger } from "@/infrastructure/logging/logger";
 
 export class MetadataService {
   async writeTags(
@@ -60,7 +61,10 @@ export class MetadataService {
 
     const success = NodeID3.write(tags, folderName);
     if (!success) {
-      console.warn(`NodeID3.write returned false for ${folderName}`);
+      logger.warn(
+        { component: "metadata-service", filePath: folderName },
+        "NodeID3.write returned false",
+      );
     }
   }
 }

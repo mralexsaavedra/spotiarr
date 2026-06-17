@@ -8,6 +8,7 @@ import { YtDlp } from "ytdlp-nodejs";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import type { YoutubeDownloadResult } from "@/application/ports/youtube.port";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 import type { YoutubeSearchService } from "./youtube-search.service";
 import { YOUTUBE_HEADERS } from "./youtube.constants";
 
@@ -18,9 +19,20 @@ export class YoutubeDownloadService {
   ) {}
 
   async downloadAndFormat(track: ITrack, output: string): Promise<YoutubeDownloadResult> {
-    console.debug(`Downloading ${track.artist} - ${track.name} (${track.youtubeUrl}) from YT`);
+    logger.debug(
+      {
+        component: "youtube-download",
+        artist: track.artist,
+        name: track.name,
+        url: track.youtubeUrl,
+      },
+      "Downloading from YouTube",
+    );
     if (!track.youtubeUrl) {
-      console.error("youtubeUrl is null or undefined");
+      logger.error(
+        { component: "youtube-download", trackId: track.id },
+        "youtubeUrl is null or undefined",
+      );
       throw new AppError(400, "internal_server_error", "youtubeUrl is null or undefined");
     }
 
@@ -58,7 +70,10 @@ export class YoutubeDownloadService {
       cookiesFromBrowser: !isCookieFile && ytCookies ? ytCookies : undefined,
       headers: YOUTUBE_HEADERS,
     });
-    console.debug(`Downloaded ${track.artist} - ${track.name} to ${output}`);
+    logger.debug(
+      { component: "youtube-download", artist: track.artist, name: track.name, output },
+      "Download complete",
+    );
 
     return { durationMs: await this.resolveDurationMs(ytdlp, track.youtubeUrl) };
   }
@@ -69,7 +84,10 @@ export class YoutubeDownloadService {
       const seconds = (info as { duration?: unknown }).duration;
       return typeof seconds === "number" && seconds > 0 ? Math.round(seconds * 1000) : undefined;
     } catch (err) {
-      console.debug(`Could not resolve duration for ${youtubeUrl}: ${String(err)}`);
+      logger.debug(
+        { component: "youtube-download", url: youtubeUrl, err },
+        "Could not resolve duration",
+      );
       return undefined;
     }
   }

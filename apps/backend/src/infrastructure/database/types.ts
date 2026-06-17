@@ -1,4 +1,5 @@
 import { TrackStatusEnum, type TrackArtist } from "@spotiarr/shared";
+import { logger } from "@/infrastructure/logging/logger";
 
 /**
  * Type-safe helpers for Prisma JSON field conversions
@@ -17,7 +18,7 @@ export function trackArtistsToJson(artists: TrackArtist[] | undefined | null): s
   try {
     return JSON.stringify(artists);
   } catch (e) {
-    console.error("Error serializing artists", e);
+    logger.error({ component: "database-types", err: e }, "Error serializing artists");
     return null;
   }
 }
@@ -39,7 +40,10 @@ export function jsonToTrackArtists(jsonString: unknown): TrackArtist[] | undefin
 
     // Type guard to validate the structure
     if (!Array.isArray(json)) {
-      console.warn("Invalid artists JSON format: expected array", json);
+      logger.warn(
+        { component: "database-types", json },
+        "Invalid artists JSON format: expected array",
+      );
       return undefined;
     }
 
@@ -51,13 +55,13 @@ export function jsonToTrackArtists(jsonString: unknown): TrackArtist[] | undefin
     };
 
     if (!json.every(isValidArtist)) {
-      console.warn("Invalid artist object in array", json);
+      logger.warn({ component: "database-types" }, "Invalid artist object in array");
       return undefined;
     }
 
     return json as TrackArtist[];
   } catch (e) {
-    console.error("Error parsing artists JSON", e);
+    logger.error({ component: "database-types", err: e }, "Error parsing artists JSON");
     return undefined;
   }
 }
@@ -85,6 +89,6 @@ export function toTrackStatus(status: unknown): TrackStatusEnum {
     }
   }
 
-  console.warn(`Invalid track status: ${status}, defaulting to 'new'`);
+  logger.warn({ component: "database-types", status }, "Invalid track status, defaulting to 'new'");
   return TrackStatusEnum.New;
 }
