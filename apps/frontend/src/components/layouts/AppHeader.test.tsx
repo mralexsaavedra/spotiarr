@@ -70,6 +70,17 @@ describe("AppHeader", () => {
     expect(screen.getAllByRole("link").length).toBeGreaterThanOrEqual(1);
   });
 
+  it("reserves no submit-button padding while the input is empty", () => {
+    renderHeader();
+    expect((screen.getByRole("textbox") as HTMLInputElement).className).toContain("pr-4");
+  });
+
+  it("reserves submit-button padding once the input has a value", () => {
+    mockController.url = "https://open.spotify.com/playlist/123";
+    renderHeader();
+    expect((screen.getByRole("textbox") as HTMLInputElement).className).toContain("pr-16");
+  });
+
   it("renders History and Settings as secondary destinations", () => {
     renderHeader();
     expect(screen.getByLabelText("History").getAttribute("href")).toBe(Path.HISTORY);
