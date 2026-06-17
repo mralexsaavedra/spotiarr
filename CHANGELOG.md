@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.20.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.19.0...v1.20.0) (2026-06-17)
+
+### Features
+
+- **Native-quality music playback**: A big upgrade to the player. The lock screen / Control Center now shows working previous & next track buttons and an accurate progress scrubber (iOS included); your queue, track and position now survive a page reload (it reopens where you left off, paused); a phone call or another app taking over audio now pauses playback correctly instead of leaving a silent "playing" state; a failed or unavailable track auto-skips to the next one instead of stalling the queue; a spinner shows while a track is buffering; and desktop keyboard shortcuts (space to play/pause, arrows to seek and adjust volume, `m` to mute) work app-wide. ([#245](https://github.com/mralexsaavedra/spotiarr/pull/245), closes [#201](https://github.com/mralexsaavedra/spotiarr/issues/201))
+- **Playlist & album play/shuffle controls**: The shuffle button is now a true toggle instead of force-restarting playback, the header play button is context-aware (it pauses and resumes the current track rather than jumping back to the first one), and starting a playlist shuffled now begins on a random track. ([#245](https://github.com/mralexsaavedra/spotiarr/pull/245))
+- **Album search inside the artist view**: Search an artist's albums directly from their page. ([#229](https://github.com/mralexsaavedra/spotiarr/pull/229))
+- **Reorganized mobile navigation**: Cleaner mobile layout — five primary destinations in the bottom bar with Home centered, and History and Settings moved to the top bar. ([#228](https://github.com/mralexsaavedra/spotiarr/pull/228))
+
+### Bug Fixes
+
+- **Active track highlight**: The track that is currently playing is now highlighted in album and playlist lists, so it is easy to see where you are. ([#230](https://github.com/mralexsaavedra/spotiarr/pull/230))
+
 ## [1.19.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.18.0...v1.19.0) (2026-06-16)
 
 ### Features
