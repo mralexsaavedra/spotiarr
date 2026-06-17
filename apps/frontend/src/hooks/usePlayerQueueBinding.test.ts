@@ -105,24 +105,42 @@ describe("usePlayerQueueBinding", () => {
     expect(playQueue).not.toHaveBeenCalled();
   });
 
+  const ctx = "/playlist/p1?mode=library";
+  const makeCtxItem = (id: string, contextPath = ctx) => makeItem(id, { contextPath });
+
   it("isActiveContext is false when store queue is empty", () => {
-    const items = [makeItem("a"), makeItem("b")];
+    const items = [makeCtxItem("a"), makeCtxItem("b")];
     const { result } = renderHook(() => usePlayerQueueBinding(items));
     expect(result.current.isActiveContext).toBe(false);
   });
 
-  it("isActiveContext is true when store queue matches queueItems exactly", () => {
-    const items = [makeItem("a"), makeItem("b")];
+  it("isActiveContext is true when the store queue belongs to this context", () => {
+    const items = [makeCtxItem("a"), makeCtxItem("b")];
     usePlayerStore.setState({ queue: items, currentIndex: 0, isPlaying: true });
 
     const { result } = renderHook(() => usePlayerQueueBinding(items));
     expect(result.current.isActiveContext).toBe(true);
   });
 
-  it("isActiveContext is false when store queue has same length but different ids", () => {
-    const items = [makeItem("a"), makeItem("b")];
+  it("isActiveContext stays true when the active queue is reordered (order-independent)", () => {
+    const items = [makeCtxItem("a"), makeCtxItem("b"), makeCtxItem("c")];
     usePlayerStore.setState({
-      queue: [makeItem("a"), makeItem("x")],
+      queue: [makeCtxItem("c"), makeCtxItem("a"), makeCtxItem("b")],
+      currentIndex: 0,
+      isPlaying: true,
+    });
+
+    const { result } = renderHook(() => usePlayerQueueBinding(items));
+    expect(result.current.isActiveContext).toBe(true);
+  });
+
+  it("isActiveContext is false when another context plays the same track ids", () => {
+    const items = [makeCtxItem("a"), makeCtxItem("b")];
+    usePlayerStore.setState({
+      queue: [
+        makeCtxItem("a", "/playlist/p2?mode=library"),
+        makeCtxItem("b", "/playlist/p2?mode=library"),
+      ],
       currentIndex: 0,
       isPlaying: true,
     });
@@ -131,9 +149,9 @@ describe("usePlayerQueueBinding", () => {
     expect(result.current.isActiveContext).toBe(false);
   });
 
-  it("isActiveContext is false when store queue has different length", () => {
+  it("isActiveContext is false when queue items have no contextPath", () => {
     const items = [makeItem("a"), makeItem("b")];
-    usePlayerStore.setState({ queue: [makeItem("a")], currentIndex: 0, isPlaying: true });
+    usePlayerStore.setState({ queue: items, currentIndex: 0, isPlaying: true });
 
     const { result } = renderHook(() => usePlayerQueueBinding(items));
     expect(result.current.isActiveContext).toBe(false);

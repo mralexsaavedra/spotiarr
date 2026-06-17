@@ -59,7 +59,7 @@ export const usePlaylistDetailController = () => {
     const startIndex =
       usePlayerStore.getState().shuffleMode && len > 0 ? Math.floor(Math.random() * len) : 0;
     playFromIndex(startIndex);
-  }, [hasPlayableTracks, isActiveContext, queueItems.length, playFromIndex]);
+  }, [hasPlayableTracks, isActiveContext, queueItems, playFromIndex]);
 
   const onToggleShuffle = useCallback(() => {
     if (!hasPlayableTracks) return;

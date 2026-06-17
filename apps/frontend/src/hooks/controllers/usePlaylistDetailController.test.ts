@@ -19,7 +19,7 @@ const {
   const storeState = {
     isPlaying: false,
     currentIndex: null as number | null,
-    queue: [] as Array<{ id: string }>,
+    queue: [] as Array<{ id: string; contextPath?: string }>,
     shuffleMode: false,
   };
   return {
@@ -70,7 +70,7 @@ vi.mock("@/store/usePlayerStore", () => ({
         selector: (state: {
           isPlaying: boolean;
           currentIndex: number | null;
-          queue: Array<{ id: string }>;
+          queue: Array<{ id: string; contextPath?: string }>;
           shuffleMode: boolean;
         }) => unknown,
       ) => selector(mockStoreState),
@@ -298,7 +298,10 @@ describe("usePlaylistDetailController", () => {
 
   it("onPlayPlaylist calls togglePlay when isActiveContext is true", () => {
     setupDefaults("library");
-    mockStoreState.queue = [{ id: "track-2" }, { id: "track-3" }];
+    mockStoreState.queue = [
+      { id: "track-2", contextPath: "/playlist/playlist-1?mode=library" },
+      { id: "track-3", contextPath: "/playlist/playlist-1?mode=library" },
+    ];
     mockStoreState.isPlaying = true;
     mockPlayQueue.mockClear();
     mockTogglePlay.mockClear();
@@ -362,7 +365,10 @@ describe("usePlaylistDetailController", () => {
 
   it("isPlaying exposed is true when isActiveContext is true and store isPlaying is true", () => {
     setupDefaults("library");
-    mockStoreState.queue = [{ id: "track-2" }, { id: "track-3" }];
+    mockStoreState.queue = [
+      { id: "track-2", contextPath: "/playlist/playlist-1?mode=library" },
+      { id: "track-3", contextPath: "/playlist/playlist-1?mode=library" },
+    ];
     mockStoreState.isPlaying = true;
 
     const { result } = renderHook(() => usePlaylistDetailController());

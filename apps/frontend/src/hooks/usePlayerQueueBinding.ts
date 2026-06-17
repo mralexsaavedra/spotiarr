@@ -14,8 +14,10 @@ export const usePlayerQueueBinding = (queueItems: QueueItem[]) => {
   const hasPlayableTracks = queueItems.length > 0;
 
   const isActiveContext = useMemo(() => {
-    if (queueItems.length === 0 || queue.length !== queueItems.length) return false;
-    return queueItems.every((item, i) => item.id === queue[i]?.id);
+    if (queueItems.length === 0 || queue.length === 0) return false;
+    const contextPath = queueItems[0]?.contextPath;
+    if (contextPath == null) return false;
+    return queue.every((item) => item.contextPath === contextPath);
   }, [queue, queueItems]);
 
   const playFromIndex = useCallback(
