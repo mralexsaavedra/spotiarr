@@ -10,14 +10,29 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "html"],
       include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test.ts", "src/**/index.ts", "src/infrastructure/setup/**"],
+      exclude: [
+        "src/**/*.test.ts",
+        "src/**/index.ts",
+        "src/infrastructure/setup/**",
+        // Non-logic: interfaces, type declarations, DI/bootstrap wiring and test harness.
+        // These carry no unit-testable branches; excluding keeps the gate measuring real logic.
+        "src/**/*.port.ts",
+        "src/**/*.types.ts",
+        "src/**/types.ts",
+        "src/app.ts",
+        "src/container.ts",
+        "src/testing/**",
+        // Route files are pure Express wiring (router.<verb>(path, controller)); the logic
+        // they delegate to lives in controllers and middleware, which are unit-tested.
+        "src/presentation/routes/**/*.routes.ts",
+      ],
       // Thresholds sit just under the currently measured coverage so the gate is
       // green on merge. Ratchet these up as coverage improves (issue #204).
       thresholds: {
-        lines: 76,
-        statements: 76,
-        functions: 85,
-        branches: 82,
+        lines: 91,
+        statements: 91,
+        functions: 92,
+        branches: 86,
       },
     },
   },

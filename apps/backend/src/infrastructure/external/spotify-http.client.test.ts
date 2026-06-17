@@ -141,5 +141,108 @@ describe("SpotifyHttpClient", () => {
       expect(response.status).toBe(404);
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
+
+    it("returns 401 when refresh returns false and does not retry", async () => {
+      (authService.refreshUserToken as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+      const fetchMock = vi.fn().mockResolvedValue(new Response("", { status: 401 }));
+      vi.stubGlobal("fetch", fetchMock);
+
+      const response = await client.fetchWithUserToken("https://api.spotify.com/v1/me");
+
+      expect(response.status).toBe(401);
+      // Only 1 fetch call — no retry when refresh fails
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("limiterMode selection", () => {
+    it("creates client with sync limiter mode without throwing", () => {
+      const circuitBreaker = new CircuitBreaker();
+      const rateLimiter = new RateLimiter({
+        maxConcurrency: 5,
+        minIntervalMs: 0,
+        queueTimeoutMs: 5000,
+      });
+      expect(
+        () => new SpotifyHttpClient(authService, circuitBreaker, rateLimiter, "sync"),
+      ).not.toThrow();
+    });
+
+    it("creates client with interactive limiter mode (useFailFastRetry=true)", () => {
+      const circuitBreaker = new CircuitBreaker();
+      const rateLimiter = new RateLimiter({
+        maxConcurrency: 5,
+        minIntervalMs: 0,
+        queueTimeoutMs: 5000,
+      });
+      expect(
+        () => new SpotifyHttpClient(authService, circuitBreaker, rateLimiter, "interactive"),
+      ).not.toThrow();
+    });
+
+    it("useFailFastRetryOverride forces failFast regardless of limiterMode", async () => {
+      const circuitBreaker = new CircuitBreaker();
+      const rateLimiter = new RateLimiter({
+        maxConcurrency: 5,
+        minIntervalMs: 0,
+        queueTimeoutMs: 5000,
+      });
+      // Passing useFailFastRetryOverride=false on interactive mode (normally true)
+      const syncClient = new SpotifyHttpClient(
+        authService,
+        circuitBreaker,
+        rateLimiter,
+        "interactive",
+        false,
+      );
+
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({}, 200)));
+      const response = await syncClient.fetchWithAppToken("https://api.spotify.com/v1/test");
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("configureSpotifyRateLimiters", () => {
+    it("can be called with an env-like object without throwing", async () => {
+      const { configureSpotifyRateLimiters } = await import("./spotify-http.client");
+      expect(() =>
+        configureSpotifyRateLimiters({
+          SPOTIFY_HTTP_MAX_CONCURRENCY: 5,
+          SPOTIFY_HTTP_QUEUE_TIMEOUT_MS: 60_000,
+          SPOTIFY_HTTP_MIN_INTERVAL_MS: 100,
+          SPOTIFY_SYNC_MAX_CONCURRENCY: 1,
+          SPOTIFY_SYNC_QUEUE_TIMEOUT_MS: 600_000,
+          SPOTIFY_SYNC_MIN_INTERVAL_MS: 3_000,
+          SPOTIFY_INTERACTIVE_MAX_CONCURRENCY: 2,
+          SPOTIFY_INTERACTIVE_QUEUE_TIMEOUT_MS: 30_000,
+          SPOTIFY_INTERACTIVE_MIN_INTERVAL_MS: 300,
+        } as never),
+      ).not.toThrow();
+    });
+  });
+
+  describe("fetchWithAppToken() — circuit breaker open path", () => {
+    it("throws when circuit breaker is already open (failFast path)", async () => {
+      const circuitBreaker = new CircuitBreaker();
+      // Open the circuit via notifyRateLimit
+      circuitBreaker.notifyRateLimit(3600);
+
+      const rateLimiter = new RateLimiter({
+        maxConcurrency: 5,
+        minIntervalMs: 0,
+        queueTimeoutMs: 5000,
+      });
+      // interactive mode sets useFailFastRetry = true
+      const failFastClient = new SpotifyHttpClient(
+        authService,
+        circuitBreaker,
+        rateLimiter,
+        "interactive",
+      );
+
+      await expect(
+        failFastClient.fetchWithAppToken("https://api.spotify.com/v1/test"),
+      ).rejects.toMatchObject({ errorCode: "circuit_open" });
+    });
   });
 });

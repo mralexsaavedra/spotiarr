@@ -340,6 +340,306 @@ describe("SpotifyPlaylistLibraryService.getMyPlaylists", () => {
     expect(itemProbeCalls).toHaveLength(2);
   });
 
+  it("throws AppError(401) when /me returns 401", async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response("", { status: 401 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 401,
+      errorCode: "missing_user_access_token",
+    });
+  });
+
+  it("throws AppError(401) when /me returns 403", async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response("", { status: 403 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 401,
+      errorCode: "missing_user_access_token",
+    });
+  });
+
+  it("throws AppError when /me returns 500", async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response("server error", { status: 500 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 500,
+      errorCode: "internal_server_error",
+    });
+  });
+
+  it("throws AppError(401) when /me/playlists returns 401", async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "user-1" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/me/playlists")) {
+        return new Response("", { status: 401 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 401,
+      errorCode: "missing_user_access_token",
+    });
+  });
+
+  it("throws AppError(401) when /me/playlists returns 403", async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "user-1" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/me/playlists")) {
+        return new Response("", { status: 403 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 401,
+      errorCode: "missing_user_access_token",
+    });
+  });
+
+  it("throws AppError on generic /me/playlists error (500)", async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "user-1" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/me/playlists")) {
+        return new Response("Internal Error", { status: 500 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 500,
+      errorCode: "internal_server_error",
+    });
+  });
+
+  it("paginates through multiple /me/playlists pages", async () => {
+    const ownedPlaylist1 = buildPlaylist({
+      id: "pl1",
+      name: "Page1",
+      owner: { ...buildPlaylist().owner, id: "current-user", display_name: "Me" },
+      external_urls: { spotify: "https://open.spotify.com/playlist/pl1" },
+    });
+    const ownedPlaylist2 = buildPlaylist({
+      id: "pl2",
+      name: "Page2",
+      owner: { ...buildPlaylist().owner, id: "current-user", display_name: "Me" },
+      external_urls: { spotify: "https://open.spotify.com/playlist/pl2" },
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "current-user" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url === "https://api.spotify.com/v1/me/playlists?limit=50") {
+        return new Response(
+          JSON.stringify({
+            items: [ownedPlaylist1],
+            next: "https://api.spotify.com/v1/me/playlists?limit=50&offset=50",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      if (url.includes("offset=50")) {
+        return new Response(JSON.stringify({ items: [ownedPlaylist2], next: null }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const playlists = await buildService().getMyPlaylists();
+    expect(playlists.map((p) => p.id)).toEqual(["pl1", "pl2"]);
+  });
+
+  it("throws AppError(401) from canAccessPlaylistItems on 401 from items probe", async () => {
+    const nonOwnedPlaylist = buildPlaylist({
+      id: "private-pl",
+      name: "Private",
+      external_urls: { spotify: "https://open.spotify.com/playlist/private-pl" },
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "current-user" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url === "https://api.spotify.com/v1/me/playlists?limit=50") {
+        return new Response(JSON.stringify({ items: [nonOwnedPlaylist], next: null }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/playlists/private-pl/items")) {
+        return new Response("", { status: 401 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 401,
+      errorCode: "missing_user_access_token",
+    });
+  });
+
+  it("throws AppError on unexpected status from items probe (e.g. 502)", async () => {
+    const nonOwnedPlaylist = buildPlaylist({
+      id: "bad-pl",
+      name: "Bad",
+      external_urls: { spotify: "https://open.spotify.com/playlist/bad-pl" },
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "current-user" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url === "https://api.spotify.com/v1/me/playlists?limit=50") {
+        return new Response(JSON.stringify({ items: [nonOwnedPlaylist], next: null }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/playlists/bad-pl/items")) {
+        return new Response("Bad Gateway", { status: 502 });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(buildService().getMyPlaylists()).rejects.toMatchObject({
+      statusCode: 502,
+      errorCode: "internal_server_error",
+    });
+  });
+
+  it("getRetryAfterMs uses Retry-After header value in seconds", async () => {
+    const nonOwnedPlaylist = buildPlaylist({
+      id: "rl-pl",
+      name: "Rate Limited",
+      external_urls: { spotify: "https://open.spotify.com/playlist/rl-pl" },
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "current-user" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url === "https://api.spotify.com/v1/me/playlists?limit=50") {
+        return new Response(JSON.stringify({ items: [nonOwnedPlaylist], next: null }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/playlists/rl-pl/items")) {
+        return new Response("", {
+          status: 429,
+          headers: { "Retry-After": "30" },
+        });
+      }
+      throw new Error(`Unexpected: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = buildService();
+    const result = await service.getMyPlaylists();
+    // rate_limited status means the playlist is excluded
+    expect(result.find((p) => p.id === "rl-pl")).toBeUndefined();
+    // cooldown should be set (> now)
+    const cooldown = (service as unknown as { playlistAccessProbeCooldownUntil: number })
+      .playlistAccessProbeCooldownUntil;
+    expect(cooldown).toBeGreaterThan(Date.now());
+  });
+
+  it("owned playlist with non-zero tracks does not probe items", async () => {
+    const ownedPlaylist = buildPlaylist({
+      id: "owned-ok",
+      name: "Owned OK",
+      owner: { ...buildPlaylist().owner, id: "current-user", display_name: "Me" },
+      tracks: { total: 5 },
+      external_urls: { spotify: "https://open.spotify.com/playlist/owned-ok" },
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = input.toString();
+      if (url === "https://api.spotify.com/v1/me") {
+        return new Response(JSON.stringify({ id: "current-user" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url === "https://api.spotify.com/v1/me/playlists?limit=50") {
+        return new Response(JSON.stringify({ items: [ownedPlaylist], next: null }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`Unexpected probe call to: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const playlists = await buildService().getMyPlaylists();
+    expect(playlists).toHaveLength(1);
+    expect(playlists[0]?.tracks).toBe(5);
+  });
+
   it("degrades to owned and cached accessible playlists during Spotify probe 429 cooldown", async () => {
     const ownedPlaylist = buildPlaylist({
       id: "owned",

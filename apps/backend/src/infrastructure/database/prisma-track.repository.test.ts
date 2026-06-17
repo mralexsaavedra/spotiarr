@@ -226,6 +226,20 @@ describe("PrismaTrackRepository.updateStatusIf", () => {
       expect(typeof arg.data.lastActivityAt).toBe("bigint");
       expect(Number(arg.data.lastActivityAt)).toBeGreaterThanOrEqual(before);
     });
+
+    it("converts completedAt to BigInt in patch when provided", async () => {
+      const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+      const repo = new PrismaTrackRepository(makePrisma({ updateMany }));
+      const completedAt = Date.now();
+
+      await repo.updateStatusIf("track-1", TrackStatusEnum.Downloading, {
+        status: TrackStatusEnum.Completed,
+        completedAt,
+      });
+
+      const arg = updateMany.mock.calls[0][0];
+      expect(arg.data.completedAt).toBe(BigInt(completedAt));
+    });
   });
 
   describe("R2-S2: is a no-op when status does not match (stale writer)", () => {
@@ -239,5 +253,172 @@ describe("PrismaTrackRepository.updateStatusIf", () => {
 
       expect(result).toBe(false);
     });
+  });
+});
+
+describe("PrismaTrackRepository.findAll", () => {
+  it("calls findMany without where clause when no argument provided", async () => {
+    const findMany = vi.fn().mockResolvedValue([]);
+    const repo = new PrismaTrackRepository(makePrisma({ findMany }));
+    const result = await repo.findAll();
+    expect(findMany).toHaveBeenCalledOnce();
+    expect(result).toEqual([]);
+  });
+
+  it("passes where clause to findMany when provided", async () => {
+    const findMany = vi.fn().mockResolvedValue([makeDbTrack()]);
+    const repo = new PrismaTrackRepository(makePrisma({ findMany }));
+    const result = await repo.findAll({ status: TrackStatusEnum.New });
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { status: TrackStatusEnum.New } }),
+    );
+    expect(result).toHaveLength(1);
+  });
+});
+
+describe("PrismaTrackRepository.findAllByPlaylist", () => {
+  it("queries findMany by playlistId", async () => {
+    const findMany = vi.fn().mockResolvedValue([makeDbTrack({ playlistId: "pl-1" })]);
+    const repo = new PrismaTrackRepository(makePrisma({ findMany }));
+    const result = await repo.findAllByPlaylist("pl-1");
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { playlistId: "pl-1" } }),
+    );
+    expect(result).toHaveLength(1);
+  });
+});
+
+describe("PrismaTrackRepository.findOne", () => {
+  it("returns null when track not found", async () => {
+    const findUnique = vi.fn().mockResolvedValue(null);
+    const repo = new PrismaTrackRepository(makePrisma({ findUnique }));
+    await expect(repo.findOne("track-x")).resolves.toBeNull();
+  });
+
+  it("returns mapped Track when found", async () => {
+    const findUnique = vi.fn().mockResolvedValue(makeDbTrack({ id: "track-1" }));
+    const repo = new PrismaTrackRepository(makePrisma({ findUnique }));
+    const result = await repo.findOne("track-1");
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("track-1");
+  });
+});
+
+describe("PrismaTrackRepository.findOneWithPlaylist", () => {
+  it("returns null when track not found", async () => {
+    const findUnique = vi.fn().mockResolvedValue(null);
+    const repo = new PrismaTrackRepository(makePrisma({ findUnique }));
+    await expect(repo.findOneWithPlaylist("track-x")).resolves.toBeNull();
+  });
+
+  it("returns mapped Track when found", async () => {
+    const findUnique = vi.fn().mockResolvedValue(makeDbTrack({ id: "track-1" }));
+    const repo = new PrismaTrackRepository(makePrisma({ findUnique }));
+    const result = await repo.findOneWithPlaylist("track-1");
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("track-1");
+  });
+});
+
+describe("PrismaTrackRepository.deleteAll", () => {
+  it("calls deleteMany with given ids", async () => {
+    const deleteMany = vi.fn().mockResolvedValue({ count: 2 });
+    const repo = new PrismaTrackRepository(makePrisma({ deleteMany }));
+    await repo.deleteAll(["t1", "t2"]);
+    expect(deleteMany).toHaveBeenCalledWith({ where: { id: { in: ["t1", "t2"] } } });
+  });
+});
+
+describe("PrismaTrackRepository.findAllByStatuses", () => {
+  it("queries findMany with status filter", async () => {
+    const findMany = vi.fn().mockResolvedValue([]);
+    const repo = new PrismaTrackRepository(makePrisma({ findMany }));
+    await repo.findAllByStatuses([TrackStatusEnum.Downloading, TrackStatusEnum.Searching]);
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { status: { in: [TrackStatusEnum.Downloading, TrackStatusEnum.Searching] } },
+      }),
+    );
+  });
+});
+
+describe("PrismaTrackRepository.save — edge cases", () => {
+  it("uses Date.now() for createdAt when not provided", async () => {
+    const before = Date.now();
+    const create = vi
+      .fn()
+      .mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+        Promise.resolve({ ...makeDbTrack(), ...data, playlist: null }),
+      );
+    const repo = new PrismaTrackRepository(makePrisma({ create }));
+    await repo.save({ name: "Song", artist: "Artist", status: TrackStatusEnum.New });
+
+    const arg = create.mock.calls[0][0];
+    expect(typeof arg.data.createdAt).toBe("bigint");
+    expect(Number(arg.data.createdAt)).toBeGreaterThanOrEqual(before);
+  });
+
+  it("converts completedAt to BigInt when provided", async () => {
+    const completedTs = Date.now() - 5000;
+    const create = vi
+      .fn()
+      .mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+        Promise.resolve({
+          ...makeDbTrack(),
+          ...data,
+          completedAt: BigInt(completedTs),
+          playlist: null,
+        }),
+      );
+    const repo = new PrismaTrackRepository(makePrisma({ create }));
+    await repo.save({
+      name: "Song",
+      artist: "Artist",
+      status: TrackStatusEnum.Completed,
+      completedAt: completedTs,
+    });
+
+    const arg = create.mock.calls[0][0];
+    expect(arg.data.completedAt).toBe(BigInt(completedTs));
+  });
+});
+
+describe("PrismaTrackRepository.mapToTrack — nullable field fallbacks", () => {
+  it("maps a db row with all nullable fields as null/undefined correctly", async () => {
+    const findUnique = vi.fn().mockResolvedValue(
+      makeDbTrack({
+        albumArtist: null,
+        album: null,
+        albumUrl: null,
+        albumCoverUrl: null,
+        albumYear: null,
+        trackNumber: null,
+        durationMs: null,
+        spotifyUrl: null,
+        trackUrl: null,
+        youtubeUrl: null,
+        error: null,
+        createdAt: BigInt(1234567890),
+        completedAt: null,
+        playlistId: null,
+        playlistIndex: null,
+      }),
+    );
+    const repo = new PrismaTrackRepository(makePrisma({ findUnique }));
+    const result = await repo.findOne("track-1");
+    expect(result).not.toBeNull();
+    const prim = result!.toPrimitive();
+    expect(prim.albumArtist).toBeUndefined();
+    expect(prim.album).toBeUndefined();
+    expect(prim.completedAt).toBeUndefined();
+    expect(prim.createdAt).toBe(1234567890);
+  });
+
+  it("converts completedAt BigInt to Number when present", async () => {
+    const completedTs = 1700000000000;
+    const findUnique = vi.fn().mockResolvedValue(makeDbTrack({ completedAt: BigInt(completedTs) }));
+    const repo = new PrismaTrackRepository(makePrisma({ findUnique }));
+    const result = await repo.findOne("track-1");
+    expect(result!.toPrimitive().completedAt).toBe(completedTs);
   });
 });

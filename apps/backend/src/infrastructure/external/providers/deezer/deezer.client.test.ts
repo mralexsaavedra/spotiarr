@@ -69,6 +69,129 @@ describe("DeezerClient", () => {
     });
   });
 
+  describe("searchArtistList", () => {
+    it("returns up to limit entries", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 1, name: "Artist One" },
+            { id: 2, name: "Artist Two" },
+            { id: 3, name: "Artist Three" },
+          ],
+        }),
+      } as Response);
+
+      const results = await client.searchArtistList("artist", 2);
+      expect(results).toHaveLength(2);
+      expect(results[0].id).toBe(1);
+      expect(results[1].id).toBe(2);
+    });
+
+    it("returns [] when API returns null data", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      const results = await client.searchArtistList("artist", 5);
+      expect(results).toEqual([]);
+    });
+
+    it("includes the limit parameter in the request URL", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      } as Response);
+
+      await client.searchArtistList("query", 10);
+      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining("limit=10"));
+    });
+  });
+
+  describe("searchAlbumList", () => {
+    it("returns up to limit entries", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 1, title: "Album One" },
+            { id: 2, title: "Album Two" },
+            { id: 3, title: "Album Three" },
+          ],
+        }),
+      } as Response);
+
+      const results = await client.searchAlbumList("album", 2);
+      expect(results).toHaveLength(2);
+      expect(results[0].id).toBe(1);
+      expect(results[1].id).toBe(2);
+    });
+
+    it("returns [] when API returns null data", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      const results = await client.searchAlbumList("album", 5);
+      expect(results).toEqual([]);
+    });
+
+    it("includes the limit parameter in the request URL", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      } as Response);
+
+      await client.searchAlbumList("query", 7);
+      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining("limit=7"));
+    });
+  });
+
+  describe("getArtistById", () => {
+    it("returns the artist when the response has an id field", async () => {
+      const artist = { id: 42, name: "Test Artist", picture: "http://pic.jpg" };
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => artist,
+      } as Response);
+
+      const result = await client.getArtistById(42);
+      expect(result).toEqual(artist);
+    });
+
+    it("returns null when the response has no id field", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      } as Response);
+
+      const result = await client.getArtistById(42);
+      expect(result).toBeNull();
+    });
+
+    it("returns null when fetchJson returns null (non-OK response)", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      const result = await client.getArtistById(99999);
+      expect(result).toBeNull();
+    });
+
+    it("calls the correct endpoint", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 123, name: "Artist" }),
+      } as Response);
+
+      await client.getArtistById(123);
+      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining("/artist/123"));
+    });
+  });
+
   describe("getArtistAlbums", () => {
     it("filters albums, singles, and eps", async () => {
       fetchSpy.mockResolvedValue({
@@ -109,6 +232,58 @@ describe("DeezerClient", () => {
       fetchSpy.mockRejectedValue(new Error("network failure"));
       const albums = await client.getArtistAlbums(123);
       expect(albums).toEqual([]);
+    });
+
+    it("follows pagination to fetch all pages", async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            data: [{ id: 1, title: "First Album", type: "album" }],
+            next: "https://api.deezer.com/artist/123/albums?index=1",
+          }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            data: [{ id: 2, title: "Second Album", type: "album" }],
+            next: null,
+          }),
+        } as Response);
+
+      const albums = await client.getArtistAlbums(123);
+      expect(albums).toHaveLength(2);
+      expect(albums[0].albumName).toBe("First Album");
+      expect(albums[1].albumName).toBe("Second Album");
+    });
+
+    it("breaks out of pagination loop when result.data is missing", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ next: "https://api.deezer.com/artist/123/albums?index=1" }),
+      } as Response);
+
+      const albums = await client.getArtistAlbums(123);
+      expect(albums).toEqual([]);
+      // Should only call fetch once, not loop indefinitely
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("filters out entries with no recognized type", async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 1, title: "Podcast", type: "podcast" },
+            { id: 2, title: "Live", record_type: "live" },
+            { id: 3, title: "Valid Album", type: "album" },
+          ],
+        }),
+      } as Response);
+
+      const albums = await client.getArtistAlbums(123);
+      expect(albums).toHaveLength(1);
+      expect(albums[0].albumName).toBe("Valid Album");
     });
   });
 
@@ -259,6 +434,68 @@ describe("DeezerClient", () => {
       const tracks = await client.getAlbumTracks(123);
       expect(tracks).toHaveLength(2);
       expect(tracks[1].name).toBe("Page 2");
+    });
+
+    it("falls back to albumTitle from albumMeta when track has no album field", async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            id: 777,
+            title: "Meta Album Title",
+            cover_xl: "http://meta_cover.jpg",
+          }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            data: [
+              {
+                id: 10,
+                title: "Track Without Album",
+                duration: 120,
+                track_position: 1,
+                disk_number: 1,
+                artist: { name: "Solo Artist" },
+                // no album field
+              },
+            ],
+          }),
+        } as Response);
+
+      const tracks = await client.getAlbumTracks(777);
+      expect(tracks).toHaveLength(1);
+      expect(tracks[0].album).toBe("Meta Album Title");
+      expect(tracks[0].albumCoverUrl).toBe("http://meta_cover.jpg");
+    });
+
+    it("uses empty albumTitle and undefined albumCover when albumMeta fetch fails", async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            data: [
+              {
+                id: 20,
+                title: "Orphan Track",
+                duration: 90,
+                track_position: 1,
+                disk_number: 1,
+                artist: { name: "Artist" },
+                // no album field — will fall back to albumTitle
+              },
+            ],
+          }),
+        } as Response);
+
+      const tracks = await client.getAlbumTracks(888);
+      expect(tracks).toHaveLength(1);
+      expect(tracks[0].album).toBe("");
+      expect(tracks[0].albumCoverUrl).toBeUndefined();
     });
   });
 

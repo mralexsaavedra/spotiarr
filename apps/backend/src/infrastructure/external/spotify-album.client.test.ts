@@ -176,5 +176,94 @@ describe("SpotifyAlbumClient", () => {
         errorCode: "album_not_found",
       });
     });
+
+    it("throws AppError(429) when tracks page returns 429", async () => {
+      const albumBody = {
+        id: "album-rl",
+        name: "Rate Limited Album",
+        images: [],
+        artists: [{ name: "Artist" }],
+        release_date: "2020-01-01",
+        total_tracks: 1,
+      };
+
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValueOnce(
+            new Response(JSON.stringify(albumBody), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
+          )
+          .mockResolvedValueOnce(
+            new Response("", { status: 429, headers: { "Retry-After": "1" } }),
+          ),
+      );
+
+      await expect(client.getAlbumTracks("album-rl")).rejects.toMatchObject({
+        statusCode: 429,
+        errorCode: "spotify_rate_limited",
+      });
+    });
+
+    it("throws AppError on non-404/non-429 error from tracks page", async () => {
+      const albumBody = {
+        id: "album-err",
+        name: "Error Album",
+        images: [],
+        artists: [{ name: "Artist" }],
+        release_date: "2020-01-01",
+        total_tracks: 1,
+      };
+
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValueOnce(
+            new Response(JSON.stringify(albumBody), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
+          )
+          .mockResolvedValueOnce(new Response("", { status: 500 })),
+      );
+
+      await expect(client.getAlbumTracks("album-err")).rejects.toMatchObject({
+        statusCode: 500,
+        errorCode: "internal_server_error",
+      });
+    });
+
+    it("throws AppError(404) when tracks page is 404", async () => {
+      const albumBody = {
+        id: "album-404",
+        name: "Gone Album",
+        images: [],
+        artists: [{ name: "Artist" }],
+        release_date: "2020-01-01",
+        total_tracks: 1,
+      };
+
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValueOnce(
+            new Response(JSON.stringify(albumBody), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
+          )
+          .mockResolvedValueOnce(new Response("", { status: 404 })),
+      );
+
+      await expect(client.getAlbumTracks("album-404")).rejects.toMatchObject({
+        statusCode: 404,
+        errorCode: "album_not_found",
+      });
+    });
   });
 });

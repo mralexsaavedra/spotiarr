@@ -82,6 +82,180 @@ describe("SpotifyFollowedArtistsService", () => {
     expect(artists[0]?.spotifyUrl).toBe("https://open.spotify.com/artist/1");
   });
 
+  it("throws AppError(401) on 401 from /me/following", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("Unauthorized", { status: 401 })),
+    );
+
+    await expect(buildService().getFollowedArtists()).rejects.toMatchObject({
+      statusCode: 401,
+      errorCode: "missing_user_access_token",
+    });
+  });
+
+  it("throws AppError(429) on 429 from /me/following", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("Too Many Requests", { status: 429 })),
+    );
+
+    await expect(buildService().getFollowedArtists()).rejects.toMatchObject({
+      statusCode: 429,
+      errorCode: "spotify_rate_limited",
+    });
+  });
+
+  it("throws AppError on other non-ok status from /me/following", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("Server Error", { status: 500 })),
+    );
+
+    await expect(buildService().getFollowedArtists()).rejects.toMatchObject({
+      statusCode: 500,
+      errorCode: "failed_to_fetch_followed_artists",
+    });
+  });
+
+  it("paginates through multiple pages using cursor", async () => {
+    let page = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string | URL) => {
+        const url = input.toString();
+        page++;
+        if (page === 1 && !url.includes("after=")) {
+          return new Response(
+            JSON.stringify({
+              artists: {
+                items: [
+                  {
+                    id: "1",
+                    name: "Alpha",
+                    images: [],
+                    external_urls: { spotify: "https://open.spotify.com/artist/1" },
+                  },
+                ],
+                cursors: { after: "cursor-abc" },
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        // Second page with no more cursor
+        return new Response(
+          JSON.stringify({
+            artists: {
+              items: [
+                {
+                  id: "2",
+                  name: "Beta",
+                  images: [],
+                  external_urls: { spotify: "https://open.spotify.com/artist/2" },
+                },
+              ],
+              cursors: {},
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }),
+    );
+
+    const artists = await buildService().getFollowedArtists();
+    // maxArtists is 10 from buildService, so we get both
+    expect(artists.length).toBe(2);
+  });
+
+  it("stops paginating when maxArtists is reached", async () => {
+    // Build service with maxArtists=1
+    const service = new (
+      await import("./spotify-followed-artists.service")
+    ).SpotifyFollowedArtistsService(
+      {
+        getNumber: vi
+          .fn()
+          .mockImplementation((key: string) =>
+            Promise.resolve(key === "FOLLOWED_ARTISTS_MAX" ? 1 : 30),
+          ),
+      } as never,
+      {
+        getUserToken: vi.fn().mockResolvedValue("user-token"),
+        refreshUserToken: vi.fn().mockResolvedValue(false),
+      } as never,
+      new (await import("./circuit-breaker")).CircuitBreaker(),
+      new (await import("./rate-limiter")).RateLimiter({
+        maxConcurrency: 2,
+        minIntervalMs: 0,
+        queueTimeoutMs: 120_000,
+      }),
+    );
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              artists: {
+                items: [
+                  {
+                    id: "1",
+                    name: "Only One",
+                    images: [{ url: "https://img/1" }],
+                    external_urls: { spotify: "https://open.spotify.com/artist/1" },
+                  },
+                  {
+                    id: "2",
+                    name: "Should Not Appear",
+                    images: [],
+                    external_urls: { spotify: "https://open.spotify.com/artist/2" },
+                  },
+                ],
+                cursors: { after: "cursor-abc" },
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      ),
+    );
+
+    const artists = await service.getFollowedArtists();
+    // Should be sliced to 1
+    expect(artists.length).toBe(1);
+    expect(artists[0]?.id).toBe("1");
+  });
+
+  it("maps null imageUrl to null and missing spotifyUrl to null", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              artists: {
+                items: [
+                  {
+                    id: "1",
+                    name: "No Image",
+                    images: [],
+                    external_urls: {},
+                  },
+                ],
+                cursors: {},
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      ),
+    );
+
+    const artists = await buildService().getFollowedArtists();
+    expect(artists[0]?.image).toBeNull();
+    expect(artists[0]?.spotifyUrl).toBeNull();
+  });
+
   it("uses cache for repeated calls", async () => {
     const fetchMock = vi.fn(async () =>
       jsonResponse({

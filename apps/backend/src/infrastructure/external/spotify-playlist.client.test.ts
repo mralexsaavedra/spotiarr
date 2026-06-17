@@ -343,5 +343,213 @@ describe("SpotifyPlaylistClient", () => {
         client.getPlaylistTracksPage("https://open.spotify.com/playlist/abc", 0, 10),
       ).rejects.toMatchObject({ statusCode: 404 });
     });
+
+    it("throws AppError(403) on 403", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 403 })));
+
+      await expect(
+        client.getPlaylistTracksPage("https://open.spotify.com/playlist/abc", 0, 10),
+      ).rejects.toMatchObject({ errorCode: "playlist_not_accessible" });
+    });
+
+    it("throws AppError(429) on 429", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(new Response("", { status: 429, headers: { "Retry-After": "1" } })),
+      );
+
+      await expect(
+        client.getPlaylistTracksPage("https://open.spotify.com/playlist/abc", 0, 10),
+      ).rejects.toMatchObject({ errorCode: "spotify_rate_limited" });
+    });
+
+    it("throws AppError on 500 from getPlaylistTracksPage", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 500 })));
+
+      await expect(
+        client.getPlaylistTracksPage("https://open.spotify.com/playlist/abc", 0, 10),
+      ).rejects.toMatchObject({ statusCode: 502, errorCode: "internal_server_error" });
+    });
+
+    it("falls back to app token on missing_user_access_token in getPlaylistTracksPage", async () => {
+      vi.mocked(authService.getUserToken).mockRejectedValue(
+        new AppError(401, "missing_user_access_token", "No user token"),
+      );
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          jsonResponse({
+            items: [
+              {
+                item: {
+                  name: "Fallback Track",
+                  artists: [{ name: "Artist" }],
+                  external_urls: {},
+                  album: { name: "Alb", images: [], release_date: "2020", total_tracks: 1 },
+                },
+              },
+            ],
+            next: null,
+            total: 1,
+          }),
+        ),
+      );
+
+      const result = await client.getPlaylistTracksPage(
+        "https://open.spotify.com/playlist/abc",
+        0,
+        10,
+      );
+      expect(result.tracks).toHaveLength(1);
+    });
+
+    it("clamps limit to max 100 and min 1", async () => {
+      const capturedUrls: string[] = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation((url: string) => {
+          capturedUrls.push(url);
+          return Promise.resolve(jsonResponse({ items: [], next: null, total: 0 }));
+        }),
+      );
+
+      await client.getPlaylistTracksPage("https://open.spotify.com/playlist/abc", 0, 200);
+      expect(capturedUrls[0]).toContain("limit=100");
+    });
+
+    it("ignores non-numeric next URL for nextOffset", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(jsonResponse({ items: [], next: "not-a-valid-url", total: 0 })),
+      );
+
+      const result = await client.getPlaylistTracksPage(
+        "https://open.spotify.com/playlist/abc",
+        0,
+        10,
+      );
+      expect(result.nextOffset).toBeNull();
+    });
+  });
+
+  describe("getPlaylistMetadata() — additional branches", () => {
+    it("throws AppError(401) when user token missing and app returns 404", async () => {
+      vi.mocked(authService.getUserToken).mockRejectedValue(
+        new AppError(401, "missing_user_access_token", "No user token"),
+      );
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 404 })));
+
+      await expect(
+        client.getPlaylistMetadata("https://open.spotify.com/playlist/abc123"),
+      ).rejects.toMatchObject({ errorCode: "missing_user_access_token" });
+    });
+
+    it("throws AppError(429) on 429 from metadata endpoint", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(new Response("", { status: 429, headers: { "Retry-After": "1" } })),
+      );
+
+      await expect(
+        client.getPlaylistMetadata("https://open.spotify.com/playlist/abc123"),
+      ).rejects.toMatchObject({ errorCode: "spotify_rate_limited" });
+    });
+
+    it("returns undefined totalTracks when tracks.total is missing", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          jsonResponse({
+            name: "Playlist",
+            images: [],
+            owner: { display_name: "User" },
+            tracks: {},
+          }),
+        ),
+      );
+
+      const result = await client.getPlaylistMetadata("https://open.spotify.com/playlist/abc123");
+      expect(result.totalTracks).toBeUndefined();
+    });
+  });
+
+  describe("getAllPlaylistTracks() — additional branches", () => {
+    it("throws AppError(404) on 404 from playlist items", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 404 })));
+
+      await expect(
+        client.getAllPlaylistTracks("https://open.spotify.com/playlist/abc123"),
+      ).rejects.toMatchObject({ errorCode: "playlist_not_found" });
+    });
+
+    it("throws AppError(429) on 429 from playlist items", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(new Response("", { status: 429, headers: { "Retry-After": "1" } })),
+      );
+
+      await expect(
+        client.getAllPlaylistTracks("https://open.spotify.com/playlist/abc123"),
+      ).rejects.toMatchObject({ errorCode: "spotify_rate_limited" });
+    });
+
+    it("throws AppError on 500 from playlist items", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 500 })));
+
+      await expect(
+        client.getAllPlaylistTracks("https://open.spotify.com/playlist/abc123"),
+      ).rejects.toMatchObject({ statusCode: 502 });
+    });
+
+    it("stops after first page when previewOnly=true", async () => {
+      const fetchMock = vi.fn().mockResolvedValue(
+        jsonResponse({
+          items: [
+            {
+              item: {
+                name: "First Track",
+                artists: [{ name: "Artist" }],
+                external_urls: {},
+                album: { name: "Album", images: [], release_date: "2020", total_tracks: 1 },
+              },
+            },
+          ],
+          next: "https://api.spotify.com/v1/playlists/abc123/items?offset=100",
+        }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const tracks = await client.getAllPlaylistTracks(
+        "https://open.spotify.com/playlist/abc123",
+        true,
+      );
+      expect(tracks).toHaveLength(1);
+      // Should only call fetch once (no following of next page)
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("continues pagination when items page is empty (data.items.length === 0)", async () => {
+      const fetchMock = vi.fn().mockResolvedValueOnce(jsonResponse({ items: [], next: null }));
+      vi.stubGlobal("fetch", fetchMock);
+
+      const tracks = await client.getAllPlaylistTracks("https://open.spotify.com/playlist/abc123");
+      expect(tracks).toHaveLength(0);
+    });
+
+    it("rethrows non-missing_user_access_token errors from getUserToken in getAllPlaylistTracks", async () => {
+      vi.mocked(authService.getUserToken).mockRejectedValue(
+        new AppError(503, "service_unavailable", "Down"),
+      );
+
+      await expect(
+        client.getAllPlaylistTracks("https://open.spotify.com/playlist/abc123"),
+      ).rejects.toMatchObject({ statusCode: 503 });
+    });
   });
 });
