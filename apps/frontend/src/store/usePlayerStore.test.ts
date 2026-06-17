@@ -1144,6 +1144,91 @@ describe("isNowPlayingOpen", () => {
 });
 
 // ---------------------------------------------------------------------------
+// B4 — seek clamps to duration=0 before metadata loads
+// ---------------------------------------------------------------------------
+
+describe("seek — B4 pre-metadata clamp fix", () => {
+  it("B4-1: seek(42) with duration=0 keeps requested value 42", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ duration: 0 });
+    usePlayerStore.getState().seek(42);
+
+    expect(usePlayerStore.getState().currentTime).toBe(42);
+  });
+
+  it("B4-2: seek(500) with duration=200 clamps to 200", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ duration: 200 });
+    usePlayerStore.getState().seek(500);
+
+    expect(usePlayerStore.getState().currentTime).toBe(200);
+  });
+
+  it("B4-3: seek(-5) clamps to 0 regardless of duration", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ duration: 0 });
+    usePlayerStore.getState().seek(-5);
+
+    expect(usePlayerStore.getState().currentTime).toBe(0);
+  });
+
+  it("B4-4: seek(42) with duration=0 sets _audioElement.currentTime to 42", () => {
+    const mockAudio = { currentTime: 0 };
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.getState().setAudioElement(mockAudio as unknown as HTMLAudioElement);
+    usePlayerStore.setState({ duration: 0 });
+    usePlayerStore.getState().seek(42);
+
+    expect(mockAudio.currentTime).toBe(42);
+    usePlayerStore.getState().setAudioElement(null);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// B6 — invalid duration stored verbatim
+// ---------------------------------------------------------------------------
+
+describe("_onLoadedMetadata — B6 invalid duration guard", () => {
+  it("B6-1: NaN duration is stored as 0", () => {
+    usePlayerStore.getState()._onLoadedMetadata(NaN);
+    expect(usePlayerStore.getState().duration).toBe(0);
+  });
+
+  it("B6-2: Infinity duration is stored as 0", () => {
+    usePlayerStore.getState()._onLoadedMetadata(Infinity);
+    expect(usePlayerStore.getState().duration).toBe(0);
+  });
+
+  it("B6-3: valid duration 180 is stored as-is", () => {
+    usePlayerStore.getState()._onLoadedMetadata(180);
+    expect(usePlayerStore.getState().duration).toBe(180);
+  });
+
+  it("B6-4: zero duration is stored as 0", () => {
+    usePlayerStore.getState()._onLoadedMetadata(0);
+    expect(usePlayerStore.getState().duration).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// M5 — playFromIndex does not clear stale error
+// ---------------------------------------------------------------------------
+
+describe("playFromIndex — M5 stale error clear", () => {
+  it("M5-1: playFromIndex clears a stale error", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ error: "previous error" });
+
+    usePlayerStore.getState().playFromIndex(1);
+
+    expect(usePlayerStore.getState().error).toBeNull();
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // playQueue() with shuffle (S3-1, S3-2)
 // ---------------------------------------------------------------------------
 
