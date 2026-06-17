@@ -1316,6 +1316,61 @@ describe("_onError auto-skip", () => {
 });
 
 // ---------------------------------------------------------------------------
+// isBuffering — _onWaiting, _onCanPlay, clear, _onError, __partialize
+// ---------------------------------------------------------------------------
+
+describe("isBuffering", () => {
+  it("initial value is false", () => {
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("_onWaiting sets isBuffering to true", () => {
+    usePlayerStore.getState()._onWaiting();
+    expect(usePlayerStore.getState().isBuffering).toBe(true);
+  });
+
+  it("_onCanPlay sets isBuffering to false", () => {
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState()._onCanPlay();
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("clear() resets isBuffering to false", () => {
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState().clear();
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("_onError leaves isBuffering false (sticky-stop path)", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState()._onError("fail");
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("_onError leaves isBuffering false (skip path)", () => {
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ isBuffering: true });
+    usePlayerStore.getState()._onError("skip-error");
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("isBuffering is NOT in persisted state (__partialize does not include it)", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fakeState = {
+      isBuffering: true,
+      volume: 1,
+      isMuted: false,
+      shuffleMode: false,
+      repeatMode: "off" as const,
+    } as unknown as Parameters<typeof p>[0];
+    const result = p(fakeState);
+    expect("isBuffering" in result).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // playQueue() with shuffle (S3-1, S3-2)
 // ---------------------------------------------------------------------------
 

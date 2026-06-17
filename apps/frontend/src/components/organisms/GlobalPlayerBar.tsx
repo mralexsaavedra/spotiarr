@@ -127,6 +127,9 @@ export const GlobalPlayerBar: FC = () => {
   const _onTimeUpdate = usePlayerStore((s) => s._onTimeUpdate);
   const _onEnded = usePlayerStore((s) => s._onEnded);
   const _onError = usePlayerStore((s) => s._onError);
+  const _onWaiting = usePlayerStore((s) => s._onWaiting);
+  const _onCanPlay = usePlayerStore((s) => s._onCanPlay);
+  const isBuffering = usePlayerStore((s) => s.isBuffering);
 
   const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
 
@@ -168,19 +171,31 @@ export const GlobalPlayerBar: FC = () => {
       const msg = el.error?.message ?? "Playback error";
       _onError(msg);
     };
+    const onWaiting = () => _onWaiting();
+    const onStalled = () => _onWaiting();
+    const onPlaying = () => _onCanPlay();
+    const onCanPlay = () => _onCanPlay();
 
     el.addEventListener("timeupdate", onTimeUpdate);
     el.addEventListener("loadedmetadata", onLoadedMetadata);
     el.addEventListener("ended", onEnded);
     el.addEventListener("error", onError);
+    el.addEventListener("waiting", onWaiting);
+    el.addEventListener("stalled", onStalled);
+    el.addEventListener("playing", onPlaying);
+    el.addEventListener("canplay", onCanPlay);
 
     return () => {
       el.removeEventListener("timeupdate", onTimeUpdate);
       el.removeEventListener("loadedmetadata", onLoadedMetadata);
       el.removeEventListener("ended", onEnded);
       el.removeEventListener("error", onError);
+      el.removeEventListener("waiting", onWaiting);
+      el.removeEventListener("stalled", onStalled);
+      el.removeEventListener("playing", onPlaying);
+      el.removeEventListener("canplay", onCanPlay);
     };
-  }, [_onTimeUpdate, _onLoadedMetadata, _onEnded, _onError]);
+  }, [_onTimeUpdate, _onLoadedMetadata, _onEnded, _onError, _onWaiting, _onCanPlay]);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -313,6 +328,7 @@ export const GlobalPlayerBar: FC = () => {
                   onRepeatCycle={cycleRepeat}
                   isPrevDisabled={isAtFirst}
                   isNextDisabled={isAtLast}
+                  isBuffering={isBuffering}
                 />
 
                 <button

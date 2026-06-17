@@ -35,6 +35,7 @@ export interface PlayerState extends PlayerUISlice {
   shuffleOrder: number[];
   shuffleOrderIndex: number;
   consecutiveErrors: number;
+  isBuffering: boolean;
 
   playQueue: (items: QueueItem[], startIndex: number) => void;
   togglePlay: () => void;
@@ -55,6 +56,8 @@ export interface PlayerState extends PlayerUISlice {
   _onTimeUpdate: (currentTime: number) => void;
   _onEnded: () => void;
   _onError: (message: string) => void;
+  _onWaiting: () => void;
+  _onCanPlay: () => void;
 }
 
 export const __partialize = (
@@ -101,6 +104,7 @@ const INITIAL_STATE = {
   shuffleOrder: [] as number[],
   shuffleOrderIndex: -1,
   consecutiveErrors: 0,
+  isBuffering: false,
 };
 
 type AdvanceSource = "user" | "ended" | "error";
@@ -266,6 +270,7 @@ export const usePlayerStore = create<PlayerState>()(
             error: null,
             isQueuePanelOpen: false,
             isNowPlayingOpen: false,
+            isBuffering: false,
           });
         },
 
@@ -310,16 +315,24 @@ export const usePlayerStore = create<PlayerState>()(
         _onError(message) {
           const { currentIndex, queue, consecutiveErrors } = get();
           if (currentIndex === null) {
-            set({ error: message, isPlaying: false });
+            set({ error: message, isPlaying: false, isBuffering: false });
             return;
           }
           const errs = consecutiveErrors + 1;
           if (errs >= queue.length) {
-            set({ error: message, isPlaying: false, consecutiveErrors: 0 });
+            set({ error: message, isPlaying: false, consecutiveErrors: 0, isBuffering: false });
             return;
           }
-          set({ consecutiveErrors: errs, error: message });
+          set({ consecutiveErrors: errs, error: message, isBuffering: false });
           advance("error");
+        },
+
+        _onWaiting() {
+          set({ isBuffering: true });
+        },
+
+        _onCanPlay() {
+          set({ isBuffering: false });
         },
 
         playFromIndex(index) {

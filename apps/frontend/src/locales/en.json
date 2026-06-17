@@ -456,7 +456,8 @@
       "seek": "Seek",
       "repeatEnable": "Enable repeat",
       "repeatAll": "Repeat all",
-      "repeatOne": "Repeat one"
+      "repeatOne": "Repeat one",
+      "loading": "Loading"
     }
   },
   "aiChat": {
