@@ -6,7 +6,16 @@ import { LibraryArtistProfile } from "@/components/organisms/LibraryArtistProfil
 import { useLibraryArtistController } from "@/hooks/controllers/useLibraryArtistController";
 
 export const LibraryArtist: FC = () => {
-  const { t, artist, isLoading, error, handleAlbumClick } = useLibraryArtistController();
+  const {
+    t,
+    artist,
+    isLoading,
+    error,
+    handleAlbumClick,
+    albumSearch,
+    onAlbumSearchChange,
+    noAlbumResults,
+  } = useLibraryArtistController();
 
   if (isLoading) {
     return <Loading />;
@@ -24,5 +33,13 @@ export const LibraryArtist: FC = () => {
     );
   }
 
-  return <LibraryArtistProfile artist={artist} onAlbumClick={handleAlbumClick} />;
+  return (
+    <LibraryArtistProfile
+      artist={artist}
+      onAlbumClick={handleAlbumClick}
+      albumSearch={albumSearch}
+      onAlbumSearchChange={onAlbumSearchChange}
+      noAlbumResults={noAlbumResults}
+    />
+  );
 };
