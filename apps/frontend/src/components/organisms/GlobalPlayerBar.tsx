@@ -96,6 +96,7 @@ export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const nowPlayingTriggerRef = useRef<HTMLButtonElement>(null);
+  const seekRestoredRef = useRef(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isSidebarCollapsed = usePreferencesStore((s) => s.isSidebarCollapsed);
@@ -196,6 +197,26 @@ export const GlobalPlayerBar: FC = () => {
       el.removeEventListener("canplay", onCanPlay);
     };
   }, [_onTimeUpdate, _onLoadedMetadata, _onEnded, _onError, _onWaiting, _onCanPlay]);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !currentItem) return;
+    const startAt = usePlayerStore.getState().currentTime;
+    if (startAt <= 0) return;
+
+    const onFirstMetadata = () => {
+      if (!seekRestoredRef.current) {
+        el.currentTime = startAt;
+        seekRestoredRef.current = true;
+      }
+      el.removeEventListener("loadedmetadata", onFirstMetadata);
+    };
+
+    el.addEventListener("loadedmetadata", onFirstMetadata);
+    return () => {
+      el.removeEventListener("loadedmetadata", onFirstMetadata);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const el = audioRef.current;

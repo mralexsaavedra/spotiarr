@@ -432,17 +432,15 @@ describe("persist partialize", () => {
     const persisted = partialize(state as unknown as Parameters<typeof partialize>[0]);
     const roundTripped = JSON.parse(JSON.stringify(persisted));
 
-    expect(roundTripped).toEqual({
-      volume: 0.6,
-      isMuted: true,
-      shuffleMode: true,
-      repeatMode: "one",
-    });
-    expect("queue" in roundTripped).toBe(false);
-    expect("currentTime" in roundTripped).toBe(false);
+    expect(roundTripped.volume).toBe(0.6);
+    expect(roundTripped.isMuted).toBe(true);
+    expect(roundTripped.shuffleMode).toBe(true);
+    expect(roundTripped.repeatMode).toBe("one");
+    expect("queue" in roundTripped).toBe(true);
+    expect("currentTime" in roundTripped).toBe(true);
     expect("isPlaying" in roundTripped).toBe(false);
-    expect("shuffleOrder" in roundTripped).toBe(false);
-    expect("shuffleOrderIndex" in roundTripped).toBe(false);
+    expect("shuffleOrder" in roundTripped).toBe(true);
+    expect("shuffleOrderIndex" in roundTripped).toBe(true);
   });
 });
 
@@ -490,7 +488,17 @@ describe("__partialize allowlist — persisted keys are exactly volume, isMuted,
     };
 
     const result = p(fullState as unknown as Parameters<typeof p>[0]);
-    expect(Object.keys(result).sort()).toEqual(["isMuted", "repeatMode", "shuffleMode", "volume"]);
+    expect(Object.keys(result).sort()).toEqual([
+      "currentIndex",
+      "currentTime",
+      "isMuted",
+      "queue",
+      "repeatMode",
+      "shuffleMode",
+      "shuffleOrder",
+      "shuffleOrderIndex",
+      "volume",
+    ]);
   });
 
   it("excluded fields are absent from result", async () => {
@@ -509,8 +517,8 @@ describe("__partialize allowlist — persisted keys are exactly volume, isMuted,
     const result = p(fullState);
     expect("isNowPlayingOpen" in result).toBe(false);
     expect("isQueuePanelOpen" in result).toBe(false);
-    expect("queue" in result).toBe(false);
-    expect("currentIndex" in result).toBe(false);
+    expect("queue" in result).toBe(true);
+    expect("currentIndex" in result).toBe(true);
   });
 });
 
@@ -620,7 +628,7 @@ describe("repeat state", () => {
 // ---------------------------------------------------------------------------
 
 describe("partialize S1-6", () => {
-  it("shuffleOrder and shuffleOrderIndex reset to defaults on rehydration", async () => {
+  it("shuffleOrder and shuffleOrderIndex ARE persisted on rehydration", async () => {
     const { __partialize: p } = await import("./usePlayerStore");
     const fakeState = {
       shuffleMode: true,
@@ -632,8 +640,10 @@ describe("partialize S1-6", () => {
     } as unknown as Parameters<typeof p>[0];
 
     const persisted = p(fakeState);
-    expect("shuffleOrder" in persisted).toBe(false);
-    expect("shuffleOrderIndex" in persisted).toBe(false);
+    expect("shuffleOrder" in persisted).toBe(true);
+    expect("shuffleOrderIndex" in persisted).toBe(true);
+    expect(persisted.shuffleOrder).toEqual([2, 0, 1]);
+    expect(persisted.shuffleOrderIndex).toBe(1);
     expect(persisted.shuffleMode).toBe(true);
     expect(persisted.repeatMode).toBe("one");
   });
@@ -1396,5 +1406,48 @@ describe("playQueue() with shuffle", () => {
     expect(state.currentIndex).toBe(1);
     expect(state.shuffleOrder).toEqual([]);
     expect(state.shuffleOrderIndex).toBe(-1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// persist partialize — resume-where-left-off (queue, currentIndex, currentTime, shuffleOrder, shuffleOrderIndex)
+// ---------------------------------------------------------------------------
+
+describe("persist partialize — resume fields", () => {
+  it("includes queue, currentIndex, currentTime, shuffleOrder, shuffleOrderIndex in persisted shape", async () => {
+    const { __partialize: p } = await import("./usePlayerStore");
+    const fakeState = {
+      queue: [makeItem("a"), makeItem("b")],
+      currentIndex: 1,
+      isPlaying: true,
+      volume: 0.8,
+      isMuted: false,
+      currentTime: 42,
+      duration: 200,
+      error: "oops",
+      shuffleMode: true,
+      repeatMode: "all" as const,
+      shuffleOrder: [1, 0],
+      shuffleOrderIndex: 1,
+      consecutiveErrors: 2,
+      isBuffering: true,
+    } as unknown as Parameters<typeof p>[0];
+
+    const result = p(fakeState);
+
+    expect(result.queue).toEqual([makeItem("a"), makeItem("b")]);
+    expect(result.currentIndex).toBe(1);
+    expect(result.currentTime).toBe(42);
+    expect(result.shuffleOrder).toEqual([1, 0]);
+    expect(result.shuffleOrderIndex).toBe(1);
+    expect(result.volume).toBe(0.8);
+    expect(result.isMuted).toBe(false);
+    expect(result.shuffleMode).toBe(true);
+    expect(result.repeatMode).toBe("all");
+    expect("isPlaying" in result).toBe(false);
+    expect("error" in result).toBe(false);
+    expect("isBuffering" in result).toBe(false);
+    expect("consecutiveErrors" in result).toBe(false);
+    expect("duration" in result).toBe(false);
   });
 });

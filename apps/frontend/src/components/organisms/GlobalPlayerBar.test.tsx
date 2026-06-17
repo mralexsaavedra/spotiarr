@@ -967,3 +967,66 @@ describe("mobile now-playing trigger", () => {
     expect(document.activeElement).toBe(btn);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Resume playback position on reload
+// ---------------------------------------------------------------------------
+
+describe("resume playback position on reload", () => {
+  it("seeks audio to persisted currentTime on first loadedmetadata", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      currentTime: 42,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+
+    expect(audio.currentTime).toBe(42);
+  });
+
+  it("does NOT re-seek on subsequent loadedmetadata events (one-shot guard)", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      currentTime: 42,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+    expect(audio.currentTime).toBe(42);
+
+    audio.currentTime = 10;
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+    expect(audio.currentTime).toBe(10);
+  });
+
+  it("does NOT seek when persisted currentTime is 0", () => {
+    usePlayerStore.setState({
+      queue: [makeItem("a")],
+      currentIndex: 0,
+      currentTime: 0,
+    });
+
+    const { container } = render(<GlobalPlayerBar />);
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    audio.currentTime = 0;
+
+    act(() => {
+      fireEvent(audio, new Event("loadedmetadata"));
+    });
+
+    expect(audio.currentTime).toBe(0);
+  });
+});
