@@ -111,6 +111,9 @@ export const GlobalPlayerBar: FC = () => {
   const shuffleMode = usePlayerStore((s) => s.shuffleMode);
   const repeatMode = usePlayerStore((s) => s.repeatMode);
 
+  const volume = usePlayerStore((s) => s.volume);
+  const isMuted = usePlayerStore((s) => s.isMuted);
+
   const setAudioElement = usePlayerStore((s) => s.setAudioElement);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
@@ -181,6 +184,13 @@ export const GlobalPlayerBar: FC = () => {
 
   useEffect(() => {
     const el = audioRef.current;
+    if (!el) return;
+    el.volume = volume;
+    el.muted = isMuted;
+  }, [volume, isMuted]);
+
+  useEffect(() => {
+    const el = audioRef.current;
     if (!el || !currentItem) return;
     if (el.src !== currentItem.audioUrl) {
       el.src = currentItem.audioUrl;
@@ -193,7 +203,11 @@ export const GlobalPlayerBar: FC = () => {
     if (isPlaying) {
       const playPromise = el.play();
       if (playPromise && typeof playPromise.catch === "function") {
-        void playPromise.catch(() => {});
+        void playPromise.catch((err: { name?: string } | null) => {
+          if (err?.name === "NotAllowedError") {
+            usePlayerStore.setState({ isPlaying: false });
+          }
+        });
       }
     } else {
       el.pause();

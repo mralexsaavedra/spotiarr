@@ -805,6 +805,65 @@ describe("mobile chevron affordance", () => {
 });
 
 // ---------------------------------------------------------------------------
+// B3 — persisted volume/mute not applied to audio element on mount
+// ---------------------------------------------------------------------------
+
+describe("B3 — persisted volume/mute applied on mount", () => {
+  it("B3-1: audio element gets store volume and muted on mount", () => {
+    usePlayerStore.setState({ volume: 0.3, isMuted: true });
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    expect(audio.volume).toBe(0.3);
+    expect(audio.muted).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// E4 — autoplay rejection swallowed, isPlaying lies
+// ---------------------------------------------------------------------------
+
+describe("E4 — autoplay NotAllowedError sets isPlaying false", () => {
+  it("E4-1: NotAllowedError rejection sets isPlaying to false", async () => {
+    const notAllowed = Object.assign(new Error("NotAllowedError"), { name: "NotAllowedError" });
+    const mockPlay = vi.fn().mockRejectedValue(notAllowed);
+    HTMLMediaElement.prototype.play = mockPlay;
+
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+
+    await act(async () => {
+      render(<GlobalPlayerBar />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+
+  it("E4-2: AbortError rejection leaves isPlaying true", async () => {
+    const abortError = Object.assign(new Error("AbortError"), { name: "AbortError" });
+    const mockPlay = vi.fn().mockRejectedValue(abortError);
+    HTMLMediaElement.prototype.play = mockPlay;
+
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+
+    await act(async () => {
+      render(<GlobalPlayerBar />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // mobile now-playing trigger (Tasks 2 / S2 / S6)
 // ---------------------------------------------------------------------------
 

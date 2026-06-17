@@ -228,7 +228,8 @@ export const usePlayerStore = create<PlayerState>()(
 
         seek(seconds) {
           const { duration } = get();
-          const clamped = Math.max(0, Math.min(seconds, duration));
+          const clamped =
+            duration > 0 ? Math.max(0, Math.min(seconds, duration)) : Math.max(0, seconds);
           set({ currentTime: clamped });
           if (_audioElement) {
             _audioElement.currentTime = clamped;
@@ -270,7 +271,7 @@ export const usePlayerStore = create<PlayerState>()(
         },
 
         _onLoadedMetadata(duration) {
-          set({ duration });
+          set({ duration: Number.isFinite(duration) && duration > 0 ? duration : 0 });
         },
 
         _onTimeUpdate(currentTime) {
@@ -307,7 +308,7 @@ export const usePlayerStore = create<PlayerState>()(
         playFromIndex(index) {
           const { queue, shuffleMode } = get();
           if (index < 0 || index >= queue.length) return;
-          set({ currentIndex: index, isPlaying: true, currentTime: 0 });
+          set({ currentIndex: index, isPlaying: true, currentTime: 0, error: null });
           if (_audioElement) _audioElement.currentTime = 0;
           if (shuffleMode) {
             const order = shuffleIndices(queue.length, index);
