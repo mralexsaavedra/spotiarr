@@ -58,6 +58,8 @@ export interface PlayerState extends PlayerUISlice {
   _onError: (message: string) => void;
   _onWaiting: () => void;
   _onCanPlay: () => void;
+  _onPlay: () => void;
+  _onPause: () => void;
 }
 
 export const __partialize = (
@@ -349,6 +351,14 @@ export const usePlayerStore = create<PlayerState>()(
 
         _onCanPlay() {
           set({ isBuffering: false });
+        },
+
+        _onPlay() {
+          if (!get().isPlaying) set({ isPlaying: true });
+        },
+
+        _onPause() {
+          if (get().isPlaying) set({ isPlaying: false });
         },
 
         playFromIndex(index) {

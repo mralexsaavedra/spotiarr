@@ -969,6 +969,56 @@ describe("mobile now-playing trigger", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Element→store play/pause bridge
+// ---------------------------------------------------------------------------
+
+describe("element→store play/pause bridge", () => {
+  it("dispatching 'pause' event with el.ended=false sets store isPlaying to false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    Object.defineProperty(audio, "ended", { value: false, configurable: true });
+
+    act(() => {
+      fireEvent(audio, new Event("pause"));
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+
+  it("dispatching 'pause' event with el.ended=true does NOT change isPlaying (end-of-track guard)", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    Object.defineProperty(audio, "ended", { value: true, configurable: true });
+
+    act(() => {
+      fireEvent(audio, new Event("pause"));
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+
+  it("dispatching 'play' event sets store isPlaying to true", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: false });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+
+    act(() => {
+      fireEvent(audio, new Event("play"));
+    });
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Resume playback position on reload
 // ---------------------------------------------------------------------------
 

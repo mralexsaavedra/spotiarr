@@ -1410,6 +1410,50 @@ describe("playQueue() with shuffle", () => {
 });
 
 // ---------------------------------------------------------------------------
+// _onPlay / _onPause — element→store bridge
+// ---------------------------------------------------------------------------
+
+describe("_onPlay", () => {
+  it("sets isPlaying to true when currently false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: false });
+
+    usePlayerStore.getState()._onPlay();
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+
+  it("is a no-op when isPlaying is already true", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: true });
+
+    usePlayerStore.getState()._onPlay();
+
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
+  });
+});
+
+describe("_onPause", () => {
+  it("sets isPlaying to false when currently true", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: true });
+
+    usePlayerStore.getState()._onPause();
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+
+  it("is a no-op when isPlaying is already false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isPlaying: false });
+
+    usePlayerStore.getState()._onPause();
+
+    expect(usePlayerStore.getState().isPlaying).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // persist partialize — resume-where-left-off (queue, currentIndex, currentTime, shuffleOrder, shuffleOrderIndex)
 // ---------------------------------------------------------------------------
 
