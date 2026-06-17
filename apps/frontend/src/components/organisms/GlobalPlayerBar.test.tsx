@@ -782,6 +782,50 @@ describe("isAtFirst / isAtLast with modes", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Buffering audio events — waiting/playing/canplay
+// ---------------------------------------------------------------------------
+
+describe("buffering audio events", () => {
+  it("dispatching 'waiting' event on audio element sets store isBuffering to true", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    act(() => {
+      fireEvent(audio, new Event("waiting"));
+    });
+
+    expect(usePlayerStore.getState().isBuffering).toBe(true);
+  });
+
+  it("dispatching 'playing' event on audio element sets store isBuffering to false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isBuffering: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    act(() => {
+      fireEvent(audio, new Event("playing"));
+    });
+
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+
+  it("dispatching 'canplay' event on audio element sets store isBuffering to false", () => {
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    usePlayerStore.setState({ isBuffering: true });
+    const { container } = render(<GlobalPlayerBar />);
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    act(() => {
+      fireEvent(audio, new Event("canplay"));
+    });
+
+    expect(usePlayerStore.getState().isBuffering).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // mobile chevron affordance (Item 3 / S3-chevron)
 // ---------------------------------------------------------------------------
 

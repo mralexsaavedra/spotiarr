@@ -29,6 +29,7 @@ export const NowPlayingFullscreen: FC = () => {
   const reorderQueue = usePlayerStore((s) => s.reorderQueue);
   const currentTime = usePlayerStore((s) => s.currentTime);
   const duration = usePlayerStore((s) => s.duration);
+  const isBuffering = usePlayerStore((s) => s.isBuffering);
 
   const currentItem = currentIndex !== null ? (queue[currentIndex] ?? null) : null;
 
@@ -203,6 +204,7 @@ export const NowPlayingFullscreen: FC = () => {
           onNext={next}
           onShuffleToggle={toggleShuffle}
           onRepeatCycle={cycleRepeat}
+          isBuffering={isBuffering}
         />
       </div>
 
