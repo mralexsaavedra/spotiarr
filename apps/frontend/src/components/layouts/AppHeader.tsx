@@ -31,8 +31,6 @@ export const AppHeader: FC = () => {
             <input
               className={cn(
                 "bg-background-elevated text-text-primary placeholder-text-secondary w-full rounded-full py-2 pl-9 text-sm transition focus:outline-none md:py-2.5 md:pl-10",
-                // Reserve right padding for the submit button only when it is shown,
-                // otherwise the placeholder clips early on narrow mobile widths.
                 url ? "pr-16 md:pr-36" : "pr-4",
                 "focus:bg-background-hover focus:ring-2 focus:ring-white/20",
               )}
@@ -62,7 +60,6 @@ export const AppHeader: FC = () => {
           </div>
         </div>
 
-        {/* Secondary destinations: Mobile Only */}
         <nav className="flex shrink-0 items-center gap-1 md:hidden">
           {MOBILE_HEADER_ITEMS.map((item) => (
             <Link

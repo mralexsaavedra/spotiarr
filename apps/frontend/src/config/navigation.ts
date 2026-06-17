@@ -32,7 +32,6 @@ const byPath = (path: Path): NavItem => {
   return item;
 };
 
-// Mobile bottom tab bar: primary destinations only, Home centered.
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   Path.RELEASES,
   Path.MY_PLAYLISTS,
@@ -41,5 +40,4 @@ export const MOBILE_NAV_ITEMS: NavItem[] = [
   Path.CHAT,
 ].map(byPath);
 
-// Mobile top bar: secondary destinations rendered as icons next to search.
 export const MOBILE_HEADER_ITEMS: NavItem[] = [Path.HISTORY, Path.SETTINGS].map(byPath);
