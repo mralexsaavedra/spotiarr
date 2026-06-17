@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useBulkTrackStatus } from "@/hooks/queries/useDownloadStatus";
 import { Path } from "@/routes/routes";
 import { Track } from "@/types";
+import { cn } from "@/utils/cn";
 import { formatDuration } from "@/utils/date";
 import { isSpotifyUrl } from "@/utils/spotify";
 import { ArtistLinks } from "../molecules/ArtistLinks";
@@ -107,7 +108,12 @@ const PlaylistTrackItem: FC<PlaylistTrackItemProps> = memo(
 
         {/* Title & Artist */}
         <div className="flex min-w-0 flex-col">
-          <div className="text-text-primary truncate font-medium">
+          <div
+            className={cn(
+              "truncate font-medium",
+              isCurrent ? "text-green-400" : "text-text-primary",
+            )}
+          >
             {isSpotifyUrl(track.trackUrl) ? (
               <Link
                 to={`${Path.PLAYLIST_PREVIEW}?url=${encodeURIComponent(track.trackUrl!)}`}

@@ -160,4 +160,35 @@ describe("PlaylistTracksList playback", () => {
 
     expect(screen.getByRole("button", { name: "library.album.playTrack" })).toBeTruthy();
   });
+
+  it("highlights the current track title in green", () => {
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId="track-1"
+        isPlaying={true}
+        onPlayTrack={vi.fn()}
+        onPauseTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+      />,
+    );
+
+    expect(screen.getByText("Track 1").closest("div")?.className).toContain("text-green-400");
+  });
+
+  it("does not highlight a non-current track title", () => {
+    render(
+      <PlaylistTracksList
+        tracks={tracks}
+        currentTrackId={null}
+        isPlaying={false}
+        onPlayTrack={vi.fn()}
+        canPlayTrack={(track) => Boolean(track.audioUrl)}
+      />,
+    );
+
+    const title = screen.getByText("Track 1").closest("div");
+    expect(title?.className).toContain("text-text-primary");
+    expect(title?.className).not.toContain("text-green-400");
+  });
 });
