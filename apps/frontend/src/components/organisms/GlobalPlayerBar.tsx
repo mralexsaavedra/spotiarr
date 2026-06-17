@@ -9,6 +9,7 @@ import { FC, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
+import { useGlobalPlayerShortcuts } from "@/hooks/useGlobalPlayerShortcuts";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import type { QueueItem } from "@/store/usePlayerStore";
@@ -149,6 +150,7 @@ export const GlobalPlayerBar: FC = () => {
     [next, prev, seek],
   );
   useMediaSession(currentItem, isPlaying, mediaSessionActions);
+  useGlobalPlayerShortcuts();
   useFocusReturnOnClose(isQueuePanelOpen, triggerRef);
   useFocusReturnOnClose(isNowPlayingOpen, nowPlayingTriggerRef);
 
@@ -266,14 +268,6 @@ export const GlobalPlayerBar: FC = () => {
     repeatMode !== "all" &&
     (currentIndex === null || currentIndex >= queue.length - 1);
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key !== " ") return;
-    const tag = (e.target as HTMLElement).tagName;
-    if (tag === "BUTTON" || tag === "INPUT") return;
-    e.preventDefault();
-    togglePlay();
-  };
-
   return (
     <>
       <audio ref={audioRef} aria-label="Audio player" preload="metadata" className="hidden" />
@@ -284,7 +278,6 @@ export const GlobalPlayerBar: FC = () => {
         <section
           role="region"
           aria-label="Now playing"
-          onKeyDown={onKeyDown}
           className={cn(
             "bg-black",
             "fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 transition-[left] duration-300 md:bottom-0",
