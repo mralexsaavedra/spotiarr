@@ -21,7 +21,12 @@ vi.mock("@/components/organisms/LibraryStatsSection", () => ({
 }));
 
 vi.mock("@/components/organisms/DownloadHistorySection", () => ({
-  DownloadHistorySection: () => <div data-testid="download-history-section" />,
+  DownloadHistorySection: ({ onRecreate }: { onRecreate: unknown }) => (
+    <div
+      data-testid="download-history-section"
+      data-has-recreate={typeof onRecreate === "function" ? "true" : "false"}
+    />
+  ),
 }));
 
 vi.mock("@/components/organisms/MostListenedPlaceholder", () => ({
@@ -59,6 +64,13 @@ describe("Dashboard", () => {
     render(<Dashboard />);
 
     expect(screen.getByTestId("download-history-section")).toBeTruthy();
+  });
+
+  it("wires historyProps.onRecreate into DownloadHistorySection", () => {
+    render(<Dashboard />);
+
+    const section = screen.getByTestId("download-history-section");
+    expect(section.getAttribute("data-has-recreate")).toBe("true");
   });
 
   it("renders MostListenedPlaceholder", () => {

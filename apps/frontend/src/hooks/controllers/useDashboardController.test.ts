@@ -32,7 +32,13 @@ vi.mock("@/hooks/mutations/useRecreatePlaylistMutation", () => ({
   useRecreatePlaylistMutation: () => mockUseRecreatePlaylistMutation(),
 }));
 
+vi.mock("@/hooks/controllers/useHomeController", () => ({
+  useHomeController: vi.fn(),
+}));
+
 const { useDashboardController } = await import("./useDashboardController");
+const { useHomeController: mockedUseHomeController } =
+  await import("@/hooks/controllers/useHomeController");
 
 const makeHistoryItem = (overrides = {}) => ({
   playlistId: "pl-1",
@@ -56,14 +62,9 @@ describe("useDashboardController", () => {
     });
   });
 
-  it("does NOT call useHomeController (over-fetch guard)", async () => {
-    const useHomeControllerSpy = vi.fn();
-    vi.doMock("@/hooks/controllers/useHomeController", () => ({
-      useHomeController: useHomeControllerSpy,
-    }));
-
+  it("does NOT call useHomeController (over-fetch guard)", () => {
     renderHook(() => useDashboardController());
-    expect(useHomeControllerSpy).not.toHaveBeenCalled();
+    expect(vi.mocked(mockedUseHomeController)).not.toHaveBeenCalled();
   });
 
   it("returns null statsProps when query data is undefined", () => {
@@ -180,9 +181,30 @@ describe("useDashboardController", () => {
     };
 
     act(() => {
-      result.current.historyProps.onItemClick(item as any, activePlaylist as any);
+      result.current.historyProps.onItemClick(
+        item as Parameters<typeof result.current.historyProps.onItemClick>[0],
+        activePlaylist as Parameters<typeof result.current.historyProps.onItemClick>[1],
+      );
     });
 
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining("pl-1"));
+  });
+
+  it("handleHistoryItemClick navigates to PLAYLIST_PREVIEW with spotifyUrl when no activePlaylist", () => {
+    const { result } = renderHook(() => useDashboardController());
+    const item = makeHistoryItem({
+      playlistSpotifyUrl: "https://open.spotify.com/playlist/abc",
+    });
+
+    act(() => {
+      result.current.historyProps.onItemClick(
+        item as Parameters<typeof result.current.historyProps.onItemClick>[0],
+        undefined,
+      );
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.stringContaining(encodeURIComponent("https://open.spotify.com/playlist/abc")),
+    );
   });
 });
