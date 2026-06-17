@@ -91,4 +91,55 @@ describe("RescueStuckTracksUseCase", () => {
 
     expect(retryTrackDownloadUseCase.execute).not.toHaveBeenCalled();
   });
+
+  it("skips tracks without id", async () => {
+    trackRepository.findAllByStatuses.mockResolvedValue([
+      { id: undefined, status: TrackStatusEnum.New, name: "T", artist: "A" } as any,
+    ]);
+
+    await useCase.execute();
+
+    expect(retryTrackDownloadUseCase.execute).not.toHaveBeenCalled();
+  });
+
+  it("skips tracks without status", async () => {
+    trackRepository.findAllByStatuses.mockResolvedValue([
+      { id: "track-no-status", status: undefined, name: "T", artist: "A" } as any,
+    ]);
+
+    await useCase.execute();
+
+    expect(retryTrackDownloadUseCase.execute).not.toHaveBeenCalled();
+  });
+
+  it("continues to next track when retryTrackDownloadUseCase throws and does not rethrow", async () => {
+    trackRepository.findAllByStatuses.mockResolvedValue([
+      makeTrack({ id: "track-fail", status: TrackStatusEnum.New }),
+      makeTrack({ id: "track-ok", status: TrackStatusEnum.New }),
+    ]);
+    retryTrackDownloadUseCase.execute
+      .mockRejectedValueOnce(new Error("download failed"))
+      .mockResolvedValueOnce(undefined);
+
+    await expect(useCase.execute()).resolves.toBeUndefined();
+
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledTimes(2);
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-fail");
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledWith("track-ok");
+  });
+
+  it("rescues only tracks that succeed when one errors", async () => {
+    trackRepository.findAllByStatuses.mockResolvedValue([
+      makeTrack({ id: "track-fail", status: TrackStatusEnum.New }),
+      makeTrack({ id: "track-ok", status: TrackStatusEnum.New }),
+    ]);
+    retryTrackDownloadUseCase.execute
+      .mockRejectedValueOnce(new Error("download failed"))
+      .mockResolvedValueOnce(undefined);
+
+    // Should resolve (not throw) even with partial failure
+    await expect(useCase.execute()).resolves.toBeUndefined();
+    // Both tracks were attempted
+    expect(retryTrackDownloadUseCase.execute).toHaveBeenCalledTimes(2);
+  });
 });
