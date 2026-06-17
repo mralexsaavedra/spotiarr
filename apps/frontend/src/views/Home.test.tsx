@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import { TrackStatusEnum } from "@spotiarr/shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { PlaylistWithStats } from "@/types";
 import { Home } from "./Home";
 
@@ -93,8 +93,12 @@ describe("Home", () => {
     const p = makePlaylist("p1", "Chill Vibes");
     mockUseHomeController.mockReturnValue({
       ...defaultController,
-      artists: [{ name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] }],
-      filteredArtists: [{ name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] }],
+      artists: [
+        { name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] },
+      ],
+      filteredArtists: [
+        { name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] },
+      ],
       downloadedPlaylists: [{ playlist: p, downloadedCount: 1, totalCount: 10 }],
       filteredPlaylists: [{ playlist: p, downloadedCount: 1, totalCount: 10 }],
     });
@@ -120,8 +124,12 @@ describe("Home", () => {
   it("hides the playlists section when filteredPlaylists is empty", () => {
     mockUseHomeController.mockReturnValue({
       ...defaultController,
-      artists: [{ name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] }],
-      filteredArtists: [{ name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] }],
+      artists: [
+        { name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] },
+      ],
+      filteredArtists: [
+        { name: "Artist A", path: "/a", albumCount: 1, trackCount: 5, totalSize: 0, albums: [] },
+      ],
       downloadedPlaylists: [],
       filteredPlaylists: [],
     });
@@ -155,7 +163,14 @@ describe("Home", () => {
   });
 
   it("shows filtered artists list when artists are present", () => {
-    const artist = { name: "Rock Band", path: "/rb", albumCount: 2, trackCount: 20, totalSize: 0, albums: [] };
+    const artist = {
+      name: "Rock Band",
+      path: "/rb",
+      albumCount: 2,
+      trackCount: 20,
+      totalSize: 0,
+      albums: [],
+    };
     mockUseHomeController.mockReturnValue({
       ...defaultController,
       artists: [artist],
@@ -166,5 +181,16 @@ describe("Home", () => {
 
     const artistList = screen.getByTestId("artist-list");
     expect(artistList.getAttribute("data-count")).toBe("1");
+  });
+
+  it("does not render library stat cards (stats block moved to Dashboard)", () => {
+    mockUseHomeController.mockReturnValue({
+      ...defaultController,
+      stats: { artists: 10, albums: 20, tracks: 100, size: "1.00 GB" },
+    });
+
+    render(<Home />);
+
+    expect(screen.queryByTestId("stat-card")).toBeNull();
   });
 });
