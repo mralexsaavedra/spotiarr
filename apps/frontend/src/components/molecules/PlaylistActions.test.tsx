@@ -80,38 +80,40 @@ describe("PlaylistActions playback", () => {
 });
 
 describe("PlaylistActions shuffle button", () => {
-  it("renders shuffle button when onShufflePlay and hasPlayableTracks are provided", () => {
-    const onShufflePlay = vi.fn();
-    render(<PlaylistActions {...defaultProps} onShufflePlay={onShufflePlay} />);
+  it("renders shuffle button when onToggleShuffle and hasPlayableTracks are provided", () => {
+    const onToggleShuffle = vi.fn();
+    render(<PlaylistActions {...defaultProps} onToggleShuffle={onToggleShuffle} />);
     expect(screen.getByRole("button", { name: "playlist.actions.shufflePlay" })).toBeTruthy();
   });
 
-  it("does not render shuffle button when onShufflePlay is not provided", () => {
+  it("does not render shuffle button when onToggleShuffle is not provided", () => {
     render(<PlaylistActions {...defaultProps} />);
     expect(screen.queryByRole("button", { name: "playlist.actions.shufflePlay" })).toBeNull();
   });
 
   it("does not render shuffle button when hasPlayableTracks is false", () => {
-    render(<PlaylistActions {...defaultProps} hasPlayableTracks={false} onShufflePlay={vi.fn()} />);
+    render(
+      <PlaylistActions {...defaultProps} hasPlayableTracks={false} onToggleShuffle={vi.fn()} />,
+    );
     expect(screen.queryByRole("button", { name: "playlist.actions.shufflePlay" })).toBeNull();
   });
 
   it("applies text-green-500 class when isShuffleActive is true", () => {
-    render(<PlaylistActions {...defaultProps} onShufflePlay={vi.fn()} isShuffleActive={true} />);
+    render(<PlaylistActions {...defaultProps} onToggleShuffle={vi.fn()} isShuffleActive={true} />);
     const btn = screen.getByRole("button", { name: "playlist.actions.shufflePlay" });
     expect(btn.className).toContain("text-green-500");
   });
 
-  it("calls onShufflePlay when shuffle button is clicked", () => {
-    const onShufflePlay = vi.fn();
-    render(<PlaylistActions {...defaultProps} onShufflePlay={onShufflePlay} />);
+  it("calls onToggleShuffle when shuffle button is clicked", () => {
+    const onToggleShuffle = vi.fn();
+    render(<PlaylistActions {...defaultProps} onToggleShuffle={onToggleShuffle} />);
     fireEvent.click(screen.getByRole("button", { name: "playlist.actions.shufflePlay" }));
-    expect(onShufflePlay).toHaveBeenCalledTimes(1);
+    expect(onToggleShuffle).toHaveBeenCalledTimes(1);
   });
 
   it("shuffle button appears after play button in DOM order", () => {
-    const onShufflePlay = vi.fn();
-    render(<PlaylistActions {...defaultProps} onShufflePlay={onShufflePlay} />);
+    const onToggleShuffle = vi.fn();
+    render(<PlaylistActions {...defaultProps} onToggleShuffle={onToggleShuffle} />);
     const buttons = screen.getAllByRole("button");
     const playIndex = buttons.findIndex(
       (b) => b.getAttribute("aria-label") === "library.album.playTrack",

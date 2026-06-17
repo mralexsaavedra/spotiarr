@@ -71,9 +71,9 @@ export const useLibraryAlbumDetailController = () => {
   }, [album, artistName, coverUrl, selectedAlbumName]);
 
   const {
-    currentIndex,
     currentTrackId,
-    isPlaying,
+    isPlaying: globalIsPlaying,
+    isActiveContext,
     hasPlayableTracks,
     playFromIndex,
     onPlayTrack,
@@ -84,14 +84,20 @@ export const useLibraryAlbumDetailController = () => {
 
   const onPlayPlaylist = useCallback(() => {
     if (!hasPlayableTracks) return;
-    playFromIndex(currentIndex ?? 0);
-  }, [currentIndex, hasPlayableTracks, playFromIndex]);
+    if (isActiveContext) {
+      usePlayerStore.getState().togglePlay();
+      return;
+    }
+    const len = queueItems.length;
+    const startIndex =
+      usePlayerStore.getState().shuffleMode && len > 0 ? Math.floor(Math.random() * len) : 0;
+    playFromIndex(startIndex);
+  }, [hasPlayableTracks, isActiveContext, queueItems.length, playFromIndex]);
 
-  const onShufflePlay = useCallback(() => {
+  const onToggleShuffle = useCallback(() => {
     if (!hasPlayableTracks) return;
-    usePlayerStore.setState({ shuffleMode: true });
-    playFromIndex(0);
-  }, [hasPlayableTracks, playFromIndex]);
+    usePlayerStore.getState().toggleShuffle();
+  }, [hasPlayableTracks]);
 
   const backToArtistPath = generatePath(Path.LIBRARY_ARTIST, {
     name: artistName,
@@ -109,13 +115,13 @@ export const useLibraryAlbumDetailController = () => {
     playlistType: PlaylistTypeEnum.Album,
     backToArtistPath,
     currentTrackId,
-    isPlaying,
+    isPlaying: isActiveContext && globalIsPlaying,
     onPlayTrack,
     onPauseTrack,
     hasPlayableTracks,
     onPlayPlaylist,
     onPausePlaylist: onPauseTrack,
     isShuffleActive,
-    onShufflePlay,
+    onToggleShuffle,
   };
 };

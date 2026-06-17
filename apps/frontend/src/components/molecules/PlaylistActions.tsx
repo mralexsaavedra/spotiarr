@@ -37,7 +37,7 @@ interface PlaylistActionsProps {
   onRetryFailed: () => void;
   onDelete: () => void;
   onDownload: () => void;
-  onShufflePlay?: () => void;
+  onToggleShuffle?: () => void;
   isShuffleActive?: boolean;
   mode?: PlaylistActionsMode;
 }
@@ -57,7 +57,7 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
   onRetryFailed,
   onDelete,
   onDownload,
-  onShufflePlay,
+  onToggleShuffle,
   isShuffleActive = false,
   spotifyUrl,
   playlistId,
@@ -87,11 +87,11 @@ export const PlaylistActions: FC<PlaylistActionsProps> = ({
         </Button>
       ) : null}
 
-      {hasPlayableTracks && onShufflePlay ? (
+      {hasPlayableTracks && onToggleShuffle ? (
         <Button
           variant="ghost"
           size="md"
-          onClick={onShufflePlay}
+          onClick={onToggleShuffle}
           title={t("playlist.actions.shufflePlay")}
           ariaLabel={t("playlist.actions.shufflePlay")}
           icon={faShuffle}

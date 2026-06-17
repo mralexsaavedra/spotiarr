@@ -104,4 +104,38 @@ describe("usePlayerQueueBinding", () => {
 
     expect(playQueue).not.toHaveBeenCalled();
   });
+
+  it("isActiveContext is false when store queue is empty", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    const { result } = renderHook(() => usePlayerQueueBinding(items));
+    expect(result.current.isActiveContext).toBe(false);
+  });
+
+  it("isActiveContext is true when store queue matches queueItems exactly", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.setState({ queue: items, currentIndex: 0, isPlaying: true });
+
+    const { result } = renderHook(() => usePlayerQueueBinding(items));
+    expect(result.current.isActiveContext).toBe(true);
+  });
+
+  it("isActiveContext is false when store queue has same length but different ids", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.setState({
+      queue: [makeItem("a"), makeItem("x")],
+      currentIndex: 0,
+      isPlaying: true,
+    });
+
+    const { result } = renderHook(() => usePlayerQueueBinding(items));
+    expect(result.current.isActiveContext).toBe(false);
+  });
+
+  it("isActiveContext is false when store queue has different length", () => {
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.setState({ queue: [makeItem("a")], currentIndex: 0, isPlaying: true });
+
+    const { result } = renderHook(() => usePlayerQueueBinding(items));
+    expect(result.current.isActiveContext).toBe(false);
+  });
 });
