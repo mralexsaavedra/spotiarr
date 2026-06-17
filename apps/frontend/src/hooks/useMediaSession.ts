@@ -37,6 +37,24 @@ function isIOS(): boolean {
   return /iP(hone|ad|od)/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
 }
 
+const POSITION_STATE_EVENTS = [
+  "loadedmetadata",
+  "durationchange",
+  "seeked",
+  "play",
+  "pause",
+  "ratechange",
+] as const;
+
+function applyPositionState(el: HTMLAudioElement): void {
+  if (!isMediaSessionSupported()) return;
+  if (!("setPositionState" in navigator.mediaSession)) return;
+  const { duration, currentTime, playbackRate } = el;
+  if (!Number.isFinite(duration) || duration <= 0) return;
+  const position = Math.min(Math.max(currentTime, 0), duration);
+  navigator.mediaSession.setPositionState({ duration, playbackRate: playbackRate || 1, position });
+}
+
 function applyMetadata(currentItem: QueueItem | null): void {
   if (!currentItem) {
     navigator.mediaSession.metadata = null;
@@ -134,6 +152,7 @@ export function useMediaSession(
     const reapply = (): void => {
       applyMetadata(currentItem);
       applyActionHandlers(actions);
+      applyPositionState(audioEl);
     };
 
     audioEl.addEventListener("playing", reapply);
@@ -141,4 +160,14 @@ export function useMediaSession(
       audioEl.removeEventListener("playing", reapply);
     };
   }, [audioEl, currentItem, actions]);
+
+  useEffect(() => {
+    if (!isMediaSessionSupported() || !audioEl) return;
+
+    const handler = (): void => applyPositionState(audioEl);
+    POSITION_STATE_EVENTS.forEach((ev) => audioEl.addEventListener(ev, handler));
+    return () => {
+      POSITION_STATE_EVENTS.forEach((ev) => audioEl.removeEventListener(ev, handler));
+    };
+  }, [audioEl]);
 }

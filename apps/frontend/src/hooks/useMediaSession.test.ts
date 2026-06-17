@@ -48,10 +48,12 @@ const makeActions = (): MediaSessionActions & {
 
 function setupMediaSessionStub() {
   const setActionHandler = vi.fn();
+  const setPositionState = vi.fn();
   const stub = {
     metadata: null as unknown,
     playbackState: "none" as string,
     setActionHandler,
+    setPositionState,
   };
 
   Object.defineProperty(navigator, "mediaSession", {
@@ -85,7 +87,7 @@ function setupMediaSessionStub() {
     vi.unstubAllGlobals();
   }
 
-  return { stub, setActionHandler, restore };
+  return { stub, setActionHandler, setPositionState, restore };
 }
 
 // ---------------------------------------------------------------------------
@@ -401,6 +403,112 @@ describe("useMediaSession re-applies on the audio playing event", () => {
     // No element provided → nothing to re-apply against, must not throw.
     expect(() => {
       renderHook(() => useMediaSession(makeItem(), true, actions, null));
+    }).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T3.11 — applyPositionState via audio element events
+// ---------------------------------------------------------------------------
+
+describe("useMediaSession setPositionState", () => {
+  let setPositionState: ReturnType<typeof vi.fn>;
+  let restore: () => void;
+
+  beforeEach(() => {
+    const result = setupMediaSessionStub();
+    setPositionState = result.setPositionState;
+    restore = result.restore;
+  });
+
+  afterEach(() => {
+    restore();
+  });
+
+  function makeAudioEl(duration: number, currentTime: number, playbackRate = 1): HTMLAudioElement {
+    const el = document.createElement("audio");
+    Object.defineProperty(el, "duration", { get: () => duration, configurable: true });
+    Object.defineProperty(el, "currentTime", { get: () => currentTime, configurable: true });
+    Object.defineProperty(el, "playbackRate", { get: () => playbackRate, configurable: true });
+    return el;
+  }
+
+  it("[T3.11] calls setPositionState with correct values on loadedmetadata", () => {
+    const el = makeAudioEl(300, 42, 1);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(setPositionState).toHaveBeenCalledOnce();
+    expect(setPositionState).toHaveBeenCalledWith({ duration: 300, playbackRate: 1, position: 42 });
+  });
+
+  it("[T3.11] does NOT call setPositionState when duration is NaN", () => {
+    const el = makeAudioEl(NaN, 0);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(setPositionState).not.toHaveBeenCalled();
+  });
+
+  it("[T3.11] does NOT call setPositionState when duration is Infinity", () => {
+    const el = makeAudioEl(Infinity, 0);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(setPositionState).not.toHaveBeenCalled();
+  });
+
+  it("[T3.11] clamps position to duration when currentTime > duration", () => {
+    const el = makeAudioEl(100, 150);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("seeked"));
+
+    expect(setPositionState).toHaveBeenCalledWith({
+      duration: 100,
+      playbackRate: 1,
+      position: 100,
+    });
+  });
+
+  it("[T3.11] re-pushes position state on the playing event", () => {
+    const el = makeAudioEl(200, 60);
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setPositionState.mockClear();
+    el.dispatchEvent(new Event("playing"));
+
+    expect(setPositionState).toHaveBeenCalledWith({ duration: 200, playbackRate: 1, position: 60 });
+  });
+
+  it("[T3.11] no-op when setPositionState is absent from navigator.mediaSession", () => {
+    const el = makeAudioEl(300, 42);
+    const actions = makeActions();
+
+    // Simulate older browser: remove setPositionState from the stub
+    const ms = navigator.mediaSession as unknown as Record<string, unknown>;
+    delete ms.setPositionState;
+
+    expect(() => {
+      renderHook(() => useMediaSession(makeItem(), true, actions, el));
+      el.dispatchEvent(new Event("loadedmetadata"));
     }).not.toThrow();
   });
 });
