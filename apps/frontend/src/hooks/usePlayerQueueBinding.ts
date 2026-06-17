@@ -1,9 +1,10 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { usePlayerStore, type QueueItem } from "@/store/usePlayerStore";
 
 export const usePlayerQueueBinding = (queueItems: QueueItem[]) => {
   const currentIndex = usePlayerStore((state) => state.currentIndex);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const queue = usePlayerStore((state) => state.queue);
 
   const currentTrackId = usePlayerStore((state) => {
     if (state.currentIndex === null) return null;
@@ -11,6 +12,13 @@ export const usePlayerQueueBinding = (queueItems: QueueItem[]) => {
   });
 
   const hasPlayableTracks = queueItems.length > 0;
+
+  const isActiveContext = useMemo(() => {
+    if (queueItems.length === 0 || queue.length === 0) return false;
+    const contextPath = queueItems[0]?.contextPath;
+    if (contextPath == null) return false;
+    return queue.every((item) => item.contextPath === contextPath);
+  }, [queue, queueItems]);
 
   const playFromIndex = useCallback(
     (index: number) => {
@@ -37,6 +45,7 @@ export const usePlayerQueueBinding = (queueItems: QueueItem[]) => {
     currentIndex,
     currentTrackId,
     isPlaying,
+    isActiveContext,
     hasPlayableTracks,
     playFromIndex,
     onPlayTrack,

@@ -30,7 +30,7 @@ export const LibraryAlbumDetail: FC = () => {
     onPlayPlaylist,
     onPausePlaylist,
     isShuffleActive,
-    onShufflePlay,
+    onToggleShuffle,
   } = useLibraryAlbumDetailController();
 
   if (isLoading) {
@@ -119,11 +119,11 @@ export const LibraryAlbumDetail: FC = () => {
                   </span>
                 </Button>
               ) : null}
-              {hasPlayableTracks && onShufflePlay ? (
+              {hasPlayableTracks && onToggleShuffle ? (
                 <Button
                   variant="ghost"
                   size="md"
-                  onClick={onShufflePlay}
+                  onClick={onToggleShuffle}
                   title={t("playlist.actions.shufflePlay")}
                   ariaLabel={t("playlist.actions.shufflePlay")}
                   icon={faShuffle}

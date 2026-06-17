@@ -38,7 +38,7 @@ interface PlaylistProps {
   onRetryFailed: () => void;
   onToggleSubscription: () => void;
   onDownloadOrRetry: () => void;
-  onShufflePlay?: () => void;
+  onToggleShuffle?: () => void;
   isShuffleActive?: boolean;
   mode?: PlaylistMode;
 }
@@ -70,7 +70,7 @@ export const Playlist: FC<PlaylistProps> = ({
   onRetryFailed,
   onToggleSubscription,
   onDownloadOrRetry,
-  onShufflePlay,
+  onToggleShuffle,
   isShuffleActive = false,
   mode = "managed",
 }) => {
@@ -135,7 +135,7 @@ export const Playlist: FC<PlaylistProps> = ({
               onRetryFailed={onRetryFailed}
               onDelete={handleDelete}
               onDownload={onDownloadOrRetry}
-              onShufflePlay={onShufflePlay}
+              onToggleShuffle={onToggleShuffle}
               isShuffleActive={isShuffleActive}
               spotifyUrl={
                 playlist?.spotifyUrl && !playlist.spotifyUrl.startsWith("spotiarr://")
