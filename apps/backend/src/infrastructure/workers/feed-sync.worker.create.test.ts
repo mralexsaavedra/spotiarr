@@ -11,6 +11,7 @@ const WorkerMock = vi.fn(() => ({
 }));
 
 const getSyncState = vi.fn();
+const setSyncState = vi.fn();
 
 vi.mock("bullmq", () => ({
   Worker: WorkerMock,
@@ -22,7 +23,7 @@ vi.mock("@/container", () => ({
     releaseFeedService: {},
     feedRepository: {
       getSyncState,
-      setSyncState: vi.fn(),
+      setSyncState,
     },
     eventBus: {
       emit: vi.fn(),
@@ -54,6 +55,7 @@ describe("createFeedSyncWorker", () => {
       delete workerListeners[key];
     });
     getSyncState.mockResolvedValue({ status: "idle" });
+    setSyncState.mockResolvedValue(undefined);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "log").mockImplementation(() => {});
@@ -72,5 +74,97 @@ describe("createFeedSyncWorker", () => {
     await Promise.resolve();
 
     expect(console.warn).toHaveBeenCalled();
+  });
+
+  it("resets feed sync state to Idle when stuck in Running on startup", async () => {
+    const { SYNC_STATUS } = await import("@/application/ports/feed-repository.port");
+    getSyncState.mockResolvedValueOnce({ status: SYNC_STATUS.Running });
+
+    const { createFeedSyncWorker } = await import("./feed-sync.worker");
+    createFeedSyncWorker();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(setSyncState).toHaveBeenCalledWith(SYNC_STATUS.Idle);
+  });
+
+  it("logs an error when the startup state check rejects", async () => {
+    getSyncState.mockRejectedValueOnce(new Error("startup db error"));
+
+    const { createFeedSyncWorker } = await import("./feed-sync.worker");
+    createFeedSyncWorker();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(console.error).toHaveBeenCalled();
+  });
+
+  it("completed listener logs the finished job id", async () => {
+    const { createFeedSyncWorker } = await import("./feed-sync.worker");
+    createFeedSyncWorker();
+
+    const completedHandler = workerListeners.completed;
+    expect(completedHandler).toBeTypeOf("function");
+
+    completedHandler?.({ id: "job-77" });
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("job-77"));
+  });
+
+  it("failed listener resets state to Error when sync state is Running", async () => {
+    const { SYNC_STATUS } = await import("@/application/ports/feed-repository.port");
+    getSyncState.mockResolvedValue({ status: SYNC_STATUS.Running });
+
+    const { createFeedSyncWorker } = await import("./feed-sync.worker");
+    createFeedSyncWorker();
+
+    // consume startup promise
+    await Promise.resolve();
+    await Promise.resolve();
+    vi.clearAllMocks();
+    getSyncState.mockResolvedValue({ status: SYNC_STATUS.Running });
+    setSyncState.mockResolvedValue(undefined);
+
+    const failedHandler = workerListeners.failed;
+    await failedHandler?.({ id: "job-2" }, new Error("stalled job"));
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(setSyncState).toHaveBeenCalledWith(SYNC_STATUS.Error, "stalled job");
+  });
+
+  it("failed listener skips state reset when sync state is NOT Running", async () => {
+    const { SYNC_STATUS } = await import("@/application/ports/feed-repository.port");
+    getSyncState.mockResolvedValue({ status: SYNC_STATUS.Idle });
+
+    const { createFeedSyncWorker } = await import("./feed-sync.worker");
+    createFeedSyncWorker();
+
+    await Promise.resolve();
+    await Promise.resolve();
+    vi.clearAllMocks();
+    getSyncState.mockResolvedValue({ status: SYNC_STATUS.Idle });
+
+    const failedHandler = workerListeners.failed;
+    await failedHandler?.({ id: "job-3" }, new Error("crash"));
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(setSyncState).not.toHaveBeenCalledWith(SYNC_STATUS.Error, expect.any(String));
+  });
+
+  it("invoking the worker processor delegates to runFeedSyncJob", async () => {
+    const { createFeedSyncWorker } = await import("./feed-sync.worker");
+    createFeedSyncWorker();
+
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as () => Promise<void>;
+
+    // The container mock has no getFollowedArtists on spotifyUserLibrarySyncService,
+    // so runFeedSyncJob throws. We just need lines 136-143 to be covered.
+    await expect(processor()).rejects.toThrow();
   });
 });

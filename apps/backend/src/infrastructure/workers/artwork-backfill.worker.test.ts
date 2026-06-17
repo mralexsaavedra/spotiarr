@@ -3,6 +3,8 @@ import { ARTWORK_BACKFILL_STATUS, type ArtworkBackfillRun } from "@/domain/artwo
 import { AppError } from "@/domain/errors/app-error";
 import { runArtworkBackfillJob } from "./artwork-backfill.worker";
 
+// createArtworkBackfillWorker factory tests live in artwork-backfill.worker.create.test.ts
+
 function makeRun(overrides: Partial<ArtworkBackfillRun> = {}): ArtworkBackfillRun {
   return {
     id: "run-1",
@@ -270,5 +272,125 @@ describe("runArtworkBackfillJob", () => {
       status: ARTWORK_BACKFILL_STATUS.Completed,
     });
     expect(libraryService.clearCache).toHaveBeenCalledTimes(1);
+  });
+
+  it("sets run to Error state and rethrows when a non-rate-limit error occurs", async () => {
+    const backfillRepository = {
+      getById: vi.fn().mockResolvedValueOnce(makeRun()).mockResolvedValueOnce(makeRun()),
+      updateStatus: vi.fn().mockResolvedValue(makeRun({ status: ARTWORK_BACKFILL_STATUS.Error })),
+    } as any;
+
+    const unexpectedError = new Error("unexpected processing failure");
+    const processBatchUseCase = {
+      execute: vi.fn().mockRejectedValue(unexpectedError),
+    } as any;
+
+    const deps = {
+      backfillRepository,
+      processBatchUseCase,
+      eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
+    };
+
+    await expect(runArtworkBackfillJob(deps, { runId: "run-1" })).rejects.toThrow(
+      "unexpected processing failure",
+    );
+
+    expect(backfillRepository.updateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runId: "run-1",
+        status: ARTWORK_BACKFILL_STATUS.Error,
+        error: "unexpected processing failure",
+      }),
+    );
+  });
+
+  it("returns early when run is not found on second getById call inside the loop", async () => {
+    const backfillRepository = {
+      getById: vi
+        .fn()
+        .mockResolvedValueOnce(makeRun()) // initial fetch — status Running
+        .mockResolvedValueOnce(null), // loop check — run disappeared
+      updateStatus: vi.fn(),
+    } as any;
+
+    const deps = {
+      backfillRepository,
+      processBatchUseCase: { execute: vi.fn() } as any,
+      eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
+    };
+
+    await expect(runArtworkBackfillJob(deps, { runId: "run-1" })).resolves.toBeUndefined();
+    expect(backfillRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it("returns early when initial getById returns null (run not found)", async () => {
+    const backfillRepository = {
+      getById: vi.fn().mockResolvedValueOnce(null),
+      updateStatus: vi.fn(),
+    } as any;
+
+    const deps = {
+      backfillRepository,
+      processBatchUseCase: { execute: vi.fn() } as any,
+      eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
+    };
+
+    await expect(runArtworkBackfillJob(deps, { runId: "run-not-found" })).resolves.toBeUndefined();
+    expect(backfillRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it("returns early when run status is not Running (e.g. already completed)", async () => {
+    const backfillRepository = {
+      getById: vi
+        .fn()
+        .mockResolvedValueOnce(makeRun({ status: ARTWORK_BACKFILL_STATUS.Completed })),
+      updateStatus: vi.fn(),
+    } as any;
+
+    const deps = {
+      backfillRepository,
+      processBatchUseCase: { execute: vi.fn() } as any,
+      eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
+    };
+
+    await expect(runArtworkBackfillJob(deps, { runId: "run-1" })).resolves.toBeUndefined();
+    expect(backfillRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it("returns early in loop when latestRun is null after successful batch", async () => {
+    const backfillRepository = {
+      getById: vi
+        .fn()
+        .mockResolvedValueOnce(makeRun()) // initial
+        .mockResolvedValueOnce(makeRun()) // loop check (status Running → continue)
+        .mockResolvedValueOnce(null), // latestRun after batch — returns null
+      updateStatus: vi.fn(),
+    } as any;
+
+    const processBatchUseCase = {
+      execute: vi.fn().mockResolvedValueOnce({
+        phase: "artists",
+        processed: 1,
+        skippedExisting: 0,
+        written: 1,
+        failed: 0,
+        externalCalls: 0,
+        cursorValue: "cursor-1",
+      }),
+    } as any;
+
+    const deps = {
+      backfillRepository,
+      processBatchUseCase,
+      eventBus: { emit: vi.fn() } as any,
+      libraryService: { clearCache: vi.fn() } as any,
+    };
+
+    await expect(runArtworkBackfillJob(deps, { runId: "run-1" })).resolves.toBeUndefined();
+    expect(backfillRepository.updateStatus).not.toHaveBeenCalled();
   });
 });
