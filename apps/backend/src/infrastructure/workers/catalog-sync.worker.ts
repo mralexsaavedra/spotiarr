@@ -3,9 +3,12 @@ import { SYNC_STATUS, type FeedRepositoryPort } from "@/application/ports/feed-r
 import type { ReleaseFeedPort } from "@/application/ports/release-feed.port";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { getContainer } from "@/container";
+import { logger } from "../logging/logger";
 import type { AppEventBus } from "../messaging/app-event-bus";
 import { getEnv } from "../setup/environment";
 import { CATALOG_SYNC_QUEUE } from "../setup/queues";
+
+const log = logger.child({ worker: "catalog-sync-worker" });
 
 export interface CatalogSyncJobDependencies {
   feedRepository: FeedRepositoryPort;
@@ -25,7 +28,7 @@ export async function runCatalogSyncJob(deps: CatalogSyncJobDependencies): Promi
     const artists = await feedRepository.getArtists();
 
     if (artists.length === 0) {
-      console.log("[CatalogSyncWorker] No artists in DB cache — skipping catalog cycle");
+      log.info("No artists in DB cache — skipping catalog cycle");
       await feedRepository.setCatalogSyncState(SYNC_STATUS.Idle);
       eventBus.emit("catalog-updated", { artists: 0, albums: 0 });
       return;
@@ -40,12 +43,12 @@ export async function runCatalogSyncJob(deps: CatalogSyncJobDependencies): Promi
     );
 
     if (artistIds.length === 0) {
-      console.log("[CatalogSyncWorker] No artists need catalog sync");
+      log.info("No artists need catalog sync");
       await feedRepository.setCatalogSyncState(SYNC_STATUS.Idle);
       return;
     }
 
-    console.log(`[CatalogSyncWorker] Processing catalog for ${artistIds.length} artists`);
+    log.info({ artistCount: artistIds.length }, "Processing catalog for artists");
 
     const artistMap = new Map(artists.map((a) => [a.id, a]));
     const artistsToSync = artistIds
@@ -71,13 +74,14 @@ export async function runCatalogSyncJob(deps: CatalogSyncJobDependencies): Promi
         successCount++;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[CatalogSyncWorker] Failed to sync artist ${artist.id}:`, message);
+        log.warn({ artistId: artist.id, message }, "Failed to sync artist");
         failedArtistIds.push(artist.id);
       }
     }
 
-    console.log(
-      `[CatalogSyncWorker] Synced ${successCount}/${artistsToSync.length} artists (${failedArtistIds.length} failed)`,
+    log.info(
+      { success: successCount, total: artistsToSync.length, failed: failedArtistIds.length },
+      "Catalog sync cycle complete",
     );
 
     if (successCount === 0) {
@@ -110,14 +114,12 @@ export function createCatalogSyncWorker(): Worker {
     .getCatalogSyncState()
     .then((state) => {
       if (state.status === SYNC_STATUS.Running) {
-        console.warn(
-          "[CatalogSyncWorker] Sync was stuck in 'running' on startup — resetting to idle",
-        );
+        log.warn("Sync was stuck in 'running' on startup — resetting to idle");
         return feedRepository.setCatalogSyncState(SYNC_STATUS.Idle);
       }
     })
     .catch((err) => {
-      console.error("[CatalogSyncWorker] Failed to check/reset sync state on startup", err);
+      log.error({ err }, "Failed to check/reset sync state on startup");
     });
 
   const worker = new Worker(
@@ -137,11 +139,11 @@ export function createCatalogSyncWorker(): Worker {
   );
 
   worker.on("completed", (job) => {
-    console.log(`[CatalogSyncWorker] Job ${job.id} completed`);
+    log.info({ jobId: job.id }, "Job completed");
   });
 
   worker.on("failed", (job, error) => {
-    console.error(`[CatalogSyncWorker] Job ${job?.id} failed`, error);
+    log.error({ jobId: job?.id, err: error }, "Job failed");
     feedRepository
       .getCatalogSyncState()
       .then((state) => {
@@ -155,6 +157,6 @@ export function createCatalogSyncWorker(): Worker {
       .catch(() => {});
   });
 
-  console.log("✅ Catalog sync worker initialized");
+  log.info("Catalog sync worker initialized");
   return worker;
 }

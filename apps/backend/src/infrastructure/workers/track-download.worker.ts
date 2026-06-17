@@ -1,7 +1,10 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 import { Worker } from "bullmq";
 import { getContainer } from "../../container";
+import { logger } from "../logging/logger";
 import { getEnv } from "../setup/environment";
+
+const log = logger.child({ worker: "track-download-worker" });
 
 export async function createTrackDownloadWorker() {
   const { trackService, settingsService, libraryService, eventsController } = getContainer();
@@ -27,29 +30,29 @@ export async function createTrackDownloadWorker() {
   );
 
   worker.on("completed", (job) => {
-    console.log(`[TrackDownloadWorker] Job ${job.id} completed`);
+    log.info({ jobId: job.id }, "Job completed");
   });
 
   worker.on("drained", async () => {
-    console.log(`[TrackDownloadWorker] Queue drained, triggering library scan...`);
+    log.info("Queue drained, triggering library scan...");
     try {
       await libraryService.scan();
       eventsController.emit("library-updated");
-      console.log(`[TrackDownloadWorker] Library scan completed successfully.`);
+      log.info("Library scan completed successfully.");
     } catch (err) {
-      console.error(`[TrackDownloadWorker] Failed to scan library after queue drain:`, err);
+      log.error({ err }, "Failed to scan library after queue drain");
     }
   });
 
   worker.on("failed", async (job, err) => {
-    console.error(`[TrackDownloadWorker] Job ${job?.id} failed:`, err);
+    log.error({ jobId: job?.id, err }, "Job failed");
 
     if (job?.data?.id) {
       const track: ITrack = job.data;
       const trackId = track.id;
 
       if (!trackId) {
-        console.error("Cannot update track status: track.id is undefined");
+        log.error("Cannot update track status: track.id is undefined");
         return;
       }
 
@@ -61,11 +64,11 @@ export async function createTrackDownloadWorker() {
         });
         eventsController.emit("playlists-updated");
       } catch (updateError) {
-        console.error(`Failed to update track ${trackId} status after job failure:`, updateError);
+        log.error({ trackId, err: updateError }, "Failed to update track status after job failure");
       }
     }
   });
 
-  console.log(`✅ Track download worker initialized (Rate limit: ${maxPerMinute}/min)`);
+  log.info({ rateLimit: maxPerMinute || 10 }, "Track download worker initialized");
   return worker;
 }
