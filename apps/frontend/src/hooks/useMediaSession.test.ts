@@ -302,3 +302,105 @@ describe("useMediaSession with stubbed navigator.mediaSession", () => {
     expect(stub.metadata).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// T3.9 — iOS skips the seekto handler to preserve lock-screen prev/next
+// ---------------------------------------------------------------------------
+
+describe("useMediaSession on iOS (seekto suppression)", () => {
+  let setActionHandler: ReturnType<typeof vi.fn>;
+  let restore: () => void;
+  let originalUA: PropertyDescriptor | undefined;
+
+  beforeEach(() => {
+    originalUA = Object.getOwnPropertyDescriptor(navigator, "userAgent");
+    Object.defineProperty(navigator, "userAgent", {
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      configurable: true,
+    });
+    const result = setupMediaSessionStub();
+    setActionHandler = result.setActionHandler;
+    restore = result.restore;
+  });
+
+  afterEach(() => {
+    restore();
+    if (originalUA) {
+      Object.defineProperty(navigator, "userAgent", originalUA);
+    }
+  });
+
+  it("[T3.9] explicitly nulls seek actions on iOS so prev/next can surface", () => {
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), false, actions));
+
+    // null != "not registered" on WebKit: each seek action must be set to null.
+    const seekCalls = (setActionHandler.mock.calls as unknown[][]).filter((call) =>
+      ["seekbackward", "seekforward", "seekto"].includes(call[0] as string),
+    );
+    expect(seekCalls).toHaveLength(3);
+    seekCalls.forEach((call) => {
+      expect(call[1]).toBeNull();
+    });
+  });
+
+  it("[T3.9] still registers previoustrack and nexttrack on iOS", () => {
+    const actions = makeActions();
+
+    renderHook(() => useMediaSession(makeItem(), false, actions));
+
+    const registeredActions = (setActionHandler.mock.calls as unknown[][]).map((call) => call[0]);
+    expect(registeredActions).toContain("previoustrack");
+    expect(registeredActions).toContain("nexttrack");
+    expect(registeredActions).toContain("play");
+    expect(registeredActions).toContain("pause");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T3.10 — re-apply metadata + handlers on the audio "playing" event
+// ---------------------------------------------------------------------------
+
+describe("useMediaSession re-applies on the audio playing event", () => {
+  let setActionHandler: ReturnType<typeof vi.fn>;
+  let restore: () => void;
+
+  beforeEach(() => {
+    const result = setupMediaSessionStub();
+    setActionHandler = result.setActionHandler;
+    restore = result.restore;
+  });
+
+  afterEach(() => {
+    restore();
+  });
+
+  it("[T3.10] re-registers action handlers when the element fires 'playing'", () => {
+    const actions = makeActions();
+    const el = document.createElement("audio");
+
+    renderHook(() => useMediaSession(makeItem(), true, actions, el));
+
+    setActionHandler.mockClear();
+
+    // iOS clears handlers on playback start; the 'playing' event must re-apply them.
+    el.dispatchEvent(new Event("playing"));
+
+    const reRegistered = (setActionHandler.mock.calls as unknown[][]).map((call) => call[0]);
+    expect(reRegistered).toContain("previoustrack");
+    expect(reRegistered).toContain("nexttrack");
+    expect(reRegistered).toContain("play");
+    expect(reRegistered).toContain("pause");
+  });
+
+  it("[T3.10] does not attach a listener when audioEl is null", () => {
+    const actions = makeActions();
+
+    // No element provided → nothing to re-apply against, must not throw.
+    expect(() => {
+      renderHook(() => useMediaSession(makeItem(), true, actions, null));
+    }).not.toThrow();
+  });
+});
