@@ -12,12 +12,12 @@ export default defineConfig({
       include: ["src/**/*.ts"],
       exclude: ["src/**/*.test.ts", "src/**/index.ts", "src/infrastructure/setup/**"],
       // Thresholds sit just under the currently measured coverage so the gate is
-      // green on merge. Ratchet these up as coverage improves (issue #149).
+      // green on merge. Ratchet these up as coverage improves (issue #204).
       thresholds: {
-        lines: 52,
-        statements: 52,
-        functions: 53,
-        branches: 72,
+        lines: 76,
+        statements: 76,
+        functions: 85,
+        branches: 82,
       },
     },
   },
