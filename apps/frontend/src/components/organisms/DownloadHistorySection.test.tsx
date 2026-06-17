@@ -22,10 +22,6 @@ vi.mock("@/components/organisms/HistoryList", () => ({
   HistoryList: () => <div data-testid="history-list" />,
 }));
 
-vi.mock("@/components/molecules/PageHeader", () => ({
-  PageHeader: () => null,
-}));
-
 vi.mock("@fortawesome/free-solid-svg-icons", () => ({
   faClockRotateLeft: {},
 }));
@@ -77,10 +73,10 @@ describe("DownloadHistorySection", () => {
     expect(screen.queryByTestId("loading")).toBeNull();
   });
 
-  it("renders a heading using the dashboard.historySection i18n key", () => {
+  it("renders a heading using the history.title i18n key", () => {
     render(<DownloadHistorySection {...defaultProps} history={[makeHistoryItem("p1")]} />);
 
-    expect(screen.getByRole("heading", { name: "dashboard.historySection" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "history.title" })).toBeTruthy();
   });
 
   it("does not call onRecreate on initial render", () => {

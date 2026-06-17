@@ -122,7 +122,6 @@
   "dashboard": {
     "title": "Panel",
     "statsSection": "Estadísticas de Biblioteca",
-    "historySection": "Historial de Descargas",
     "mostListenedTitle": "Más Escuchado",
     "mostListenedComingSoon": "Próximamente"
   },
