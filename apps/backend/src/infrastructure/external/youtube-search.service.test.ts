@@ -3,13 +3,14 @@ import { AppError } from "@/domain/errors/app-error";
 import { YoutubeSearchService } from "./youtube-search.service";
 
 const execFileMock = vi.fn();
+const detectYtDlpPathMock = vi.fn().mockReturnValue("/usr/bin/yt-dlp");
 
 vi.mock("child_process", () => ({
   execFile: (...args: unknown[]) => execFileMock(...args),
 }));
 
 vi.mock("./youtube-binary", () => ({
-  detectYtDlpPath: () => "/usr/bin/yt-dlp",
+  detectYtDlpPath: (...args: unknown[]) => detectYtDlpPathMock(...args),
 }));
 
 vi.mock("./youtube.constants", () => ({
@@ -160,5 +161,152 @@ describe("YoutubeSearchService.findOnYoutubeOne", () => {
 
     expect(execFileMock.mock.calls[0][1]).toContain("--cookies-from-browser");
     expect(execFileMock.mock.calls[0][1]).toContain("firefox");
+  });
+});
+
+describe("YoutubeSearchService — constructor fallback", () => {
+  beforeEach(() => {
+    // Re-apply the default AFTER any prior restoreAllMocks wiped the
+    // module-level mock, so each test starts with a resolved path.
+    detectYtDlpPathMock.mockReturnValue("/usr/bin/yt-dlp");
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("falls back to 'yt-dlp' string when detectYtDlpPath throws", () => {
+    detectYtDlpPathMock.mockImplementationOnce(() => {
+      throw new Error("yt-dlp not in PATH");
+    });
+
+    const settingsService = {
+      getNumber: vi.fn().mockResolvedValue(0),
+      getString: vi.fn().mockResolvedValue(""),
+    } as never;
+
+    const service = new YoutubeSearchService(settingsService);
+    // getYtDlpPath() exposes the resolved path
+    expect(service.getYtDlpPath()).toBe("yt-dlp");
+  });
+
+  it("returns the resolved path via getYtDlpPath when detection succeeds", () => {
+    // detectYtDlpPathMock is already returning "/usr/bin/yt-dlp" by default
+    const settingsService = {
+      getNumber: vi.fn().mockResolvedValue(0),
+      getString: vi.fn().mockResolvedValue(""),
+    } as never;
+
+    const service = new YoutubeSearchService(settingsService);
+    expect(service.getYtDlpPath()).toBe("/usr/bin/yt-dlp");
+  });
+});
+
+describe("YoutubeSearchService — rate limit enforcement", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_700_000_000_000);
+    execFileMock.mockReset();
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("waits for the remaining delay when a previous search was made recently", async () => {
+    resolveWith("https://youtu.be/abc\n");
+    const { service } = makeService({
+      getNumber: vi.fn().mockResolvedValue(2000),
+    });
+
+    // First search — sets lastSearchTime
+    const p1 = service.findOnYoutubeOne("Artist", "Song 1");
+    await vi.runAllTimersAsync();
+    await p1;
+
+    execFileMock.mockReset();
+    resolveWith("https://youtu.be/def\n");
+
+    // Advance only 500ms — still 1500ms short of the 2000ms delay
+    vi.advanceTimersByTime(500);
+
+    const p2 = service.findOnYoutubeOne("Artist", "Song 2");
+    // Should not have called execFile yet (waiting for remaining delay)
+    await vi.advanceTimersByTimeAsync(1499);
+    expect(execFileMock).toHaveBeenCalledTimes(0);
+
+    // Now advance past the remaining window
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.runAllTimersAsync();
+    await p2;
+
+    expect(execFileMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("YoutubeSearchService — isRateLimitError string patterns", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_700_000_000_000);
+    execFileMock.mockReset();
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ["rate-limited", "stderr contains 'rate-limited'"],
+    ["rate limited", "stderr contains 'rate limited'"],
+    ["This content isn't available", "stderr contains availability message"],
+    ["Video unavailable", "stderr contains 'Video unavailable'"],
+  ])("retries when stderr contains %s", async (errText) => {
+    execFileMock
+      .mockImplementationOnce((_p: string, _a: string[], cb: (e: unknown, r: unknown) => void) =>
+        cb(Object.assign(new Error("fail"), { stderr: errText }), null),
+      )
+      .mockImplementationOnce((_p: string, _a: string[], cb: (e: unknown, r: unknown) => void) =>
+        cb(null, { stdout: "https://youtu.be/ok\n", stderr: "" }),
+      );
+
+    const { service } = makeService();
+    const promise = service.findOnYoutubeOne("Artist", "Song");
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(execFileMock).toHaveBeenCalledTimes(1);
+    // Advance past the 5s backoff
+    await vi.advanceTimersByTimeAsync(5000);
+    await vi.runAllTimersAsync();
+
+    await expect(promise).resolves.toBe("https://youtu.be/ok");
+    expect(execFileMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("detects rate-limit via message property when stderr is absent", async () => {
+    execFileMock
+      .mockImplementationOnce((_p: string, _a: string[], cb: (e: unknown, r: unknown) => void) =>
+        cb(Object.assign(new Error("rate-limited error"), { stderr: undefined }), null),
+      )
+      .mockImplementationOnce((_p: string, _a: string[], cb: (e: unknown, r: unknown) => void) =>
+        cb(null, { stdout: "https://youtu.be/ok\n", stderr: "" }),
+      );
+
+    const { service } = makeService();
+    const promise = service.findOnYoutubeOne("Artist", "Song");
+
+    await vi.advanceTimersByTimeAsync(5000);
+    await vi.runAllTimersAsync();
+
+    await expect(promise).resolves.toBe("https://youtu.be/ok");
   });
 });

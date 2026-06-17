@@ -233,6 +233,20 @@ describe("SpotifyArtistClient", () => {
       expect(result.name).toBe("Unknown Artist");
       expect(result.followers).toBeNull();
     });
+
+    it("returns Unknown Artist fallback when getArtistRaw itself throws past its own catch", async () => {
+      // Spy directly on getArtistRaw to throw — this hits the outer catch in getArtistDetails (lines 96-104)
+      const client = buildClient();
+      vi.spyOn(client, "getArtistRaw").mockRejectedValue(new Error("Unexpected upstream throw"));
+
+      const result = await client.getArtistDetails("throw-artist");
+
+      expect(result.name).toBe("Unknown Artist");
+      expect(result.image).toBeNull();
+      expect(result.spotifyUrl).toBeNull();
+      expect(result.followers).toBeNull();
+      expect(result.genres).toEqual([]);
+    });
   });
 
   describe("SpotifyArtistClient — request cache", () => {

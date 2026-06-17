@@ -175,4 +175,148 @@ describe("PrismaArtworkBackfillRepository", () => {
     await expect(repository.getActiveRun()).resolves.toBeNull();
     expect(prisma.artworkBackfillRun.findFirst).toHaveBeenCalledOnce();
   });
+
+  it("getById returns the mapped run when found", async () => {
+    const createdAt = new Date("2026-01-10T00:00:00.000Z");
+    const row = {
+      id: "run-42",
+      status: ARTWORK_BACKFILL_STATUS.Running,
+      phase: "artists",
+      cursorKind: "artist",
+      cursorValue: "cursor-abc",
+      totalCandidates: 100,
+      processed: 10,
+      skippedExisting: 2,
+      written: 7,
+      failed: 1,
+      externalCalls: 9,
+      rateLimitUntil: null,
+      error: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+
+    const prisma = {
+      artworkBackfillRun: {
+        findUnique: vi.fn().mockResolvedValue(row),
+      },
+    } as any;
+
+    const repository = new PrismaArtworkBackfillRepository(prisma);
+    const result = await repository.getById("run-42");
+
+    expect(prisma.artworkBackfillRun.findUnique).toHaveBeenCalledWith({
+      where: { id: "run-42" },
+    });
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("run-42");
+    expect(result!.cursorValue).toBe("cursor-abc");
+    expect(result!.processed).toBe(10);
+  });
+
+  it("getById returns null when run is not found", async () => {
+    const prisma = {
+      artworkBackfillRun: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+    } as any;
+
+    const repository = new PrismaArtworkBackfillRepository(prisma);
+    const result = await repository.getById("nonexistent");
+
+    expect(result).toBeNull();
+  });
+
+  it("updateStatus persists status, error, and rateLimitUntil", async () => {
+    const updatedAt = new Date("2026-01-10T03:00:00.000Z");
+    const rateLimitUntil = new Date("2026-01-10T04:00:00.000Z");
+
+    const updatedRow = {
+      id: "run-1",
+      status: ARTWORK_BACKFILL_STATUS.PausedRateLimited,
+      phase: "artists",
+      cursorKind: "artist",
+      cursorValue: null,
+      totalCandidates: 0,
+      processed: 0,
+      skippedExisting: 0,
+      written: 0,
+      failed: 0,
+      externalCalls: 0,
+      rateLimitUntil,
+      error: "rate limit hit",
+      createdAt: new Date("2026-01-10T00:00:00.000Z"),
+      updatedAt,
+    };
+
+    const prisma = {
+      artworkBackfillRun: {
+        update: vi.fn().mockResolvedValue(updatedRow),
+      },
+    } as any;
+
+    const repository = new PrismaArtworkBackfillRepository(prisma);
+    const result = await repository.updateStatus({
+      runId: "run-1",
+      status: ARTWORK_BACKFILL_STATUS.PausedRateLimited,
+      error: "rate limit hit",
+      rateLimitUntil,
+    });
+
+    expect(prisma.artworkBackfillRun.update).toHaveBeenCalledWith({
+      where: { id: "run-1" },
+      data: {
+        status: ARTWORK_BACKFILL_STATUS.PausedRateLimited,
+        error: "rate limit hit",
+        rateLimitUntil,
+      },
+    });
+    expect(result.status).toBe(ARTWORK_BACKFILL_STATUS.PausedRateLimited);
+    expect(result.error).toBe("rate limit hit");
+    expect(result.rateLimitUntil).toEqual(rateLimitUntil);
+  });
+
+  it("updateStatus uses null for omitted error and rateLimitUntil", async () => {
+    const updatedAt = new Date("2026-01-10T05:00:00.000Z");
+
+    const updatedRow = {
+      id: "run-1",
+      status: ARTWORK_BACKFILL_STATUS.Completed,
+      phase: "albums",
+      cursorKind: "album",
+      cursorValue: null,
+      totalCandidates: 0,
+      processed: 0,
+      skippedExisting: 0,
+      written: 0,
+      failed: 0,
+      externalCalls: 0,
+      rateLimitUntil: null,
+      error: null,
+      createdAt: new Date("2026-01-10T00:00:00.000Z"),
+      updatedAt,
+    };
+
+    const prisma = {
+      artworkBackfillRun: {
+        update: vi.fn().mockResolvedValue(updatedRow),
+      },
+    } as any;
+
+    const repository = new PrismaArtworkBackfillRepository(prisma);
+    const result = await repository.updateStatus({
+      runId: "run-1",
+      status: ARTWORK_BACKFILL_STATUS.Completed,
+    });
+
+    expect(prisma.artworkBackfillRun.update).toHaveBeenCalledWith({
+      where: { id: "run-1" },
+      data: {
+        status: ARTWORK_BACKFILL_STATUS.Completed,
+        error: null,
+        rateLimitUntil: null,
+      },
+    });
+    expect(result.status).toBe(ARTWORK_BACKFILL_STATUS.Completed);
+  });
 });
