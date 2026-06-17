@@ -7,6 +7,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { Path } from "@/routes/routes";
 import { ApiError } from "@/services/httpClient";
 import { ACTIVE_BACKFILL_STATUSES } from "@/utils/artworkBackfill";
+import { formatLibrarySize } from "@/utils/formatLibrarySize";
 import { selectLibraryPlaylists } from "@/utils/playlist";
 import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
 import { useStartArtworkBackfillMutation } from "../mutations/useStartArtworkBackfillMutation";
@@ -132,20 +133,15 @@ export const useHomeController = () => {
     [navigate],
   );
 
-  const formatSize = useCallback((bytes: number) => {
-    const mb = bytes / 1024 / 1024;
-    return mb > 1024 ? `${(mb / 1024).toFixed(2)} GB` : `${mb.toFixed(2)} MB`;
-  }, []);
-
   const statsData = useMemo(() => {
     if (!stats) return null;
     return {
       artists: stats.totalArtists,
       albums: stats.totalAlbums,
       tracks: stats.totalTracks,
-      size: formatSize(stats.totalSize),
+      size: formatLibrarySize(stats.totalSize),
     };
-  }, [stats, formatSize]);
+  }, [stats]);
 
   // Sort artists alphabetically if not already
   const sortedArtists = useMemo(() => {
@@ -186,7 +182,6 @@ export const useHomeController = () => {
     handleArtistClick,
     handlePlaylistClick,
     handleSearchChange,
-    formatSize,
     search,
     downloadedPlaylists,
     filteredPlaylists,
