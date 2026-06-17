@@ -22,6 +22,12 @@ export default defineConfig({
         "src/app.ts",
         "src/container.ts",
         "src/testing/**",
+        // Domain contracts: pure interface declarations (repositories, queue/event
+        // service ports). No executable code, so they cannot carry coverage and only
+        // drag the measured number down. Implementations live in infrastructure.
+        "src/domain/repositories/**",
+        "src/domain/services/**",
+        "src/domain/events/**",
         // Route files are pure Express wiring (router.<verb>(path, controller)); the logic
         // they delegate to lives in controllers and middleware, which are unit-tested.
         "src/presentation/routes/**/*.routes.ts",
