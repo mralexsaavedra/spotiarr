@@ -62,11 +62,27 @@ export interface PlayerState extends PlayerUISlice {
 
 export const __partialize = (
   state: PlayerState,
-): Pick<PlayerState, "volume" | "isMuted" | "shuffleMode" | "repeatMode"> => ({
+): Pick<
+  PlayerState,
+  | "volume"
+  | "isMuted"
+  | "shuffleMode"
+  | "repeatMode"
+  | "queue"
+  | "currentIndex"
+  | "currentTime"
+  | "shuffleOrder"
+  | "shuffleOrderIndex"
+> => ({
   volume: state.volume,
   isMuted: state.isMuted,
   shuffleMode: state.shuffleMode,
   repeatMode: state.repeatMode,
+  queue: state.queue,
+  currentIndex: state.currentIndex,
+  currentTime: state.currentTime,
+  shuffleOrder: state.shuffleOrder,
+  shuffleOrderIndex: state.shuffleOrderIndex,
 });
 
 let _audioElement: HTMLAudioElement | null = null;
