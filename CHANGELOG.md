@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.21.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.20.0...v1.21.0) (2026-06-18)
+
+### Features
+
+- **Dashboard replaces History**: The History page is now a full Dashboard. It brings the library stats (artists, albums, tracks, total size) that used to live on Home together with your download history in one place, and reserves a section for upcoming "most listened" insights. The old `/history` link redirects to the new Dashboard. ([#253](https://github.com/mralexsaavedra/spotiarr/pull/253))
+
 ## [1.20.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.19.0...v1.20.0) (2026-06-17)
 
 ### Features
