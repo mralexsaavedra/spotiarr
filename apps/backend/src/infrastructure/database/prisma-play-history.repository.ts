@@ -1,5 +1,5 @@
 import type { RecordPlayInput } from "@spotiarr/shared";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { AppError } from "@/domain/errors/app-error";
 import { prisma } from "../setup/prisma";
 
@@ -10,13 +10,26 @@ const recordPlayInputSchema = z.object({
   artist: z.string().min(1),
   album: z.string().nullable(),
   albumCoverUrl: z.string().nullable(),
-  durationMs: z.number().int().positive().nullable(),
-  playedAt: z.number().int().positive(),
+  durationMs: z.number().int().nonnegative().nullable(),
+  playedAt: z.number().int().nonnegative(),
 });
 
 export class PrismaPlayHistoryRepository {
   async recordPlay(input: RecordPlayInput): Promise<void> {
-    const validated = recordPlayInputSchema.parse(input);
+    let validated: z.infer<typeof recordPlayInputSchema>;
+
+    try {
+      validated = recordPlayInputSchema.parse(input);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        throw new AppError(
+          400,
+          "validation_error",
+          error.issues[0]?.message ?? "Invalid play input",
+        );
+      }
+      throw error;
+    }
 
     try {
       await prisma.playHistory.create({

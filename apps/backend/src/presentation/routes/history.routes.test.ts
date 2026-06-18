@@ -148,4 +148,26 @@ describe("POST /history/plays", () => {
       }),
     );
   });
+
+  it("accepts playedAt=0 (epoch timestamp)", async () => {
+    const res = await fetch(`${baseUrl}/history/plays`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validBody, playedAt: 0 }),
+    });
+
+    expect(res.status).toBe(201);
+    expect(useCases.recordPlay).toHaveBeenCalledOnce();
+  });
+
+  it("accepts durationMs=0 (unknown duration)", async () => {
+    const res = await fetch(`${baseUrl}/history/plays`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validBody, durationMs: 0 }),
+    });
+
+    expect(res.status).toBe(201);
+    expect(useCases.recordPlay).toHaveBeenCalledOnce();
+  });
 });

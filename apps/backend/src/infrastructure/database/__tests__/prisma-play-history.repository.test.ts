@@ -96,4 +96,26 @@ describe("PrismaPlayHistoryRepository.recordPlay", () => {
       statusCode: 500,
     });
   });
+
+  it("maps invalid input (ZodError) to AppError with validation_error, not a raw ZodError", async () => {
+    const badInput = makeInput({ trackName: "" }); // fails z.string().min(1)
+
+    await expect(repo.recordPlay(badInput)).rejects.toBeInstanceOf(AppError);
+    await expect(repo.recordPlay(badInput)).rejects.toMatchObject({
+      errorCode: "validation_error",
+      statusCode: 400,
+    });
+  });
+
+  it("accepts playedAt=0 (epoch timestamp)", async () => {
+    vi.mocked(prisma.playHistory.create).mockResolvedValue({} as never);
+
+    await expect(repo.recordPlay(makeInput({ playedAt: 0 }))).resolves.toBeUndefined();
+  });
+
+  it("accepts durationMs=0 (unknown duration sentinel)", async () => {
+    vi.mocked(prisma.playHistory.create).mockResolvedValue({} as never);
+
+    await expect(repo.recordPlay(makeInput({ durationMs: 0 }))).resolves.toBeUndefined();
+  });
 });

@@ -8,8 +8,8 @@ export const recordPlaySchema = z.object({
     artist: z.string().min(1),
     album: z.string().nullable().default(null),
     albumCoverUrl: z.string().nullable().default(null),
-    durationMs: z.number().int().positive().nullable().default(null),
-    playedAt: z.number().int().positive(),
+    durationMs: z.number().int().nonnegative().nullable().default(null),
+    playedAt: z.number().int().nonnegative(),
   }),
 });
 
