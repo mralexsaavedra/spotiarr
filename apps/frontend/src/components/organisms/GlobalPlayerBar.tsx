@@ -341,7 +341,7 @@ export const GlobalPlayerBar: FC = () => {
                         className="rounded"
                       />
                     </div>
-                    <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+                    <div className="flex min-w-0 flex-1 flex-col items-start text-left">
                       <span className="w-full truncate text-sm font-semibold text-white">
                         {currentItem.name}
                       </span>
