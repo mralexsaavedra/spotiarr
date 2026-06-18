@@ -196,3 +196,20 @@ model AiChatMessage {
 
   @@index([createdAt])
 }
+
+model PlayHistory {
+  id            String  @id @default(uuid())
+  trackId       String?
+  trackUrl      String?
+  trackName     String
+  artist        String
+  album         String?
+  albumCoverUrl String?
+  durationMs    Int?
+  playedAt      BigInt
+  createdAt     BigInt  @default(0)
+
+  @@index([playedAt])
+  @@index([trackUrl])
+  @@index([artist])
+}
