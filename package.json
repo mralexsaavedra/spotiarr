@@ -24,7 +24,7 @@
     "node": ">=22.0.0",
     "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@11.7.0+sha512.19cc852c120c7125760f2443ee6be0ca5b40f9f50598de1a09a1f177503e010e57c23c77646e01e761de59bf874fb22a3398c33ab9691fc13eb946b6f0f4d620",
   "scripts": {
     "dev": "pnpm setup:dev && concurrently \"pnpm dev:shared\" \"pnpm start:be\" \"pnpm start:fe\"",
     "setup:dev": "pnpm --filter @spotiarr/shared run build && pnpm db:migrate && pnpm db:generate",
