@@ -11,6 +11,9 @@ export default defineConfig(({ mode }) => {
   const envDir = resolve(__dirname, "../../");
   // Load environment variables including those without VITE_ prefix
   const env = loadEnv(mode, envDir, "");
+  const allowedHosts = env.DEV_ALLOWED_HOSTS?.split(",")
+    .map((host) => host.trim())
+    .filter(Boolean);
 
   return {
     plugins: [
@@ -59,6 +62,7 @@ export default defineConfig(({ mode }) => {
     envDir,
     server: {
       host: env.PUBLIC_HOST || "localhost",
+      allowedHosts,
       proxy: {
         "/api": {
           target: `http://${env.PUBLIC_HOST || "localhost"}:3000`,
