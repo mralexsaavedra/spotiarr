@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { logger } from "@/infrastructure/logging/logger";
 import { getErrorMessage } from "../../application/utils/error.utils";
 import { resolveAllowedOrigin } from "../middleware/cors";
 
@@ -51,7 +52,10 @@ export class EventsController {
       try {
         client.res.write(payload);
       } catch (error) {
-        console.error("Failed to write SSE event:", getErrorMessage(error));
+        logger.error(
+          { component: "events-controller", clientId: client.id, err: error },
+          `Failed to write SSE event: ${getErrorMessage(error)}`,
+        );
       }
     }
   };

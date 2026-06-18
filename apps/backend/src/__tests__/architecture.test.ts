@@ -87,16 +87,39 @@ describe("architecture boundaries (baseline before cleanup)", () => {
       ...walkSrcExcludingTests(join(SRC_ROOT, "application", "use-cases")),
       ...walkSrcExcludingTests(join(SRC_ROOT, "application", "services")),
     ];
-    const violations = findMatches(appFiles, /from\s+"@\/infrastructure/);
+
+    // infrastructure/logging/logger is the documented cross-cutting exception:
+    // the logger is a shared module any layer may import directly (see design ADR-1).
+    // All other infrastructure imports from application are still forbidden.
+    const violations = appFiles.filter((file) => {
+      const content = readFileSync(file, "utf8");
+      const allInfraImports = [...content.matchAll(/from\s+"(@\/infrastructure[^"]+)"/g)].map(
+        (m) => m[1],
+      );
+      return allInfraImports.some((spec) => spec !== "@/infrastructure/logging/logger");
+    });
+
     expect(violations.length).toBe(0);
   });
 
   it("R3: presentation has zero infra/prisma imports (production files only)", () => {
     const presentationFiles = walkSrcExcludingTests(join(SRC_ROOT, "presentation"));
-    const violations = findMatches(
-      presentationFiles,
-      /from\s+"@\/infrastructure|from\s+"@prisma\/client|\bprisma\b/,
-    );
+
+    // infrastructure/logging/logger is the documented cross-cutting exception:
+    // the logger is a shared module any layer may import directly (see design ADR-1).
+    // All other infrastructure imports from presentation are still forbidden.
+    const violations = presentationFiles.filter((file) => {
+      const content = readFileSync(file, "utf8");
+      const allInfraImports = [...content.matchAll(/from\s+"(@\/infrastructure[^"]+)"/g)].map(
+        (m) => m[1],
+      );
+      const hasPrismaImport = /from\s+"@prisma\/client|\bprisma\b/.test(content);
+      const hasForbiddenInfraImport = allInfraImports.some(
+        (spec) => spec !== "@/infrastructure/logging/logger",
+      );
+      return hasPrismaImport || hasForbiddenInfraImport;
+    });
+
     expect(violations.length).toBe(0);
   });
 
@@ -112,6 +135,12 @@ describe("architecture boundaries (baseline before cleanup)", () => {
 
       const rel = relative(SRC_ROOT, file);
       if (rel === "infrastructure/setup/environment.ts") {
+        continue;
+      }
+
+      // logger.ts reads process.env at init (not via getEnv()) to avoid the
+      // bootstrap ordering trap — see design ADR-2.
+      if (rel === "infrastructure/logging/logger.ts") {
         continue;
       }
 

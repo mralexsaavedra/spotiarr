@@ -5,6 +5,19 @@ import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
 import { ReleaseFeedService, type CatalogArtist } from "./release-feed.service";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 function makeRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
   return {
     artistId: "default-artist-id",
@@ -238,18 +251,18 @@ describe("ReleaseFeedService", () => {
       });
       vi.mocked(musicBrainz.getArtistReleaseGroups).mockResolvedValue([makeRelease()]);
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      loggerMock.info.mockClear();
 
       await service.getActiveArtistReleases(artists);
 
-      const logCall = consoleSpy.mock.calls.find((call) =>
-        String(call[0]).includes("[ReleaseFeedService] Sync decisions"),
-      );
-      expect(logCall).toBeDefined();
-      expect(String(logCall![0])).toContain("Deezer: 1");
-      expect(String(logCall![0])).toContain("MusicBrainz: 1");
-
-      consoleSpy.mockRestore();
+      const infoCall = loggerMock.info.mock.calls.find((call) => {
+        const msg = typeof call[call.length - 1] === "string" ? call[call.length - 1] : "";
+        return msg.includes("Sync decisions");
+      });
+      expect(infoCall).toBeDefined();
+      const msgStr = String(infoCall![infoCall!.length - 1]);
+      expect(msgStr).toContain("Deezer: 1");
+      expect(msgStr).toContain("MusicBrainz: 1");
     });
   });
 

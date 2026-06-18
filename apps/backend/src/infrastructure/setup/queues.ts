@@ -1,5 +1,6 @@
 import { Queue } from "bullmq";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 import { getEnv } from "../setup/environment";
 
 export const FEED_SYNC_QUEUE = "feed-sync-queue";
@@ -63,7 +64,7 @@ export function initializeQueues(): void {
     },
   });
 
-  console.log("✅ BullMQ queues initialized");
+  logger.info({ component: "queues" }, "BullMQ queues initialized");
 }
 
 export function getTrackDownloadQueue(): Queue {

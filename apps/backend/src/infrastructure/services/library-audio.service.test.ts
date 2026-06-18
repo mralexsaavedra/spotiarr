@@ -4,6 +4,19 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FileSystemLibraryAudioService } from "./library-audio.service";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 const tempDirs: string[] = [];
 
 async function makeTempDir(prefix: string): Promise<string> {
@@ -112,15 +125,16 @@ describe("FileSystemLibraryAudioService", () => {
   });
 
   it("logs warning with reason category for rejected requests", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    loggerMock.warn.mockClear();
     const downloadsRoot = await makeTempDir("lib-audio-root-");
     const service = new FileSystemLibraryAudioService(downloadsRoot);
 
     const result = await service.resolveAudio(undefined);
 
     expect(result).toEqual({ kind: "reject", reason: "missing-path" });
-    expect(warnSpy).toHaveBeenCalledWith("[LibraryAudioService] Request rejected", {
-      reason: "missing-path",
-    });
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "missing-path" }),
+      "Request rejected",
+    );
   });
 });

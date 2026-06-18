@@ -4,6 +4,19 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FileSystemLibraryImageService } from "./library-image.service";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 const tempDirs: string[] = [];
 
 async function makeTempDir(prefix: string): Promise<string> {
@@ -156,16 +169,19 @@ describe("FileSystemLibraryImageService", () => {
   });
 
   it("logs warning with reason category for rejected requests", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    loggerMock.warn.mockClear();
     const downloadsRoot = await makeTempDir("lib-img-root-");
     const service = new FileSystemLibraryImageService(downloadsRoot);
 
     const result = await service.resolveImage(undefined);
 
     expect(result).toEqual({ kind: "reject", reason: "missing-path" });
-    expect(warnSpy).toHaveBeenCalledWith("[LibraryImageService] Request rejected", {
-      reason: "missing-path",
-    });
-    expect(JSON.stringify(warnSpy.mock.calls[0])).not.toContain(downloadsRoot);
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "missing-path" }),
+      "Request rejected",
+    );
+    // The logged context should not contain the downloads root path (no path disclosure)
+    const firstCallArgs = loggerMock.warn.mock.calls[0];
+    expect(JSON.stringify(firstCallArgs)).not.toContain(downloadsRoot);
   });
 });

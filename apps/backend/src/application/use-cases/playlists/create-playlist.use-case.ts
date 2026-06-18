@@ -14,8 +14,11 @@ import { AppError } from "@/domain/errors/app-error";
 import type { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import type { TrackService } from "../../services/track.service";
 import type { GetAlbumTracksUseCase } from "../artists/get-album-tracks.use-case";
+
+const log = logger.child({ component: "create-playlist" });
 
 interface DeezerAlbumTracksPort {
   getAlbumTracks(deezerAlbumId: string | number): Promise<NormalizedTrack[]>;
@@ -77,7 +80,7 @@ export class CreatePlaylistUseCase {
 
     try {
       detail = await this.spotifyService.getPlaylistDetail(spotifyUrl);
-      console.debug(`Playlist detail retrieved with ${detail.tracks?.length || 0} tracks`);
+      log.debug({ trackCount: detail.tracks?.length || 0 }, "Playlist detail retrieved");
 
       let displayName = detail.name;
       if ((detail.type === "track" || detail.type === "album") && detail.tracks?.length > 0) {
@@ -110,10 +113,7 @@ export class CreatePlaylistUseCase {
         playlist.markAsSubscribed();
       }
     } catch (error) {
-      console.error(
-        `Error getting playlist details: ${spotifyUrl}`,
-        error instanceof Error ? error.stack : String(error),
-      );
+      log.error({ err: error, spotifyUrl }, "Error getting playlist details");
       playlist.markAsError(error instanceof Error ? error.message : String(error));
     }
 
@@ -125,7 +125,10 @@ export class CreatePlaylistUseCase {
       const playlistType = this.urlTypeToPlaylistType(urlType);
       await this.processTracks(savedPlaylist, detail.tracks, playlistType);
     } else {
-      console.warn(`No tracks found for playlist ${savedPlaylist.name}`);
+      log.warn(
+        { playlistId: savedPlaylist.id, name: savedPlaylist.name },
+        "No tracks found for playlist",
+      );
     }
 
     this.eventBus.emit("playlists-updated");
@@ -194,7 +197,7 @@ export class CreatePlaylistUseCase {
     if (tracks.length > 0) {
       await this.processTracks(savedPlaylist, tracks, PlaylistTypeEnum.Album);
     } else {
-      console.warn(`No tracks found for album ${albumName}`);
+      log.warn({ albumName }, "No tracks found for album");
     }
 
     this.eventBus.emit("playlists-updated");
@@ -429,7 +432,10 @@ export class CreatePlaylistUseCase {
     tracks: NormalizedTrack[],
     type: PlaylistTypeEnum,
   ): Promise<void> {
-    console.debug(`Starting to process ${tracks.length} tracks for playlist ${playlist.name}`);
+    log.debug(
+      { trackCount: tracks.length, playlistId: playlist.id, name: playlist.name },
+      "Starting to process tracks for playlist",
+    );
 
     let processedCount = 0;
     let skippedCount = 0;
@@ -457,12 +463,13 @@ export class CreatePlaylistUseCase {
       }
 
       if (processedCount % 50 === 0 && processedCount > 0) {
-        console.debug(`Processed ${processedCount} tracks so far for playlist ${playlist.name}`);
+        log.debug({ processedCount, playlistId: playlist.id }, "Processed tracks so far");
       }
     }
 
-    console.debug(
-      `Finished processing playlist ${playlist.name}: ${processedCount} tracks processed, ${skippedCount} skipped, ${errorCount} errors`,
+    log.debug(
+      { playlistId: playlist.id, name: playlist.name, processedCount, skippedCount, errorCount },
+      "Finished processing playlist",
     );
   }
 
@@ -479,12 +486,15 @@ export class CreatePlaylistUseCase {
   ): Promise<"ok" | "skipped" | "error"> {
     try {
       if (!track.artist || !track.name) {
-        console.warn(`Skipping track ${index + 1}: Missing artist or name information`);
+        log.warn({ trackIndex: index + 1 }, "Skipping track: missing artist or name information");
         return "skipped";
       }
 
       if (track.unavailable === true) {
-        console.warn(`Skipping unavailable track ${index + 1}: ${track.artist} - ${track.name}`);
+        log.warn(
+          { trackIndex: index + 1, artist: track.artist, name: track.name },
+          "Skipping unavailable track",
+        );
         return "skipped";
       }
 
@@ -514,9 +524,7 @@ export class CreatePlaylistUseCase {
 
       return "ok";
     } catch (error) {
-      console.error(
-        `Error creating track "${track?.artist || "Unknown"} - ${track?.name || "Unknown"}": ${error instanceof Error ? error.message : String(error)}`,
-      );
+      log.error({ err: error, artist: track?.artist, name: track?.name }, "Error creating track");
       return "error";
     }
   }

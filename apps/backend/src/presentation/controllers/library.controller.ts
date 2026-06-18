@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import type { LibraryAudioPort } from "@/application/ports/library-audio.port";
 import type { LibraryImagePort } from "@/application/ports/library-image.port";
 import { LibraryService } from "@/application/services/library.service";
+import { logger } from "@/infrastructure/logging/logger";
 
 export class LibraryController {
   constructor(
@@ -80,7 +81,7 @@ export class LibraryController {
       const stats = await this.libraryService.getStats();
       res.json({ data: stats });
     } catch (error) {
-      console.error("Error getting library stats:", error);
+      logger.error({ component: "library-controller", err: error }, "Error getting library stats");
       res.status(500).json({
         error: "internal_server_error",
         message: error instanceof Error ? error.message : "Failed to get library stats",
@@ -93,7 +94,7 @@ export class LibraryController {
       const artists = await this.libraryService.getArtists();
       res.json({ data: artists });
     } catch (error) {
-      console.error("Error getting artists:", error);
+      logger.error({ component: "library-controller", err: error }, "Error getting artists");
       res.status(500).json({
         error: "internal_server_error",
         message: error instanceof Error ? error.message : "Failed to get artists",
@@ -116,7 +117,7 @@ export class LibraryController {
 
       res.json({ data: artist });
     } catch (error) {
-      console.error("Error getting artist:", error);
+      logger.error({ component: "library-controller", err: error }, "Error getting artist");
       res.status(500).json({
         error: "internal_server_error",
         message: error instanceof Error ? error.message : "Failed to get artist",
@@ -156,7 +157,7 @@ export class LibraryController {
         });
       });
     } catch (error) {
-      console.error("Error serving image:", error);
+      logger.error({ component: "library-controller", err: error }, "Error serving image");
       res.status(500).json({
         error: "internal_server_error",
         message: error instanceof Error ? error.message : "Failed to serve image",
@@ -219,7 +220,7 @@ export class LibraryController {
       });
       stream.pipe(res);
     } catch (error) {
-      console.error("Error serving audio:", error);
+      logger.error({ component: "library-controller", err: error }, "Error serving audio");
       res.status(500).json({
         error: "internal_server_error",
         message: error instanceof Error ? error.message : "Failed to serve audio",
@@ -232,7 +233,7 @@ export class LibraryController {
       const result = await this.libraryService.scan();
       res.json({ data: result });
     } catch (error) {
-      console.error("Error scanning library:", error);
+      logger.error({ component: "library-controller", err: error }, "Error scanning library");
       res.status(500).json({
         error: "internal_server_error",
         message: error instanceof Error ? error.message : "Failed to scan library",

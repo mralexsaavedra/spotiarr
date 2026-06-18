@@ -3,6 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Track } from "@/domain/entities/track.entity";
 import { DownloadTrackUseCase } from "./download-track.use-case";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), child: vi.fn() };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+
+vi.mock("../../../infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 function makeTrack(overrides: Partial<ITrack> = {}): ITrack {
   return {
     id: "track-1",
@@ -37,8 +45,6 @@ describe("DownloadTrackUseCase", () => {
   let useCase: DownloadTrackUseCase;
 
   beforeEach(() => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-
     trackRepository = {
       findOne: vi.fn(),
       update: vi.fn().mockResolvedValue(undefined),

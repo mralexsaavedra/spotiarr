@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { logger } from "@/infrastructure/logging/logger";
 
 export type RejectReason = "outside-root" | "bad-extension" | "not-found" | "missing-path";
 
@@ -31,7 +32,7 @@ export class FileSystemLibraryImageService implements LibraryImageService {
   }
 
   private logRejection(reason: RejectReason): void {
-    console.warn("[LibraryImageService] Request rejected", { reason });
+    logger.warn({ component: "library-image-service", reason }, "Request rejected");
   }
 
   async resolveImage(rawPath: string | undefined): Promise<ResolveImageResult> {

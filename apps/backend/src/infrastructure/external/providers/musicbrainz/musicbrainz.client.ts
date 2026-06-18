@@ -1,4 +1,5 @@
 import type { AlbumType, ArtistRelease, NormalizedTrack } from "@spotiarr/shared";
+import { logger } from "@/infrastructure/logging/logger";
 import { namesMatch } from "../normalize-name";
 
 export interface MusicBrainzArtist {
@@ -70,12 +71,15 @@ export class MusicBrainzClient {
         },
       });
       if (!response.ok) {
-        console.warn(`[MusicBrainzClient] ${response.status} for ${url}`);
+        logger.warn(
+          { component: "musicbrainz-client", status: response.status, url },
+          `HTTP ${response.status} for ${url}`,
+        );
         return null;
       }
       return (await response.json()) as T;
     } catch (err) {
-      console.warn(`[MusicBrainzClient] Network error for ${url}:`, err);
+      logger.warn({ component: "musicbrainz-client", url, err }, `Network error for ${url}`);
       return null;
     }
   }

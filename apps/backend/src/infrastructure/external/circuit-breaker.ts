@@ -1,4 +1,5 @@
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 
 const CIRCUIT_BREAKER_STATE = {
   CLOSED: "closed",
@@ -45,8 +46,9 @@ export class CircuitBreaker {
       this.openUntil = options.initialOpenUntilMs;
       this.state = CIRCUIT_BREAKER_STATE.OPEN;
       const remainingMs = options.initialOpenUntilMs - Date.now();
-      console.warn(
-        `[CircuitBreaker] Restored OPEN state from persistent store — ${Math.ceil(remainingMs / 1000)}s remaining`,
+      logger.warn(
+        { component: "circuit-breaker" },
+        `Restored OPEN state from persistent store — ${Math.ceil(remainingMs / 1000)}s remaining`,
       );
     }
   }
@@ -77,8 +79,9 @@ export class CircuitBreaker {
       this.openUntil = openUntilMs;
       this.state = CIRCUIT_BREAKER_STATE.OPEN;
       const remainingMs = openUntilMs - Date.now();
-      console.warn(
-        `[CircuitBreaker] Restored OPEN state — ${Math.ceil(remainingMs / 1000)}s remaining`,
+      logger.warn(
+        { component: "circuit-breaker" },
+        `Restored OPEN state — ${Math.ceil(remainingMs / 1000)}s remaining`,
       );
     }
   }
@@ -182,12 +185,18 @@ export class CircuitBreaker {
     if (newState === CIRCUIT_BREAKER_STATE.CLOSED) {
       this.consecutiveOpenCount = 0;
     }
-    console.warn("[CircuitBreaker]", `State: ${oldState} -> ${newState}`, {
-      retryAfterMs:
-        newState === CIRCUIT_BREAKER_STATE.OPEN ? this.openUntil - Date.now() : undefined,
-      consecutiveOpenCount: this.consecutiveOpenCount,
-      queueSize: this.waiters.length,
-    });
+    logger.warn(
+      {
+        component: "circuit-breaker",
+        oldState,
+        newState,
+        retryAfterMs:
+          newState === CIRCUIT_BREAKER_STATE.OPEN ? this.openUntil - Date.now() : undefined,
+        consecutiveOpenCount: this.consecutiveOpenCount,
+        queueSize: this.waiters.length,
+      },
+      `State: ${oldState} -> ${newState}`,
+    );
     if (newState === CIRCUIT_BREAKER_STATE.CLOSED) {
       this.flushWaiters();
     }

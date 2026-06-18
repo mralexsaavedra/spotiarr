@@ -1,5 +1,6 @@
 import type { ArtistRelease } from "@spotiarr/shared";
 import type { CatalogIdentity, FeedRepositoryPort } from "@/application/ports/feed-repository.port";
+import { logger } from "@/infrastructure/logging/logger";
 import type { DeezerClient } from "./providers/deezer/deezer.client";
 import type { MusicBrainzClient } from "./providers/musicbrainz/musicbrainz.client";
 
@@ -221,8 +222,9 @@ export class ReleaseFeedService {
 
     const newIds = decisions.filter((d) => d.newIdentityPersisted).length;
 
-    console.log(
-      `[ReleaseFeedService] Sync decisions — Deezer: ${counts.deezer}, MusicBrainz: ${counts.musicbrainz}, Spotify: ${counts.spotify}, Unresolved: ${counts.unresolved}. New identities: ${newIds}`,
+    logger.info(
+      { component: "release-feed-service", counts, newIdentities: newIds },
+      `Sync decisions — Deezer: ${counts.deezer}, MusicBrainz: ${counts.musicbrainz}, Spotify: ${counts.spotify}, Unresolved: ${counts.unresolved}. New identities: ${newIds}`,
     );
   }
 }

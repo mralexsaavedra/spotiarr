@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { SettingItem } from "@spotiarr/shared";
 import { AppError } from "@/domain/errors/app-error";
 import type { SettingsRepository } from "@/domain/repositories/settings.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import { prisma } from "../setup/prisma";
 
 const isPrismaNotFoundError = (error: unknown): error is { code: string } =>
@@ -40,7 +41,7 @@ export class PrismaSettingsRepository implements SettingsRepository {
         // Record not found — idempotent, ignore
         return;
       }
-      console.error("[PrismaSettingsRepository] delete failed", error);
+      logger.error({ component: "prisma-settings-repository", err: error }, "delete failed");
       throw new AppError(500, "internal_server_error", "Failed to delete setting");
     }
   }

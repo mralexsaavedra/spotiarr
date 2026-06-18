@@ -26,7 +26,6 @@ const freshPlaylists = [
 describe("GetMyPlaylistsUseCase", () => {
   it("calls Spotify and returns the remote playlists", async () => {
     const { spotifyService } = makeDeps();
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     spotifyService.getMyPlaylists.mockResolvedValue(freshPlaylists);
     const useCase = makeUseCase(spotifyService);
 
@@ -34,8 +33,6 @@ describe("GetMyPlaylistsUseCase", () => {
 
     expect(spotifyService.getMyPlaylists).toHaveBeenCalledOnce();
     expect(result).toEqual(freshPlaylists);
-    expect(errorSpy).not.toHaveBeenCalled();
-    errorSpy.mockRestore();
   });
 
   it("does not swallow Spotify errors behind cache fallbacks", async () => {

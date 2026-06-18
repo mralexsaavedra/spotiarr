@@ -1,3 +1,4 @@
+import { logger } from "@/infrastructure/logging/logger";
 import type { Env } from "@/infrastructure/setup/environment";
 import { CircuitBreaker } from "./circuit-breaker";
 import { RateLimiter } from "./rate-limiter";
@@ -153,8 +154,14 @@ export class SpotifyHttpClient {
 
       if (isNetworkError && retries < MAX_RETRIES) {
         const waitMs = Math.pow(2, retries) * 2000;
-        console.warn(
-          `[SpotifyHttpClient] Network error (${error.message}). Retrying in ${waitMs}ms (${retries + 1}/${MAX_RETRIES})`,
+        logger.warn(
+          {
+            component: "spotify-http-client",
+            retries: retries + 1,
+            maxRetries: MAX_RETRIES,
+            waitMs,
+          },
+          `Network error (${error.message}). Retrying in ${waitMs}ms (${retries + 1}/${MAX_RETRIES})`,
         );
         await this.sleep(waitMs);
         return this.fetchWithRateLimitRetry(input, init, retries + 1, options);

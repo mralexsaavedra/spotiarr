@@ -4,6 +4,9 @@ import type { YoutubeSearchPort } from "@/application/ports/youtube.port";
 import { EventBus } from "@/domain/events/event-bus";
 import { TrackRepository } from "@/domain/repositories/track.repository";
 import type { TrackQueueService } from "@/domain/services/track-queue.service";
+import { logger } from "@/infrastructure/logging/logger";
+
+const log = logger.child({ component: "search-track-on-youtube" });
 
 const DEFAULT_SEARCH_MAX_ATTEMPTS = 5;
 
@@ -67,9 +70,9 @@ export class SearchTrackOnYoutubeUseCase {
           existingTrack.markAsError("youtube_not_found");
         }
       } catch (error) {
-        console.error(
-          `Failed to find track on YouTube: ${existingTrack.artist} - ${existingTrack.name}`,
-          error instanceof Error ? error.stack : String(error),
+        log.error(
+          { err: error, artist: existingTrack.artist, name: existingTrack.name },
+          "Failed to find track on YouTube",
         );
         existingTrack.markAsError(error instanceof Error ? error.message : String(error));
       }

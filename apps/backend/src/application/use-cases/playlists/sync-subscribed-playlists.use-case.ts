@@ -5,7 +5,10 @@ import { AppError } from "@/domain/errors/app-error";
 import { EventBus } from "@/domain/events/event-bus";
 import { SpotifyUrlHelper, SpotifyUrlType } from "@/domain/helpers/spotify-url.helper";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import { TrackService } from "../../services/track.service";
+
+const log = logger.child({ component: "sync-subscribed-playlists" });
 
 const PERMANENTLY_UNAVAILABLE_ERROR_CODES = new Set([
   "playlist_not_accessible",
@@ -27,9 +30,7 @@ export class SyncSubscribedPlaylistsUseCase {
 
   async execute(): Promise<void> {
     if (this.spotifyCircuitBreaker.isOpen()) {
-      console.warn(
-        "[SyncSubscribedPlaylists] Skipping run — Spotify circuit breaker is open. Will retry on next scheduled tick.",
-      );
+      log.warn("Skipping run — Spotify circuit breaker is open. Will retry on next scheduled tick");
       return;
     }
 
@@ -67,8 +68,9 @@ export class SyncSubscribedPlaylistsUseCase {
           playlist.markAsUnsubscribed();
           playlist.markAsError(message);
           await this.playlistRepository.update(playlist.id, playlist);
-          console.warn(
-            `[SyncSubscribedPlaylists] Unsubscribed permanently-unavailable playlist ${playlist.id}: ${errorCode}`,
+          log.warn(
+            { playlistId: playlist.id, errorCode },
+            "Unsubscribed permanently-unavailable playlist",
           );
           continue;
         }
@@ -76,9 +78,7 @@ export class SyncSubscribedPlaylistsUseCase {
         if (errorCode === "circuit_open" || errorCode === "spotify_rate_limited") {
           // Transient: stop the loop entirely — every other playlist will fail
           // for the same reason and we'll just spam writes.
-          console.warn(
-            "[SyncSubscribedPlaylists] Aborting run — Spotify rate limited. Will retry on next scheduled tick.",
-          );
+          log.warn("Aborting run — Spotify rate limited. Will retry on next scheduled tick");
           return;
         }
 

@@ -11,6 +11,16 @@ const WorkerMock = vi.fn(() => ({ on: workerOn }));
 const getCatalogSyncState = vi.fn();
 const setCatalogSyncState = vi.fn();
 
+// Logger mock — child logger returned for the worker scope
+const loggerMock = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+  child: vi.fn(),
+};
+loggerMock.child.mockReturnValue(loggerMock);
+
 vi.mock("bullmq", () => ({ Worker: WorkerMock }));
 
 vi.mock("@/container", () => ({
@@ -38,15 +48,15 @@ vi.mock("../setup/queues", () => ({
   CATALOG_SYNC_QUEUE: "catalog-sync-queue",
 }));
 
+vi.mock("../logging/logger", () => ({ logger: loggerMock }));
+
 describe("createCatalogSyncWorker", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Object.keys(workerListeners).forEach((key) => delete workerListeners[key]);
     getCatalogSyncState.mockResolvedValue({ status: "idle" });
     setCatalogSyncState.mockResolvedValue(undefined);
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    loggerMock.child.mockReturnValue(loggerMock);
   });
 
   it("creates a BullMQ Worker with the catalog-sync queue name", async () => {
@@ -68,13 +78,16 @@ describe("createCatalogSyncWorker", () => {
     expect(workerOn).toHaveBeenCalledWith("failed", expect.any(Function));
   });
 
-  it("completed listener logs the finished job id", async () => {
+  it("completed listener logs the finished job id via structured logger", async () => {
     const { createCatalogSyncWorker } = await import("./catalog-sync.worker");
     createCatalogSyncWorker();
 
     workerListeners.completed?.({ id: "job-42" });
 
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("job-42"));
+    expect(loggerMock.info).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: "job-42" }),
+      expect.any(String),
+    );
   });
 
   it("resets catalog sync state to Idle when stuck in Running on startup", async () => {
@@ -103,7 +116,7 @@ describe("createCatalogSyncWorker", () => {
     expect(setCatalogSyncState).not.toHaveBeenCalled();
   });
 
-  it("logs an error when the startup state check rejects", async () => {
+  it("logs an error via structured logger when the startup state check rejects", async () => {
     getCatalogSyncState.mockRejectedValueOnce(new Error("db down"));
 
     const { createCatalogSyncWorker } = await import("./catalog-sync.worker");
@@ -112,17 +125,20 @@ describe("createCatalogSyncWorker", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(console.error).toHaveBeenCalled();
+    expect(loggerMock.error).toHaveBeenCalled();
   });
 
-  it("failed listener logs the job id and error", async () => {
+  it("failed listener logs the job id and error via structured logger", async () => {
     const { createCatalogSyncWorker } = await import("./catalog-sync.worker");
     createCatalogSyncWorker();
 
     const err = new Error("sync crash");
     workerListeners.failed?.({ id: "job-1" }, err);
 
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("job-1"), err);
+    expect(loggerMock.error).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: "job-1", err }),
+      expect.any(String),
+    );
   });
 
   it("failed listener resets state to Error when sync state is still Running", async () => {

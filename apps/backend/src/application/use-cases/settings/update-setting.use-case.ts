@@ -1,7 +1,10 @@
 import type { SpotifyUserLibraryPort } from "@/application/ports/spotify-user-library.port";
 import type { EventBus } from "@/domain/events/event-bus";
 import type { SettingsRepository } from "@/domain/repositories/settings.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import { MASKED_SENTINEL } from "./get-settings.use-case";
+
+const log = logger.child({ component: "update-setting" });
 
 export class UpdateSettingUseCase {
   constructor(
@@ -32,7 +35,7 @@ export class UpdateSettingUseCase {
 
         fs.writeFileSync(cookiePath, value, "utf-8");
         finalValue = cookiePath;
-        console.log(`Saved YouTube cookies to ${cookiePath}`);
+        log.info({ cookiePath }, "Saved YouTube cookies");
       }
     }
 

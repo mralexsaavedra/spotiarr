@@ -1,6 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CircuitBreaker } from "./circuit-breaker";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 const START = 1_700_000_000_000;
 
 function makeResponse(status: number, retryAfter?: string): Response {
@@ -16,7 +29,7 @@ describe("CircuitBreaker", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(START);
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    loggerMock.warn.mockClear();
   });
 
   afterEach(() => {

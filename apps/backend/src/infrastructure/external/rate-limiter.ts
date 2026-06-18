@@ -1,3 +1,4 @@
+import { logger } from "@/infrastructure/logging/logger";
 import { AppError } from "../../domain/errors/app-error.js";
 
 interface RateLimiterOptions {
@@ -42,11 +43,14 @@ export class RateLimiter {
     }
 
     if (this.queue.length >= this.maxQueueSize) {
-      console.warn("[RateLimiter] Queue overflow", {
-        queueSize: this.queue.length,
-        maxQueueSize: this.maxQueueSize,
-        timestamp: new Date().toISOString(),
-      });
+      logger.warn(
+        {
+          component: "rate-limiter",
+          queueSize: this.queue.length,
+          maxQueueSize: this.maxQueueSize,
+        },
+        "Queue overflow",
+      );
       return Promise.reject(
         new AppError(503, "rate_limiter_overflow", "Rate limiter queue overflow."),
       );

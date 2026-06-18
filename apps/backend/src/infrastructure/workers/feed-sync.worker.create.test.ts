@@ -13,6 +13,16 @@ const WorkerMock = vi.fn(() => ({
 const getSyncState = vi.fn();
 const setSyncState = vi.fn();
 
+// Logger mock — child logger returned for the worker scope
+const loggerMock = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+  child: vi.fn(),
+};
+loggerMock.child.mockReturnValue(loggerMock);
+
 vi.mock("bullmq", () => ({
   Worker: WorkerMock,
 }));
@@ -48,6 +58,8 @@ vi.mock("../setup/queues", () => ({
   FEED_SYNC_QUEUE: "feed-sync",
 }));
 
+vi.mock("../logging/logger", () => ({ logger: loggerMock }));
+
 describe("createFeedSyncWorker", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,12 +68,10 @@ describe("createFeedSyncWorker", () => {
     });
     getSyncState.mockResolvedValue({ status: "idle" });
     setSyncState.mockResolvedValue(undefined);
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.spyOn(console, "log").mockImplementation(() => {});
+    loggerMock.child.mockReturnValue(loggerMock);
   });
 
-  it("logs non-fatal warning when failed-state sync check rejects", async () => {
+  it("logs non-fatal warning via structured logger when failed-state sync check rejects", async () => {
     const { createFeedSyncWorker } = await import("./feed-sync.worker");
 
     createFeedSyncWorker();
@@ -73,7 +83,7 @@ describe("createFeedSyncWorker", () => {
     await failedHandler?.({ id: "job-1" }, new Error("job failed"));
     await Promise.resolve();
 
-    expect(console.warn).toHaveBeenCalled();
+    expect(loggerMock.warn).toHaveBeenCalled();
   });
 
   it("resets feed sync state to Idle when stuck in Running on startup", async () => {
@@ -89,7 +99,7 @@ describe("createFeedSyncWorker", () => {
     expect(setSyncState).toHaveBeenCalledWith(SYNC_STATUS.Idle);
   });
 
-  it("logs an error when the startup state check rejects", async () => {
+  it("logs an error via structured logger when the startup state check rejects", async () => {
     getSyncState.mockRejectedValueOnce(new Error("startup db error"));
 
     const { createFeedSyncWorker } = await import("./feed-sync.worker");
@@ -98,10 +108,10 @@ describe("createFeedSyncWorker", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(console.error).toHaveBeenCalled();
+    expect(loggerMock.error).toHaveBeenCalled();
   });
 
-  it("completed listener logs the finished job id", async () => {
+  it("completed listener logs the finished job id via structured logger", async () => {
     const { createFeedSyncWorker } = await import("./feed-sync.worker");
     createFeedSyncWorker();
 
@@ -110,7 +120,10 @@ describe("createFeedSyncWorker", () => {
 
     completedHandler?.({ id: "job-77" });
 
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("job-77"));
+    expect(loggerMock.info).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: "job-77" }),
+      expect.any(String),
+    );
   });
 
   it("failed listener resets state to Error when sync state is Running", async () => {

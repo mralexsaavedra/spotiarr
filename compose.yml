@@ -32,6 +32,10 @@ services:
       - ${DOWNLOADS_DIR}:/downloads
     env_file:
       - .env
+    # Optional environment overrides (uncomment to set inline):
+    # environment:
+    #   # Log verbosity. Accepted: trace|debug|info|warn|error|fatal|silent (default: info in prod).
+    #   # LOG_LEVEL: info
     depends_on:
       redis:
         condition: service_healthy
@@ -50,7 +54,7 @@ services:
     command:
       #- "--log.level=DEBUG"
       # Dashboard is disabled by default. To enable it for local debugging,
-      # add `--api.insecure=true` (and expose port 8080) in docker-compose.override.yml,
+      # add `--api.insecure=true` (and expose port 8080) in compose.override.yml,
       # or serve it behind a BasicAuth middleware — never expose it unauthenticated in production.
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"

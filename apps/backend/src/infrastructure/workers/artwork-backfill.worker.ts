@@ -4,6 +4,7 @@ import { ProcessArtworkBackfillBatchUseCase } from "@/application/use-cases/artw
 import { getContainer, type Container } from "@/container";
 import { ARTWORK_BACKFILL_STATUS } from "@/domain/artwork-backfill.types";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "../logging/logger";
 import { getEnv } from "../setup/environment";
 import { ARTWORK_BACKFILL_QUEUE } from "../setup/queues";
 
@@ -113,6 +114,8 @@ function isRateLimited(error: unknown): boolean {
 }
 
 export function createArtworkBackfillWorker(): Worker {
+  const log = logger.child({ worker: "artwork-backfill-worker" });
+
   const {
     artworkBackfillRepository,
     processArtworkBackfillBatchUseCase,
@@ -147,11 +150,11 @@ export function createArtworkBackfillWorker(): Worker {
   );
 
   worker.on("completed", (job) => {
-    console.log(`[ArtworkBackfillWorker] Job ${job.id} completed`);
+    log.info({ jobId: job.id }, "Job completed");
   });
 
   worker.on("failed", (job, error) => {
-    console.error(`[ArtworkBackfillWorker] Job ${job?.id} failed`, error);
+    log.error({ jobId: job?.id, err: error }, "Job failed");
   });
 
   return worker;

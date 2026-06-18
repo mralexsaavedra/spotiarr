@@ -1,7 +1,10 @@
 import cron from "node-cron";
 import { SYNC_STATUS } from "@/application/ports/feed-repository.port";
 import { getContainer } from "@/container";
+import { logger } from "../logging/logger";
 import { getCatalogSyncQueue } from "../setup/queues";
+
+const log = logger.child({ job: "catalog-sync-job" });
 
 let lastCatalogSyncCheckTimestamp = 0;
 
@@ -33,7 +36,7 @@ export const catalogSyncJob = cron.createTask("* * * * *", async () => {
 
     lastCatalogSyncCheckTimestamp = now;
   } catch (error) {
-    console.error("[ScheduledJob] Error enqueuing catalog sync job:", error);
+    log.error({ err: error }, "Error enqueuing catalog sync job");
   }
 });
 

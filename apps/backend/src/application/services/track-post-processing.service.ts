@@ -6,9 +6,11 @@ import type {
   MetadataPort,
 } from "@/application/ports/file-system.port";
 import { ArtworkService } from "@/application/services/artwork.service";
-import { getErrorMessage } from "@/application/utils/error.utils";
 import { PlaylistRepository } from "@/domain/repositories/playlist.repository";
 import { TrackRepository } from "@/domain/repositories/track.repository";
+import { logger } from "@/infrastructure/logging/logger";
+
+const log = logger.child({ component: "track-post-processing" });
 
 export class TrackPostProcessingService {
   constructor(
@@ -48,9 +50,7 @@ export class TrackPostProcessingService {
       // 3. Save Artist Image (if applicable)
       await this.artworkService.saveArtistImageIfNeeded(track, artwork);
     } catch (error) {
-      console.error(
-        `Error during post-processing for track ${track.name}: ${getErrorMessage(error)}`,
-      );
+      log.error({ err: error, name: track.name }, "Error during post-processing for track");
       // We don't throw here to avoid failing the whole download if just metadata fails
     }
   }
@@ -75,10 +75,10 @@ export class TrackPostProcessingService {
         await this.m3uService.generateM3uFile(playlist, playlistTracks, playlistFolderPath);
 
         const completedCount = this.m3uService.getCompletedTracksCount(playlistTracks);
-        console.debug(`Playlist M3U updated: ${completedCount}/${playlistTracks.length} tracks`);
+        log.debug({ completedCount, totalTracks: playlistTracks.length }, "Playlist M3U updated");
       }
     } catch (err) {
-      console.error(`Failed to generate M3U file: ${getErrorMessage(err)}`);
+      log.error({ err }, "Failed to generate M3U file");
     }
   }
 }

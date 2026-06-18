@@ -1,8 +1,8 @@
 import type { SpotifyPlaylist } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 import { getErrorMessage } from "../../application/utils/error.utils";
-import { getEnv } from "../setup/environment";
 import { CircuitBreaker } from "./circuit-breaker";
 import { RateLimiter } from "./rate-limiter";
 import type { SpotifyAuthService } from "./spotify-auth.service";
@@ -79,10 +79,9 @@ export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
   }
 
   private log(message: string, level: "debug" | "error" | "warn" = "debug") {
-    const prefix = `[SpotifyPlaylistLibraryService]`;
-    if (level === "error") console.error(prefix, message);
-    else if (level === "warn") console.warn(prefix, message);
-    else if (getEnv().NODE_ENV === "development") console.log(prefix, message);
+    if (level === "error") logger.error({ component: "spotify-playlist-library" }, message);
+    else if (level === "warn") logger.warn({ component: "spotify-playlist-library" }, message);
+    else logger.debug({ component: "spotify-playlist-library" }, message);
   }
 
   private getPlaylistAccessCache(playlistId: string): PlaylistAccessResult | null {

@@ -3,8 +3,11 @@ import { Worker } from "bullmq";
 import { GenerateAiPlaylistUseCase } from "@/application/use-cases/ai/generate-ai-playlist.use-case";
 import { getContainer } from "@/container";
 import { createAiChatPort } from "../external/providers/ai/openai-compatible.adapter";
+import { logger } from "../logging/logger";
 import { getEnv } from "../setup/environment";
 import { AI_PLAYLIST_QUEUE } from "../setup/queues";
+
+const log = logger.child({ worker: "ai-playlist-worker" });
 
 export function createAiPlaylistWorker(): Worker {
   const {
@@ -50,13 +53,13 @@ export function createAiPlaylistWorker(): Worker {
   );
 
   worker.on("completed", (job) => {
-    console.log(`[AiPlaylistWorker] Job ${job.id} completed`);
+    log.info({ jobId: job.id }, "Job completed");
   });
 
   worker.on("failed", (job, error) => {
-    console.error(`[AiPlaylistWorker] Job ${job?.id} failed`, error);
+    log.error({ jobId: job?.id, err: error }, "Job failed");
   });
 
-  console.log("✅ AI playlist worker initialized");
+  log.info("AI playlist worker initialized");
   return worker;
 }

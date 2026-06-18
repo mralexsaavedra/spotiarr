@@ -152,10 +152,8 @@ describe("PrismaAiChatMessageRepository", () => {
         },
       } as any;
 
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const repo = new PrismaAiChatMessageRepository(prisma);
       const result = await repo.list();
-      warnSpy.mockRestore();
 
       // Corrupt row is skipped; valid rows are returned in ascending order
       expect(result).toHaveLength(2);
@@ -175,10 +173,8 @@ describe("PrismaAiChatMessageRepository", () => {
         },
       } as any;
 
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const repo = new PrismaAiChatMessageRepository(prisma);
       const result = await repo.list();
-      warnSpy.mockRestore();
 
       expect(result).toHaveLength(2);
       expect(result.map((r) => r.id)).toEqual(["id-good-1", "id-good-2"]);

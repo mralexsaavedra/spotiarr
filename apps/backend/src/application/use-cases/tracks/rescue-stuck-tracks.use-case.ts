@@ -1,6 +1,9 @@
 import { TrackStatusEnum } from "@spotiarr/shared";
 import type { TrackRepository } from "@/domain/repositories/track.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import type { RetryTrackDownloadUseCase } from "./retry-track-download.use-case";
+
+const log = logger.child({ component: "rescue-stuck-tracks" });
 
 export class RescueStuckTracksUseCase {
   constructor(
@@ -9,7 +12,7 @@ export class RescueStuckTracksUseCase {
   ) {}
 
   async execute(): Promise<void> {
-    console.log("🚑 Checking for stuck tracks...");
+    log.info("Checking for stuck tracks");
 
     const stuckStatuses = [
       TrackStatusEnum.New,
@@ -21,28 +24,28 @@ export class RescueStuckTracksUseCase {
     const stuckTracks = await this.trackRepository.findAllByStatuses(stuckStatuses);
 
     if (stuckTracks.length === 0) {
-      console.log("✅ No stuck tracks found.");
+      log.info("No stuck tracks found");
       return;
     }
 
-    console.log(`⚠️ Found ${stuckTracks.length} stuck tracks. Rescuing...`);
+    log.info({ count: stuckTracks.length }, "Found stuck tracks, rescuing");
 
     let rescuedCount = 0;
     for (const track of stuckTracks) {
       if (!track.id || !track.status) continue;
 
       try {
-        console.log(`🔄 Rescuing track: ${track.artist} - ${track.name} [${track.status}]`);
+        log.info(
+          { trackId: track.id, artist: track.artist, name: track.name, status: track.status },
+          "Rescuing stuck track",
+        );
         await this.retryTrackDownloadUseCase.execute(track.id);
         rescuedCount++;
       } catch (error) {
-        console.error(
-          `❌ Failed to rescue track ${track.id}:`,
-          error instanceof Error ? error.message : String(error),
-        );
+        log.error({ err: error, trackId: track.id }, "Failed to rescue track");
       }
     }
 
-    console.log(`✅ Rescued ${rescuedCount}/${stuckTracks.length} tracks.`);
+    log.info({ rescued: rescuedCount, total: stuckTracks.length }, "Rescue complete");
   }
 }

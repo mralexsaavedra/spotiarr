@@ -2,6 +2,7 @@ import type {
   ArtworkBackfillCandidate,
   ArtworkBackfillExternalSourcePort,
 } from "@/application/ports/artwork-backfill-sources.port";
+import { logger } from "@/infrastructure/logging/logger";
 import { pickBestCover } from "./cover-url";
 import type { DeezerClient } from "./deezer.client";
 
@@ -16,7 +17,7 @@ export class DeezerArtworkSourceService implements ArtworkBackfillExternalSource
         artist.picture_xl || artist.picture_big || artist.picture_medium || artist.picture || null
       );
     } catch (err) {
-      console.warn("[DeezerArtworkSourceService] findArtistImageUrl error:", err);
+      logger.warn({ component: "deezer-artwork-source", err }, "findArtistImageUrl error");
       return null;
     }
   }
@@ -28,7 +29,7 @@ export class DeezerArtworkSourceService implements ArtworkBackfillExternalSource
       if (!album) return null;
       return pickBestCover(album) ?? null;
     } catch (err) {
-      console.warn("[DeezerArtworkSourceService] findAlbumCoverUrl error:", err);
+      logger.warn({ component: "deezer-artwork-source", err }, "findAlbumCoverUrl error");
       return null;
     }
   }

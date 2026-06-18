@@ -6,6 +6,19 @@ import { RateLimiter } from "./rate-limiter";
 import { SpotifyArtistCatalogService } from "./spotify-artist-catalog.service";
 import type { SpotifyAuthService } from "./spotify-auth.service";
 
+const loggerMock = vi.hoisted(() => {
+  const mock = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  mock.child.mockReturnValue(mock);
+  return mock;
+});
+vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
+
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -112,11 +125,11 @@ describe("SpotifyArtistCatalogService — error handling", () => {
       "fetch",
       vi.fn(async () => new Response("Server Error", { status: 500 })),
     );
-    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    loggerMock.warn.mockClear();
 
     const result = await buildService().getArtistCatalogData([{ id: "artist-1", name: "A1" }]);
     expect(result).toHaveLength(0);
-    expect(consoleSpy).toHaveBeenCalled();
+    expect(loggerMock.warn).toHaveBeenCalled();
   });
 
   it("paginates and accumulates albums from multiple pages", async () => {

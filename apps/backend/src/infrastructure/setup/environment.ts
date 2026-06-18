@@ -18,6 +18,7 @@ config({ path: resolve(rootDir, `.env.${currentEnv}.local`) });
 config({ path: resolve(rootDir, `.env.${currentEnv}`) });
 config({ path: resolve(rootDir, ".env") });
 
+// bootstrap-console: pre-logger startup path (see design)
 console.log(`[Env] Loaded environment for: ${currentEnv}`);
 
 // -----------------------------------------------------------------------------
@@ -131,6 +132,19 @@ export const envSchema = z
     // System
     NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
 
+    // Logging
+    LOG_LEVEL: z
+      .enum(["trace", "debug", "info", "warn", "error", "fatal", "silent"])
+      .optional()
+      .default(
+        (() => {
+          const nodeEnv = process.env.NODE_ENV ?? "development";
+          if (nodeEnv === "production") return "info";
+          if (nodeEnv === "test") return "silent";
+          return "debug";
+        })(),
+      ),
+
     // Instance auth (optional — unset means auth is disabled)
     SPOTIARR_TOKEN: z
       .string()
@@ -226,17 +240,23 @@ function resolveDatabaseUrl(providedUrl: string | undefined): string {
 export function validateEnvironment(): void {
   try {
     validatedEnv = envSchema.parse(process.env);
+    // bootstrap-console: pre-logger startup path (see design)
     console.log("✅ Environment variables validated successfully");
   } catch (error) {
     if (error instanceof ZodError) {
+      // bootstrap-console: pre-logger startup path (see design)
       console.error("\n❌ Environment validation failed!\n");
+      // bootstrap-console: pre-logger startup path (see design)
       console.error("Missing or invalid environment variables:\n");
 
       error.issues.forEach((err: ZodIssue) => {
+        // bootstrap-console: pre-logger startup path (see design)
         console.error(`  - ${err.path.join(".")}: ${err.message}`);
       });
 
+      // bootstrap-console: pre-logger startup path (see design)
       console.error("\nPlease check your .env file and ensure all required variables are set.");
+      // bootstrap-console: pre-logger startup path (see design)
       console.error("See .env.example for reference.\n");
     }
     process.exit(1);

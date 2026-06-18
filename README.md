@@ -242,7 +242,7 @@ To expose the instance to the internet safely:
 See the table above for all related variables and their defaults.
 
 **Note regarding HTTPS:**
-The included `docker-compose.yml` uses **Traefik** as a reverse proxy to handle HTTPS automatically on port 443. This is required for Spotify authentication on remote servers. SpotiArr itself runs on HTTP (port 3000) internally.
+The included `compose.yml` uses **Traefik** as a reverse proxy to handle HTTPS automatically on port 443. This is required for Spotify authentication on remote servers. SpotiArr itself runs on HTTP (port 3000) internally.
 
 > For advanced/internal variables, see [CONTRIBUTING.md](CONTRIBUTING.md#environment-variables)
 

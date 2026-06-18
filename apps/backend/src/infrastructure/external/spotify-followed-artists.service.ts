@@ -1,6 +1,7 @@
 import type { FollowedArtist } from "@spotiarr/shared";
 import type { SettingsPort } from "@/application/ports/settings.port";
 import { AppError } from "@/domain/errors/app-error";
+import { logger } from "@/infrastructure/logging/logger";
 import { getErrorMessage } from "../../application/utils/error.utils";
 import type { CacheEntry } from "./cache.types";
 import { CircuitBreaker } from "./circuit-breaker";
@@ -91,7 +92,7 @@ export class SpotifyFollowedArtistsService extends SpotifyHttpClient {
       this.setCache(cacheKey, mapped);
       return mapped;
     } catch (error) {
-      console.error(`[SpotifyFollowedArtistsService] ${getErrorMessage(error)}`);
+      logger.error({ component: "spotify-followed-artists", err: error }, getErrorMessage(error));
       throw error;
     }
   }

@@ -8,11 +8,14 @@ import { Playlist } from "@/domain/entities/playlist.entity";
 import { AiChatError } from "@/domain/errors/ai-chat.error";
 import type { EventBus } from "@/domain/events/event-bus";
 import type { PlaylistRepository } from "@/domain/repositories/playlist.repository";
+import { logger } from "@/infrastructure/logging/logger";
 import type { TrackService } from "../../services/track.service";
 import type {
   AppendChatMessageInput,
   AppendChatMessageUseCase,
 } from "./append-chat-message.use-case";
+
+const log = logger.child({ component: "generate-ai-playlist" });
 
 const MAX_TRACKS = 50;
 const AI_PLAYLIST_OWNER = "SpotiArr AI";
@@ -83,10 +86,7 @@ export class GenerateAiPlaylistUseCase {
         contentKey: "aiChat.userPrompt",
         contentParams: { prompt },
       }).catch((err) => {
-        console.error(
-          "[GenerateAiPlaylistUseCase] appendChatMessage(user) failed",
-          err instanceof Error ? err.message : err,
-        );
+        log.error({ err }, "appendChatMessage(user) failed");
       });
 
       emit("llm", { progress: 0 });
@@ -115,10 +115,7 @@ export class GenerateAiPlaylistUseCase {
           contentParams: { code: "zero-resolved" },
           errorCode: "zero-resolved",
         }).catch((err) => {
-          console.error(
-            "[GenerateAiPlaylistUseCase] appendChatMessage(zero-resolved) failed",
-            err instanceof Error ? err.message : err,
-          );
+          log.error({ err }, "appendChatMessage(zero-resolved) failed");
         });
 
         return;
@@ -168,16 +165,10 @@ export class GenerateAiPlaylistUseCase {
         contentParams: { count: deduped.length },
         playlistId,
       }).catch((err) => {
-        console.error(
-          "[GenerateAiPlaylistUseCase] appendChatMessage(done) failed",
-          err instanceof Error ? err.message : err,
-        );
+        log.error({ err }, "appendChatMessage(done) failed");
       });
     } catch (err) {
-      console.error(
-        "[GenerateAiPlaylistUseCase] generateTracks failed",
-        err instanceof Error ? err.message : err,
-      );
+      log.error({ err }, "generateTracks failed");
       const code =
         err instanceof AiChatError ? (err.code as AiPlaylistErrorCode) : "provider-unreachable";
       const message = err instanceof Error ? err.message : String(err);
@@ -193,10 +184,7 @@ export class GenerateAiPlaylistUseCase {
         contentParams: { code },
         errorCode: code,
       }).catch((appendErr) => {
-        console.error(
-          "[GenerateAiPlaylistUseCase] appendChatMessage(error) failed",
-          appendErr instanceof Error ? appendErr.message : appendErr,
-        );
+        log.error({ err: appendErr }, "appendChatMessage(error) failed");
       });
     }
   }

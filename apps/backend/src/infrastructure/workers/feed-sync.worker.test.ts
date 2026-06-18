@@ -71,8 +71,6 @@ describe("FeedSyncWorker — runFeedSyncJob", () => {
 
   beforeEach(() => {
     deps = makeMockDeps();
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   describe("Scenario: User follow-source preservation", () => {
