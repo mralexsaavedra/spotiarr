@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatLibrarySize } from "./formatLibrarySize";
 
 describe("formatLibrarySize", () => {
-  it("formats bytes in the GB range", () => {
+  it("formats exactly 1 GiB as 1024.00 MB (GB boundary is exclusive)", () => {
     const oneGb = 1024 * 1024 * 1024;
     expect(formatLibrarySize(oneGb)).toBe("1024.00 MB");
   });

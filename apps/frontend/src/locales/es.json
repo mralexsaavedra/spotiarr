@@ -85,7 +85,6 @@
   },
   "navigation": {
     "home": "Biblioteca",
-    "history": "Historial",
     "dashboard": "Panel",
     "releases": "Lanzamientos",
     "myPlaylists": "Mis Listas",
@@ -121,7 +120,6 @@
   },
   "dashboard": {
     "title": "Panel",
-    "statsSection": "Estadísticas de Biblioteca",
     "mostListenedTitle": "Más Escuchado",
     "mostListenedComingSoon": "Próximamente"
   },
