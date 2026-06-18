@@ -4,6 +4,7 @@ import {
   buildPlaylist,
   buildTrack,
   installHistoryMocks,
+  installLibraryMocks,
   installPlaylistMocks,
   installTrackMocks,
 } from "../../helpers/api-mocks";
@@ -18,6 +19,7 @@ test.describe("Mocked history flows", () => {
   test("opens preview detail from history when the playlist is not yet saved locally", async ({
     page,
   }) => {
+    await installLibraryMocks(page);
     await installHistoryMocks(page, { downloads: [historyItem] });
     await installPlaylistMocks(page, {
       playlists: [],
@@ -63,6 +65,7 @@ test.describe("Mocked history flows", () => {
       tracks: [],
     });
 
+    await installLibraryMocks(page);
     await installHistoryMocks(page, { downloads: [historyItem] });
     await installPlaylistMocks(page, { playlists: [managedPlaylist] });
     await installTrackMocks(page, {
@@ -90,6 +93,7 @@ test.describe("Mocked history flows", () => {
   });
 
   test("renders the empty history state when no mocked downloads exist", async ({ page }) => {
+    await installLibraryMocks(page);
     await installHistoryMocks(page, { downloads: [] });
     await installPlaylistMocks(page, { playlists: [] });
 
@@ -100,6 +104,7 @@ test.describe("Mocked history flows", () => {
   });
 
   test("/history redirects to /dashboard and shows Download History section", async ({ page }) => {
+    await installLibraryMocks(page);
     await installHistoryMocks(page, { downloads: [historyItem] });
     await installPlaylistMocks(page, { playlists: [] });
 

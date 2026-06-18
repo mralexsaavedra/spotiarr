@@ -44,6 +44,7 @@ test.describe("SSE live updates", () => {
       });
     });
 
+    await installLibraryMocks(page);
     await installPlaylistMocks(page, {
       playlists: [buildPlaylist({ id: "history-playlist-1", name: "Old Item" })],
     });
