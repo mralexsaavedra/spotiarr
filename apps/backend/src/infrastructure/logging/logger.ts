@@ -1,9 +1,6 @@
 import pino from "pino";
 
-// -----------------------------------------------------------------------------
-// Redaction paths — secrets must never appear in log output.
-// This list MUST NOT be narrowed (REQ-4.2).
-// -----------------------------------------------------------------------------
+// Security: secrets must never reach log output. Do not narrow this list.
 export const REDACT_PATHS: string[] = [
   "token",
   "spotiarrToken",
@@ -20,13 +17,8 @@ export const REDACT_PATHS: string[] = [
   "headers.authorization",
 ];
 
-// -----------------------------------------------------------------------------
-// Level resolution
-// Logger reads process.env directly at init (NOT via getEnv()) to avoid the
-// bootstrap ordering trap: the logger module may be imported before environment
-// validation runs. Zod still validates LOG_LEVEL in environment.ts for
-// fail-fast startup (see design ADR-2).
-// -----------------------------------------------------------------------------
+// Reads process.env directly, not getEnv(): the logger may be imported before
+// environment validation runs. Zod still validates LOG_LEVEL for fail-fast startup.
 function resolveLevel(): string {
   const explicit = process.env.LOG_LEVEL;
   if (explicit) return explicit;
@@ -37,11 +29,6 @@ function resolveLevel(): string {
   return "debug";
 }
 
-// -----------------------------------------------------------------------------
-// Transport selection — pino-pretty is a devDependency; it MUST NOT be loaded
-// in production (REQ-3.3). The NODE_ENV guard makes the pretty branch
-// unreachable in prod even if pino-pretty were somehow present.
-// -----------------------------------------------------------------------------
 function resolveTransport(): pino.TransportSingleOptions | undefined {
   const nodeEnv = process.env.NODE_ENV ?? "development";
   if (nodeEnv === "production" || nodeEnv === "test") {
@@ -56,10 +43,6 @@ function resolveTransport(): pino.TransportSingleOptions | undefined {
   };
 }
 
-// -----------------------------------------------------------------------------
-// Exported helper — allows tests to inspect the options object without needing
-// to capture stdout or spy on pino internals.
-// -----------------------------------------------------------------------------
 export function getLoggerOptions(): pino.LoggerOptions {
   return {
     level: resolveLevel(),
@@ -72,8 +55,4 @@ export function getLoggerOptions(): pino.LoggerOptions {
   };
 }
 
-// -----------------------------------------------------------------------------
-// Singleton logger — the ONLY place in apps/backend/src that imports pino.
-// All other modules use logger.child({ component, ...fields }).
-// -----------------------------------------------------------------------------
 export const logger = pino(getLoggerOptions());
