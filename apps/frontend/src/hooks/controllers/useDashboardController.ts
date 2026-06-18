@@ -14,7 +14,11 @@ export const useDashboardController = () => {
   const { data: stats } = useLibraryStatsQuery();
   const { data: history = [], isLoading } = useDownloadHistoryQuery();
   const { data: activePlaylists = [] } = usePlaylistsQuery();
-  const recreatePlaylist = useRecreatePlaylistMutation();
+  const {
+    mutate: recreatePlaylist,
+    isPending: isRecreatePending,
+    variables: recreateVariables,
+  } = useRecreatePlaylistMutation();
 
   const statsProps = useMemo(() => {
     if (!stats) return null;
@@ -35,7 +39,7 @@ export const useDashboardController = () => {
         return;
       }
 
-      recreatePlaylist.mutate(spotifyUrl);
+      recreatePlaylist(spotifyUrl);
     },
     [recreatePlaylist],
   );
@@ -55,7 +59,7 @@ export const useDashboardController = () => {
     history,
     isLoading,
     activePlaylists,
-    recreatingUrl: recreatePlaylist.isPending ? (recreatePlaylist.variables ?? null) : null,
+    recreatingUrl: isRecreatePending ? (recreateVariables ?? null) : null,
     onRecreate: handleRecreatePlaylistClick,
     onItemClick: handleHistoryItemClick,
   };

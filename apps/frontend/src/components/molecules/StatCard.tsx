@@ -12,6 +12,7 @@ interface StatCardProps {
 export const StatCard: FC<StatCardProps> = memo(({ label, value, icon, className }) => {
   return (
     <div
+      data-testid="stat-card"
       className={`bg-card w-full rounded-lg border border-white/5 p-4 shadow-sm backdrop-blur-sm sm:flex-1 ${className || ""}`}
     >
       <div className="flex items-center justify-between">
