@@ -32,7 +32,7 @@ RUN pnpm run build
 # Produce a production-only node_modules deployment (no devDependencies).
 # pnpm deploy copies the workspace package with its production deps into
 # a standalone directory, so the final image ships only runtime packages.
-RUN pnpm --filter backend deploy --prod /spotiarr/prod-deploy
+RUN pnpm --filter backend deploy --prod --legacy /spotiarr/prod-deploy
 
 FROM node:22-alpine
 
