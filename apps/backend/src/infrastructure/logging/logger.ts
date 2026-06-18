@@ -9,12 +9,22 @@ export const REDACT_PATHS: string[] = [
   "client_secret",
   "SPOTIFY_CLIENT_SECRET",
   "authorization",
+  "access_token",
+  "refresh_token",
+  "apiKey",
+  "api_key",
   "*.token",
   "*.secret",
   "*.clientSecret",
   "*.SPOTIFY_CLIENT_SECRET",
   "*.authorization",
+  "*.access_token",
+  "*.refresh_token",
+  "*.apiKey",
+  "*.api_key",
   "headers.authorization",
+  "responseBody",
+  "*.responseBody",
 ];
 
 // Reads process.env directly, not getEnv(): the logger may be imported before

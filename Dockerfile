@@ -29,6 +29,11 @@ COPY packages/ ./packages/
 # Build all packages (backend build runs prisma:generate internally)
 RUN pnpm run build
 
+# Produce a production-only node_modules deployment (no devDependencies).
+# pnpm deploy copies the workspace package with its production deps into
+# a standalone directory, so the final image ships only runtime packages.
+RUN pnpm --filter backend deploy --prod /spotiarr/prod-deploy
+
 FROM node:22-alpine
 
 # Pre-cache pnpm in a system-wide corepack store. The entrypoint sets
@@ -66,8 +71,9 @@ RUN chmod +x docker-entrypoint.sh
 # Copy built artifacts only — keep TS source and tests out of the runtime image.
 # Selective COPY ships only node_modules, compiled dist, and the Prisma
 # schema/migrations, reducing image size and attack surface.
-COPY --chown=node:node --from=builder /spotiarr/node_modules ./node_modules
-COPY --chown=node:node --from=builder /spotiarr/apps/backend/node_modules ./apps/backend/node_modules
+# node_modules comes from the pnpm deploy output (production deps only —
+# devDependencies such as pino-pretty, vitest, and tsc-alias are excluded).
+COPY --chown=node:node --from=builder /spotiarr/prod-deploy/node_modules ./apps/backend/node_modules
 COPY --chown=node:node --from=builder /spotiarr/apps/backend/package.json ./apps/backend/
 COPY --chown=node:node --from=builder /spotiarr/apps/backend/dist ./apps/backend/dist
 COPY --chown=node:node --from=builder /spotiarr/apps/backend/prisma ./apps/backend/prisma
@@ -80,7 +86,7 @@ COPY --chown=node:node --from=builder /spotiarr/packages/shared/dist ./packages/
 
 # Prisma writes engine binaries at startup; make those dirs world-writable
 # so they work when PUID != 1000 (the build uid).
-RUN find /spotiarr/node_modules/.pnpm -name "engines" -path "*/@prisma/*" -type d \
+RUN find /spotiarr/apps/backend/node_modules -name "engines" -path "*/@prisma/*" -type d \
     -exec chmod a+w {} + 2>/dev/null || true
 
 # Default environment variables

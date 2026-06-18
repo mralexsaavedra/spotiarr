@@ -14,9 +14,9 @@ Load when working with docker-compose, deployments, volumes, or self-hosted conf
 ## Hard Rules
 
 - `./config/` is a Docker volume mount (`./config:/spotiarr/config`) — the SQLite database lives there. It is gitignored. Never commit it.
-- `docker-compose.override.yml` is gitignored — use it for local port/env overrides, never commit it.
+- `compose.override.yml` is gitignored — use it for local port/env overrides, never commit it.
 - `spotiarr` service waits for `redis` healthcheck before starting (`depends_on: condition: service_healthy`).
-- Traefik is optional — strip it from `docker-compose.override.yml` for direct port-3000 access.
+- Traefik is optional — strip it from `compose.override.yml` for direct port-3000 access.
 
 ## Services
 
