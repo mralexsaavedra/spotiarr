@@ -6,7 +6,7 @@ import { queryKeys } from "../queryKeys";
 
 export const useRecentPlaysQuery = (limit: number = 20) => {
   return useQuery<RecentPlayItem[]>({
-    queryKey: queryKeys.historyRecentPlays,
+    queryKey: queryKeys.historyRecentPlays(limit),
     queryFn: () => historyService.getRecentPlays(limit),
     staleTime: STALE_TIME_MEDIUM,
   });

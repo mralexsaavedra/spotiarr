@@ -6,7 +6,7 @@ import { queryKeys } from "../queryKeys";
 
 export const useTopTracksQuery = (limit: number = 10) => {
   return useQuery<TopTrackItem[]>({
-    queryKey: queryKeys.historyTopTracks,
+    queryKey: queryKeys.historyTopTracks(limit),
     queryFn: () => historyService.getTopTracks(limit),
     staleTime: STALE_TIME_MEDIUM,
   });

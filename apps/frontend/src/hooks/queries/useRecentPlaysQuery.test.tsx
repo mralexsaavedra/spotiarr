@@ -3,6 +3,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { historyService } from "@/services/history.service";
+import { queryKeys } from "../queryKeys";
 import { useRecentPlaysQuery } from "./useRecentPlaysQuery";
 
 vi.mock("@/services/history.service", () => ({
@@ -26,7 +27,7 @@ afterEach(() => {
 });
 
 describe("useRecentPlaysQuery", () => {
-  it("calls historyService.getRecentPlays and returns resolved data", async () => {
+  it("calls historyService.getRecentPlays with default limit 20 and returns resolved data", async () => {
     const data = [
       {
         trackId: "t-1",
@@ -39,11 +40,31 @@ describe("useRecentPlaysQuery", () => {
     ];
     vi.mocked(historyService.getRecentPlays).mockResolvedValueOnce(data);
 
-    const { result } = renderHook(() => useRecentPlaysQuery(), { wrapper: createWrapper() });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const { result } = renderHook(() => useRecentPlaysQuery(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+    });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(historyService.getRecentPlays).toHaveBeenCalledWith(20);
     expect(result.current.data).toBe(data);
+    expect(queryClient.getQueryData(queryKeys.historyRecentPlays(20))).toBe(data);
+  });
+
+  it("uses distinct cache keys for distinct limits", async () => {
+    vi.mocked(historyService.getRecentPlays).mockResolvedValue([]);
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    const { result: r10 } = renderHook(() => useRecentPlaysQuery(10), { wrapper });
+    await waitFor(() => expect(r10.current.isSuccess).toBe(true));
+
+    expect(queryKeys.historyRecentPlays(10)).not.toEqual(queryKeys.historyRecentPlays(20));
   });
 
   it("returns an empty array when there are no recent plays", async () => {

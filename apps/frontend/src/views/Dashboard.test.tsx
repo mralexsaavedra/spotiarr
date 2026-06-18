@@ -120,8 +120,19 @@ describe("Dashboard", () => {
   it("renders MostListenedSection and RecentPlaysSection in order above DownloadHistorySection", () => {
     render(<Dashboard />);
 
-    expect(screen.getByTestId("most-listened-section")).toBeTruthy();
-    expect(screen.getByTestId("recent-plays-section")).toBeTruthy();
-    expect(screen.getByTestId("download-history-section")).toBeTruthy();
+    const mostListened = screen.getByTestId("most-listened-section");
+    const recentPlays = screen.getByTestId("recent-plays-section");
+    const downloadHistory = screen.getByTestId("download-history-section");
+
+    // Node.DOCUMENT_POSITION_FOLLOWING (4) means the argument comes AFTER the context node
+    expect(
+      mostListened.compareDocumentPosition(recentPlays) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      recentPlays.compareDocumentPosition(downloadHistory) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      mostListened.compareDocumentPosition(downloadHistory) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

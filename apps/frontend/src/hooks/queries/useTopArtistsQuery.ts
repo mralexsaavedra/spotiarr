@@ -6,7 +6,7 @@ import { queryKeys } from "../queryKeys";
 
 export const useTopArtistsQuery = (limit: number = 10) => {
   return useQuery<TopArtistItem[]>({
-    queryKey: queryKeys.historyTopArtists,
+    queryKey: queryKeys.historyTopArtists(limit),
     queryFn: () => historyService.getTopArtists(limit),
     staleTime: STALE_TIME_MEDIUM,
   });

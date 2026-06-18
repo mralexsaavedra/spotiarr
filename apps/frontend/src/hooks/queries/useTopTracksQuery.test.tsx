@@ -3,6 +3,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { historyService } from "@/services/history.service";
+import { queryKeys } from "../queryKeys";
 import { useTopTracksQuery } from "./useTopTracksQuery";
 
 vi.mock("@/services/history.service", () => ({
@@ -26,7 +27,7 @@ afterEach(() => {
 });
 
 describe("useTopTracksQuery", () => {
-  it("calls historyService.getTopTracks and returns resolved data", async () => {
+  it("calls historyService.getTopTracks with default limit 10 and returns resolved data", async () => {
     const data = [
       {
         trackUrl: "https://example.com/track1.mp3",
@@ -40,17 +41,39 @@ describe("useTopTracksQuery", () => {
     ];
     vi.mocked(historyService.getTopTracks).mockResolvedValueOnce(data);
 
-    const { result } = renderHook(() => useTopTracksQuery(), { wrapper: createWrapper() });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const { result } = renderHook(() => useTopTracksQuery(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+    });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(historyService.getTopTracks).toHaveBeenCalledWith(10);
     expect(result.current.data).toBe(data);
+    expect(queryClient.getQueryData(queryKeys.historyTopTracks(10))).toBe(data);
+  });
+
+  it("uses distinct cache keys for distinct limits", async () => {
+    vi.mocked(historyService.getTopTracks).mockResolvedValue([]);
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    const { result: r5 } = renderHook(() => useTopTracksQuery(5), { wrapper });
+    await waitFor(() => expect(r5.current.isSuccess).toBe(true));
+
+    expect(queryKeys.historyTopTracks(5)).not.toEqual(queryKeys.historyTopTracks(10));
   });
 
   it("returns an empty array when there are no top tracks", async () => {
     vi.mocked(historyService.getTopTracks).mockResolvedValueOnce([]);
 
-    const { result } = renderHook(() => useTopTracksQuery(), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useTopTracksQuery(), {
+      wrapper: createWrapper(),
+    });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toEqual([]);
