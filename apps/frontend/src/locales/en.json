@@ -121,7 +121,12 @@
   "dashboard": {
     "title": "Dashboard",
     "mostListenedTitle": "Most Listened",
-    "mostListenedComingSoon": "Coming soon"
+    "mostListenedComingSoon": "Coming soon",
+    "mostListenedEmpty": "No listens recorded yet",
+    "topTracksTitle": "Top Tracks",
+    "topArtistsTitle": "Top Artists",
+    "recentPlaysTitle": "Recently Played",
+    "recentPlaysEmpty": "No recent plays yet"
   },
   "library": {
     "title": "Library",
