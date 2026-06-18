@@ -1,4 +1,9 @@
-import type { RecordPlayInput } from "@spotiarr/shared";
+import type {
+  RecordPlayInput,
+  TopTrackItem,
+  TopArtistItem,
+  RecentPlayItem,
+} from "@spotiarr/shared";
 import { z, ZodError } from "zod";
 import { AppError } from "@/domain/errors/app-error";
 import { prisma } from "../setup/prisma";
@@ -47,6 +52,70 @@ export class PrismaPlayHistoryRepository {
       });
     } catch (_error) {
       throw new AppError(500, "internal_server_error", "Failed to record play event");
+    }
+  }
+
+  async getTopTracks(limit: number): Promise<TopTrackItem[]> {
+    try {
+      const rows = await prisma.playHistory.groupBy({
+        by: ["trackUrl", "trackName", "artist", "album", "albumCoverUrl"],
+        _count: { trackUrl: true },
+        _max: { playedAt: true },
+        orderBy: [{ _count: { trackUrl: "desc" } }, { _max: { playedAt: "desc" } }],
+        take: limit,
+      });
+
+      return rows.map((row) => ({
+        trackUrl: row.trackUrl,
+        trackName: row.trackName,
+        artist: row.artist,
+        album: row.album,
+        albumCoverUrl: row.albumCoverUrl,
+        playCount: row._count.trackUrl,
+        lastPlayedAt: Number(row._max.playedAt ?? 0),
+      }));
+    } catch (_error) {
+      throw new AppError(500, "internal_server_error", "Failed to retrieve top tracks");
+    }
+  }
+
+  async getTopArtists(limit: number): Promise<TopArtistItem[]> {
+    try {
+      const rows = await prisma.playHistory.groupBy({
+        by: ["artist"],
+        _count: { artist: true },
+        _max: { playedAt: true },
+        orderBy: [{ _count: { artist: "desc" } }, { _max: { playedAt: "desc" } }],
+        take: limit,
+      });
+
+      return rows.map((row) => ({
+        artist: row.artist,
+        playCount: row._count.artist,
+        lastPlayedAt: Number(row._max.playedAt ?? 0),
+      }));
+    } catch (_error) {
+      throw new AppError(500, "internal_server_error", "Failed to retrieve top artists");
+    }
+  }
+
+  async getRecentPlays(limit: number): Promise<RecentPlayItem[]> {
+    try {
+      const rows = await prisma.playHistory.findMany({
+        orderBy: { playedAt: "desc" },
+        take: limit,
+      });
+
+      return rows.map((row) => ({
+        trackId: row.trackId,
+        trackUrl: row.trackUrl,
+        trackName: row.trackName,
+        artist: row.artist,
+        album: row.album,
+        playedAt: Number(row.playedAt),
+      }));
+    } catch (_error) {
+      throw new AppError(500, "internal_server_error", "Failed to retrieve recent plays");
     }
   }
 }
