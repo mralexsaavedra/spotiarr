@@ -26,7 +26,7 @@ mkdir -p /spotiarr/config
 chown -R "$PUID:$PGID" /spotiarr/config
 # Prisma writes engine binaries into node_modules at startup; chown those dirs
 # so they're writable when PUID != 1000 (the uid used during the Docker build).
-find /spotiarr/node_modules/.pnpm -path "*/@prisma/engines" -type d \
+find /spotiarr/apps/backend/node_modules -path "*/@prisma/engines" -type d \
     -exec chown -R "$PUID:$PGID" {} + 2>/dev/null || true
 
 # Fix downloads root
