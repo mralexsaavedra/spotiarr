@@ -259,6 +259,31 @@ export interface RecordPlayInput {
   playedAt: number;
 }
 
+export interface TopTrackItem {
+  trackUrl: string | null;
+  trackName: string;
+  artist: string;
+  album: string | null;
+  albumCoverUrl: string | null;
+  playCount: number;
+  lastPlayedAt: number;
+}
+
+export interface TopArtistItem {
+  artist: string;
+  playCount: number;
+  lastPlayedAt: number;
+}
+
+export interface RecentPlayItem {
+  trackId: string | null;
+  trackUrl: string | null;
+  trackName: string;
+  artist: string;
+  album: string | null;
+  playedAt: number;
+}
+
 export interface DownloadHistoryItem {
   id: string;
   playlistId: string | null;
