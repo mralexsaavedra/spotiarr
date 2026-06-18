@@ -502,6 +502,15 @@ export interface ArtworkBackfillStartResponse {
   status: "running";
 }
 
+// ---------------------------------------------------------------------------
+// AI Listening Context (PR-5 / T-5.4)
+// ---------------------------------------------------------------------------
+
+export interface AiListeningContext {
+  topTracks: { title: string; artist: string }[];
+  topArtists: string[];
+}
+
 // AI Chat History
 
 export type AiChatRole = "user" | "assistant";
