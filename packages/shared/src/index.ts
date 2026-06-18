@@ -248,6 +248,17 @@ export interface ApiSuccess<T> {
   data: T;
 }
 
+export interface RecordPlayInput {
+  trackId: string | null;
+  trackUrl: string | null;
+  trackName: string;
+  artist: string;
+  album: string | null;
+  albumCoverUrl: string | null;
+  durationMs: number | null;
+  playedAt: number;
+}
+
 export interface DownloadHistoryItem {
   id: string;
   playlistId: string | null;
