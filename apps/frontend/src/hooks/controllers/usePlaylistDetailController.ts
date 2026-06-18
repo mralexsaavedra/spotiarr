@@ -7,7 +7,7 @@ import { useNavigationHelpers } from "../useNavigationHelpers";
 import { usePlayerQueueBinding } from "../usePlayerQueueBinding";
 import { usePlaylistController } from "./usePlaylistController";
 
-export type PlaylistDetailMode = "library" | "managed";
+type PlaylistDetailMode = "library" | "managed";
 
 export const usePlaylistDetailController = () => {
   const { handleGoHome } = useNavigationHelpers();

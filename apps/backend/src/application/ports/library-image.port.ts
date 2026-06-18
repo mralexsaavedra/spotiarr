@@ -1,6 +1,6 @@
-export type RejectReason = "outside-root" | "bad-extension" | "not-found" | "missing-path";
+type RejectReason = "outside-root" | "bad-extension" | "not-found" | "missing-path";
 
-export type ResolveImageResult =
+type ResolveImageResult =
   | { kind: "ok"; absolutePath: string; contentType: string }
   | { kind: "reject"; reason: RejectReason };
 

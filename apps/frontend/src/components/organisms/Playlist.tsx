@@ -9,7 +9,7 @@ import { PlaylistMetadata } from "../molecules/PlaylistMetadata";
 import { ConfirmModal } from "../organisms/ConfirmModal";
 import { AlbumPageLayout } from "./AlbumPageLayout";
 
-export type PlaylistMode = "library" | "managed";
+type PlaylistMode = "library" | "managed";
 
 interface PlaylistProps {
   playlist: PlaylistWithStats;

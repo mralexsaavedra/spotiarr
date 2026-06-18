@@ -10,12 +10,6 @@ export interface PromiseCacheEntry<T> {
   ttlMs: number;
 }
 
-export const createCacheEntry = <T>(value: T, ttlMs: number): CacheEntry<T> => ({
-  value,
-  createdAt: Date.now(),
-  ttlMs,
-});
-
 export const createPromiseCacheEntry = <T>(
   promise: Promise<T>,
   ttlMs: number,

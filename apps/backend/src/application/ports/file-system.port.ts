@@ -1,6 +1,6 @@
 import type { IPlaylist, ITrack, LibraryArtist } from "@spotiarr/shared";
 
-export interface TrackTags {
+interface TrackTags {
   title: string;
   artist: string;
   albumArtist?: string;

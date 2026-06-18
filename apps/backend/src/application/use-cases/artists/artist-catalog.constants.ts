@@ -1,6 +1,6 @@
 import { AppError } from "@/domain/errors/app-error";
 
-export const ARTIST_DISCOGRAPHY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ARTIST_DISCOGRAPHY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Maximum time the interactive artist-view path waits for the full provider

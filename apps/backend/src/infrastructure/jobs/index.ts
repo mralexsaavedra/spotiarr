@@ -36,7 +36,7 @@ export const recoverErroredTracksJob = cron.createTask("* * * * *", async () => 
   }
 });
 
-export const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
+const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
   try {
     const { playlistService, settingsService } = getContainer();
     const intervalMinutes = await settingsService.getNumber("PLAYLIST_CHECK_INTERVAL_MINUTES");
@@ -56,7 +56,7 @@ export const checkPlaylistsJob = cron.createTask("* * * * *", async () => {
   }
 });
 
-export const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
+const cleanStuckTracksJob = cron.createTask("* * * * *", async () => {
   try {
     const { trackService, settingsService, eventBus } = getContainer();
     const cleanupIntervalMinutes = await settingsService.getNumber(

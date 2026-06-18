@@ -132,10 +132,6 @@ export interface AiPlaylistProgressEvent {
   };
 }
 
-export interface GenerateAiPlaylistRequest {
-  prompt: string;
-}
-
 export interface GenerateAiPlaylistResponse {
   jobId: string;
 }
@@ -457,10 +453,6 @@ export interface ArtworkBackfillStatusResponse {
 export interface ArtworkBackfillStartResponse {
   runId: string;
   status: "running";
-}
-
-export interface UnlockRequestDto {
-  token: string;
 }
 
 // AI Chat History

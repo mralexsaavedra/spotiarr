@@ -1,6 +1,6 @@
 import type { ConnectivityPort } from "@/application/ports/connectivity.port";
 
-export type HealthStatus = "ok" | "degraded";
+type HealthStatus = "ok" | "degraded";
 
 type ComponentStatus = "ok" | "down";
 
