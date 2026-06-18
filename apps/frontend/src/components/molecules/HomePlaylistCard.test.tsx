@@ -1,7 +1,7 @@
+import { TrackStatusEnum } from "@spotiarr/shared";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { PlaylistWithStats } from "@/types";
-import { TrackStatusEnum } from "@spotiarr/shared";
 import { HomePlaylistCard } from "./HomePlaylistCard";
 
 vi.mock("react-i18next", () => ({
@@ -80,6 +80,19 @@ describe("HomePlaylistCard", () => {
     expect(screen.getByText("12/187")).not.toBeNull();
   });
 
+  it("hides the count badge when the playlist is fully downloaded", () => {
+    const playlist = makePlaylist();
+    render(
+      <HomePlaylistCard
+        playlist={playlist}
+        downloadedCount={50}
+        totalCount={50}
+        onClick={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText("50/50")).toBeNull();
+  });
+
   it("renders cover image when coverUrl is provided", () => {
     const playlist = makePlaylist({ coverUrl: "https://example.com/img.jpg" });
     render(
@@ -98,7 +111,12 @@ describe("HomePlaylistCard", () => {
     const onClick = vi.fn();
     const playlist = makePlaylist({ id: "my-id" });
     render(
-      <HomePlaylistCard playlist={playlist} downloadedCount={1} totalCount={10} onClick={onClick} />,
+      <HomePlaylistCard
+        playlist={playlist}
+        downloadedCount={1}
+        totalCount={10}
+        onClick={onClick}
+      />,
     );
     const button = screen.getByRole("button");
     fireEvent.click(button);
