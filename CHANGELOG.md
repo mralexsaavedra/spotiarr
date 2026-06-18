@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.21.3](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.2...v1.21.3) (2026-06-18)
+
+### Bug Fixes
+
+- **Docker container startup (pnpm 11)**: The production image pre-cached pnpm 10 while the project now pins pnpm 11.7.0, so corepack tried to download pnpm at startup and crash-looped on a read-only cache directory. The prod image now pre-caches pnpm 11.7.0. ([30d8ecc](https://github.com/mralexsaavedra/spotiarr/commit/30d8ecce))
+
 ## [1.21.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.1...v1.21.2) (2026-06-18)
 
 ### Bug Fixes
