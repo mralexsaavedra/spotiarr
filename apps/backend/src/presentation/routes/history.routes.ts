@@ -1,6 +1,8 @@
 import { Router, type Router as ExpressRouter } from "express";
 import type { Container } from "../../container";
 import { asyncHandler } from "../middleware/async-handler";
+import { validate } from "../middleware/validate";
+import { recordPlaySchema } from "./schemas/history.schema";
 
 export function createHistoryRoutes(container: Container): ExpressRouter {
   const router: ExpressRouter = Router();
@@ -11,6 +13,9 @@ export function createHistoryRoutes(container: Container): ExpressRouter {
 
   // GET /api/history/tracks - Get recent completed download tracks
   router.get("/tracks", asyncHandler(historyController.getRecentTracks));
+
+  // POST /api/history/plays - Record a play event
+  router.post("/plays", validate(recordPlaySchema), asyncHandler(historyController.recordPlay));
 
   return router;
 }
