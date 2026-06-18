@@ -22,7 +22,7 @@ For this project, a **Monorepo** architecture managed by **pnpm workspaces** was
     - **Benefit:** Avoids duplication. If we define a `Track` interface in the backend, the frontend consumes it directly. If it changes, TypeScript warns us of compilation errors on both sides.
 
 2.  **Unified Tooling:**
-    - Central configurations for ESLint, Prettier, and TypeScript (`packages/eslint-config`, `packages/tsconfig`).
+    - Central configurations for Prettier and TypeScript (`packages/tsconfig`). Linting uses oxlint.
     - **Benefit:** All code follows the same standard. No fights over styles; the repo imposes it automatically.
 
 3.  **Atomic Management:**
@@ -68,16 +68,23 @@ The backend follows **Clean Architecture** and simplified **Domain-Driven Design
 ```
 apps/backend/src/
 ├── __tests__/           # Architectural invariants (architecture.test.ts)
+├── constants/
 ├── application/         # Application logic
 │   ├── ports/           # Hexagonal contracts (interfaces)
 │   ├── services/        # Orchestrator services (SpotifyService, HealthService...)
-│   └── use-cases/       # Use-cases: CreateTrack, DownloadTrack...
+│   ├── use-cases/       # Use-cases: CreateTrack, DownloadTrack...
+│   └── utils/
 ├── domain/              # Pure domain model (entities, rules)
 ├── infrastructure/      # Concrete implementations
+│   ├── cache/
 │   ├── database/        # Prisma Repositories
-│   ├── external/        # Integrations (Spotify API, YouTube, Filesystem); providers/ai/ (adapter, connection resolver, model listing)
+│   ├── external/        # Integrations (YouTube, Filesystem); providers/ (ai/, deezer/, musicbrainz/, spotify/, normalize-name.ts)
 │   ├── jobs/            # Scheduled tasks (Cron Jobs)
-│   └── messaging/       # Queues (BullMQ) and Events (SSE)
+│   ├── logging/         # Pino logger
+│   ├── messaging/       # BullMQ queue services (track, ai-playlist, artwork-backfill) + app-event-bus.ts
+│   ├── services/
+│   └── workers/         # BullMQ worker processors (ai-playlist, artwork-backfill, catalog-sync, feed-sync, track-download, track-search)
+├── testing/
 ├── presentation/        # REST API (Routes and Controllers)
 └── container.ts         # Manual Dependency Injection (DI)
 ```
@@ -116,12 +123,12 @@ apps/frontend/src/
 │   ├── controllers/     # View Logic (ViewModel Pattern)
 │   ├── queries/         # API Read wrappers (React Query)
 │   ├── mutations/       # API Write wrappers (React Query)
-│   └── useServerEvents  # Real-time Sync (SSE)
+│   └── useServerEvents.ts  # Real-time Sync (SSE)
 ├── services/            # Pure Fetchers
 └── store/               # Global UI State (Zustand)
-    ├── useDownloadStatusStore.ts
+    ├── usePlayerStore.ts    # Playback state
     ├── usePreferencesStore.ts
-    └── usePlayerStore.ts # Approved 3rd store for playback state
+    └── playerUISlice.ts     # Ephemeral UI state slice (composed into usePlayerStore)
 ```
 
 **Advanced Hook Patterns:**
@@ -154,7 +161,7 @@ Handles OAuth2 complexity transparently:
 
 - **Dual Token Strategy:** Uses _Client Credentials_ for public searches and _Authorization Code_ for user data.
 - **Auto-Refresh:** Stores `refresh_token` in encrypted database and renews token automatically before expiry, ensuring nightly Cron Jobs never fail due to auth.
-- **Catalog provider strategy:** Spotify remains the source of truth for **auth and user data** (followed artists, playlists, library). For **public catalog data** (discography, tracks, releases), the backend prioritizes **Deezer** as primary, **MusicBrainz** as secondary fallback, and **Spotify** as terminal fallback. This mitigates Spotify quota restrictions without losing functionality.
+- **Catalog provider strategy:** Spotify is the source of truth for **auth and user data** (followed artists, playlists, library). For **interactive paths** (search, artist detail, album tracks), **Deezer is the unconditional source** since v1.10.0 — the SpotifyCatalogSearchAdapter and SEARCH_PROVIDER flag were removed. **MusicBrainz** is the fallback for the release feed and catalog sync. Spotify is not used as a catalog fallback for interactive paths.
 
 Note: the high-level catalog orchestrator is `SpotifyService`, located at `application/services/spotify.service.ts`, and it receives Spotify clients through constructor injection.
 
@@ -185,7 +192,7 @@ The key piece to finding the right song:
 
 Native implementation without heavy libraries like Socket.io:
 
-- The backend maintains an array of open connections (`events.routes.ts`).
+- The backend maintains the open connection list and `emit()` in `presentation/controllers/events.controller.ts`. `events.routes.ts` is a thin delegating route.
 - `SseEventBus` decouples logic: any service can do `eventBus.emit('event')` without knowing about HTTP.
 - It is unidirectional (Server -> Client), ideal for progress notifications.
 
@@ -224,7 +231,7 @@ We use **Prisma** with **SQLite** for robust yet portable relational data manage
 **Main Entities:**
 
 - **Playlist:** Represents a Spotify list (album or playlist). Can be marked as `subscribed` for automatic updates. AI-generated playlists have `type=ai` and owner "SpotiArr AI".
-- **Track:** The minimal unit. Contains Spotify metadata and local download state (`New` -> `Searching` -> `Downloading` -> `Completed` -> `Error`).
+- **Track:** The minimal unit. Contains Spotify metadata and local download state (`New` -> `Searching` -> `Queued` -> `Downloading` -> `Completed` -> `Error`).
 - **Setting:** Key-value storage for user configuration (e.g., audio format, download path).
 - **DownloadHistory:** Immutable history of completed downloads for statistics.
 
@@ -284,7 +291,7 @@ The most critical process of the application works like this:
 
 2.  **Ingestion (UseCase):**
     - `CreatePlaylistUseCase` fetches metadata from Spotify API.
-    - Saves tracks to DB with `PENDING` state.
+    - Saves tracks to DB with `New` state.
     - Queues download jobs in **BullMQ**.
 
 3.  **Processing (Worker):**

@@ -23,7 +23,7 @@ Need more detail? Keep reading 👇
 **Core tools**
 
 - Node.js v22 or higher (`nvm use` recommended, see `.nvmrc`)
-- pnpm v10.0.0 or higher (`corepack enable` recommended)
+- pnpm v9.0.0 or higher (repo pins pnpm@11.7.0 via packageManager) (`corepack enable` recommended)
 - Python 3.11 or 3.12 (native addons)
 
 **Media + queue services**
@@ -109,7 +109,7 @@ docker run -d -p 6379:6379 --name redis redis:7-alpine
 
 ### Environment Variables
 
-**User-facing variables**: Please refer to the [README](../README.md#environment-variables) for the authoritative list of required and optional variables.
+**User-facing variables**: Please refer to the [README](README.md#environment-variables) for the authoritative list of required and optional variables.
 
 **Development & System Variables** (Auto-configured):
 
@@ -134,11 +134,11 @@ spotiarr/
 │   │   ├── src/
 │   │   │   ├── __tests__/     # Architecture and integration tests
 │   │   │   ├── application/   # Use cases, services, and ports
+│   │   │   ├── constants/
 │   │   │   ├── domain/        # Entities & core types
 │   │   │   ├── infrastructure/# External services (DB, Redis, Spotify)
 │   │   │   ├── presentation/  # HTTP controllers & routes
-│   │   │   ├── constants/
-│   │   │   ├── types/
+│   │   │   ├── testing/       # playwright-real-stack-server.ts, logger.ts
 │   │   │   ├── app.ts         # Express app setup
 │   │   │   ├── container.ts   # Dependency injection
 │   │   │   └── index.ts       # Entry point
@@ -151,6 +151,7 @@ spotiarr/
 │       │   │   ├── organisms/
 │       │   │   └── layouts/
 │       │   ├── hooks/
+│       │   ├── lib/           # aiProgressBus.ts
 │       │   ├── routes/
 │       │   ├── services/      # API clients
 │       │   ├── store/         # Zustand stores
@@ -255,7 +256,7 @@ The backend follows a **layered architecture** with strict dependency rules:
 
 ## AI Agent Setup
 
-This repo is configured for coding agents (Claude Code, Cursor, Copilot, etc.). See `AGENTS.md` for conventions, and `.atl/skill-registry.md` for available skills.
+This repo is configured for coding agents (Claude Code, Cursor, Copilot, etc.). See `AGENTS.md` for conventions, and `skills/skill-registry.md` for available skills.
 
 - Quick start for agents: `AGENTS.md`
 - Architecture guide: `skills/spotiarr-architecture/SKILL.md`

@@ -22,7 +22,7 @@ Para este proyecto, se eligió una arquitectura de **Monorepo** gestionada por *
     - **Beneficio:** Evita la duplicación. Si definimos la interfaz de una `Track` en el backend, el frontend la consume directamente. Si cambia, TypeScript nos avisa de los errores de compilación en ambos lados.
 
 2.  **Tooling Unificado:**
-    - Configuraciones centrales para ESLint, Prettier y TypeScript (`packages/eslint-config`, `packages/tsconfig`).
+    - Configuraciones centrales para Prettier y TypeScript (`packages/tsconfig`). El linting usa oxlint.
     - **Beneficio:** Todo el código sigue el mismo estándar. No hay peleas por estilos; el repo lo impone automáticamente.
 
 3.  **Gestión Atómica:**
@@ -68,16 +68,23 @@ El backend sigue principios de **Clean Architecture** y **Domain-Driven Design (
 ```
 apps/backend/src/
 ├── __tests__/           # Invariantes arquitectónicas (architecture.test.ts)
+├── constants/
 ├── application/         # Lógica de aplicación
 │   ├── ports/           # Contratos hexagonales (interfaces)
 │   ├── services/        # Servicios de orquestación (SpotifyService, HealthService...)
-│   └── use-cases/       # Casos de uso: CreateTrack, DownloadTrack...
+│   ├── use-cases/       # Casos de uso: CreateTrack, DownloadTrack...
+│   └── utils/
 ├── domain/              # Modelo de dominio puro (entidades, reglas)
 ├── infrastructure/      # Implementaciones concretas
+│   ├── cache/
 │   ├── database/        # Repositorios Prisma
-│   ├── external/        # Integraciones (Spotify API, YouTube, Filesystem); providers/ai/ (adaptador, connection resolver, model listing)
+│   ├── external/        # Integraciones (YouTube, Filesystem); providers/ (ai/, deezer/, musicbrainz/, spotify/, normalize-name.ts)
 │   ├── jobs/            # Tareas programadas (Cron Jobs)
-│   └── messaging/       # Colas (BullMQ) y Eventos (SSE)
+│   ├── logging/         # Logger pino
+│   ├── messaging/       # Servicios de cola BullMQ (track, ai-playlist, artwork-backfill) + app-event-bus.ts
+│   ├── services/
+│   └── workers/         # Procesadores de workers BullMQ (ai-playlist, artwork-backfill, catalog-sync, feed-sync, track-download, track-search)
+├── testing/
 ├── presentation/        # API Rest (Rutas y Controladores)
 └── container.ts         # Inyección de Dependencias (DI) Manual
 ```
@@ -116,12 +123,12 @@ apps/frontend/src/
 │   ├── controllers/     # Lógica de Vistas (ViewModel Pattern)
 │   ├── queries/         # Wrappers de lectura API (React Query)
 │   ├── mutations/       # Wrappers de escritura API (React Query)
-│   └── useServerEvents  # Sincronización Real-time (SSE)
+│   └── useServerEvents.ts  # Sincronización Real-time (SSE)
 ├── services/            # Fetchers puros
 └── store/               # Estado Global UI (Zustand)
-    ├── useDownloadStatusStore.ts
+    ├── usePlayerStore.ts    # Estado de reproducción
     ├── usePreferencesStore.ts
-    └── usePlayerStore.ts # Tercer store aprobado para el estado de reproducción
+    └── playerUISlice.ts     # Slice de estado efímero de UI (compuesto en usePlayerStore)
 ```
 
 **Patrones Avanzados de Hooks:**
@@ -154,7 +161,7 @@ Maneja la complejidad de OAuth2 de forma transparente:
 
 - **Dual Token Strategy:** Usa _Client Credentials_ para búsquedas públicas y _Authorization Code_ para datos de usuario.
 - **Auto-Refresh:** Almacena el `refresh_token` en base de datos cifrada y renueva el token automáticamente antes de que expire, garantizando que los Cron Jobs nocturnos nunca fallen por auth.
-- **Estrategia de proveedores de catálogo:** Spotify sigue siendo la fuente de verdad para **auth y datos de usuario** (artistas seguidos, playlists, librería). Para **datos públicos de catálogo** (discografía, tracks, lanzamientos), el backend prioriza **Deezer** como primario, **MusicBrainz** como fallback secundario, y **Spotify** como fallback terminal. Esto mitiga las restricciones de quota de Spotify sin perder funcionalidad.
+- **Estrategia de proveedores de catálogo:** Spotify es la fuente de verdad para **auth y datos de usuario** (artistas seguidos, playlists, librería). Para **rutas interactivas** (búsqueda, detalle de artista, tracks de álbum), **Deezer es la fuente incondicional** desde v1.10.0 — el adaptador SpotifyCatalogSearchAdapter y el flag SEARCH_PROVIDER fueron eliminados. **MusicBrainz** es el fallback para el feed de lanzamientos y sincronización de catálogo. Spotify no se usa como fallback de catálogo en rutas interactivas.
 
 Nota: el orquestador de catálogo de alto nivel es `SpotifyService`, que vive en `application/services/spotify.service.ts` y recibe los clients de Spotify por constructor.
 
@@ -185,7 +192,7 @@ La pieza clave para encontrar la canción correcta:
 
 Implementación nativa sin librerías pesadas como Socket.io:
 
-- El backend mantiene un array de conexiones abiertas (`events.routes.ts`).
+- El backend mantiene la lista de conexiones abiertas y la función `emit()` en `presentation/controllers/events.controller.ts`. `events.routes.ts` delega en el controlador.
 - `SseEventBus` desacopla la lógica: cualquier servicio puede hacer `eventBus.emit('event')` sin saber nada de HTTP.
 - Es unidireccional (Server -> Client), ideal para notificaciones de progreso.
 
@@ -224,7 +231,7 @@ Utilizamos **Prisma** con **SQLite** para una gestión de datos relacional robus
 **Entidades Principales:**
 
 - **Playlist:** Representa una lista de Spotify (álbum o playlist). Puede estar marcada como `subscribed` para actualizaciones automáticas. Las playlists generadas por IA tienen `type=ai` y owner "SpotiArr AI".
-- **Track:** La unidad mínima. Contiene metadatos de Spotify y el estado de la descarga local (`New` -> `Searching` -> `Downloading` -> `Completed` -> `Error`).
+- **Track:** La unidad mínima. Contiene metadatos de Spotify y el estado de la descarga local (`New` -> `Searching` -> `Queued` -> `Downloading` -> `Completed` -> `Error`).
 - **Setting:** Almacenamiento clave-valor para la configuración del usuario (ej: formato de audio, ruta de descargas).
 - **DownloadHistory:** Histórico inmutable de descargas completadas para estadísticas.
 
@@ -284,7 +291,7 @@ El proceso más crítico de la aplicación funciona así:
 
 2.  **Ingesta (UseCase):**
     - `CreatePlaylistUseCase` obtiene metadatos de Spotify API.
-    - Guarda las pistas en DB con estado `PENDING`.
+    - Guarda las pistas en DB con estado `New`.
     - Encola trabajos de descarga en **BullMQ**.
 
 3.  **Procesamiento (Worker):**

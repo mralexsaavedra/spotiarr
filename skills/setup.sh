@@ -55,7 +55,7 @@ make_symlink() {
 
 setup_claude() {
   echo -e "\n${BLUE}${BOLD}Claude Code${NC}"
-  make_symlink "../AGENTS.md" "$REPO_ROOT/CLAUDE.md" "CLAUDE.md → AGENTS.md"
+  make_symlink "AGENTS.md" "$REPO_ROOT/CLAUDE.md" "CLAUDE.md → AGENTS.md"
   mkdir -p "$REPO_ROOT/.claude"
   make_symlink "../skills" "$REPO_ROOT/.claude/skills" ".claude/skills → skills/"
   echo -e "${GREEN}  Claude Code configured.${NC}"
@@ -63,7 +63,7 @@ setup_claude() {
 
 setup_gemini() {
   echo -e "\n${BLUE}${BOLD}Gemini CLI${NC}"
-  make_symlink "../AGENTS.md" "$REPO_ROOT/GEMINI.md" "GEMINI.md → AGENTS.md"
+  make_symlink "AGENTS.md" "$REPO_ROOT/GEMINI.md" "GEMINI.md → AGENTS.md"
   mkdir -p "$REPO_ROOT/.gemini"
   make_symlink "../skills" "$REPO_ROOT/.gemini/skills" ".gemini/skills → skills/"
   echo -e "${GREEN}  Gemini CLI configured.${NC}"

@@ -49,9 +49,14 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
   <br>
 
 <div align="center">
-  <img src="assets/screenshots/dashboard.png" alt="Library" width="100%">
+  <img src="assets/screenshots/library.png" alt="Music Library" width="100%">
   <br>
   <em>Built-in Native Music Library</em>
+  <br><br>
+
+  <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="100%">
+  <br>
+  <em>Dashboard — Library Stats, Most-Listened & Download History</em>
   <br><br>
 
   <img src="assets/screenshots/search.png" alt="Live Search" width="100%">
@@ -69,20 +74,15 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
   <em>Artist Profile with Discography & Metadata</em>
   <br><br>
 
-  <img src="assets/screenshots/history.png" alt="Unified History & Queue" width="100%">
-  <br>
-  <em>Unified History, Active Downloads & Queue</em>
-  <br><br>
-
   <img src="assets/screenshots/playlist.png" alt="Playlist Detail" width="100%">
   <br>
   <em>Rich Playlist Management & Track Selection</em>
   <br><br>
 
-  <img src="assets/screenshots/artists.png" alt="Artists Library" width="48%">
+  <img src="assets/screenshots/artists.png" alt="Followed Artists" width="48%">
   <img src="assets/screenshots/releases.png" alt="New Releases" width="48%">
   <br>
-  <em>Artist Library & New Releases Tracking</em>
+  <em>Followed Artists & New Releases Tracking</em>
   <br><br>
 
   <img src="assets/screenshots/mobile.png" alt="Mobile View" width="48%">
@@ -100,8 +100,8 @@ Download Spotify playlists, albums, and tracks with automatic metadata tagging a
 
 ## 📱 Application Views
 
-- **🏠 Library (Home):** Browse your downloaded music collection, artists, albums, and saved playlists.
-- **⚡ History:** Unified dashboard with active downloads, queue progress, and past history records.
+- **🏠 Home (Library):** Browse your downloaded music collection organized by artists, albums, and saved playlists.
+- **📊 Dashboard:** Library statistics, most-listened tracks, and download history. (`/history` redirects here.)
 - **🔔 Releases:** New releases from your followed artists.
 - **💾 My Playlists:** Browse and import your followed Spotify playlists directly.
 - **👥 Artists:** Manage your followed artists and view their discography.
