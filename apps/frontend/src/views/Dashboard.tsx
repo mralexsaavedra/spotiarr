@@ -15,8 +15,8 @@ export const Dashboard: FC = () => {
       <div className="max-w-full">
         <PageHeader title={t("dashboard.title")} className="mb-6" />
         <LibraryStatsSection stats={statsProps} />
-        <DownloadHistorySection {...historyProps} />
         <MostListenedPlaceholder />
+        <DownloadHistorySection {...historyProps} />
       </div>
     </section>
   );
