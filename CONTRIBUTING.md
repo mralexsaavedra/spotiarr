@@ -256,7 +256,7 @@ The backend follows a **layered architecture** with strict dependency rules:
 
 ## AI Agent Setup
 
-This repo is configured for coding agents (Claude Code, Cursor, Copilot, etc.). See `AGENTS.md` for conventions, and `skills/skill-registry.md` for available skills.
+This repo is configured for coding agents (Claude Code, Cursor, Copilot, etc.). See `AGENTS.md` for conventions, and `.atl/skill-registry.md` for available skills.
 
 - Quick start for agents: `AGENTS.md`
 - Architecture guide: `skills/spotiarr-architecture/SKILL.md`
