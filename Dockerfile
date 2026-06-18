@@ -40,7 +40,7 @@ FROM node:22-alpine
 # COREPACK_HOME=/usr/local/share/corepack before su-exec so the shim
 # finds the cached binary without attempting any download at startup.
 RUN corepack enable && \
-    COREPACK_HOME=/usr/local/share/corepack corepack prepare pnpm@10.20.0 --activate && \
+    COREPACK_HOME=/usr/local/share/corepack corepack prepare pnpm@11.7.0 --activate && \
     chmod -R a+r /usr/local/share/corepack
 
 # Install runtime dependencies
