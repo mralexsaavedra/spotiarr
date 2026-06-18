@@ -140,6 +140,7 @@
     "albumSearchNoResults": "No albums found",
     "albumSearchNoResultsDescription": "No albums match your search.",
     "playlistsSection": "Playlists",
+    "artistsSection": "Artists",
     "artistNotFound": "Artist not found",
     "artistNotFoundDescription": "Could not load artist details.",
     "artistCardAriaLabel": "Artist {{name}}, {{albums}} albums, {{tracks}} tracks",

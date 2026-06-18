@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import { TrackStatusEnum } from "@spotiarr/shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { ReactNode } from "react";
+import { describe, expect, it, vi } from "vitest";
 import { PlaylistWithStats } from "@/types";
 import { HomePlaylistList } from "./HomePlaylistList";
 
@@ -10,8 +11,28 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-// HomePlaylistList uses a simple grid, not VirtualGrid, so we don't need to mock Virtuoso
-const makeItem = (id: string, name: string): { playlist: PlaylistWithStats; downloadedCount: number; totalCount: number } => ({
+vi.mock("../molecules/VirtualGrid", () => ({
+  VirtualGrid: <T,>({
+    items,
+    itemKey,
+    renderItem,
+  }: {
+    items: T[];
+    itemKey: (item: T) => string;
+    renderItem: (item: T) => ReactNode;
+  }) => (
+    <div>
+      {items.map((item) => (
+        <div key={itemKey(item)}>{renderItem(item)}</div>
+      ))}
+    </div>
+  ),
+}));
+
+const makeItem = (
+  id: string,
+  name: string,
+): { playlist: PlaylistWithStats; downloadedCount: number; totalCount: number } => ({
   playlist: {
     id,
     name,

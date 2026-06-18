@@ -89,7 +89,12 @@ export const Home: FC = () => {
                 }
               />
             ) : filteredArtists.length > 0 ? (
-              <LibraryArtistList artists={filteredArtists} onArtistClick={handleArtistClick} />
+              <div className="mb-8">
+                <h2 className="text-text-primary mb-4 text-lg font-semibold">
+                  {t("library.artistsSection", "Artists")}
+                </h2>
+                <LibraryArtistList artists={filteredArtists} onArtistClick={handleArtistClick} />
+              </div>
             ) : null}
           </>
         )}

@@ -49,9 +49,11 @@ export const HomePlaylistCard: FC<HomePlaylistCardProps> = memo(
         <p className="text-text-secondary truncate text-sm">
           {t("common.by", "By")} {playlist.owner ?? ""}
         </p>
-        <span className="bg-background-hover text-text-secondary mt-2 inline-block rounded px-2 py-0.5 text-xs font-medium">
-          {downloadedCount}/{totalCount}
-        </span>
+        {downloadedCount < totalCount && (
+          <span className="bg-background-hover text-text-secondary mt-2 inline-block rounded px-2 py-0.5 text-xs font-medium">
+            {downloadedCount}/{totalCount}
+          </span>
+        )}
       </button>
     );
   },

@@ -183,6 +183,39 @@ describe("Home", () => {
     expect(artistList.getAttribute("data-count")).toBe("1");
   });
 
+  it("renders the artists section heading above the artist list when artists are present", () => {
+    const artist = {
+      name: "Rock Band",
+      path: "/rb",
+      albumCount: 2,
+      trackCount: 20,
+      totalSize: 0,
+      albums: [],
+    };
+    mockUseHomeController.mockReturnValue({
+      ...defaultController,
+      artists: [artist],
+      filteredArtists: [artist],
+    });
+
+    render(<Home />);
+
+    const heading = screen.getByRole("heading", { name: "Artists" });
+    const artistList = screen.getByTestId("artist-list");
+    expect(heading).not.toBeNull();
+    expect(heading.compareDocumentPosition(artistList) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
+  it("hides the artists section heading when no artists are present", () => {
+    mockUseHomeController.mockReturnValue(defaultController);
+
+    render(<Home />);
+
+    expect(screen.queryByRole("heading", { name: "Artists" })).toBeNull();
+  });
+
   it("does not render library stat cards (stats block moved to Dashboard)", () => {
     mockUseHomeController.mockReturnValue({
       ...defaultController,
