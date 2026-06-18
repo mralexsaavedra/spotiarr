@@ -75,7 +75,7 @@ docker compose up -d
 
 ## References
 
-- Compose file: `docker-compose.yml`
+- Compose file: `compose.yml`
 - Env template: `.env.example`
 - Entrypoint: `docker-entrypoint.sh`
 - Data volume: `./config/` (gitignored)
