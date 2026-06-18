@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.21.2](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.1...v1.21.2) (2026-06-18)
+
+### Bug Fixes
+
+- **Docker image build (pnpm 11)**: `pnpm deploy` now runs with `--legacy`, which pnpm 11 requires for non-injected workspaces, so the production image builds again. ([1dcd2ee](https://github.com/mralexsaavedra/spotiarr/commit/1dcd2eef))
+
 ## [1.21.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.0...v1.21.1) (2026-06-18)
 
 ### Bug Fixes
