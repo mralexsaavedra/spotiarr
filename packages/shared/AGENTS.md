@@ -6,10 +6,11 @@ Workspace: `packages/shared` · DTOs, enums, shared utilities
 
 ## What lives here
 
-Two files only:
+Three files:
 
 - `src/index.ts` — all shared exports (enums, DTOs, interfaces, API response types)
 - `src/routes.ts` — `ApiRoutes` constants
+- `src/identity.ts` — canonical Spotify/Deezer ID detection helpers (`isSpotifyId`, `isDeezerIdStr`, etc.)
 
 **Enums:** `PlaylistTypeEnum` · `TrackStatusEnum` · `PlaylistStatusEnum` · `ApiErrorCode` · `APP_LOCALES` · `SUPPORTED_AUDIO_FORMATS` · `AI_PROVIDERS` · `AI_PROVIDER_PRESETS` · `DEFAULT_AI_PROVIDER`
 

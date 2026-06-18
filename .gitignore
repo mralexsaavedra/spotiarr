@@ -119,6 +119,7 @@ pids/
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 **/playwright-report/
 **/test-results/
+**/.playwright-mcp/
 
 # OS files
 .DS_Store

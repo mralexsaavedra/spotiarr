@@ -14,16 +14,6 @@ interface SidebarProps {
   version: string;
 }
 
-const NAV_TRANSLATION_KEYS = {
-  Home: "navigation.home",
-  Dashboard: "navigation.dashboard",
-  Releases: "navigation.releases",
-  "My Playlists": "navigation.myPlaylists",
-  Artists: "navigation.artists",
-  "AI Chat": "navigation.aiChat",
-  Settings: "navigation.settings",
-} as const;
-
 export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
   const { t } = useTranslation();
   const { isSidebarCollapsed, toggleSidebar } = usePreferencesStore();
@@ -56,9 +46,7 @@ export const Sidebar: FC<SidebarProps> = ({ pathname }) => {
       <nav className="scrollbar-hide flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.to;
-          const translationKey =
-            NAV_TRANSLATION_KEYS[item.label as keyof typeof NAV_TRANSLATION_KEYS];
-          const label = t(translationKey);
+          const label = t(item.labelKey);
 
           return (
             <Link

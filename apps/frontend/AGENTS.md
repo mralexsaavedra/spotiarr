@@ -6,10 +6,10 @@ Workspace: `apps/frontend` · React 19, Vite, TanStack Query v5, Zustand, Tailwi
 
 ## Stack
 
-- React 19 with React Compiler
-- Vite (bundler) · React Router v6 (lazy + Suspense + RouteErrorBoundary)
+- React 19
+- Vite (bundler) · React Router v7 (lazy + Suspense + RouteErrorBoundary)
 - TanStack Query v5 — server state (queries + mutations)
-- Zustand — client state (3 stores, single-file with co-located selector hooks)
+- Zustand — client state (2 stores + a player UI slice, single-file with co-located selector hooks)
 - Tailwind CSS v4 · `cn()` utility for conditional classes
 
 ## Structure
@@ -19,7 +19,7 @@ src/
 ├── app/             App.tsx
 ├── components/      atoms/ molecules/ organisms/ layouts/ skeletons/ errors/
 ├── config/          app.ts, links.ts, navigation.ts, version.ts
-├── contexts/        DownloadStatusContext, ToastContext
+├── contexts/        ToastContext
 ├── hooks/
 │   ├── controllers/ view-level logic (useHomeController, useAlbumDetailController…, useChatController)
 │   ├── mutations/   TanStack useMutation wrappers
@@ -30,8 +30,8 @@ src/
 ├── routes/          routes.ts, Routing.tsx
 ├── lib/             aiProgressBus.ts (in-memory event bus bridging AI playlist SSE progress)
 ├── services/        raw HTTP clients (ai/artist/history/library/playlist/search/settings/track)
-├── store/           useDownloadStatusStore.ts, usePreferencesStore.ts, usePlayerStore.ts
-├── views/           14 page-level route screens (Home, History, PlaylistDetail…, Chat)
+├── store/           usePlayerStore.ts, usePreferencesStore.ts, playerUISlice.ts
+├── views/           15 page-level route screens (Home, PlaylistDetail…, Chat)
 └── utils/           cache.ts, cn.ts, date.ts
 ```
 
@@ -40,7 +40,7 @@ src/
 - View logic goes in `hooks/controllers/` — NOT inside view components.
 - Server state → `hooks/queries/` and `hooks/mutations/` (TanStack Query). Client state → `store/`.
 - Real-time updates → `useServerEvents` invalidates TanStack Query caches on SSE events (download progress, queue updates, AI playlist progress, etc.). AI playlist progress events are bridged through `lib/aiProgressBus.ts` — do NOT add manual `EventSource` subscriptions elsewhere.
-- `usePreferencesStore` persists to `localStorage` (`spotiarr-preferences`). `useDownloadStatusStore` is ephemeral.
+- `usePreferencesStore` persists to `localStorage` (`spotiarr-preferences`). Download status is server state managed by TanStack Query (`hooks/queries/useDownloadStatus.ts`), not a Zustand store.
 - `useLanguageSync` controls the active language from the `UI_LANGUAGE` backend setting — never call `i18n.changeLanguage()` manually.
 - Use `cn()` from `src/utils/cn.ts` for conditional Tailwind classes.
 - Instance auth gate → `components/organisms/TokenGate.tsx` wraps the authenticated app. Gate state is EPHEMERAL React state in `useTokenGate` (hooks/controllers) — NOT a Zustand store. Do not add a 4th store for auth.

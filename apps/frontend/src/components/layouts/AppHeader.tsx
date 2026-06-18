@@ -65,7 +65,7 @@ export const AppHeader: FC = () => {
             <Link
               key={item.to}
               to={item.to}
-              aria-label={item.label}
+              aria-label={t(item.labelKey)}
               className="text-text-secondary hover:text-text-primary hover:bg-background-elevated flex h-10 w-10 items-center justify-center rounded-full transition-colors"
             >
               <FontAwesomeIcon icon={item.icon} className="text-xl" />

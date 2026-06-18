@@ -20,25 +20,34 @@ Workspace: `apps/backend` · Node 22, Express, Prisma (SQLite), BullMQ, Redis
 src/
 ├── container.ts         ← DI wiring — ALL classes registered here
 ├── app.ts / index.ts
+├── constants/
 ├── domain/
 │   ├── entities/        playlist.entity.ts, track.entity.ts
 │   ├── errors/          app-error.ts
 │   ├── events/          event-bus.ts (interface)
-│   ├── repositories/    interfaces (history, playlist, settings, track)
-│   └── services/        interfaces (spotify.service, track-queue.service)
+│   ├── helpers/         deezer-image.helper.ts, spotify-url.helper.ts
+│   ├── repositories/    interfaces (ai-chat-message, history, playlist, settings, track)
+│   ├── services/        interfaces (ai-playlist-queue.service, track-queue.service)
+│   └── utils/           deezer-cover-url.ts
 ├── application/
-│   ├── use-cases/       ai/ artists/ history/ library/ playlists/ settings/ tracks/
-│   └── services/        library, playlist, settings, track, track-post-processing
+│   ├── ports/           hexagonal contracts (interfaces)
+│   ├── services/        artwork, feed-cache-eviction, health, library, playlist, settings, spotify, track-post-processing, track
+│   ├── use-cases/       ai/ artists/ artwork-backfill/ external-url/ feed/ history/ library/ playlists/ settings/ tracks/
+│   └── utils/
 ├── infrastructure/
+│   ├── cache/
 │   ├── database/        prisma-*.repository.ts, feed.repository.ts
-│   ├── external/        spotify-*.ts, DeezerClient, MusicBrainzClient, YoutubeDownload/Search, providers/ai/
-│   ├── messaging/       app-event-bus.ts, bullmq-track-queue.service.ts
-│   ├── workers/         catalog-sync, feed-sync, track-download, track-search, ai-playlist
-│   ├── jobs/            catalog-sync.job.ts, feed-sync.job.ts
+│   ├── external/        YoutubeDownload/Search; providers/ (ai/, deezer/, musicbrainz/, spotify/, normalize-name.ts)
+│   ├── logging/         pino logger
+│   ├── messaging/       app-event-bus.ts, bullmq-track-queue.service.ts, bullmq-ai-playlist-queue.service.ts, bullmq-artwork-backfill-queue.service.ts
+│   ├── services/
+│   ├── workers/         ai-playlist, artwork-backfill, catalog-sync, feed-sync, track-download, track-search
+│   ├── jobs/            catalog-sync.job.ts, feed-sync.job.ts, recover-errored-tracks.job.ts, index.ts
 │   └── setup/           environment.ts, prisma.ts, queues.ts
+├── testing/             playwright-real-stack-server.ts, logger.ts
 └── presentation/
-    ├── controllers/     ai, artist, auth, events, feed, health, history, library, playlist, search, settings, track
-    ├── middleware/      async-handler.ts, cookie.ts, error-handler.ts, require-token.ts, validate.ts
+    ├── controllers/     ai, artist, artwork-backfill, auth, events, external-url, feed, health, history, library, playlist, search, settings, track
+    ├── middleware/      async-handler.ts, cookie.ts, cors.ts, error-handler.ts, require-token.ts, validate.ts
     └── routes/          *.routes.ts + schemas/
 ```
 
