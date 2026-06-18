@@ -1103,3 +1103,32 @@ describe("resume playback position on reload", () => {
     expect(audio.currentTime).not.toBe(42);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Fix 1 — stable play recorder registration
+// ---------------------------------------------------------------------------
+
+describe("play recorder registration stability", () => {
+  it("setPlayRecorder is called exactly once on mount even after a time update", () => {
+    const setPlayRecorderSpy = vi.spyOn(usePlayerStore.getState(), "setPlayRecorder");
+
+    usePlayerStore.getState().playQueue([makeItem("a")], 0);
+    const { container } = render(<GlobalPlayerBar />);
+
+    // Simulate a timeupdate event which causes currentTime to change and the component to re-render
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    act(() => {
+      fireEvent(audio, new Event("timeupdate"));
+    });
+    act(() => {
+      fireEvent(audio, new Event("timeupdate"));
+    });
+
+    // setPlayRecorder should have been called once on mount (with the recorder fn),
+    // not re-called on every re-render triggered by timeupdate
+    const registrationCalls = setPlayRecorderSpy.mock.calls.filter(([arg]) => arg !== null);
+    expect(registrationCalls).toHaveLength(1);
+
+    setPlayRecorderSpy.mockRestore();
+  });
+});

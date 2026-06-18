@@ -15,9 +15,12 @@ import type { ListeningIntent } from "@spotiarr/shared";
 export function detectListeningIntent(prompt: string): ListeningIntent {
   const lower = prompt.toLowerCase();
 
-  // Phrases that signal "top / most listened" in EN and ES
+  // Phrases that signal "top / most listened" in EN and ES.
+  // "top" requires an immediately following music noun or number to avoid false positives
+  // like "top of the morning". Standalone "most" is excluded; only compound forms
+  // (most-listened, most-played) or the idiomatic "listen to most" are accepted.
   const topSignal =
-    /\b(top|most[- ]listened|most[- ]played|favorite|favourites?|most)\b|m[aá]s escuchad[oa]s?|lo que m[aá]s escucho/i;
+    /\btop\s+(?:\d+|songs?|tracks?|canciones?|temas?|artists?|bands?|grupos?|artistas?)\b|most[- ]listened|most[- ]played|favorite|favourites?|listen(?:ing)?\s+to\s+most\b|m[aá]s escuchad[oa]s?|lo que m[aá]s escucho/i;
 
   if (!topSignal.test(lower)) {
     return { scope: null };

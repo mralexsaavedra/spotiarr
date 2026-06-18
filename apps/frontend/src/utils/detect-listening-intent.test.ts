@@ -86,4 +86,14 @@ describe("detectListeningIntent", () => {
   it("is case-insensitive for ES", () => {
     expect(detectListeningIntent("Mis Artistas Más Escuchados")).toEqual({ scope: "artists" });
   });
+
+  // --- false-positive guard: standalone "most" without listened/played context ---
+  it("returns null for 'songs I like most' (standalone most is not a top-signal)", () => {
+    expect(detectListeningIntent("songs I like most")).toEqual({ scope: null });
+  });
+
+  // --- false-positive guard: "top" without music context ---
+  it("returns null for 'top of the morning' (top without music noun)", () => {
+    expect(detectListeningIntent("top of the morning")).toEqual({ scope: null });
+  });
 });
