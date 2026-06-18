@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.22.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.4...v1.22.0) (2026-06-18)
+
+### Features
+
+- **Library**: The artist list now has its own "Artists" heading, matching the existing "Playlists" section, so the two sections read consistently. ([b168d1a](https://github.com/mralexsaavedra/spotiarr/commit/b168d1a3))
+- **Library**: Playlist and artist cards are now the same size at every screen width. Both grids share a single column layout, so the library no longer looks misaligned on desktop. ([b168d1a](https://github.com/mralexsaavedra/spotiarr/commit/b168d1a3))
+- **Library**: The download count badge on playlist cards is now hidden once a playlist is fully downloaded, and only appears while a download is incomplete (e.g. 3/5), so finished playlists stay clean and partial ones stand out. ([b168d1a](https://github.com/mralexsaavedra/spotiarr/commit/b168d1a3))
+
 ## [1.21.4](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.3...v1.21.4) (2026-06-18)
 
 ### Bug Fixes
