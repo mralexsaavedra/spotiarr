@@ -83,7 +83,7 @@ describe("AppHeader", () => {
 
   it("renders Dashboard and Settings as secondary destinations", () => {
     renderHeader();
-    expect(screen.getByLabelText("Dashboard").getAttribute("href")).toBe(Path.DASHBOARD);
-    expect(screen.getByLabelText("Settings").getAttribute("href")).toBe(Path.SETTINGS);
+    expect(screen.getByLabelText("navigation.dashboard").getAttribute("href")).toBe(Path.DASHBOARD);
+    expect(screen.getByLabelText("navigation.settings").getAttribute("href")).toBe(Path.SETTINGS);
   });
 });

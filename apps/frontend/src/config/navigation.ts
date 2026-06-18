@@ -8,22 +8,23 @@ import {
   faSliders,
   faUserGroup,
 } from "@fortawesome/free-solid-svg-icons";
+import type { ParseKeys } from "i18next";
 import { Path } from "@/routes/routes";
 
 interface NavItem {
-  label: string;
+  labelKey: ParseKeys;
   icon: IconProp;
   to: Path;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Home", icon: faHouse, to: Path.HOME },
-  { label: "Dashboard", icon: faGaugeHigh, to: Path.DASHBOARD },
-  { label: "Releases", icon: faBell, to: Path.RELEASES },
-  { label: "My Playlists", icon: faListUl, to: Path.MY_PLAYLISTS },
-  { label: "Artists", icon: faUserGroup, to: Path.ARTISTS },
-  { label: "AI Chat", icon: faRobot, to: Path.CHAT },
-  { label: "Settings", icon: faSliders, to: Path.SETTINGS },
+  { labelKey: "navigation.home", icon: faHouse, to: Path.HOME },
+  { labelKey: "navigation.dashboard", icon: faGaugeHigh, to: Path.DASHBOARD },
+  { labelKey: "navigation.releases", icon: faBell, to: Path.RELEASES },
+  { labelKey: "navigation.myPlaylists", icon: faListUl, to: Path.MY_PLAYLISTS },
+  { labelKey: "navigation.artists", icon: faUserGroup, to: Path.ARTISTS },
+  { labelKey: "navigation.aiChat", icon: faRobot, to: Path.CHAT },
+  { labelKey: "navigation.settings", icon: faSliders, to: Path.SETTINGS },
 ];
 
 const byPath = (path: Path): NavItem => {
