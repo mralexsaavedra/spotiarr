@@ -22,7 +22,11 @@ export function createAiPlaylistWorker(): Worker {
   const worker = new Worker(
     AI_PLAYLIST_QUEUE,
     async (job) => {
-      const { jobId, prompt } = job.data as { jobId: string; prompt: string };
+      const { jobId, prompt, listeningContext } = job.data as {
+        jobId: string;
+        prompt: string;
+        listeningContext?: string;
+      };
 
       const onProgress = (event: AiPlaylistProgressEvent) => {
         eventBus.emit("ai-playlist-progress", event);
@@ -40,7 +44,7 @@ export function createAiPlaylistWorker(): Worker {
         appendChatMessage: appendChatMessageUseCase,
       });
 
-      await useCase.execute({ jobId, prompt });
+      await useCase.execute({ jobId, prompt, listeningContext });
     },
     {
       connection: {
