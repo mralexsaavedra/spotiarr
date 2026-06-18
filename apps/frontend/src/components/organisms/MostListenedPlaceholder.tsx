@@ -5,7 +5,7 @@ export const MostListenedPlaceholder: FC = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="mt-8">
+    <section>
       <h2 className="text-text-primary mb-4 text-lg font-semibold">
         {t("dashboard.mostListenedTitle")}
       </h2>

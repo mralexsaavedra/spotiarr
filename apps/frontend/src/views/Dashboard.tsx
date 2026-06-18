@@ -12,8 +12,8 @@ export const Dashboard: FC = () => {
 
   return (
     <section className="bg-background w-full px-4 py-6 md:px-8">
-      <div className="max-w-full">
-        <PageHeader title={t("dashboard.title")} className="mb-6" />
+      <div className="max-w-full space-y-8">
+        <PageHeader title={t("dashboard.title")} />
         <LibraryStatsSection stats={statsProps} />
         <MostListenedPlaceholder />
         <DownloadHistorySection {...historyProps} />
