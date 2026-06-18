@@ -1,6 +1,7 @@
 import { FC, memo, useCallback } from "react";
-import { HomePlaylistCard } from "../molecules/HomePlaylistCard";
 import { PlaylistWithStats } from "@/types";
+import { HomePlaylistCard } from "../molecules/HomePlaylistCard";
+import { VirtualGrid } from "../molecules/VirtualGrid";
 
 interface HomePlaylistListItem {
   playlist: PlaylistWithStats;
@@ -21,20 +22,22 @@ export const HomePlaylistList: FC<HomePlaylistListProps> = memo(({ items, onPlay
     [onPlaylistClick],
   );
 
+  const renderItem = useCallback(
+    ({ playlist, downloadedCount, totalCount }: HomePlaylistListItem) => (
+      <HomePlaylistCard
+        playlist={playlist}
+        downloadedCount={downloadedCount}
+        totalCount={totalCount}
+        onClick={handleClick}
+      />
+    ),
+    [handleClick],
+  );
+
   if (items.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {items.map(({ playlist, downloadedCount, totalCount }) => (
-        <HomePlaylistCard
-          key={playlist.id}
-          playlist={playlist}
-          downloadedCount={downloadedCount}
-          totalCount={totalCount}
-          onClick={handleClick}
-        />
-      ))}
-    </div>
+    <VirtualGrid items={items} itemKey={({ playlist }) => playlist.id} renderItem={renderItem} />
   );
 });
 
