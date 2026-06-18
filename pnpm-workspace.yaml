@@ -2,6 +2,7 @@ packages:
   - "apps/*"
   - "packages/*"
 shamefullyHoist: true
+verifyDepsBeforeRun: false
 allowBuilds:
   "@prisma/client": true
   "@prisma/engines": true
