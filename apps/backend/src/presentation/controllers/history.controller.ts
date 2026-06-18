@@ -19,4 +19,25 @@ export class HistoryController {
     await this.historyUseCases.recordPlay(req.body);
     res.status(201).json({ data: null });
   };
+
+  getTopTracks = async (req: Request, res: Response) => {
+    const limitRaw = req.query.limit as string | undefined;
+    const limit = limitRaw !== undefined ? parseInt(limitRaw, 10) : undefined;
+    const items = await this.historyUseCases.getTopTracks(limit);
+    res.json({ data: items });
+  };
+
+  getTopArtists = async (req: Request, res: Response) => {
+    const limitRaw = req.query.limit as string | undefined;
+    const limit = limitRaw !== undefined ? parseInt(limitRaw, 10) : undefined;
+    const items = await this.historyUseCases.getTopArtists(limit);
+    res.json({ data: items });
+  };
+
+  getRecentPlays = async (req: Request, res: Response) => {
+    const limitRaw = req.query.limit as string | undefined;
+    const limit = limitRaw !== undefined ? parseInt(limitRaw, 10) : undefined;
+    const items = await this.historyUseCases.getRecentPlays(limit);
+    res.json({ data: items });
+  };
 }
