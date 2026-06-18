@@ -298,6 +298,16 @@ export interface DownloadHistoryItem {
   completedAt: number;
 }
 
+// ---------------------------------------------------------------------------
+// AI listening intent types (PR-3 / T-3.7)
+// ---------------------------------------------------------------------------
+
+export type ListeningScope = "tracks" | "artists" | "both";
+
+export interface ListeningIntent {
+  scope: ListeningScope | null;
+}
+
 export interface PlaylistHistory {
   playlistId: string | null;
   playlistName: string;
