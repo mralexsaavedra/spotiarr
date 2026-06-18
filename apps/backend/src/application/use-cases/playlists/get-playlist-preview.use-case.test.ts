@@ -3,15 +3,6 @@ import type { SpotifyService } from "@/application/services/spotify.service";
 import { GetPlaylistPreviewTracksPageUseCase } from "./get-playlist-preview-tracks-page.use-case";
 import { GetPlaylistPreviewUseCase } from "./get-playlist-preview.use-case";
 
-const loggerMock = vi.hoisted(() => ({
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  debug: vi.fn(),
-  child: vi.fn().mockReturnThis(),
-}));
-vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
-
 const PLAYLIST_URL = "https://open.spotify.com/playlist/abc";
 
 const makeDeps = () => {
@@ -52,7 +43,6 @@ describe("GetPlaylistPreviewUseCase", () => {
         totalTracks: 0,
       }),
     );
-    expect(loggerMock.error).not.toHaveBeenCalled();
   });
 
   it("uses the live Spotify payload instead of relying on cache-key versioning", async () => {

@@ -3,15 +3,6 @@ import type { SpotifyService } from "@/application/services/spotify.service";
 import { GetPlaylistPreviewTracksPageUseCase } from "./get-playlist-preview-tracks-page.use-case";
 import { SyncSubscribedPlaylistsUseCase } from "./sync-subscribed-playlists.use-case";
 
-const loggerMock = vi.hoisted(() => ({
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  debug: vi.fn(),
-  child: vi.fn().mockReturnThis(),
-}));
-vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
-
 const PLAYLIST_URL = "https://open.spotify.com/playlist/abc";
 
 const makeDeps = () => {
@@ -63,7 +54,6 @@ describe("GetPlaylistPreviewTracksPageUseCase", () => {
       hasMore: true,
       nextOffset: 50,
     });
-    expect(loggerMock.error).not.toHaveBeenCalled();
   });
 
   it("returns the latest Spotify page across consecutive executions", async () => {

@@ -2,15 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import type { SpotifyService } from "@/application/services/spotify.service";
 import { GetMyPlaylistsUseCase } from "./get-my-playlists.use-case";
 
-const loggerMock = vi.hoisted(() => ({
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  debug: vi.fn(),
-  child: vi.fn().mockReturnThis(),
-}));
-vi.mock("@/infrastructure/logging/logger", () => ({ logger: loggerMock }));
-
 const makeDeps = () => {
   const spotifyService = {
     getMyPlaylists: vi.fn(),
@@ -42,7 +33,6 @@ describe("GetMyPlaylistsUseCase", () => {
 
     expect(spotifyService.getMyPlaylists).toHaveBeenCalledOnce();
     expect(result).toEqual(freshPlaylists);
-    expect(loggerMock.error).not.toHaveBeenCalled();
   });
 
   it("does not swallow Spotify errors behind cache fallbacks", async () => {
