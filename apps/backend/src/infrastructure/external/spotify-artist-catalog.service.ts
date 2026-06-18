@@ -97,8 +97,9 @@ export class SpotifyArtistCatalogService extends SpotifyHttpClient {
               component: "spotify-artist-catalog",
               artistId: artist.id,
               status: albumsResponse.status,
+              responseBody: errorText,
             },
-            `Failed to fetch catalog for artist ${artist.id}: ${albumsResponse.status} ${errorText}`,
+            "Failed to fetch catalog for artist",
           );
           break;
         }

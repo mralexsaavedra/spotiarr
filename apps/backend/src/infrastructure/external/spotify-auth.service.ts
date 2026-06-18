@@ -61,12 +61,12 @@ export class SpotifyAuthService {
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new AppError(
-          500,
-          "internal_server_error",
-          `Failed to get access token: ${errorData}`,
+        const responseBody = await response.text();
+        logger.error(
+          { component: "spotify-auth", status: response.status, responseBody },
+          "Failed to get access token",
         );
+        throw new AppError(500, "internal_server_error", "Failed to get access token");
       }
 
       const data = (await response.json()) as SpotifyTokenResponse;
@@ -80,7 +80,10 @@ export class SpotifyAuthService {
     try {
       return await this.appTokenPromise;
     } catch (error) {
-      this.log(`Error getting Spotify access token: ${getErrorMessage(error)}`);
+      logger.debug(
+        { component: "spotify-auth", err: getErrorMessage(error) },
+        "Error getting Spotify access token",
+      );
       throw error;
     } finally {
       this.appTokenPromise = null;
@@ -152,7 +155,10 @@ export class SpotifyAuthService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        this.log(`Failed to refresh Spotify user token: ${response.status} ${errorText}`, "warn");
+        logger.warn(
+          { component: "spotify-auth", status: response.status, responseBody: errorText },
+          "Failed to refresh Spotify user token",
+        );
         return false;
       }
 
@@ -175,7 +181,10 @@ export class SpotifyAuthService {
       this.log("Successfully refreshed Spotify user access token");
       return true;
     } catch (error) {
-      this.log(`Error refreshing Spotify user token: ${getErrorMessage(error)}`, "warn");
+      logger.warn(
+        { component: "spotify-auth", err: getErrorMessage(error) },
+        "Error refreshing Spotify user token",
+      );
       return false;
     }
   }
@@ -204,11 +213,14 @@ export class SpotifyAuthService {
 
     if (!response.ok) {
       const errorText = await response.text();
-      this.log(`Spotify token exchange failed: ${errorText}`, "error");
+      logger.error(
+        { component: "spotify-auth", status: response.status, responseBody: errorText },
+        "Spotify token exchange failed",
+      );
       throw new AppError(
         500,
         "spotify_token_exchange_failed",
-        `Failed to exchange authorization code for access token: ${errorText}`,
+        "Failed to exchange authorization code for access token",
       );
     }
 
@@ -236,7 +248,10 @@ export class SpotifyAuthService {
       this.invalidateUserLibraryCache();
       this.log("Successfully logged out from Spotify");
     } catch (error) {
-      this.log(`Failed to logout from Spotify: ${getErrorMessage(error)}`, "error");
+      logger.error(
+        { component: "spotify-auth", err: getErrorMessage(error) },
+        "Failed to logout from Spotify",
+      );
       throw error;
     }
   }
