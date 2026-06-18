@@ -65,6 +65,18 @@ describe("queryKeys — static keys", () => {
   it("aiChatMessages returns the expected tuple", () => {
     expect(queryKeys.aiChatMessages).toEqual(["ai", "chat", "messages"]);
   });
+
+  it("historyTopTracks returns the expected tuple", () => {
+    expect(queryKeys.historyTopTracks).toEqual(["history", "top-tracks"]);
+  });
+
+  it("historyTopArtists returns the expected tuple", () => {
+    expect(queryKeys.historyTopArtists).toEqual(["history", "top-artists"]);
+  });
+
+  it("historyRecentPlays returns the expected tuple", () => {
+    expect(queryKeys.historyRecentPlays).toEqual(["history", "recent-plays"]);
+  });
 });
 
 describe("queryKeys — parameterized keys", () => {

@@ -1,4 +1,12 @@
-import { ApiRoutes, DownloadHistoryItem, PlaylistHistory, RecordPlayInput } from "@spotiarr/shared";
+import {
+  ApiRoutes,
+  DownloadHistoryItem,
+  PlaylistHistory,
+  RecentPlayItem,
+  RecordPlayInput,
+  TopArtistItem,
+  TopTrackItem,
+} from "@spotiarr/shared";
 import type { QueueItem } from "@/store/usePlayerStore";
 import { httpClient } from "./httpClient";
 
@@ -29,5 +37,26 @@ export const historyService = {
       playedAt: Date.now(),
     };
     await httpClient.post<void>(`${ApiRoutes.HISTORY}/plays`, input);
+  },
+
+  getTopTracks: async (limit: number = 10): Promise<TopTrackItem[]> => {
+    const response = await httpClient.get<{ data: TopTrackItem[] }>(
+      `${ApiRoutes.HISTORY}/top-tracks?limit=${limit}`,
+    );
+    return response.data;
+  },
+
+  getTopArtists: async (limit: number = 10): Promise<TopArtistItem[]> => {
+    const response = await httpClient.get<{ data: TopArtistItem[] }>(
+      `${ApiRoutes.HISTORY}/top-artists?limit=${limit}`,
+    );
+    return response.data;
+  },
+
+  getRecentPlays: async (limit: number = 20): Promise<RecentPlayItem[]> => {
+    const response = await httpClient.get<{ data: RecentPlayItem[] }>(
+      `${ApiRoutes.HISTORY}/recent-plays?limit=${limit}`,
+    );
+    return response.data;
   },
 };
