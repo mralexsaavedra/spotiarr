@@ -1,7 +1,7 @@
 FROM node:22-alpine AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
+RUN corepack enable && corepack prepare pnpm@11.7.0 --activate
 
 # Install build dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
@@ -12,7 +12,7 @@ RUN apk add --no-cache python3 make g++ || \
 WORKDIR /spotiarr
 
 # Copy configuration files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* .npmrc ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 
 # Copy workspace package.json files for dependency installation
 COPY apps/backend/package.json ./apps/backend/
@@ -62,7 +62,7 @@ WORKDIR /spotiarr
 RUN mkdir -p /downloads /spotiarr/config && chown node:node /spotiarr/config
 
 # Copy root configuration
-COPY --chown=node:node --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
+COPY --chown=node:node --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml ./
 
 # Copy entrypoint script
 COPY --chown=node:node docker-entrypoint.sh ./
