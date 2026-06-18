@@ -16,7 +16,7 @@ interface SidebarProps {
 
 const NAV_TRANSLATION_KEYS = {
   Home: "navigation.home",
-  History: "navigation.history",
+  Dashboard: "navigation.dashboard",
   Releases: "navigation.releases",
   "My Playlists": "navigation.myPlaylists",
   Artists: "navigation.artists",

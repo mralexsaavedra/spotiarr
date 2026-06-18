@@ -81,9 +81,9 @@ describe("AppHeader", () => {
     expect((screen.getByRole("textbox") as HTMLInputElement).className).toContain("pr-16");
   });
 
-  it("renders History and Settings as secondary destinations", () => {
+  it("renders Dashboard and Settings as secondary destinations", () => {
     renderHeader();
-    expect(screen.getByLabelText("History").getAttribute("href")).toBe(Path.HISTORY);
+    expect(screen.getByLabelText("Dashboard").getAttribute("href")).toBe(Path.DASHBOARD);
     expect(screen.getByLabelText("Settings").getAttribute("href")).toBe(Path.SETTINGS);
   });
 });
