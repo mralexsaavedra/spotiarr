@@ -79,12 +79,6 @@ export class SpotifyAuthService {
 
     try {
       return await this.appTokenPromise;
-    } catch (error) {
-      logger.debug(
-        { component: "spotify-auth", err: getErrorMessage(error) },
-        "Error getting Spotify access token",
-      );
-      throw error;
     } finally {
       this.appTokenPromise = null;
     }

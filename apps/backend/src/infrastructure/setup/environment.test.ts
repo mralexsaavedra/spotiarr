@@ -239,6 +239,9 @@ const REQUIRED_ENV = {
   SPOTIFY_CLIENT_SECRET: "client-secret",
   SPOTIFY_REDIRECT_URI: "http://localhost:3000/callback",
   NODE_ENV: "test",
+  // Provide an explicit downloads path so resolveDownloadsPath short-circuits
+  // before attempting mkdirSync("/downloads"), which fails on CI (non-root).
+  DOWNLOADS: "/tmp/spotiarr-test-downloads",
 };
 
 describe("environment setup", () => {
