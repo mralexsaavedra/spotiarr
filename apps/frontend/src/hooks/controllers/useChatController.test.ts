@@ -154,7 +154,7 @@ describe("useChatController", () => {
       await result.current.handleSubmit();
     });
 
-    expect(mockMutateAsync).toHaveBeenCalledWith("latin jazz");
+    expect(mockMutateAsync).toHaveBeenCalledWith(expect.objectContaining({ prompt: "latin jazz" }));
     expect(result.current.isGenerating).toBe(true);
   });
 

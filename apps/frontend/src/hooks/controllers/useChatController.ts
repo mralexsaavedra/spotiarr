@@ -6,6 +6,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { aiProgressBus } from "@/lib/aiProgressBus";
+import { detectListeningIntent } from "@/utils/detect-listening-intent";
 import { useClearChatMessagesMutation } from "../mutations/useClearChatMessagesMutation";
 import { useGenerateAiPlaylistMutation } from "../mutations/useGenerateAiPlaylistMutation";
 import { useChatMessagesQuery } from "../queries/useChatMessagesQuery";
@@ -116,7 +117,11 @@ export const useChatController = () => {
     setOptimisticMessages([optimisticEntry]);
 
     try {
-      const result = await mutation.mutateAsync(text);
+      const { scope } = detectListeningIntent(text);
+      const result = await mutation.mutateAsync({
+        prompt: text,
+        intent: scope ?? undefined,
+      });
       setJobId(result.jobId);
       setIsGenerating(true);
     } catch (e) {
