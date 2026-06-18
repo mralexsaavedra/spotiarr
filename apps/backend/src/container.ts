@@ -620,15 +620,15 @@ function createContainer(env: Env) {
   const clearChatMessagesUseCase = new ClearChatMessagesUseCase(aiChatMessageRepository);
 
   const aiPlaylistQueueService = new BullMqAiPlaylistQueueService();
+  const historyUseCases = new HistoryUseCases({ repository: historyRepository, settingsService });
+  const historyController = new HistoryController(historyUseCases);
   const aiChatController = new AiChatController(
     aiPlaylistQueueService,
     (overrides) => listAiModels(settingsService, overrides),
     getChatMessagesUseCase,
     clearChatMessagesUseCase,
+    historyUseCases,
   );
-
-  const historyUseCases = new HistoryUseCases({ repository: historyRepository, settingsService });
-  const historyController = new HistoryController(historyUseCases);
   const getRecentReleasesUseCase = new GetRecentReleasesUseCase(
     feedRepository,
     spotifyUserLibraryService,
