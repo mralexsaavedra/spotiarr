@@ -12,7 +12,6 @@ import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
 import { useStartArtworkBackfillMutation } from "../mutations/useStartArtworkBackfillMutation";
 import { useArtworkBackfillStatusQuery } from "../queries/useArtworkBackfillStatusQuery";
 import { useLibraryArtistsQuery } from "../queries/useLibraryArtistsQuery";
-import { useLibraryStatsQuery } from "../queries/useLibraryStatsQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useDebounce } from "../useDebounce";
 
@@ -24,7 +23,6 @@ export const useHomeController = () => {
   const [isRetryBackfillOnly, setIsRetryBackfillOnly] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, APP_CONFIG.DEBOUNCE.SEARCH_DELAY);
-  const { isLoading: isStatsLoading } = useLibraryStatsQuery();
   const { data: artists, isLoading: isArtistsLoading } = useLibraryArtistsQuery();
   const { data: artworkBackfillStatus } = useArtworkBackfillStatusQuery();
   const { data: playlists = [] } = usePlaylistsQuery();
@@ -32,7 +30,7 @@ export const useHomeController = () => {
   const { mutateAsync: startArtworkBackfill, isPending: isStartingArtworkBackfill } =
     useStartArtworkBackfillMutation();
 
-  const isLoading = isStatsLoading || isArtistsLoading;
+  const isLoading = isArtistsLoading;
 
   const handleOpenScanModal = useCallback(() => {
     setIsRetryBackfillOnly(false);

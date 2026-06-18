@@ -55,14 +55,25 @@ export const useDashboardController = () => {
     [navigate],
   );
 
-  const historyProps = {
-    history,
-    isLoading,
-    activePlaylists,
-    recreatingUrl: isRecreatePending ? (recreateVariables ?? null) : null,
-    onRecreate: handleRecreatePlaylistClick,
-    onItemClick: handleHistoryItemClick,
-  };
+  const historyProps = useMemo(
+    () => ({
+      history,
+      isLoading,
+      activePlaylists,
+      recreatingUrl: isRecreatePending ? (recreateVariables ?? null) : null,
+      onRecreate: handleRecreatePlaylistClick,
+      onItemClick: handleHistoryItemClick,
+    }),
+    [
+      history,
+      isLoading,
+      activePlaylists,
+      isRecreatePending,
+      recreateVariables,
+      handleRecreatePlaylistClick,
+      handleHistoryItemClick,
+    ],
+  );
 
   return {
     statsProps,
