@@ -41,10 +41,15 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      # Router for HTTP/HTTPS (Matches everything /)
+      # Router for HTTP/HTTPS (matches everything /).
+      # NOTE: tls=true enables TLS but uses a Traefik-generated self-signed certificate by default.
+      # To use Let's Encrypt certificates instead, configure an ACME certresolver in the traefik
+      # command section above, then uncomment the certresolver label below.
       - "traefik.http.routers.spotiarr.rule=PathPrefix(`/`)"
       - "traefik.http.routers.spotiarr.entrypoints=web,websecure"
       - "traefik.http.routers.spotiarr.tls=true"
+      # Uncomment and set to your resolver name after configuring Let's Encrypt ACME above:
+      # - "traefik.http.routers.spotiarr.tls.certresolver=letsencrypt"
       - "traefik.http.services.spotiarr.loadbalancer.server.port=3000"
 
   traefik:
@@ -63,11 +68,28 @@ services:
       # Redirect HTTP to HTTPS globally (Optional, uncomment if desired)
       # - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       # - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      #
+      # --- Let's Encrypt ACME (optional) ---
+      # To enable automatic TLS certificates, uncomment and configure the lines below.
+      # Prerequisites:
+      #   1. Set your email address (ACME account): replace <your-email@example.com>
+      #   2. Ensure your domain resolves to this host (HTTP-01 challenge requires port 80 reachable)
+      #   3. Mount a persistent acme.json file (mode 600) so certificates survive restarts:
+      #      Add to volumes below:  - ./config/acme.json:/acme.json
+      #      Create it first:  touch ./config/acme.json && chmod 600 ./config/acme.json
+      #   4. Uncomment the certresolver label on the spotiarr service below.
+      #
+      # - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      # - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      # - "--certificatesresolvers.letsencrypt.acme.email=<your-email@example.com>"
+      # - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Uncomment when using Let's Encrypt ACME (see above):
+      # - ./config/acme.json:/acme.json
     networks:
       - spotiarr-network
 
