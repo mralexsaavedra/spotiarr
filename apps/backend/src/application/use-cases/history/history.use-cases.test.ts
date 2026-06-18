@@ -1,4 +1,4 @@
-import type { DownloadHistoryItem } from "@spotiarr/shared";
+import type { DownloadHistoryItem, RecordPlayInput } from "@spotiarr/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HistoryUseCases } from "./history.use-cases";
 
@@ -133,5 +133,74 @@ describe("HistoryUseCases.getRecentDownloads", () => {
     repository.findAll.mockResolvedValue([]);
     await useCases.getRecentDownloads(50);
     expect(repository.findAll).toHaveBeenCalledWith(50);
+  });
+});
+
+describe("HistoryUseCases.recordPlay", () => {
+  function makePlayInput(overrides: Partial<RecordPlayInput> = {}): RecordPlayInput {
+    return {
+      trackId: "track-1",
+      trackUrl: "https://open.spotify.com/track/abc",
+      trackName: "Test Song",
+      artist: "Test Artist",
+      album: "Test Album",
+      albumCoverUrl: null,
+      durationMs: 180_000,
+      playedAt: 1_700_000_000_000,
+      ...overrides,
+    };
+  }
+
+  function makeSettingsService(enabled = true) {
+    return {
+      getBoolean: vi.fn().mockResolvedValue(enabled),
+    };
+  }
+
+  let repository: {
+    findAll: ReturnType<typeof vi.fn>;
+    createFromTrack: ReturnType<typeof vi.fn>;
+    recordPlay: ReturnType<typeof vi.fn>;
+  };
+  let settingsService: ReturnType<typeof makeSettingsService>;
+  let useCases: HistoryUseCases;
+
+  beforeEach(() => {
+    repository = {
+      findAll: vi.fn(),
+      createFromTrack: vi.fn(),
+      recordPlay: vi.fn().mockResolvedValue(undefined),
+    };
+    settingsService = makeSettingsService(true);
+    useCases = new HistoryUseCases({
+      repository: repository as never,
+      settingsService: settingsService as never,
+    });
+  });
+
+  it("calls repository.recordPlay when LISTENING_HISTORY_ENABLED is true", async () => {
+    await useCases.recordPlay(makePlayInput());
+
+    expect(settingsService.getBoolean).toHaveBeenCalledWith("LISTENING_HISTORY_ENABLED", true);
+    expect(repository.recordPlay).toHaveBeenCalledOnce();
+    expect(repository.recordPlay).toHaveBeenCalledWith(makePlayInput());
+  });
+
+  it("does NOT call repository.recordPlay when LISTENING_HISTORY_ENABLED is false", async () => {
+    settingsService = makeSettingsService(false);
+    useCases = new HistoryUseCases({
+      repository: repository as never,
+      settingsService: settingsService as never,
+    });
+
+    await useCases.recordPlay(makePlayInput());
+
+    expect(settingsService.getBoolean).toHaveBeenCalledWith("LISTENING_HISTORY_ENABLED", true);
+    expect(repository.recordPlay).not.toHaveBeenCalled();
+  });
+
+  it("returns void on success", async () => {
+    const result = await useCases.recordPlay(makePlayInput());
+    expect(result).toBeUndefined();
   });
 });

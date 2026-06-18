@@ -1,8 +1,10 @@
-import type { PlaylistHistory, DownloadHistoryItem } from "@spotiarr/shared";
+import type { PlaylistHistory, DownloadHistoryItem, RecordPlayInput } from "@spotiarr/shared";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { HistoryRepository } from "@/domain/repositories/history.repository";
 
 export interface HistoryUseCaseDependencies {
   repository: HistoryRepository;
+  settingsService?: SettingsPort;
 }
 
 interface PlaylistIdentifiers {
@@ -36,6 +38,15 @@ export class HistoryUseCases {
 
   async getRecentTracks(limit = 1000): Promise<DownloadHistoryItem[]> {
     return this.deps.repository.findAll(limit);
+  }
+
+  async recordPlay(input: RecordPlayInput): Promise<void> {
+    const enabled =
+      (await this.deps.settingsService?.getBoolean("LISTENING_HISTORY_ENABLED", true)) ?? true;
+
+    if (!enabled) return;
+
+    await this.deps.repository.recordPlay(input);
   }
 
   private initializeDeduplicationMaps(): DeduplicationMaps {
