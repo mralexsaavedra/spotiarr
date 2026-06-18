@@ -12,11 +12,11 @@ Instructions for AI coding assistants working in `spotiarr`.
 
 Spotiarr is a self-hosted Spotify companion for tracking and downloading music releases.
 
-| Component | Location          | Tech Stack                                            |
-| --------- | ----------------- | ----------------------------------------------------- |
+| Component | Location          | Tech Stack                                                           |
+| --------- | ----------------- | -------------------------------------------------------------------- |
 | Backend   | `apps/backend`    | Node 22, Express, Prisma (SQLite), BullMQ, Redis, Zod, Vercel AI SDK |
-| Frontend  | `apps/frontend`   | React 19, Vite, TanStack Query, Zustand, Tailwind 4   |
-| Shared    | `packages/shared` | DTOs, enums, shared utilities                         |
+| Frontend  | `apps/frontend`   | React 19, Vite, TanStack Query, Zustand, Tailwind 4                  |
+| Shared    | `packages/shared` | DTOs, enums, shared utilities                                        |
 
 External services: **Redis**, **FFmpeg**, **yt-dlp**, Python 3.11/3.12. Optional: any OpenAI-compatible LLM provider for AI Playlists — configured via in-app Settings (not env vars).
 
@@ -96,6 +96,9 @@ Load the relevant skill by reading the `SKILL.md` at the listed path. Multiple s
 | `prisma-client-api`           | Prisma Client CRUD, filters, relations, transactions            | [SKILL.md](skills/prisma-client-api/SKILL.md)           |
 | `prisma-database-setup`       | Prisma provider configuration, driver adapters                  | [SKILL.md](skills/prisma-database-setup/SKILL.md)       |
 | `bash-defensive-patterns`     | Defensive Bash scripts, CI/CD pipelines, error handling         | [SKILL.md](skills/bash-defensive-patterns/SKILL.md)     |
+| `vitest`                      | Unit tests, mocking, coverage, test filtering and fixtures      | [SKILL.md](skills/vitest/SKILL.md)                      |
+| `playwright-best-practices`   | E2E tests, Page Object Model, flaky tests, mocking, CI          | [SKILL.md](skills/playwright-best-practices/SKILL.md)   |
+| `oxlint`                      | Linting, fixing lint errors, `.oxlintrc.json` configuration     | [SKILL.md](skills/oxlint/SKILL.md)                      |
 
 ---
 
@@ -127,6 +130,9 @@ When performing these actions, load the corresponding skill FIRST:
 | Adding or consuming SSE / real-time events                 | `spotiarr-sse`                |
 | Running Prisma CLI commands                                | `prisma-cli`                  |
 | Writing shell scripts or CI pipeline scripts               | `bash-defensive-patterns`     |
+| Writing unit tests, mocks, or coverage                     | `vitest`                      |
+| Writing or debugging Playwright E2E tests                  | `playwright-best-practices`   |
+| Linting code or fixing oxlint errors                       | `oxlint`                      |
 
 ---
 
