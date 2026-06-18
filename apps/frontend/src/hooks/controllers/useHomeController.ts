@@ -12,7 +12,6 @@ import { useScanLibraryMutation } from "../mutations/useScanLibraryMutation";
 import { useStartArtworkBackfillMutation } from "../mutations/useStartArtworkBackfillMutation";
 import { useArtworkBackfillStatusQuery } from "../queries/useArtworkBackfillStatusQuery";
 import { useLibraryArtistsQuery } from "../queries/useLibraryArtistsQuery";
-import { useLibraryStatsQuery } from "../queries/useLibraryStatsQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
 import { useDebounce } from "../useDebounce";
 
@@ -24,7 +23,6 @@ export const useHomeController = () => {
   const [isRetryBackfillOnly, setIsRetryBackfillOnly] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, APP_CONFIG.DEBOUNCE.SEARCH_DELAY);
-  const { data: stats, isLoading: isStatsLoading } = useLibraryStatsQuery();
   const { data: artists, isLoading: isArtistsLoading } = useLibraryArtistsQuery();
   const { data: artworkBackfillStatus } = useArtworkBackfillStatusQuery();
   const { data: playlists = [] } = usePlaylistsQuery();
@@ -32,7 +30,7 @@ export const useHomeController = () => {
   const { mutateAsync: startArtworkBackfill, isPending: isStartingArtworkBackfill } =
     useStartArtworkBackfillMutation();
 
-  const isLoading = isStatsLoading || isArtistsLoading;
+  const isLoading = isArtistsLoading;
 
   const handleOpenScanModal = useCallback(() => {
     setIsRetryBackfillOnly(false);
@@ -132,21 +130,6 @@ export const useHomeController = () => {
     [navigate],
   );
 
-  const formatSize = useCallback((bytes: number) => {
-    const mb = bytes / 1024 / 1024;
-    return mb > 1024 ? `${(mb / 1024).toFixed(2)} GB` : `${mb.toFixed(2)} MB`;
-  }, []);
-
-  const statsData = useMemo(() => {
-    if (!stats) return null;
-    return {
-      artists: stats.totalArtists,
-      albums: stats.totalAlbums,
-      tracks: stats.totalTracks,
-      size: formatSize(stats.totalSize),
-    };
-  }, [stats, formatSize]);
-
   // Sort artists alphabetically if not already
   const sortedArtists = useMemo(() => {
     if (!artists) return [];
@@ -173,7 +156,6 @@ export const useHomeController = () => {
 
   return {
     t,
-    stats: statsData,
     artists: sortedArtists,
     isScanModalOpen,
     isLoading,
@@ -186,7 +168,6 @@ export const useHomeController = () => {
     handleArtistClick,
     handlePlaylistClick,
     handleSearchChange,
-    formatSize,
     search,
     downloadedPlaylists,
     filteredPlaylists,

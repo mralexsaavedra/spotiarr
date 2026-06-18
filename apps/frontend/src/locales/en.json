@@ -85,7 +85,7 @@
   },
   "navigation": {
     "home": "Library",
-    "history": "History",
+    "dashboard": "Dashboard",
     "releases": "Releases",
     "myPlaylists": "My Playlists",
     "artists": "My Artists",
@@ -117,6 +117,11 @@
     "recreate": "Recreate",
     "playlistExists": "Playlist already exists",
     "recreateTooltip": "Recreate playlist and subscribe again"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "mostListenedTitle": "Most Listened",
+    "mostListenedComingSoon": "Coming soon"
   },
   "library": {
     "title": "Library",

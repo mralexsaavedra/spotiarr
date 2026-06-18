@@ -69,10 +69,6 @@ vi.mock("@/contexts/ToastContext", () => ({
   useToast: () => mockToast,
 }));
 
-vi.mock("../queries/useLibraryStatsQuery", () => ({
-  useLibraryStatsQuery: () => ({ data: null, isLoading: false }),
-}));
-
 vi.mock("../queries/useLibraryArtistsQuery", () => ({
   useLibraryArtistsQuery: () => ({ data: [], isLoading: false }),
 }));
