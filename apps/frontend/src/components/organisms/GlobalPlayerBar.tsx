@@ -62,7 +62,7 @@ const TrackMetaContent: FC<{ item: QueueItem }> = ({ item }) => (
     <div className="h-10 w-10 shrink-0 overflow-hidden rounded shadow-sm">
       <Image src={item.artworkUrl} alt={item.name} className="rounded" />
     </div>
-    <div className="flex min-w-0 flex-col">
+    <div className="flex min-w-0 flex-col text-left">
       <span className="truncate text-sm font-semibold text-white">{item.name}</span>
       <span className="text-text-secondary truncate text-xs">{item.artist}</span>
     </div>
@@ -341,7 +341,7 @@ export const GlobalPlayerBar: FC = () => {
                         className="rounded"
                       />
                     </div>
-                    <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+                    <div className="flex min-w-0 flex-1 flex-col items-start text-left">
                       <span className="w-full truncate text-sm font-semibold text-white">
                         {currentItem.name}
                       </span>
