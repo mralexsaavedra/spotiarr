@@ -103,7 +103,7 @@ describe("HistoryController", () => {
       vi.mocked(useCases.getTopTracks).mockResolvedValue(items as never);
 
       const res = mockRes();
-      await controller.getTopTracks(mockReq({}, { limit: "10" }) as never, res);
+      await controller.getTopTracks(mockReq({}, { limit: 10 } as never) as never, res);
 
       expect(useCases.getTopTracks).toHaveBeenCalledOnce();
       expect(res.json).toHaveBeenCalledWith({ data: items });
@@ -116,9 +116,10 @@ describe("HistoryController", () => {
       expect(res.json).toHaveBeenCalledWith({ data: [] });
     });
 
-    it("passes the parsed limit to the use case", async () => {
+    it("passes the coerced limit number to the use case", async () => {
       const res = mockRes();
-      await controller.getTopTracks(mockReq({}, { limit: "20" }) as never, res);
+      // Middleware coerces the query string to a number before the controller runs
+      await controller.getTopTracks(mockReq({}, { limit: 20 } as never) as never, res);
 
       expect(useCases.getTopTracks).toHaveBeenCalledWith(20);
     });
@@ -137,7 +138,7 @@ describe("HistoryController", () => {
       vi.mocked(useCases.getTopArtists).mockResolvedValue(items as never);
 
       const res = mockRes();
-      await controller.getTopArtists(mockReq({}, { limit: "10" }) as never, res);
+      await controller.getTopArtists(mockReq({}, { limit: 10 } as never) as never, res);
 
       expect(useCases.getTopArtists).toHaveBeenCalledOnce();
       expect(res.json).toHaveBeenCalledWith({ data: items });
@@ -150,9 +151,10 @@ describe("HistoryController", () => {
       expect(res.json).toHaveBeenCalledWith({ data: [] });
     });
 
-    it("passes the parsed limit to the use case", async () => {
+    it("passes the coerced limit number to the use case", async () => {
       const res = mockRes();
-      await controller.getTopArtists(mockReq({}, { limit: "15" }) as never, res);
+      // Middleware coerces the query string to a number before the controller runs
+      await controller.getTopArtists(mockReq({}, { limit: 15 } as never) as never, res);
 
       expect(useCases.getTopArtists).toHaveBeenCalledWith(15);
     });
@@ -171,7 +173,7 @@ describe("HistoryController", () => {
       vi.mocked(useCases.getRecentPlays).mockResolvedValue(items as never);
 
       const res = mockRes();
-      await controller.getRecentPlays(mockReq({}, { limit: "20" }) as never, res);
+      await controller.getRecentPlays(mockReq({}, { limit: 20 } as never) as never, res);
 
       expect(useCases.getRecentPlays).toHaveBeenCalledOnce();
       expect(res.json).toHaveBeenCalledWith({ data: items });
@@ -184,9 +186,10 @@ describe("HistoryController", () => {
       expect(res.json).toHaveBeenCalledWith({ data: [] });
     });
 
-    it("passes the parsed limit to the use case", async () => {
+    it("passes the coerced limit number to the use case", async () => {
       const res = mockRes();
-      await controller.getRecentPlays(mockReq({}, { limit: "50" }) as never, res);
+      // Middleware coerces the query string to a number before the controller runs
+      await controller.getRecentPlays(mockReq({}, { limit: 50 } as never) as never, res);
 
       expect(useCases.getRecentPlays).toHaveBeenCalledWith(50);
     });

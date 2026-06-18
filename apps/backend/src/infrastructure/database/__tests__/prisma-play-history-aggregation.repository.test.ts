@@ -41,28 +41,22 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
           trackUrl: "https://open.spotify.com/track/a",
           trackName: "Track A",
           artist: "Artist A",
-          album: "Album A",
-          albumCoverUrl: null,
-          _count: { trackUrl: 5 },
-          _max: { playedAt: BigInt(2000) },
+          _count: { id: 5 },
+          _max: { playedAt: BigInt(2000), album: "Album A", albumCoverUrl: null },
         },
         {
           trackUrl: "https://open.spotify.com/track/c",
           trackName: "Track C",
           artist: "Artist C",
-          album: null,
-          albumCoverUrl: null,
-          _count: { trackUrl: 5 },
-          _max: { playedAt: BigInt(1000) },
+          _count: { id: 5 },
+          _max: { playedAt: BigInt(1000), album: null, albumCoverUrl: null },
         },
         {
           trackUrl: "https://open.spotify.com/track/b",
           trackName: "Track B",
           artist: "Artist B",
-          album: null,
-          albumCoverUrl: null,
-          _count: { trackUrl: 3 },
-          _max: { playedAt: BigInt(1500) },
+          _count: { id: 3 },
+          _max: { playedAt: BigInt(1500), album: null, albumCoverUrl: null },
         },
       ];
       vi.mocked(prisma.playHistory.groupBy).mockResolvedValue(groupByRows as never);
@@ -76,6 +70,12 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
       expect(result[1].playCount).toBe(5);
       expect(result[2].trackUrl).toBe("https://open.spotify.com/track/b");
       expect(result[2].playCount).toBe(3);
+
+      // Fix F: assert the exact orderBy argument passed to Prisma so a broken sort still fails
+      const call = vi.mocked(prisma.playHistory.groupBy).mock.calls[0][0] as {
+        orderBy?: unknown;
+      };
+      expect(call.orderBy).toEqual([{ _count: { id: "desc" } }, { _max: { playedAt: "desc" } }]);
     });
 
     it("maps BigInt lastPlayedAt to Number at the JSON boundary", async () => {
@@ -84,10 +84,8 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
           trackUrl: "https://open.spotify.com/track/x",
           trackName: "Test",
           artist: "Artist",
-          album: null,
-          albumCoverUrl: null,
-          _count: { trackUrl: 2 },
-          _max: { playedAt: BigInt(1_700_000_000_000) },
+          _count: { id: 2 },
+          _max: { playedAt: BigInt(1_700_000_000_000), album: null, albumCoverUrl: null },
         },
       ] as never);
 
@@ -103,10 +101,12 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
           trackUrl: "https://open.spotify.com/track/x",
           trackName: "My Song",
           artist: "My Artist",
-          album: "My Album",
-          albumCoverUrl: "https://example.com/cover.jpg",
-          _count: { trackUrl: 7 },
-          _max: { playedAt: BigInt(9_000) },
+          _count: { id: 7 },
+          _max: {
+            playedAt: BigInt(9_000),
+            album: "My Album",
+            albumCoverUrl: "https://example.com/cover.jpg",
+          },
         },
       ] as never);
 
@@ -127,10 +127,8 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
           trackUrl: null,
           trackName: "Null URL Track",
           artist: "Some Artist",
-          album: null,
-          albumCoverUrl: null,
-          _count: { trackUrl: 3 },
-          _max: { playedAt: BigInt(5_000) },
+          _count: { id: 3 },
+          _max: { playedAt: BigInt(5_000), album: null, albumCoverUrl: null },
         },
       ] as never);
 
@@ -139,6 +137,7 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
       expect(result).toHaveLength(1);
       expect(result[0].trackUrl).toBeNull();
       expect(result[0].trackName).toBe("Null URL Track");
+      // playCount must come from _count.id, not _count.trackUrl (which would be 0 for null trackUrl rows)
       expect(result[0].playCount).toBe(3);
     });
 
@@ -167,15 +166,13 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
       vi.mocked(prisma.playHistory.groupBy).mockResolvedValue([
         {
           artist: "Artist A",
-          _count: { artist: 10 },
+          _count: { id: 10 },
           _max: { playedAt: BigInt(3000) },
-          _countDistinct: undefined,
         },
         {
           artist: "Artist B",
-          _count: { artist: 4 },
+          _count: { id: 4 },
           _max: { playedAt: BigInt(1000) },
-          _countDistinct: undefined,
         },
       ] as never);
 
@@ -185,13 +182,19 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
       expect(result[0].playCount).toBe(10);
       expect(result[1].artist).toBe("Artist B");
       expect(result[1].playCount).toBe(4);
+
+      // Fix F: assert the exact orderBy argument passed to Prisma so a broken sort still fails
+      const call = vi.mocked(prisma.playHistory.groupBy).mock.calls[0][0] as {
+        orderBy?: unknown;
+      };
+      expect(call.orderBy).toEqual([{ _count: { id: "desc" } }, { _max: { playedAt: "desc" } }]);
     });
 
     it("maps TopArtistItem shape correctly (REQ-LH-015)", async () => {
       vi.mocked(prisma.playHistory.groupBy).mockResolvedValue([
         {
           artist: "Cool Band",
-          _count: { artist: 6 },
+          _count: { id: 6 },
           _max: { playedAt: BigInt(7_000) },
         },
       ] as never);

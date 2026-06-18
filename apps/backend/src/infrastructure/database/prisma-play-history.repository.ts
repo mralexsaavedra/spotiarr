@@ -58,10 +58,10 @@ export class PrismaPlayHistoryRepository {
   async getTopTracks(limit: number): Promise<TopTrackItem[]> {
     try {
       const rows = await prisma.playHistory.groupBy({
-        by: ["trackUrl", "trackName", "artist", "album", "albumCoverUrl"],
-        _count: { trackUrl: true },
-        _max: { playedAt: true },
-        orderBy: [{ _count: { trackUrl: "desc" } }, { _max: { playedAt: "desc" } }],
+        by: ["trackUrl", "trackName", "artist"],
+        _count: { id: true },
+        _max: { playedAt: true, album: true, albumCoverUrl: true },
+        orderBy: [{ _count: { id: "desc" } }, { _max: { playedAt: "desc" } }],
         take: limit,
       });
 
@@ -69,9 +69,9 @@ export class PrismaPlayHistoryRepository {
         trackUrl: row.trackUrl,
         trackName: row.trackName,
         artist: row.artist,
-        album: row.album,
-        albumCoverUrl: row.albumCoverUrl,
-        playCount: row._count.trackUrl,
+        album: row._max.album,
+        albumCoverUrl: row._max.albumCoverUrl,
+        playCount: row._count.id,
         lastPlayedAt: Number(row._max.playedAt ?? 0),
       }));
     } catch (_error) {
@@ -83,15 +83,15 @@ export class PrismaPlayHistoryRepository {
     try {
       const rows = await prisma.playHistory.groupBy({
         by: ["artist"],
-        _count: { artist: true },
+        _count: { id: true },
         _max: { playedAt: true },
-        orderBy: [{ _count: { artist: "desc" } }, { _max: { playedAt: "desc" } }],
+        orderBy: [{ _count: { id: "desc" } }, { _max: { playedAt: "desc" } }],
         take: limit,
       });
 
       return rows.map((row) => ({
         artist: row.artist,
-        playCount: row._count.artist,
+        playCount: row._count.id,
         lastPlayedAt: Number(row._max.playedAt ?? 0),
       }));
     } catch (_error) {

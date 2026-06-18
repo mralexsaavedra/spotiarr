@@ -17,11 +17,7 @@ export type RecordPlayBody = z.infer<typeof recordPlaySchema>["body"];
 
 export const historyLimitQuerySchema = z.object({
   query: z.object({
-    limit: z
-      .string()
-      .optional()
-      .transform((v) => (v !== undefined ? parseInt(v, 10) : undefined))
-      .pipe(z.number().int().positive().max(1000).optional()),
+    limit: z.coerce.number().int().positive().optional(),
   }),
 });
 
