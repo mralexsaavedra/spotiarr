@@ -41,7 +41,7 @@ test.describe("Mocked history flows", () => {
       },
     });
 
-    await page.goto("/history", { waitUntil: "domcontentloaded" });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     await expect(page.getByRole("heading", { name: "Download History" })).toBeVisible();
     await expect(page.getByText("Archive Mix")).toBeVisible();
@@ -79,7 +79,7 @@ test.describe("Mocked history flows", () => {
       },
     });
 
-    await page.goto("/history", { waitUntil: "domcontentloaded" });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
     await page.getByText("Archive Mix").click();
 
     await expect(page).toHaveURL(`/playlist/${managedPlaylist.id}`);
@@ -93,9 +93,19 @@ test.describe("Mocked history flows", () => {
     await installHistoryMocks(page, { downloads: [] });
     await installPlaylistMocks(page, { playlists: [] });
 
-    await page.goto("/history", { waitUntil: "domcontentloaded" });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     await expect(page.getByText("No download history yet")).toBeVisible();
     await expect(page.getByText("Completed downloads will appear here.")).toBeVisible();
+  });
+
+  test("/history redirects to /dashboard and shows Download History section", async ({ page }) => {
+    await installHistoryMocks(page, { downloads: [historyItem] });
+    await installPlaylistMocks(page, { playlists: [] });
+
+    await page.goto("/history", { waitUntil: "domcontentloaded" });
+
+    await expect(page).toHaveURL("/dashboard");
+    await expect(page.getByRole("heading", { name: "Download History" })).toBeVisible();
   });
 });
