@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.21.1](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.0...v1.21.1) (2026-06-18)
+
+### Bug Fixes
+
+- **Docker image build**: The v1.21.0 image failed to build after the pnpm 11 migration — the Dockerfile still copied the now-removed `.npmrc` and pinned pnpm 10. The builder now uses pnpm 11.7.0 and the hoist config travels via `pnpm-workspace.yaml`. ([44236bd](https://github.com/mralexsaavedra/spotiarr/commit/44236bde))
+
 ## [1.21.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.20.0...v1.21.0) (2026-06-18)
 
 ### Features
