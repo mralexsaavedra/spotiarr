@@ -1,5 +1,5 @@
 import { FC, Suspense, lazy } from "react";
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { Loading } from "@/components/atoms/Loading";
 import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
 import { AppLayout } from "@/components/layouts/AppLayout";
@@ -12,8 +12,8 @@ const PlaylistDetail = lazy(() =>
 const PlaylistPreview = lazy(() =>
   import("../views/PlaylistPreview").then((module) => ({ default: module.PlaylistPreview })),
 );
-const History = lazy(() =>
-  import("../views/History").then((module) => ({ default: module.History })),
+const Dashboard = lazy(() =>
+  import("../views/Dashboard").then((module) => ({ default: module.Dashboard })),
 );
 const Releases = lazy(() =>
   import("../views/Releases").then((module) => ({ default: module.Releases })),
@@ -65,7 +65,8 @@ export const Routing: FC<RoutingProps> = ({ pathname, version }) => (
         <Route path={Path.HOME} element={<Home />} />
         <Route path={Path.PLAYLIST_DETAIL} element={<PlaylistDetail />} />
         <Route path={Path.PLAYLIST_PREVIEW} element={<PlaylistPreview />} />
-        <Route path={Path.HISTORY} element={<History />} />
+        <Route path={Path.DASHBOARD} element={<Dashboard />} />
+        <Route path={Path.HISTORY} element={<Navigate to={Path.DASHBOARD} replace />} />
         <Route path={Path.RELEASES} element={<Releases />} />
         <Route path={Path.ARTISTS} element={<Artists />} />
         <Route path={Path.ARTIST_DETAIL} element={<ArtistDetail />} />

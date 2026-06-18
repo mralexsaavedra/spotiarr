@@ -4,6 +4,7 @@ import {
   buildPlaylist,
   buildTrack,
   installHistoryMocks,
+  installLibraryMocks,
   installPlaylistMocks,
   installTrackMocks,
 } from "../../helpers/api-mocks";
@@ -18,6 +19,7 @@ test.describe("Mocked history flows", () => {
   test("opens preview detail from history when the playlist is not yet saved locally", async ({
     page,
   }) => {
+    await installLibraryMocks(page);
     await installHistoryMocks(page, { downloads: [historyItem] });
     await installPlaylistMocks(page, {
       playlists: [],
@@ -41,7 +43,7 @@ test.describe("Mocked history flows", () => {
       },
     });
 
-    await page.goto("/history", { waitUntil: "domcontentloaded" });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     await expect(page.getByRole("heading", { name: "Download History" })).toBeVisible();
     await expect(page.getByText("Archive Mix")).toBeVisible();
@@ -63,6 +65,7 @@ test.describe("Mocked history flows", () => {
       tracks: [],
     });
 
+    await installLibraryMocks(page);
     await installHistoryMocks(page, { downloads: [historyItem] });
     await installPlaylistMocks(page, { playlists: [managedPlaylist] });
     await installTrackMocks(page, {
@@ -79,7 +82,7 @@ test.describe("Mocked history flows", () => {
       },
     });
 
-    await page.goto("/history", { waitUntil: "domcontentloaded" });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
     await page.getByText("Archive Mix").click();
 
     await expect(page).toHaveURL(`/playlist/${managedPlaylist.id}`);
@@ -90,12 +93,24 @@ test.describe("Mocked history flows", () => {
   });
 
   test("renders the empty history state when no mocked downloads exist", async ({ page }) => {
+    await installLibraryMocks(page);
     await installHistoryMocks(page, { downloads: [] });
+    await installPlaylistMocks(page, { playlists: [] });
+
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    await expect(page.getByText("No download history yet")).toBeVisible();
+    await expect(page.getByText("Completed downloads will appear here.")).toBeVisible();
+  });
+
+  test("/history redirects to /dashboard and shows Download History section", async ({ page }) => {
+    await installLibraryMocks(page);
+    await installHistoryMocks(page, { downloads: [historyItem] });
     await installPlaylistMocks(page, { playlists: [] });
 
     await page.goto("/history", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByText("No download history yet")).toBeVisible();
-    await expect(page.getByText("Completed downloads will appear here.")).toBeVisible();
+    await expect(page).toHaveURL("/dashboard");
+    await expect(page.getByRole("heading", { name: "Download History" })).toBeVisible();
   });
 });

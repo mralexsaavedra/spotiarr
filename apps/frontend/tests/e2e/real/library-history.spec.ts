@@ -18,7 +18,7 @@ test.describe("Real-stack library and history pages", () => {
   test("renders seeded download history and links managed entries to local playlist detail", async ({
     page,
   }) => {
-    await page.goto("/history", { waitUntil: "domcontentloaded" });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     await expect(
       page.getByRole("heading", { name: "Download History", exact: true }),

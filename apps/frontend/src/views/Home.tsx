@@ -5,7 +5,6 @@ import { Loading } from "@/components/atoms/Loading";
 import { EmptyState } from "@/components/molecules/EmptyState";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { SearchInput } from "@/components/molecules/SearchInput";
-import { StatCard } from "@/components/molecules/StatCard";
 import { ArtworkBackfillStatusIndicator } from "@/components/organisms/ArtworkBackfillStatusIndicator";
 import { HomePlaylistList } from "@/components/organisms/HomePlaylistList";
 import { LibraryArtistList } from "@/components/organisms/LibraryArtistList";
@@ -15,7 +14,6 @@ import { useHomeController } from "@/hooks/controllers/useHomeController";
 export const Home: FC = () => {
   const {
     t,
-    stats,
     isLoading,
     isScanning,
     isScanModalOpen,
@@ -62,15 +60,6 @@ export const Home: FC = () => {
         </div>
 
         <ArtworkBackfillStatusIndicator status={artworkBackfillStatus} />
-
-        {stats && (
-          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard label={t("library.artists", "Artists")} value={stats.artists} />
-            <StatCard label={t("library.albums", "Albums")} value={stats.albums} />
-            <StatCard label={t("library.tracks", "Tracks")} value={stats.tracks} />
-            <StatCard label={t("library.size", "Total Size")} value={stats.size} />
-          </div>
-        )}
 
         {isLoading ? (
           <Loading />
