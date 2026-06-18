@@ -53,11 +53,11 @@ describe("BottomNavigation", () => {
     }
   });
 
-  it("does not render History or Settings in the bottom bar", () => {
+  it("does not render Dashboard or Settings in the bottom bar", () => {
     renderNav(Path.HOME);
-    expect(MOBILE_NAV_ITEMS.some((i) => i.to === Path.HISTORY)).toBe(false);
+    expect(MOBILE_NAV_ITEMS.some((i) => i.to === Path.DASHBOARD)).toBe(false);
     expect(MOBILE_NAV_ITEMS.some((i) => i.to === Path.SETTINGS)).toBe(false);
-    expect(screen.queryByText("History")).toBeNull();
+    expect(screen.queryByText("Dashboard")).toBeNull();
     expect(screen.queryByText("Settings")).toBeNull();
   });
 

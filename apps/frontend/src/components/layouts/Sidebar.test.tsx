@@ -52,7 +52,7 @@ describe("Sidebar (expanded)", () => {
     // Labels are translated via t(key) which returns the key
     // Check that all nav items have their translated labels rendered
     expect(screen.getByText("navigation.home")).toBeTruthy();
-    expect(screen.getByText("navigation.history")).toBeTruthy();
+    expect(screen.getByText("navigation.dashboard")).toBeTruthy();
     expect(screen.getByText("navigation.settings")).toBeTruthy();
   });
 
@@ -72,9 +72,9 @@ describe("Sidebar (expanded)", () => {
 
   it("does not apply active style to an inactive route link", () => {
     renderSidebar(Path.HOME);
-    const historyLabel = screen.getByText("navigation.history");
-    const historyLink = historyLabel.closest("a")!;
-    expect(historyLink.className).not.toContain("bg-background-hover");
+    const dashboardLabel = screen.getByText("navigation.dashboard");
+    const dashboardLink = dashboardLabel.closest("a")!;
+    expect(dashboardLink.className).not.toContain("bg-background-hover");
   });
 
   it("renders the collapse toggle button", () => {

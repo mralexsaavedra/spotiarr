@@ -3,6 +3,7 @@ export enum Path {
   PLAYLIST_DETAIL = "/playlist/:id",
   PLAYLIST_PREVIEW = "/preview",
   HISTORY = "/history",
+  DASHBOARD = "/dashboard",
   SETTINGS = "/settings",
   RELEASES = "/releases",
   ARTISTS = "/artists",
