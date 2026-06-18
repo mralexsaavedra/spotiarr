@@ -94,6 +94,7 @@ bazel-out/
 
 # Docker
 docker-compose.override.yml
+compose.override.yml
 
 # Docker volumes
 /config/
