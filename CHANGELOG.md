@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.21.4](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.3...v1.21.4) (2026-06-18)
+
+### Bug Fixes
+
+- **Docker container startup (pnpm 11)**: Disabled pnpm's verify-deps-before-run, which on the read-only production image tried to write to the project root and crash-looped before the app could start. The container now boots normally. ([0dae5c7](https://github.com/mralexsaavedra/spotiarr/commit/0dae5c77))
+
 ## [1.21.3](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.2...v1.21.3) (2026-06-18)
 
 ### Bug Fixes
