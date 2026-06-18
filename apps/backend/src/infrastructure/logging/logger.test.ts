@@ -99,6 +99,18 @@ describe("logger redaction", () => {
     const { REDACT_PATHS } = await import("./logger");
     expect(REDACT_PATHS).toContain("*.secret");
   });
+
+  it("redacts 'responseBody' path so Spotify error bodies are not logged", async () => {
+    process.env = { ...originalEnv, NODE_ENV: "test", LOG_LEVEL: "silent" };
+    const { REDACT_PATHS } = await import("./logger");
+    expect(REDACT_PATHS).toContain("responseBody");
+  });
+
+  it("redacts '*.responseBody' wildcard path", async () => {
+    process.env = { ...originalEnv, NODE_ENV: "test", LOG_LEVEL: "silent" };
+    const { REDACT_PATHS } = await import("./logger");
+    expect(REDACT_PATHS).toContain("*.responseBody");
+  });
 });
 
 describe("logger production invariants", () => {

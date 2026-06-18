@@ -23,6 +23,8 @@ export const REDACT_PATHS: string[] = [
   "*.apiKey",
   "*.api_key",
   "headers.authorization",
+  "responseBody",
+  "*.responseBody",
 ];
 
 // Reads process.env directly, not getEnv(): the logger may be imported before
