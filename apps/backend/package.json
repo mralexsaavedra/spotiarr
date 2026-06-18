@@ -37,13 +37,13 @@
   "devDependencies": {
     "@spotiarr/tsconfig": "workspace:*",
     "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.5",
-    "@types/node": "^24.10.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.3",
     "@types/node-cron": "^3.0.11",
-    "@vitest/coverage-v8": "^3.0.0",
+    "@vitest/coverage-v8": "^4.1.9",
     "pino-pretty": "^13.1.3",
-    "tsc-alias": "^1.8.16",
-    "tsx": "^4.7.0",
-    "vitest": "^3.0.0"
+    "tsc-alias": "^1.8.17",
+    "tsx": "^4.22.4",
+    "vitest": "^4.1.9"
   }
 }
