@@ -35,6 +35,10 @@ vi.mock("./NowPlayingFullscreen", () => ({
   NowPlayingFullscreen: () => null,
 }));
 
+vi.mock("@/hooks/mutations/useRecordPlayMutation", () => ({
+  useRecordPlayMutation: () => ({ mutate: vi.fn() }),
+}));
+
 vi.mock("react-i18next", async () => {
   const actual = await vi.importActual<typeof import("react-i18next")>("react-i18next");
   return {

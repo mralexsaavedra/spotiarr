@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useRecordPlayMutation } from "@/hooks/mutations/useRecordPlayMutation";
 import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
 import { useGlobalPlayerShortcuts } from "@/hooks/useGlobalPlayerShortcuts";
 import { useMediaSession } from "@/hooks/useMediaSession";
@@ -122,6 +123,8 @@ export const GlobalPlayerBar: FC = () => {
   const isMuted = usePlayerStore((s) => s.isMuted);
 
   const setAudioElement = usePlayerStore((s) => s.setAudioElement);
+  const setPlayRecorder = usePlayerStore((s) => s.setPlayRecorder);
+  const { mutate: recordPlay } = useRecordPlayMutation();
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
@@ -169,6 +172,15 @@ export const GlobalPlayerBar: FC = () => {
       setAudioElement(null);
     };
   }, [setAudioElement]);
+
+  // Wire the record-play mutation into the player store (Decision 2).
+  // The store calls this fn when the threshold is crossed; the HTTP call stays in TanStack Query.
+  useEffect(() => {
+    setPlayRecorder(recordPlay);
+    return () => {
+      setPlayRecorder(null);
+    };
+  }, [setPlayRecorder, recordPlay]);
 
   useEffect(() => {
     const el = audioRef.current;
