@@ -119,7 +119,7 @@ type ComposedSpotifyUserLibrary = SpotifyUserLibraryPort & {
   getArtistCatalogData: SpotifyArtistCatalogService["getArtistCatalogData"];
 };
 
-export function createContainer(env: Env) {
+function createContainer(env: Env) {
   // Shared app-token circuit breaker and rate limiter — created once per container
   // instance so they can be reset between tests and configured after construction.
   const appTokenCircuitBreaker = new CircuitBreaker();

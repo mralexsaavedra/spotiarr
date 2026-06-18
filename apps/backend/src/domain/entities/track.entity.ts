@@ -1,6 +1,6 @@
 import { TrackStatusEnum, type ITrack } from "@spotiarr/shared";
 
-export const TERMINAL_TRACK_ERROR_CODES = new Set(["youtube_not_found"]);
+const TERMINAL_TRACK_ERROR_CODES = new Set(["youtube_not_found"]);
 
 export class Track {
   constructor(private readonly props: ITrack) {}

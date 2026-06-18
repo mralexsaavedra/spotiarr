@@ -19,7 +19,7 @@ export interface QueueItem {
   contextPath?: string;
 }
 
-export type RepeatMode = "off" | "all" | "one";
+type RepeatMode = "off" | "all" | "one";
 
 export interface PlayerState extends PlayerUISlice {
   queue: QueueItem[];

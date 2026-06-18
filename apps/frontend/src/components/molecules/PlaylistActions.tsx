@@ -17,7 +17,7 @@ import { isSpotifyUrl } from "@/utils/spotify";
 import { Button } from "../atoms/Button";
 import { SpotifyLinkButton } from "../molecules/SpotifyLinkButton";
 
-export type PlaylistActionsMode = "library" | "managed";
+type PlaylistActionsMode = "library" | "managed";
 
 interface PlaylistActionsProps {
   spotifyUrl?: string;

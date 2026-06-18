@@ -6,7 +6,7 @@ export interface SpotifyImage {
   url: string;
 }
 
-export interface SpotifyArtist {
+interface SpotifyArtist {
   id?: string;
   name: string;
   external_urls?: SpotifyExternalUrls;
@@ -48,7 +48,7 @@ export interface SpotifyPlaylistItem {
   item?: SpotifyTrack | null;
 }
 
-export interface SpotifyCursor {
+interface SpotifyCursor {
   after?: string;
 }
 
@@ -57,7 +57,7 @@ export interface SpotifyArtistFull extends SpotifyArtist {
   images?: SpotifyImage[];
 }
 
-export interface SpotifyFollowedArtistsPage {
+interface SpotifyFollowedArtistsPage {
   items: SpotifyArtistFull[];
   next?: string | null;
   cursors?: SpotifyCursor;

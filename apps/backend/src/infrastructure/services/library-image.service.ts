@@ -8,7 +8,7 @@ export type ResolveImageResult =
   | { kind: "ok"; absolutePath: string; contentType: string }
   | { kind: "reject"; reason: RejectReason };
 
-export interface LibraryImageService {
+interface LibraryImageService {
   resolveImage(rawPath: string | undefined): Promise<ResolveImageResult>;
 }
 

@@ -69,7 +69,7 @@ export function jsonToTrackArtists(jsonString: unknown): TrackArtist[] | undefin
 /**
  * Type guard for TrackStatusEnum
  */
-export function isValidTrackStatus(status: unknown): status is TrackStatusEnum {
+function isValidTrackStatus(status: unknown): status is TrackStatusEnum {
   const validStatuses = Object.values(TrackStatusEnum);
   return typeof status === "string" && validStatuses.includes(status as TrackStatusEnum);
 }

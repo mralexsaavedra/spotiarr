@@ -12,9 +12,9 @@ import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/cn";
 
-export type RepeatMode = "off" | "all" | "one";
+type RepeatMode = "off" | "all" | "one";
 
-export interface TransportControlsProps {
+interface TransportControlsProps {
   currentTrack?: { id: string } | null;
   isPlaying: boolean;
   shuffleMode: boolean;
