@@ -15,10 +15,7 @@ import type { ListeningIntent } from "@spotiarr/shared";
 export function detectListeningIntent(prompt: string): ListeningIntent {
   const lower = prompt.toLowerCase();
 
-  // Track nouns (EN + ES)
   const trackNoun = /\b(songs?|tracks?|canciones?|temas?)\b/i;
-
-  // Artist nouns (EN + ES)
   const artistNoun = /\b(artists?|bands?|grupos?|artistas?)\b/i;
 
   const hasTrackNoun = trackNoun.test(lower);
