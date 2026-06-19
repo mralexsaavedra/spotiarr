@@ -14,3 +14,11 @@ export const recordPlaySchema = z.object({
 });
 
 export type RecordPlayBody = z.infer<typeof recordPlaySchema>["body"];
+
+export const historyLimitQuerySchema = z.object({
+  query: z.object({
+    limit: z.coerce.number().int().positive().optional(),
+  }),
+});
+
+export type HistoryLimitQuery = z.infer<typeof historyLimitQuerySchema>["query"];

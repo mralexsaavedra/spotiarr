@@ -14,6 +14,9 @@ function makeUseCases(overrides: Partial<HistoryUseCases> = {}): HistoryUseCases
     getRecentDownloads: vi.fn().mockResolvedValue([]),
     getRecentTracks: vi.fn().mockResolvedValue([]),
     recordPlay: vi.fn().mockResolvedValue(undefined),
+    getTopTracks: vi.fn().mockResolvedValue([]),
+    getTopArtists: vi.fn().mockResolvedValue([]),
+    getRecentPlays: vi.fn().mockResolvedValue([]),
     ...overrides,
   } as unknown as HistoryUseCases;
 }
@@ -169,5 +172,100 @@ describe("POST /history/plays", () => {
 
     expect(res.status).toBe(201);
     expect(useCases.recordPlay).toHaveBeenCalledOnce();
+  });
+});
+
+describe("GET /history/top-tracks — limit validation (Fix D+E)", () => {
+  let useCases: HistoryUseCases;
+  let baseUrl: string;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    useCases = makeUseCases();
+    baseUrl = await startServer(buildApp(useCases));
+  });
+
+  it("returns 400 when limit is non-numeric (?limit=abc)", async () => {
+    const res = await fetch(`${baseUrl}/history/top-tracks?limit=abc`);
+    expect(res.status).toBe(400);
+    expect(useCases.getTopTracks).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when limit is zero (?limit=0)", async () => {
+    const res = await fetch(`${baseUrl}/history/top-tracks?limit=0`);
+    expect(res.status).toBe(400);
+    expect(useCases.getTopTracks).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when limit is negative (?limit=-5)", async () => {
+    const res = await fetch(`${baseUrl}/history/top-tracks?limit=-5`);
+    expect(res.status).toBe(400);
+    expect(useCases.getTopTracks).not.toHaveBeenCalled();
+  });
+
+  it("returns 200 and passes coerced number when limit is valid (?limit=10)", async () => {
+    const res = await fetch(`${baseUrl}/history/top-tracks?limit=10`);
+    expect(res.status).toBe(200);
+    expect(useCases.getTopTracks).toHaveBeenCalledWith(10);
+  });
+
+  it("passes limit above the cap to use case, which applies clamping (Fix E)", async () => {
+    // The schema does NOT reject large limits — the use case clamps silently
+    const res = await fetch(`${baseUrl}/history/top-tracks?limit=9999`);
+    expect(res.status).toBe(200);
+    // use case receives 9999 and internally clamps to MAX_TOP_TRACKS (50)
+    expect(useCases.getTopTracks).toHaveBeenCalledWith(9999);
+  });
+
+  it("returns 200 with no limit param (use case applies default)", async () => {
+    const res = await fetch(`${baseUrl}/history/top-tracks`);
+    expect(res.status).toBe(200);
+    expect(useCases.getTopTracks).toHaveBeenCalledWith(undefined);
+  });
+});
+
+describe("GET /history/top-artists — limit validation (Fix D+E)", () => {
+  let useCases: HistoryUseCases;
+  let baseUrl: string;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    useCases = makeUseCases();
+    baseUrl = await startServer(buildApp(useCases));
+  });
+
+  it("returns 400 when limit is non-numeric (?limit=abc)", async () => {
+    const res = await fetch(`${baseUrl}/history/top-artists?limit=abc`);
+    expect(res.status).toBe(400);
+    expect(useCases.getTopArtists).not.toHaveBeenCalled();
+  });
+
+  it("returns 200 and passes coerced number when limit is valid (?limit=5)", async () => {
+    const res = await fetch(`${baseUrl}/history/top-artists?limit=5`);
+    expect(res.status).toBe(200);
+    expect(useCases.getTopArtists).toHaveBeenCalledWith(5);
+  });
+});
+
+describe("GET /history/recent-plays — limit validation (Fix D+E)", () => {
+  let useCases: HistoryUseCases;
+  let baseUrl: string;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    useCases = makeUseCases();
+    baseUrl = await startServer(buildApp(useCases));
+  });
+
+  it("returns 400 when limit is non-numeric (?limit=abc)", async () => {
+    const res = await fetch(`${baseUrl}/history/recent-plays?limit=abc`);
+    expect(res.status).toBe(400);
+    expect(useCases.getRecentPlays).not.toHaveBeenCalled();
+  });
+
+  it("returns 200 and passes coerced number when limit is valid (?limit=20)", async () => {
+    const res = await fetch(`${baseUrl}/history/recent-plays?limit=20`);
+    expect(res.status).toBe(200);
+    expect(useCases.getRecentPlays).toHaveBeenCalledWith(20);
   });
 });

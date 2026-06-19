@@ -1,4 +1,11 @@
-import type { DownloadHistoryItem, ITrack, RecordPlayInput } from "@spotiarr/shared";
+import type {
+  DownloadHistoryItem,
+  ITrack,
+  RecordPlayInput,
+  TopTrackItem,
+  TopArtistItem,
+  RecentPlayItem,
+} from "@spotiarr/shared";
 import type { HistoryRepository } from "@/domain/repositories/history.repository";
 import { prisma } from "../setup/prisma";
 import { PrismaPlayHistoryRepository } from "./prisma-play-history.repository";
@@ -60,5 +67,17 @@ export class PrismaHistoryRepository implements HistoryRepository {
 
   async recordPlay(input: RecordPlayInput): Promise<void> {
     return this.playHistoryRepo.recordPlay(input);
+  }
+
+  async getTopTracks(limit: number): Promise<TopTrackItem[]> {
+    return this.playHistoryRepo.getTopTracks(limit);
+  }
+
+  async getTopArtists(limit: number): Promise<TopArtistItem[]> {
+    return this.playHistoryRepo.getTopArtists(limit);
+  }
+
+  async getRecentPlays(limit: number): Promise<RecentPlayItem[]> {
+    return this.playHistoryRepo.getRecentPlays(limit);
   }
 }
