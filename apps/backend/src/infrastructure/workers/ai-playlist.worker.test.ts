@@ -143,4 +143,46 @@ describe("createAiPlaylistWorker", () => {
 
     expect(loggerMock.error).toHaveBeenCalled();
   });
+
+  it("SUSPECT W-1: processor rejects a job with missing prompt — throws rather than passing undefined to use case", async () => {
+    const { createAiPlaylistWorker } = await import("./ai-playlist.worker");
+    createAiPlaylistWorker();
+
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as (job: unknown) => Promise<void>;
+    // jobId present, prompt missing (invalid job data)
+    const invalidJob = { data: { jobId: "bad-job" } };
+
+    await expect(processor(invalidJob)).rejects.toThrow();
+    // use case must NOT be called when job data is invalid
+    expect(executeUseCase).not.toHaveBeenCalled();
+  });
+
+  it("SUSPECT W-1: processor rejects a job with non-string prompt — throws validation error", async () => {
+    const { createAiPlaylistWorker } = await import("./ai-playlist.worker");
+    createAiPlaylistWorker();
+
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as (job: unknown) => Promise<void>;
+    const invalidJob = { data: { jobId: "bad-job", prompt: 42 } };
+
+    await expect(processor(invalidJob)).rejects.toThrow();
+    expect(executeUseCase).not.toHaveBeenCalled();
+  });
+
+  it("SUSPECT W-1: processor accepts valid job data with optional listeningContext", async () => {
+    const { createAiPlaylistWorker } = await import("./ai-playlist.worker");
+    createAiPlaylistWorker();
+
+    const processor = (WorkerMock.mock.calls[0] as unknown[])[1] as (job: unknown) => Promise<void>;
+    const validJob = {
+      data: { jobId: "job-ok", prompt: "chill beats", listeningContext: "User's top tracks: ..." },
+    };
+
+    executeUseCase.mockResolvedValueOnce(undefined);
+    await expect(processor(validJob)).resolves.toBeUndefined();
+    expect(executeUseCase).toHaveBeenCalledWith({
+      jobId: "job-ok",
+      prompt: "chill beats",
+      listeningContext: "User's top tracks: ...",
+    });
+  });
 });

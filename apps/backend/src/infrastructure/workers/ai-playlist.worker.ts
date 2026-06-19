@@ -1,11 +1,18 @@
 import type { AiPlaylistProgressEvent } from "@spotiarr/shared";
 import { Worker } from "bullmq";
+import { z } from "zod";
 import { GenerateAiPlaylistUseCase } from "@/application/use-cases/ai/generate-ai-playlist.use-case";
 import { getContainer } from "@/container";
 import { createAiChatPort } from "../external/providers/ai/openai-compatible.adapter";
 import { logger } from "../logging/logger";
 import { getEnv } from "../setup/environment";
 import { AI_PLAYLIST_QUEUE } from "../setup/queues";
+
+const jobDataSchema = z.object({
+  jobId: z.string(),
+  prompt: z.string(),
+  listeningContext: z.string().optional(),
+});
 
 const log = logger.child({ worker: "ai-playlist-worker" });
 
@@ -22,11 +29,7 @@ export function createAiPlaylistWorker(): Worker {
   const worker = new Worker(
     AI_PLAYLIST_QUEUE,
     async (job) => {
-      const { jobId, prompt, listeningContext } = job.data as {
-        jobId: string;
-        prompt: string;
-        listeningContext?: string;
-      };
+      const { jobId, prompt, listeningContext } = jobDataSchema.parse(job.data);
 
       const onProgress = (event: AiPlaylistProgressEvent) => {
         eventBus.emit("ai-playlist-progress", event);
