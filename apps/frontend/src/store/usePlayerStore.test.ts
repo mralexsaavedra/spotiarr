@@ -1538,6 +1538,72 @@ describe("persist partialize — resume fields", () => {
 });
 
 // ---------------------------------------------------------------------------
+// SUSPECT C-1 — double-record after rehydration
+// ---------------------------------------------------------------------------
+
+describe("SUSPECT C-1 — rehydration does not re-record an already-listened track", () => {
+  it("markRehydratedSessionAsRecorded is exported and prevents recorder from firing on rehydrated state", async () => {
+    vi.resetModules();
+    const mod = await import("./usePlayerStore");
+    usePlayerStore = mod.usePlayerStore;
+
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+
+    // Rehydrated state: track at index 0, already past threshold
+    const items = [makeItem("a")];
+    usePlayerStore.setState({
+      queue: items,
+      currentIndex: 0,
+      currentTime: 35,
+      duration: 180,
+    });
+
+    // Simulate rehydration completing — guard must suppress the next record attempts
+    mod.markRehydratedSessionAsRecorded();
+
+    // These time updates would normally fire the recorder, but must NOT after rehydration guard
+    usePlayerStore.getState()._onTimeUpdate(36);
+    usePlayerStore.getState()._onTimeUpdate(90);
+
+    expect(recorder).not.toHaveBeenCalled();
+  });
+
+  it("after rehydration guard, advancing to a new track (playFromIndex) DOES fire recorder", async () => {
+    vi.resetModules();
+    const mod = await import("./usePlayerStore");
+    usePlayerStore = mod.usePlayerStore;
+
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.setState({
+      queue: items,
+      currentIndex: 0,
+      currentTime: 35,
+      duration: 180,
+    });
+
+    // Apply rehydration guard
+    mod.markRehydratedSessionAsRecorded();
+
+    // Rehydrated track must NOT fire
+    usePlayerStore.getState()._onTimeUpdate(40);
+    expect(recorder).not.toHaveBeenCalled();
+
+    // A new play session via playFromIndex bumps the session id
+    usePlayerStore.getState().playFromIndex(1);
+    usePlayerStore.setState({ duration: 180 });
+
+    // Threshold cross on the new track must fire
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+    expect(recorder).toHaveBeenCalledWith(items[1]);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Play-session dedup guard (T-3.3) — setPlayRecorder, _playSessionId, _onTimeUpdate threshold
 // ---------------------------------------------------------------------------
 

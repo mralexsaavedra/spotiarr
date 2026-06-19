@@ -98,6 +98,16 @@ let _playSessionId = 0;
 let _recordedPlaySession: number | null = null;
 let _playRecorder: ((item: QueueItem) => void) | null = null;
 
+/**
+ * Called from onRehydrateStorage so that a rehydrated mid-track position
+ * does not fire the recorder. Only a genuine new play action (playQueue,
+ * playFromIndex, next, prev advancing tracks) bumps _playSessionId and
+ * clears _recordedPlaySession, enabling the next threshold cross to record.
+ */
+export function markRehydratedSessionAsRecorded(): void {
+  _recordedPlaySession = _playSessionId;
+}
+
 function shuffleIndices(length: number, pin: number): number[] {
   if (length === 0) return [];
   if (length === 1) return [pin];
@@ -469,6 +479,11 @@ export const usePlayerStore = create<PlayerState>()(
     {
       name: "spotiarr-player",
       partialize: __partialize,
+      onRehydrateStorage: () => () => {
+        // Prevent a rehydrated mid-track position from triggering a duplicate record.
+        // Only bumpPlaySession (called by playQueue/playFromIndex/next/prev) resets this.
+        markRehydratedSessionAsRecorded();
+      },
     },
   ),
 );
