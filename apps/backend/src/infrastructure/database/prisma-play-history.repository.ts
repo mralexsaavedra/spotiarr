@@ -37,6 +37,7 @@ export class PrismaPlayHistoryRepository {
     }
 
     try {
+      const createdAt = BigInt(Date.now());
       await prisma.playHistory.create({
         data: {
           trackId: validated.trackId,
@@ -47,7 +48,7 @@ export class PrismaPlayHistoryRepository {
           albumCoverUrl: validated.albumCoverUrl,
           durationMs: validated.durationMs,
           playedAt: BigInt(validated.playedAt),
-          createdAt: BigInt(Date.now()),
+          createdAt,
         },
       });
     } catch (_error) {

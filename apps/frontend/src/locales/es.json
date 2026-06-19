@@ -121,7 +121,6 @@
   "dashboard": {
     "title": "Panel",
     "mostListenedTitle": "Más Escuchado",
-    "mostListenedComingSoon": "Próximamente",
     "mostListenedEmpty": "Aún no hay escuchas registradas",
     "topTracksTitle": "Canciones más escuchadas",
     "topArtistsTitle": "Artistas más escuchados",

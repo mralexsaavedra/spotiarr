@@ -21,19 +21,20 @@ export class HistoryController {
   };
 
   getTopTracks = async (req: Request, res: Response) => {
-    const limit = req.query.limit as number | undefined;
+    // historyLimitQuerySchema coerces and validates the query param; after middleware the value is a number or undefined
+    const limit = req.query.limit as unknown as number | undefined;
     const items = await this.historyUseCases.getTopTracks(limit);
     res.json({ data: items });
   };
 
   getTopArtists = async (req: Request, res: Response) => {
-    const limit = req.query.limit as number | undefined;
+    const limit = req.query.limit as unknown as number | undefined;
     const items = await this.historyUseCases.getTopArtists(limit);
     res.json({ data: items });
   };
 
   getRecentPlays = async (req: Request, res: Response) => {
-    const limit = req.query.limit as number | undefined;
+    const limit = req.query.limit as unknown as number | undefined;
     const items = await this.historyUseCases.getRecentPlays(limit);
     res.json({ data: items });
   };
