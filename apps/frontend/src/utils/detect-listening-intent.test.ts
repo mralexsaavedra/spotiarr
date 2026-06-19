@@ -24,7 +24,7 @@ describe("detectListeningIntent", () => {
     expect(detectListeningIntent("most played songs")).toEqual({ scope: "tracks" });
   });
 
-  it("returns tracks for 'my favorite tracks lately'", () => {
+  it("returns tracks for 'generate a playlist from my top tracks'", () => {
     expect(detectListeningIntent("generate a playlist from my top tracks")).toEqual({
       scope: "tracks",
     });
@@ -119,5 +119,29 @@ describe("detectListeningIntent", () => {
 
   it("returns artists for 'my favorite artists' (favorite + artist noun)", () => {
     expect(detectListeningIntent("my favorite artists")).toEqual({ scope: "artists" });
+  });
+
+  // --- CONFIRMED-1: regex boundary fix ---
+  // "unfavorite" and "myfavorite" must NOT match the favorite signal
+  it("returns null for 'unfavorite songs' (favorite word inside larger word)", () => {
+    expect(detectListeningIntent("unfavorite songs")).toEqual({ scope: null });
+  });
+
+  it("returns null for 'myfavorite songs' (favorite word without left boundary)", () => {
+    expect(detectListeningIntent("myfavorite songs")).toEqual({ scope: null });
+  });
+
+  // American plural "favorites" with a music noun must match
+  it("returns tracks for 'my favorites songs' (favorite + track noun, plural favorites)", () => {
+    expect(detectListeningIntent("my favorites songs")).toEqual({ scope: "tracks" });
+  });
+
+  // B-W2: verify the 'my favorite tracks lately' description matches what it actually tests
+  it("returns tracks for 'my favorite tracks' (favorite + track noun)", () => {
+    expect(detectListeningIntent("my favorite tracks")).toEqual({ scope: "tracks" });
+  });
+
+  it("returns tracks for 'favourite tracks' (British plural + track noun)", () => {
+    expect(detectListeningIntent("favourite tracks")).toEqual({ scope: "tracks" });
   });
 });

@@ -23,7 +23,8 @@ export function detectListeningIntent(prompt: string): ListeningIntent {
 
   // "favorite" / "favourites" is ambiguous on its own ("play my favorites" could mean anything).
   // It only counts as a listening-history signal when a music noun is present nearby.
-  const favoriteSignal = /\bfavourites?|favorite\b/i;
+  // \b on BOTH sides of each branch prevents matching inside "unfavorite" or "myfavorite".
+  const favoriteSignal = /\b(?:favou?rites?)\b/i;
   if (favoriteSignal.test(lower)) {
     if (!hasTrackNoun && !hasArtistNoun) return { scope: null };
     if (hasTrackNoun && !hasArtistNoun) return { scope: "tracks" };
