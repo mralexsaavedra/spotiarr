@@ -1601,6 +1601,40 @@ describe("SUSPECT C-1 — rehydration does not re-record an already-listened tra
     expect(recorder).toHaveBeenCalledTimes(1);
     expect(recorder).toHaveBeenCalledWith(items[1]);
   });
+
+  it("after rehydration guard, starting a fresh queue (playQueue) DOES fire recorder when threshold is crossed", async () => {
+    vi.resetModules();
+    const mod = await import("./usePlayerStore");
+    usePlayerStore = mod.usePlayerStore;
+
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+
+    const rehydratedItems = [makeItem("a")];
+    usePlayerStore.setState({
+      queue: rehydratedItems,
+      currentIndex: 0,
+      currentTime: 35,
+      duration: 180,
+    });
+
+    // Apply rehydration guard
+    mod.markRehydratedSessionAsRecorded();
+
+    // Rehydrated track must NOT fire
+    usePlayerStore.getState()._onTimeUpdate(40);
+    expect(recorder).not.toHaveBeenCalled();
+
+    // A fresh queue via playQueue bumps the session id
+    const freshItems = [makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(freshItems, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    // Threshold cross on the new queue's first track must fire
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+    expect(recorder).toHaveBeenCalledWith(freshItems[0]);
+  });
 });
 
 // ---------------------------------------------------------------------------

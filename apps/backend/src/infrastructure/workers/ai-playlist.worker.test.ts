@@ -37,6 +37,7 @@ vi.mock("@/container", () => ({
     playlistRepository: { save: vi.fn() },
     trackService: { create: vi.fn() },
     eventBus: { emit: emitEventBus, on: vi.fn() },
+    appendChatMessageUseCase: vi.fn(),
   }),
   initializeContainer: vi.fn(),
   getContainerOrThrow: vi.fn(),
@@ -99,7 +100,11 @@ describe("createAiPlaylistWorker", () => {
     executeUseCase.mockResolvedValueOnce(undefined);
     await processor(job);
 
-    expect(executeUseCase).toHaveBeenCalledWith({ jobId: "job-123", prompt: "upbeat 90s rock" });
+    expect(executeUseCase).toHaveBeenCalledWith({
+      jobId: "job-123",
+      prompt: "upbeat 90s rock",
+      listeningContext: undefined,
+    });
   });
 
   it("onProgress emits ai-playlist-progress via eventBus", async () => {
