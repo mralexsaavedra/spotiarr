@@ -284,6 +284,48 @@ describe("DELETE /api/ai/chat/messages", () => {
   });
 });
 
+describe("POST /api/ai/chat/generate — listeningIntent forwarding", () => {
+  let enqueueGenerate: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    enqueueGenerate = vi.fn().mockResolvedValue(undefined);
+    vi.clearAllMocks();
+  });
+
+  it("listeningIntent is forwarded through the route schema to the controller (not stripped by Zod)", async () => {
+    // This test exercises the full schema→validate middleware→controller path.
+    // It fails when generateAiPlaylistSchema does not declare listeningIntent,
+    // because Zod strips unknown keys and the controller receives undefined.
+    const getTopTracks = vi.fn().mockResolvedValue([]);
+    const getTopArtists = vi.fn().mockResolvedValue([]);
+    const historyUseCases = { getTopTracks, getTopArtists };
+
+    const aiChatController = new AiChatController(
+      makeQueueService(enqueueGenerate),
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+      historyUseCases,
+    );
+    const container = {
+      aiChatController,
+      aiPlaylistQueueService: makeQueueService(enqueueGenerate),
+    } as unknown as Container;
+    const baseUrl = await startServer(buildApp(container));
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "latin jazz", listeningIntent: "tracks" }),
+    });
+
+    expect(res.status).toBe(202);
+    // getTopTracks must have been called because listeningIntent reached the controller.
+    // If the schema strips listeningIntent, the controller sees undefined and never calls getTopTracks.
+    expect(getTopTracks).toHaveBeenCalled();
+  });
+});
+
 describe("POST /api/ai/models", () => {
   beforeEach(() => {
     vi.clearAllMocks();
