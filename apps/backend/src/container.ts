@@ -627,7 +627,7 @@ function createContainer(env: Env) {
     clearChatMessagesUseCase,
   );
 
-  const historyUseCases = new HistoryUseCases({ repository: historyRepository });
+  const historyUseCases = new HistoryUseCases({ repository: historyRepository, settingsService });
   const historyController = new HistoryController(historyUseCases);
   const getRecentReleasesUseCase = new GetRecentReleasesUseCase(
     feedRepository,
