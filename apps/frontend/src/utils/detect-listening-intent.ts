@@ -15,25 +15,32 @@ import type { ListeningIntent } from "@spotiarr/shared";
 export function detectListeningIntent(prompt: string): ListeningIntent {
   const lower = prompt.toLowerCase();
 
+  const trackNoun = /\b(songs?|tracks?|canciones?|temas?)\b/i;
+  const artistNoun = /\b(artists?|bands?|grupos?|artistas?)\b/i;
+
+  const hasTrackNoun = trackNoun.test(lower);
+  const hasArtistNoun = artistNoun.test(lower);
+
+  // "favorite" / "favourites" is ambiguous on its own ("play my favorites" could mean anything).
+  // It only counts as a listening-history signal when a music noun is present nearby.
+  const favoriteSignal = /\bfavourites?|favorite\b/i;
+  if (favoriteSignal.test(lower)) {
+    if (!hasTrackNoun && !hasArtistNoun) return { scope: null };
+    if (hasTrackNoun && !hasArtistNoun) return { scope: "tracks" };
+    if (hasArtistNoun && !hasTrackNoun) return { scope: "artists" };
+    return { scope: "both" };
+  }
+
   // Phrases that signal "top / most listened" in EN and ES.
   // "top" requires an immediately following music noun or number to avoid false positives
   // like "top of the morning". Standalone "most" is excluded; only compound forms
   // (most-listened, most-played) or the idiomatic "listen to most" are accepted.
   const topSignal =
-    /\btop\s+(?:\d+|songs?|tracks?|canciones?|temas?|artists?|bands?|grupos?|artistas?)\b|most[- ]listened|most[- ]played|favorite|favourites?|listen(?:ing)?\s+to\s+most\b|m[aá]s escuchad[oa]s?|lo que m[aá]s escucho/i;
+    /\btop\s+(?:\d+|songs?|tracks?|canciones?|temas?|artists?|bands?|grupos?|artistas?)\b|most[- ]listened|most[- ]played|listen(?:ing)?\s+to\s+most\b|m[aá]s escuchad[oa]s?|lo que m[aá]s escucho/i;
 
   if (!topSignal.test(lower)) {
     return { scope: null };
   }
-
-  // Track nouns (EN + ES)
-  const trackNoun = /\b(songs?|tracks?|canciones?|temas?)\b/i;
-
-  // Artist nouns (EN + ES)
-  const artistNoun = /\b(artists?|bands?|grupos?|artistas?)\b/i;
-
-  const hasTrackNoun = trackNoun.test(lower);
-  const hasArtistNoun = artistNoun.test(lower);
 
   if (hasTrackNoun && !hasArtistNoun) return { scope: "tracks" };
   if (hasArtistNoun && !hasTrackNoun) return { scope: "artists" };

@@ -31,6 +31,7 @@ interface ResolvedTrack {
 interface UseCaseInput {
   jobId: string;
   prompt: string;
+  listeningContext?: string;
 }
 
 interface UseCaseDeps {
@@ -70,7 +71,9 @@ export class GenerateAiPlaylistUseCase {
   }
 
   async execute(input: UseCaseInput): Promise<void> {
-    const { jobId, prompt } = input;
+    const { jobId, prompt, listeningContext } = input;
+    // Treat empty string as absent so callers can pass "" safely
+    const effectiveContext = listeningContext || undefined;
 
     const emit = (
       stage: AiPlaylistProgressEvent["stage"],
@@ -90,7 +93,7 @@ export class GenerateAiPlaylistUseCase {
       });
 
       emit("llm", { progress: 0 });
-      const rawSuggestions = await this.aiChatPort.generateTracks(prompt);
+      const rawSuggestions = await this.aiChatPort.generateTracks(prompt, effectiveContext);
       const suggestions = rawSuggestions.slice(0, MAX_TRACKS);
 
       emit("validating", { progress: 0 });

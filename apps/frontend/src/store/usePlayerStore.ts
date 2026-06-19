@@ -160,7 +160,6 @@ export const usePlayerStore = create<PlayerState>()(
         if (shuffleMode) {
           if (shuffleOrderIndex >= shuffleOrder.length - 1) {
             if (repeatMode === "all") {
-              // Shuffle repeat-all wrap-around → new track, new session
               bumpPlaySession();
               set({
                 shuffleOrderIndex: 0,
@@ -173,7 +172,6 @@ export const usePlayerStore = create<PlayerState>()(
             }
             return;
           }
-          // Shuffle advance to next track → new session
           bumpPlaySession();
           const nextOrderIndex = shuffleOrderIndex + 1;
           set({
@@ -186,7 +184,6 @@ export const usePlayerStore = create<PlayerState>()(
         }
         if (currentIndex >= queue.length - 1) {
           if (repeatMode === "all") {
-            // Linear repeat-all wrap-around → new track, new session
             bumpPlaySession();
             set({ currentIndex: 0, currentTime: 0, isBuffering: false });
           } else {
@@ -194,7 +191,6 @@ export const usePlayerStore = create<PlayerState>()(
           }
           return;
         }
-        // Linear advance → new track, new session
         bumpPlaySession();
         set({ currentIndex: currentIndex + 1, currentTime: 0, isBuffering: false });
       }
@@ -208,7 +204,6 @@ export const usePlayerStore = create<PlayerState>()(
             get().clear();
             return;
           }
-          // New queue → new play instance
           bumpPlaySession();
           set({
             queue: items,
@@ -257,7 +252,6 @@ export const usePlayerStore = create<PlayerState>()(
           }
           if (shuffleMode) {
             if (shuffleOrderIndex > 0) {
-              // Shuffle: go back to previous track → new session
               bumpPlaySession();
               const nextOrderIndex = shuffleOrderIndex - 1;
               set({
@@ -269,7 +263,6 @@ export const usePlayerStore = create<PlayerState>()(
               return;
             }
             if (repeatMode === "all") {
-              // Shuffle repeat-all: wrap to last → new session
               bumpPlaySession();
               const nextOrderIndex = shuffleOrder.length - 1;
               set({
@@ -282,13 +275,11 @@ export const usePlayerStore = create<PlayerState>()(
             return;
           }
           if (currentIndex > 0) {
-            // Move to previous track → new session
             bumpPlaySession();
             set({ currentIndex: currentIndex - 1, currentTime: 0, isBuffering: false });
             return;
           }
           if (repeatMode === "all") {
-            // Repeat-all wrap → new session
             bumpPlaySession();
             set({ currentIndex: queue.length - 1, currentTime: 0, isBuffering: false });
           }
@@ -425,7 +416,6 @@ export const usePlayerStore = create<PlayerState>()(
         playFromIndex(index) {
           const { queue, shuffleMode } = get();
           if (index < 0 || index >= queue.length) return;
-          // New play instance — always bump session (even re-playing same track is a new listen)
           bumpPlaySession();
           set({
             currentIndex: index,

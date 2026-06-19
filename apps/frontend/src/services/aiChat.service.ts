@@ -3,6 +3,7 @@ import {
   type AiChatHistoryDto,
   type ClearChatMessagesResponseDto,
   type GenerateAiPlaylistResponse,
+  type ListeningScope,
 } from "@spotiarr/shared";
 import { httpClient } from "./httpClient";
 
@@ -13,10 +14,17 @@ export interface ModelOverrides {
 }
 
 export const aiChatService = {
-  generate: async (prompt: string): Promise<GenerateAiPlaylistResponse> => {
+  generate: async (
+    prompt: string,
+    listeningIntent?: ListeningScope,
+  ): Promise<GenerateAiPlaylistResponse> => {
+    const body: Record<string, unknown> = { prompt };
+    if (listeningIntent) {
+      body.listeningIntent = listeningIntent;
+    }
     const response = await httpClient.post<{ data: GenerateAiPlaylistResponse }>(
       `${ApiRoutes.AI}/chat/generate`,
-      { prompt },
+      body,
     );
     return response.data;
   },

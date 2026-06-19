@@ -96,4 +96,28 @@ describe("detectListeningIntent", () => {
   it("returns null for 'top of the morning' (top without music noun)", () => {
     expect(detectListeningIntent("top of the morning")).toEqual({ scope: null });
   });
+
+  // --- false-positive guard: "favorite" / "favourites" without a music noun ---
+  // "play my favorites" is ambiguous — the user might mean favorite anything.
+  // Without a music noun in proximity the signal must NOT fire.
+  it("returns null for 'play my favorites' (no music noun, ambiguous favorite)", () => {
+    expect(detectListeningIntent("play my favorites")).toEqual({ scope: null });
+  });
+
+  it("returns null for 'my favourites' (no music noun)", () => {
+    expect(detectListeningIntent("my favourites")).toEqual({ scope: null });
+  });
+
+  it("returns null for 'favorite' alone (no music noun)", () => {
+    expect(detectListeningIntent("favorite")).toEqual({ scope: null });
+  });
+
+  // favorite + music noun should still produce a scoped result
+  it("returns tracks for 'my favorite songs' (favorite + track noun)", () => {
+    expect(detectListeningIntent("my favorite songs")).toEqual({ scope: "tracks" });
+  });
+
+  it("returns artists for 'my favorite artists' (favorite + artist noun)", () => {
+    expect(detectListeningIntent("my favorite artists")).toEqual({ scope: "artists" });
+  });
 });

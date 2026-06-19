@@ -4,5 +4,5 @@ export interface AiTrackSuggestion {
 }
 
 export interface AiChatPort {
-  generateTracks(prompt: string): Promise<AiTrackSuggestion[]>;
+  generateTracks(prompt: string, listeningContext?: string): Promise<AiTrackSuggestion[]>;
 }

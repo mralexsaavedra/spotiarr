@@ -81,7 +81,6 @@ export class PrismaPlayHistoryRepository {
 
   async getTopArtists(limit: number): Promise<TopArtistItem[]> {
     try {
-      // First groupBy: play count + lastPlayedAt per artist (ordered, limited)
       const playRows = await prisma.playHistory.groupBy({
         by: ["artist"],
         _count: { id: true },
@@ -92,7 +91,6 @@ export class PrismaPlayHistoryRepository {
 
       if (playRows.length === 0) return [];
 
-      // Second groupBy: distinct (artist, trackName) pairs to compute trackCount per artist.
       // Prisma groupBy cannot COUNT(DISTINCT trackName) in a single call, so we run a
       // second pass grouped by ['artist','trackName'] and count rows per artist in code.
       const artistNames = playRows.map((r) => r.artist);
@@ -102,7 +100,6 @@ export class PrismaPlayHistoryRepository {
         _count: { id: true },
       });
 
-      // Build a lookup: artist → number of distinct trackName values
       const trackCountByArtist = new Map<string, number>();
       for (const row of trackRows) {
         trackCountByArtist.set(row.artist, (trackCountByArtist.get(row.artist) ?? 0) + 1);
