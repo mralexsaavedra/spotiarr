@@ -23,6 +23,9 @@ test.describe("Real-stack library and history pages", () => {
     await expect(
       page.getByRole("heading", { name: "Download History", exact: true }),
     ).toBeVisible();
+    await page
+      .getByRole("heading", { name: "Download History", exact: true })
+      .scrollIntoViewIfNeeded();
     await expect(page.getByText("Managed Archive Mix")).toBeVisible();
 
     await page.getByText("Managed Archive Mix").click();
