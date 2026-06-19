@@ -75,7 +75,13 @@ export const MostListenedSection: FC<MostListenedSectionProps> = ({
                         {artist.artist}
                       </p>
                     </div>
-                    <span className="text-text-secondary shrink-0 text-xs">{artist.playCount}</span>
+                    <span className="text-text-secondary flex shrink-0 items-center gap-1 text-xs">
+                      <span>{artist.playCount}</span>
+                      <span aria-hidden="true">·</span>
+                      <span data-testid={`artist-track-count-${index}`}>
+                        {t("dashboard.trackCount", { count: artist.trackCount })}
+                      </span>
+                    </span>
                   </li>
                 ))}
               </ul>

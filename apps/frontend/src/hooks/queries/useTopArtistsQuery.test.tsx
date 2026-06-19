@@ -32,6 +32,7 @@ describe("useTopArtistsQuery", () => {
       {
         artist: "Artist A",
         playCount: 10,
+        trackCount: 3,
         lastPlayedAt: 1700000000000,
       },
     ];
@@ -77,6 +78,7 @@ describe("useTopArtistsQuery", () => {
     const item = {
       artist: "Artist B",
       playCount: 7,
+      trackCount: 2,
       lastPlayedAt: 1700000001000,
     };
     vi.mocked(historyService.getTopArtists).mockResolvedValueOnce([item]);

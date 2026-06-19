@@ -126,7 +126,10 @@
     "topTracksTitle": "Canciones más escuchadas",
     "topArtistsTitle": "Artistas más escuchados",
     "recentPlaysTitle": "Reproducido recientemente",
-    "recentPlaysEmpty": "Aún no hay reproducciones recientes"
+    "recentPlaysEmpty": "Aún no hay reproducciones recientes",
+    "trackCount": "{{count}} canción",
+    "trackCount_one": "{{count}} canción",
+    "trackCount_other": "{{count}} canciones"
   },
   "library": {
     "title": "Biblioteca",

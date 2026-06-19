@@ -31,6 +31,7 @@ const makeTopTrack = (overrides: Partial<TopTrackItem> = {}): TopTrackItem => ({
 const makeTopArtist = (overrides: Partial<TopArtistItem> = {}): TopArtistItem => ({
   artist: "Best Artist",
   playCount: 10,
+  trackCount: 3,
   lastPlayedAt: 1700000000000,
   ...overrides,
 });
@@ -97,6 +98,22 @@ describe("MostListenedSection", () => {
 
       expect(screen.getByText("Band Y")).toBeTruthy();
       expect(screen.getByText("7")).toBeTruthy();
+    });
+
+    it("renders trackCount for each top-artist entry", () => {
+      render(
+        <MostListenedSection
+          topTracks={[]}
+          topArtists={[makeTopArtist({ artist: "Band Z", playCount: 4, trackCount: 5 })]}
+          isLoading={false}
+        />,
+      );
+
+      expect(screen.getByText("Band Z")).toBeTruthy();
+      // trackCount span must be present in the artist row
+      expect(screen.getByTestId("artist-track-count-0")).toBeTruthy();
+      // the i18n key for trackCount must be rendered (mock returns key as-is)
+      expect(screen.getByTestId("artist-track-count-0").textContent).toBe("dashboard.trackCount");
     });
 
     it("renders the topTracksTitle i18n key as sub-heading", () => {
