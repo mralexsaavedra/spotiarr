@@ -103,6 +103,10 @@ describe("GenerateAiPlaylistUseCase — listeningContext forwarding", () => {
     const useCase = new GenerateAiPlaylistUseCase(deps);
     await useCase.execute({ jobId: "job-compat", prompt: "hip hop" });
 
+    // generateTracks must be called with exactly (prompt, undefined) — no suffix injected
+    expect(generateTracksMock).toHaveBeenCalledOnce();
+    expect(generateTracksMock).toHaveBeenCalledWith("hip hop", undefined);
+
     expect(deps.playlistRepository.save).toHaveBeenCalledOnce();
     expect(deps.trackService.create).toHaveBeenCalledTimes(2);
     expect(deps.eventBus.emit).toHaveBeenCalledWith("playlists-updated");
