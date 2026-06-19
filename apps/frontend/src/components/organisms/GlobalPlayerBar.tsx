@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useRecordPlayMutation } from "@/hooks/mutations/useRecordPlayMutation";
 import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
 import { useGlobalPlayerShortcuts } from "@/hooks/useGlobalPlayerShortcuts";
 import { useMediaSession } from "@/hooks/useMediaSession";
@@ -122,6 +123,16 @@ export const GlobalPlayerBar: FC = () => {
   const isMuted = usePlayerStore((s) => s.isMuted);
 
   const setAudioElement = usePlayerStore((s) => s.setAudioElement);
+  const setPlayRecorder = usePlayerStore((s) => s.setPlayRecorder);
+  const { mutate: recordPlay } = useRecordPlayMutation();
+  // Keep a ref so the stable wrapper below always calls the latest mutate
+  // without itself changing reference on every render.
+  const recordPlayRef = useRef(recordPlay);
+  recordPlayRef.current = recordPlay;
+  const stableRecordPlay = useCallback(
+    (...args: Parameters<typeof recordPlay>) => recordPlayRef.current(...args),
+    [],
+  );
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
@@ -169,6 +180,16 @@ export const GlobalPlayerBar: FC = () => {
       setAudioElement(null);
     };
   }, [setAudioElement]);
+
+  // Wire the record-play mutation into the player store (Decision 2).
+  // The store calls this fn when the threshold is crossed; the HTTP call stays in TanStack Query.
+  // stableRecordPlay has a stable reference (empty dep array) so this effect runs once on mount.
+  useEffect(() => {
+    setPlayRecorder(stableRecordPlay);
+    return () => {
+      setPlayRecorder(null);
+    };
+  }, [setPlayRecorder, stableRecordPlay]);
 
   useEffect(() => {
     const el = audioRef.current;

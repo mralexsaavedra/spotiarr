@@ -1536,3 +1536,260 @@ describe("persist partialize — resume fields", () => {
     expect("duration" in result).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Play-session dedup guard (T-3.3) — setPlayRecorder, _playSessionId, _onTimeUpdate threshold
+// ---------------------------------------------------------------------------
+
+describe("play-session dedup guard", () => {
+  it("setPlayRecorder registers a recorder function without error", () => {
+    const recorder = vi.fn();
+    expect(() => usePlayerStore.getState().setPlayRecorder(recorder)).not.toThrow();
+  });
+
+  it("recorder is called exactly once when threshold is crossed on a single track", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    // Threshold not yet crossed
+    usePlayerStore.getState()._onTimeUpdate(20);
+    expect(recorder).not.toHaveBeenCalled();
+
+    // Cross the 30s threshold
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledOnce();
+    expect(recorder).toHaveBeenCalledWith(items[0]);
+
+    // Another timeupdate past threshold — should NOT call again
+    usePlayerStore.getState()._onTimeUpdate(45);
+    expect(recorder).toHaveBeenCalledOnce();
+  });
+
+  it("recorder is called once per session: new track after advance triggers a new call", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    // Cross threshold for track A
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+    expect(recorder).toHaveBeenCalledWith(items[0]);
+
+    // Advance to track B (next())
+    usePlayerStore.getState().next();
+    usePlayerStore.setState({ duration: 180 });
+
+    // Cross threshold for track B
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(2);
+    expect(recorder).toHaveBeenNthCalledWith(2, items[1]);
+  });
+
+  it("seek backward/forward on same session does not trigger a second call", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    // Cross threshold
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // Simulate seek backward then forward — same session
+    usePlayerStore.getState()._onTimeUpdate(5);
+    usePlayerStore.getState()._onTimeUpdate(35);
+    usePlayerStore.getState()._onTimeUpdate(60);
+    expect(recorder).toHaveBeenCalledTimes(1);
+  });
+
+  it("repeat-one: end restart creates a new play session and recorder fires again", () => {
+    const mockAudio = { currentTime: 0, play: vi.fn().mockResolvedValue(undefined) };
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 40, repeatMode: "one" });
+    usePlayerStore.getState().setAudioElement(mockAudio as unknown as HTMLAudioElement);
+
+    // First cycle: cross threshold (50% of 40s = 20s; use >50%)
+    usePlayerStore.getState()._onTimeUpdate(21);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // Track ends -> repeat-one restarts (new play session)
+    usePlayerStore.getState()._onEnded();
+
+    // Second cycle: cross threshold again
+    usePlayerStore.getState()._onTimeUpdate(21);
+    expect(recorder).toHaveBeenCalledTimes(2);
+  });
+
+  it("playQueue bumps session: recorder fires for new queue even if same track position", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // Start a new queue (re-play same track)
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(2);
+  });
+
+  it("playFromIndex bumps session", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // Jump to track B
+    usePlayerStore.getState().playFromIndex(1);
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(2);
+  });
+
+  it("prev() that changes track bumps session", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // Reset currentTime to <= 3 so prev() actually changes track
+    usePlayerStore.setState({ currentTime: 1 });
+    // prev() with currentTime <= 3 changes track
+    usePlayerStore.getState().prev();
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(2);
+  });
+
+  it("prev() that only seeks (currentTime > 3) does NOT bump session", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ duration: 180, currentTime: 5 });
+
+    // Cross threshold on track B
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // prev() just rewinds (currentTime was 5 > 3)
+    usePlayerStore.getState().prev();
+    // currentTime now 0, still same track B (index 1)
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    // Still same session -> no second call
+    expect(recorder).toHaveBeenCalledTimes(1);
+  });
+
+  it("50% threshold fires for short track before 30s mark", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [{ ...makeItem("a"), durationMs: 40_000 }];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 40 });
+
+    // 20s = exactly 50% — NOT > 50%, should not fire
+    usePlayerStore.getState()._onTimeUpdate(20);
+    expect(recorder).not.toHaveBeenCalled();
+
+    // 20.1s > 50% — fires (30s not reached yet)
+    usePlayerStore.getState()._onTimeUpdate(20.1);
+    expect(recorder).toHaveBeenCalledTimes(1);
+  });
+
+  it("recorder not called when no recorder is registered", () => {
+    usePlayerStore.getState().setPlayRecorder(null);
+    const items = [makeItem("a")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180 });
+
+    expect(() => usePlayerStore.getState()._onTimeUpdate(31)).not.toThrow();
+  });
+
+  it("auto-advance (ended, repeat off, not last) bumps session", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({ duration: 180, repeatMode: "off" });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // Track ends -> auto-advance to track B
+    usePlayerStore.getState()._onEnded();
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(2);
+    expect(recorder).toHaveBeenNthCalledWith(2, items[1]);
+  });
+
+  it("repeat-all wrap-around bumps session", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a"), makeItem("b")];
+    usePlayerStore.getState().playQueue(items, 1);
+    usePlayerStore.setState({ duration: 180, repeatMode: "all" });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // End of last track with repeat all -> wrap to 0
+    usePlayerStore.getState()._onEnded();
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(2);
+    expect(recorder).toHaveBeenNthCalledWith(2, items[0]);
+  });
+
+  it("shuffle advance bumps session", () => {
+    const recorder = vi.fn();
+    usePlayerStore.getState().setPlayRecorder(recorder);
+    const items = [makeItem("a"), makeItem("b"), makeItem("c")];
+    usePlayerStore.getState().playQueue(items, 0);
+    usePlayerStore.setState({
+      shuffleMode: true,
+      shuffleOrder: [0, 2, 1],
+      shuffleOrderIndex: 0,
+      duration: 180,
+    });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(1);
+
+    // Shuffle advance -> index 2 (shuffleOrder[1])
+    usePlayerStore.getState().next();
+    usePlayerStore.setState({ duration: 180 });
+
+    usePlayerStore.getState()._onTimeUpdate(31);
+    expect(recorder).toHaveBeenCalledTimes(2);
+    expect(recorder).toHaveBeenNthCalledWith(2, items[2]);
+  });
+});
