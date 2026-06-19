@@ -272,6 +272,7 @@ export interface TopTrackItem {
 export interface TopArtistItem {
   artist: string;
   playCount: number;
+  trackCount: number;
   lastPlayedAt: number;
 }
 

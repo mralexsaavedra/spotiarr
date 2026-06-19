@@ -17,7 +17,7 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
   let repo: PrismaPlayHistoryRepository;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     repo = new PrismaPlayHistoryRepository();
   });
 
@@ -154,8 +154,15 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
   // ── getTopArtists ─────────────────────────────────────────────────────────
 
   describe("getTopArtists", () => {
+    /**
+     * getTopArtists uses two groupBy calls:
+     *  call 0: groupBy(['artist']) → playCount + lastPlayedAt
+     *  call 1: groupBy(['artist','trackName']) → distinct track count per artist
+     */
+
     it("returns empty array when no rows exist (S-08 / REQ-LH-016)", async () => {
-      vi.mocked(prisma.playHistory.groupBy).mockResolvedValue([] as never);
+      // First groupBy (play counts) returns empty → early return, second groupBy is never called
+      vi.mocked(prisma.playHistory.groupBy).mockResolvedValueOnce([] as never);
 
       const result = await repo.getTopArtists(10);
 
@@ -163,18 +170,24 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
     });
 
     it("returns artists ordered by playCount desc with lastPlayedAt tiebreaker", async () => {
-      vi.mocked(prisma.playHistory.groupBy).mockResolvedValue([
-        {
-          artist: "Artist A",
-          _count: { id: 10 },
-          _max: { playedAt: BigInt(3000) },
-        },
-        {
-          artist: "Artist B",
-          _count: { id: 4 },
-          _max: { playedAt: BigInt(1000) },
-        },
-      ] as never);
+      vi.mocked(prisma.playHistory.groupBy)
+        .mockResolvedValueOnce([
+          {
+            artist: "Artist A",
+            _count: { id: 10 },
+            _max: { playedAt: BigInt(3000) },
+          },
+          {
+            artist: "Artist B",
+            _count: { id: 4 },
+            _max: { playedAt: BigInt(1000) },
+          },
+        ] as never)
+        .mockResolvedValueOnce([
+          { artist: "Artist A", trackName: "Song 1", _count: { id: 1 } },
+          { artist: "Artist A", trackName: "Song 2", _count: { id: 1 } },
+          { artist: "Artist B", trackName: "Song X", _count: { id: 1 } },
+        ] as never);
 
       const result = await repo.getTopArtists(10);
 
@@ -183,21 +196,27 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
       expect(result[1].artist).toBe("Artist B");
       expect(result[1].playCount).toBe(4);
 
-      // Fix F: assert the exact orderBy argument passed to Prisma so a broken sort still fails
+      // Fix F: assert the exact orderBy argument passed to the first Prisma groupBy call
       const call = vi.mocked(prisma.playHistory.groupBy).mock.calls[0][0] as {
         orderBy?: unknown;
       };
       expect(call.orderBy).toEqual([{ _count: { id: "desc" } }, { _max: { playedAt: "desc" } }]);
     });
 
-    it("maps TopArtistItem shape correctly (REQ-LH-015)", async () => {
-      vi.mocked(prisma.playHistory.groupBy).mockResolvedValue([
-        {
-          artist: "Cool Band",
-          _count: { id: 6 },
-          _max: { playedAt: BigInt(7_000) },
-        },
-      ] as never);
+    it("maps TopArtistItem shape correctly including trackCount (REQ-LH-015)", async () => {
+      vi.mocked(prisma.playHistory.groupBy)
+        .mockResolvedValueOnce([
+          {
+            artist: "Cool Band",
+            _count: { id: 6 },
+            _max: { playedAt: BigInt(7_000) },
+          },
+        ] as never)
+        .mockResolvedValueOnce([
+          { artist: "Cool Band", trackName: "Hit A", _count: { id: 1 } },
+          { artist: "Cool Band", trackName: "Hit B", _count: { id: 1 } },
+          { artist: "Cool Band", trackName: "Hit C", _count: { id: 1 } },
+        ] as never);
 
       const [item] = await repo.getTopArtists(10);
 
@@ -205,10 +224,51 @@ describe("PrismaPlayHistoryRepository — aggregation", () => {
       expect(item.playCount).toBe(6);
       expect(typeof item.lastPlayedAt).toBe("number");
       expect(item.lastPlayedAt).toBe(7_000);
+      expect(item.trackCount).toBe(3);
+    });
+
+    it("counts distinct tracks per artist: repeated plays of same track count as 1 (REQ-LH-015)", async () => {
+      // Artist A: plays [Track X, Track X, Track Y] → playCount=3, trackCount=2
+      vi.mocked(prisma.playHistory.groupBy)
+        .mockResolvedValueOnce([
+          {
+            artist: "Artist A",
+            _count: { id: 3 },
+            _max: { playedAt: BigInt(5_000) },
+          },
+        ] as never)
+        .mockResolvedValueOnce([
+          // groupBy(['artist','trackName']) collapses repeated plays into one row per (artist, trackName)
+          { artist: "Artist A", trackName: "Track X", _count: { id: 2 } },
+          { artist: "Artist A", trackName: "Track Y", _count: { id: 1 } },
+        ] as never);
+
+      const [item] = await repo.getTopArtists(10);
+
+      expect(item.playCount).toBe(3);
+      expect(item.trackCount).toBe(2);
+    });
+
+    it("sets trackCount=0 when artist has no rows in the track-groupBy result", async () => {
+      vi.mocked(prisma.playHistory.groupBy)
+        .mockResolvedValueOnce([
+          {
+            artist: "Ghost Artist",
+            _count: { id: 1 },
+            _max: { playedAt: BigInt(1_000) },
+          },
+        ] as never)
+        .mockResolvedValueOnce([] as never);
+
+      const [item] = await repo.getTopArtists(10);
+
+      expect(item.artist).toBe("Ghost Artist");
+      expect(item.trackCount).toBe(0);
     });
 
     it("respects the limit parameter", async () => {
-      vi.mocked(prisma.playHistory.groupBy).mockResolvedValue([] as never);
+      // First groupBy returns empty → early return; the take assertion still works on call[0]
+      vi.mocked(prisma.playHistory.groupBy).mockResolvedValueOnce([] as never);
 
       await repo.getTopArtists(3);
 
