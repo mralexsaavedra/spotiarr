@@ -182,4 +182,58 @@ describe("queryKeys — parameterized keys", () => {
       );
     });
   });
+
+  describe("historyTopTracks", () => {
+    it("places limit at position [2] with fixed prefix [history, top-tracks]", () => {
+      const key = queryKeys.historyTopTracks(10);
+      expect(key[0]).toBe("history");
+      expect(key[1]).toBe("top-tracks");
+      expect(key[2]).toBe(10);
+      expect(key).toHaveLength(3);
+    });
+
+    it("returns distinct keys for different limits", () => {
+      expect(queryKeys.historyTopTracks(5)).not.toEqual(queryKeys.historyTopTracks(10));
+    });
+
+    it("default limit 10 is reflected in the key when called with 10", () => {
+      expect(queryKeys.historyTopTracks(10)).toEqual(["history", "top-tracks", 10]);
+    });
+  });
+
+  describe("historyTopArtists", () => {
+    it("places limit at position [2] with fixed prefix [history, top-artists]", () => {
+      const key = queryKeys.historyTopArtists(10);
+      expect(key[0]).toBe("history");
+      expect(key[1]).toBe("top-artists");
+      expect(key[2]).toBe(10);
+      expect(key).toHaveLength(3);
+    });
+
+    it("returns distinct keys for different limits", () => {
+      expect(queryKeys.historyTopArtists(5)).not.toEqual(queryKeys.historyTopArtists(10));
+    });
+
+    it("default limit 10 is reflected in the key when called with 10", () => {
+      expect(queryKeys.historyTopArtists(10)).toEqual(["history", "top-artists", 10]);
+    });
+  });
+
+  describe("historyRecentPlays", () => {
+    it("places limit at position [2] with fixed prefix [history, recent-plays]", () => {
+      const key = queryKeys.historyRecentPlays(20);
+      expect(key[0]).toBe("history");
+      expect(key[1]).toBe("recent-plays");
+      expect(key[2]).toBe(20);
+      expect(key).toHaveLength(3);
+    });
+
+    it("returns distinct keys for different limits", () => {
+      expect(queryKeys.historyRecentPlays(10)).not.toEqual(queryKeys.historyRecentPlays(20));
+    });
+
+    it("default limit 20 is reflected in the key when called with 20", () => {
+      expect(queryKeys.historyRecentPlays(20)).toEqual(["history", "recent-plays", 20]);
+    });
+  });
 });

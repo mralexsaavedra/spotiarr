@@ -5,6 +5,9 @@ const mockUseLibraryStatsQuery = vi.fn();
 const mockUseDownloadHistoryQuery = vi.fn();
 const mockUsePlaylistsQuery = vi.fn();
 const mockUseRecreatePlaylistMutation = vi.fn();
+const mockUseTopTracksQuery = vi.fn();
+const mockUseTopArtistsQuery = vi.fn();
+const mockUseRecentPlaysQuery = vi.fn();
 const mockNavigate = vi.fn();
 const mockMutate = vi.fn();
 
@@ -30,6 +33,18 @@ vi.mock("@/hooks/queries/usePlaylistsQuery", () => ({
 
 vi.mock("@/hooks/mutations/useRecreatePlaylistMutation", () => ({
   useRecreatePlaylistMutation: () => mockUseRecreatePlaylistMutation(),
+}));
+
+vi.mock("@/hooks/queries/useTopTracksQuery", () => ({
+  useTopTracksQuery: () => mockUseTopTracksQuery(),
+}));
+
+vi.mock("@/hooks/queries/useTopArtistsQuery", () => ({
+  useTopArtistsQuery: () => mockUseTopArtistsQuery(),
+}));
+
+vi.mock("@/hooks/queries/useRecentPlaysQuery", () => ({
+  useRecentPlaysQuery: () => mockUseRecentPlaysQuery(),
 }));
 
 vi.mock("@/hooks/controllers/useHomeController", () => ({
@@ -60,6 +75,9 @@ describe("useDashboardController", () => {
       isPending: false,
       variables: undefined,
     });
+    mockUseTopTracksQuery.mockReturnValue({ data: [], isLoading: false });
+    mockUseTopArtistsQuery.mockReturnValue({ data: [], isLoading: false });
+    mockUseRecentPlaysQuery.mockReturnValue({ data: [], isLoading: false });
   });
 
   it("does NOT call useHomeController (over-fetch guard)", () => {

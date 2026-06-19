@@ -29,8 +29,12 @@ vi.mock("@/components/organisms/DownloadHistorySection", () => ({
   ),
 }));
 
-vi.mock("@/components/organisms/MostListenedPlaceholder", () => ({
-  MostListenedPlaceholder: () => <div data-testid="most-listened-placeholder" />,
+vi.mock("@/components/organisms/MostListenedSection", () => ({
+  MostListenedSection: () => <div data-testid="most-listened-section" />,
+}));
+
+vi.mock("@/components/organisms/RecentPlaysSection", () => ({
+  RecentPlaysSection: () => <div data-testid="recent-plays-section" />,
 }));
 
 vi.mock("@/components/molecules/PageHeader", () => ({
@@ -46,6 +50,15 @@ const defaultController = {
     recreatingUrl: null,
     onRecreate: vi.fn(),
     onItemClick: vi.fn(),
+  },
+  mostListenedProps: {
+    topTracks: [],
+    topArtists: [],
+    isLoading: false,
+  },
+  recentPlaysProps: {
+    recentPlays: [],
+    isLoading: false,
   },
 };
 
@@ -73,10 +86,16 @@ describe("Dashboard", () => {
     expect(section.getAttribute("data-has-recreate")).toBe("true");
   });
 
-  it("renders MostListenedPlaceholder", () => {
+  it("renders MostListenedSection", () => {
     render(<Dashboard />);
 
-    expect(screen.getByTestId("most-listened-placeholder")).toBeTruthy();
+    expect(screen.getByTestId("most-listened-section")).toBeTruthy();
+  });
+
+  it("renders RecentPlaysSection", () => {
+    render(<Dashboard />);
+
+    expect(screen.getByTestId("recent-plays-section")).toBeTruthy();
   });
 
   it("renders page header with dashboard.title i18n key", () => {
@@ -98,10 +117,22 @@ describe("Dashboard", () => {
     expect(section.getAttribute("data-has-stats")).toBe("true");
   });
 
-  it("MostListenedPlaceholder makes no backend calls — it is inert", () => {
+  it("renders MostListenedSection and RecentPlaysSection in order above DownloadHistorySection", () => {
     render(<Dashboard />);
 
-    expect(screen.getByTestId("most-listened-placeholder")).toBeTruthy();
-    expect(screen.queryByTestId("loading")).toBeNull();
+    const mostListened = screen.getByTestId("most-listened-section");
+    const recentPlays = screen.getByTestId("recent-plays-section");
+    const downloadHistory = screen.getByTestId("download-history-section");
+
+    // Node.DOCUMENT_POSITION_FOLLOWING (4) means the argument comes AFTER the context node
+    expect(
+      mostListened.compareDocumentPosition(recentPlays) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      recentPlays.compareDocumentPosition(downloadHistory) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      mostListened.compareDocumentPosition(downloadHistory) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

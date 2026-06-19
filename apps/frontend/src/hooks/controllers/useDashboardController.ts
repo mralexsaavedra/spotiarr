@@ -8,6 +8,9 @@ import { useRecreatePlaylistMutation } from "../mutations/useRecreatePlaylistMut
 import { useDownloadHistoryQuery } from "../queries/useDownloadHistoryQuery";
 import { useLibraryStatsQuery } from "../queries/useLibraryStatsQuery";
 import { usePlaylistsQuery } from "../queries/usePlaylistsQuery";
+import { useRecentPlaysQuery } from "../queries/useRecentPlaysQuery";
+import { useTopArtistsQuery } from "../queries/useTopArtistsQuery";
+import { useTopTracksQuery } from "../queries/useTopTracksQuery";
 
 export const useDashboardController = () => {
   const navigate = useNavigate();
@@ -19,6 +22,9 @@ export const useDashboardController = () => {
     isPending: isRecreatePending,
     variables: recreateVariables,
   } = useRecreatePlaylistMutation();
+  const { data: topTracks = [], isLoading: isTopTracksLoading } = useTopTracksQuery();
+  const { data: topArtists = [], isLoading: isTopArtistsLoading } = useTopArtistsQuery();
+  const { data: recentPlays = [], isLoading: isRecentPlaysLoading } = useRecentPlaysQuery();
 
   const statsProps = useMemo(() => {
     if (!stats) return null;
@@ -75,8 +81,27 @@ export const useDashboardController = () => {
     ],
   );
 
+  const mostListenedProps = useMemo(
+    () => ({
+      topTracks,
+      topArtists,
+      isLoading: isTopTracksLoading || isTopArtistsLoading,
+    }),
+    [topTracks, topArtists, isTopTracksLoading, isTopArtistsLoading],
+  );
+
+  const recentPlaysProps = useMemo(
+    () => ({
+      recentPlays,
+      isLoading: isRecentPlaysLoading,
+    }),
+    [recentPlays, isRecentPlaysLoading],
+  );
+
   return {
     statsProps,
     historyProps,
+    mostListenedProps,
+    recentPlaysProps,
   };
 };
