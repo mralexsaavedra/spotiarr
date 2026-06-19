@@ -13,9 +13,12 @@ import {
   type PlaylistHistory,
   PlaylistStatusEnum,
   PlaylistTypeEnum,
+  type RecentPlayItem,
   type SettingItem,
   type SettingMetadata,
   type SpotifySearchResults,
+  type TopArtistItem,
+  type TopTrackItem,
   TrackStatusEnum,
   UI_SUPPORTED_AUDIO_FORMATS,
   type SupportedAudioFormat,
@@ -112,6 +115,9 @@ interface MockPlaylistOptions {
 interface MockHistoryOptions {
   downloads?: PlaylistHistory[];
   tracks?: DownloadHistoryItem[];
+  topTracks?: TopTrackItem[];
+  topArtists?: TopArtistItem[];
+  recentPlays?: RecentPlayItem[];
 }
 
 interface MockTrackOptions {
@@ -378,6 +384,41 @@ function buildDownloadHistoryTrack(
   };
 }
 
+export function buildTopTrackItem(overrides: Partial<TopTrackItem> = {}): TopTrackItem {
+  return {
+    trackName: "Mock Top Track",
+    artist: "Mock Artist",
+    album: "Mock Album",
+    albumCoverUrl: null,
+    trackUrl: "https://open.spotify.com/track/mock-top-track",
+    playCount: 5,
+    lastPlayedAt: DEFAULT_COMPLETED_AT,
+    ...overrides,
+  };
+}
+
+export function buildTopArtistItem(overrides: Partial<TopArtistItem> = {}): TopArtistItem {
+  return {
+    artist: "Mock Artist",
+    playCount: 10,
+    trackCount: 3,
+    lastPlayedAt: DEFAULT_COMPLETED_AT,
+    ...overrides,
+  };
+}
+
+export function buildRecentPlayItem(overrides: Partial<RecentPlayItem> = {}): RecentPlayItem {
+  return {
+    trackId: "track-1",
+    trackName: "Mock Recent Track",
+    artist: "Mock Artist",
+    album: "Mock Album",
+    trackUrl: "https://open.spotify.com/track/mock-recent-track",
+    playedAt: DEFAULT_COMPLETED_AT,
+    ...overrides,
+  };
+}
+
 export function buildRelease(overrides: Partial<ArtistRelease> = {}): ArtistRelease {
   return {
     artistId: "release-artist-1",
@@ -519,10 +560,16 @@ export async function installHistoryMocks(
   {
     downloads = [buildHistoryItem()],
     tracks = [buildDownloadHistoryTrack()],
+    topTracks = [],
+    topArtists = [],
+    recentPlays = [],
   }: MockHistoryOptions = {},
 ): Promise<void> {
   await registerJsonRoute(page, `${ApiRoutes.HISTORY}/downloads`, { data: downloads });
   await registerJsonRoute(page, `${ApiRoutes.HISTORY}/tracks`, { data: tracks });
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/top-tracks**`, { data: topTracks });
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/top-artists**`, { data: topArtists });
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/recent-plays**`, { data: recentPlays });
 }
 
 export async function installTrackMocks(
@@ -687,6 +734,13 @@ export async function installAppShellMocks(
       await fulfillJson(route, DOWNLOAD_STATUS_PAYLOAD);
     });
   }
+
+  // Listening-history aggregation endpoints — called on every Dashboard mount.
+  // Default to empty arrays; tests that need data use installHistoryMocks afterwards
+  // (last-registered route wins in Playwright).
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/top-tracks**`, { data: [] });
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/top-artists**`, { data: [] });
+  await registerJsonRoute(page, `${ApiRoutes.HISTORY}/recent-plays**`, { data: [] });
 
   // AI chat transcript: the Chat view loads history on mount (GET) and can
   // clear it (DELETE). Default to an empty thread so every test is covered.
