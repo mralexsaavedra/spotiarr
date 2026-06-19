@@ -100,6 +100,40 @@ describe("buildListeningContext", () => {
     });
   });
 
+  describe("CONFIRMED-3: oversized name truncation (prompt injection defense)", () => {
+    it("truncates a trackName longer than 100 chars in the output", () => {
+      const longName = "X".repeat(200);
+      const track = makeTrack({ trackName: longName, artist: "Artist" });
+      const result = buildListeningContext([track], [], "tracks");
+      expect(result).not.toContain("X".repeat(101));
+      // The truncated form (100 chars) must appear
+      expect(result).toContain("X".repeat(100));
+    });
+
+    it("truncates an artist name longer than 100 chars in the track line", () => {
+      const longArtist = "Y".repeat(200);
+      const track = makeTrack({ trackName: "Song", artist: longArtist });
+      const result = buildListeningContext([track], [], "tracks");
+      expect(result).not.toContain("Y".repeat(101));
+      expect(result).toContain("Y".repeat(100));
+    });
+
+    it("truncates an artist name longer than 100 chars in the artist list", () => {
+      const longArtist = "Z".repeat(200);
+      const artist = makeArtist({ artist: longArtist });
+      const result = buildListeningContext([], [artist], "artists");
+      expect(result).not.toContain("Z".repeat(101));
+      expect(result).toContain("Z".repeat(100));
+    });
+
+    it("does not truncate names exactly at 100 chars", () => {
+      const exactName = "A".repeat(100);
+      const track = makeTrack({ trackName: exactName, artist: "Artist" });
+      const result = buildListeningContext([track], [], "tracks");
+      expect(result).toContain("A".repeat(100));
+    });
+  });
+
   describe("empty / absent scenarios", () => {
     it("returns empty string when both arrays empty regardless of scope", () => {
       expect(buildListeningContext([], [], "both")).toBe("");

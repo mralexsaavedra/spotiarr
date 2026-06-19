@@ -175,6 +175,61 @@ describe("POST /history/plays", () => {
   });
 });
 
+describe("POST /history/plays — CONFIRMED-3: max-length enforcement on text fields", () => {
+  let useCases: HistoryUseCases;
+  let baseUrl: string;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    useCases = makeUseCases();
+    baseUrl = await startServer(buildApp(useCases));
+  });
+
+  it("returns 400 when trackName exceeds 500 characters", async () => {
+    const res = await fetch(`${baseUrl}/history/plays`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validBody, trackName: "x".repeat(5000) }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(useCases.recordPlay).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when artist exceeds 500 characters", async () => {
+    const res = await fetch(`${baseUrl}/history/plays`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validBody, artist: "a".repeat(5000) }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(useCases.recordPlay).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when album exceeds 500 characters", async () => {
+    const res = await fetch(`${baseUrl}/history/plays`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validBody, album: "b".repeat(5000) }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(useCases.recordPlay).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 when trackName is exactly 500 characters", async () => {
+    const res = await fetch(`${baseUrl}/history/plays`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validBody, trackName: "x".repeat(500) }),
+    });
+
+    expect(res.status).toBe(201);
+    expect(useCases.recordPlay).toHaveBeenCalledOnce();
+  });
+});
+
 describe("GET /history/top-tracks — limit validation (Fix D+E)", () => {
   let useCases: HistoryUseCases;
   let baseUrl: string;

@@ -2,6 +2,10 @@ import type { TopArtistItem, TopTrackItem } from "@spotiarr/shared";
 import type { ListeningScope } from "@spotiarr/shared";
 
 const CAP = 15;
+// Guard against unbounded user-supplied text being injected verbatim into the LLM prompt.
+const NAME_MAX = 100;
+
+const trunc = (s: string) => s.slice(0, NAME_MAX);
 
 /**
  * Pure formatter: given top tracks, top artists, and a scope, produces
@@ -20,7 +24,7 @@ export function buildListeningContext(
   if (scope === "tracks" || scope === "both") {
     const tracks = topTracks.slice(0, CAP);
     if (tracks.length > 0) {
-      const list = tracks.map((t) => `${t.trackName} — ${t.artist}`).join(", ");
+      const list = tracks.map((t) => `${trunc(t.trackName)} — ${trunc(t.artist)}`).join(", ");
       parts.push(`User's most listened tracks: ${list}`);
     }
   }
@@ -28,7 +32,7 @@ export function buildListeningContext(
   if (scope === "artists" || scope === "both") {
     const artists = topArtists.slice(0, CAP);
     if (artists.length > 0) {
-      const list = artists.map((a) => a.artist).join(", ");
+      const list = artists.map((a) => trunc(a.artist)).join(", ");
       parts.push(`User's most listened artists: ${list}`);
     }
   }
