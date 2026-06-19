@@ -12,6 +12,14 @@ export const validate =
       });
       if (parsed && typeof parsed === "object") {
         if ("body" in parsed && parsed.body !== undefined) req.body = parsed.body;
+        if ("query" in parsed && parsed.query !== undefined) {
+          const coercedQuery = parsed.query as Record<string, unknown>;
+          Object.defineProperty(req, "query", {
+            value: coercedQuery,
+            writable: true,
+            configurable: true,
+          });
+        }
       }
       next();
     } catch (error) {

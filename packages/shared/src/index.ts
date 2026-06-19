@@ -248,6 +248,43 @@ export interface ApiSuccess<T> {
   data: T;
 }
 
+export interface RecordPlayInput {
+  trackId: string | null;
+  trackUrl: string | null;
+  trackName: string;
+  artist: string;
+  album: string | null;
+  albumCoverUrl: string | null;
+  durationMs: number | null;
+  playedAt: number;
+}
+
+export interface TopTrackItem {
+  trackUrl: string | null;
+  trackName: string;
+  artist: string;
+  album: string | null;
+  albumCoverUrl: string | null;
+  playCount: number;
+  lastPlayedAt: number;
+}
+
+export interface TopArtistItem {
+  artist: string;
+  playCount: number;
+  trackCount: number;
+  lastPlayedAt: number;
+}
+
+export interface RecentPlayItem {
+  trackId: string | null;
+  trackUrl: string | null;
+  trackName: string;
+  artist: string;
+  album: string | null;
+  playedAt: number;
+}
+
 export interface DownloadHistoryItem {
   id: string;
   playlistId: string | null;
@@ -259,6 +296,16 @@ export interface DownloadHistoryItem {
   album: string | null;
   trackUrl: string | null;
   completedAt: number;
+}
+
+// ---------------------------------------------------------------------------
+// AI listening intent types (PR-3 / T-3.7)
+// ---------------------------------------------------------------------------
+
+export type ListeningScope = "tracks" | "artists" | "both";
+
+export interface ListeningIntent {
+  scope: ListeningScope | null;
 }
 
 export interface PlaylistHistory {

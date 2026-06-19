@@ -28,4 +28,7 @@ export const queryKeys = {
     ["search", query, types, limit] as const,
   authSession: ["auth", "session"] as const,
   aiChatMessages: ["ai", "chat", "messages"] as const,
+  historyTopTracks: (limit: number) => ["history", "top-tracks", limit] as const,
+  historyTopArtists: (limit: number) => ["history", "top-artists", limit] as const,
+  historyRecentPlays: (limit: number) => ["history", "recent-plays", limit] as const,
 } as const;

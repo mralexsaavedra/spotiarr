@@ -284,6 +284,149 @@ describe("DELETE /api/ai/chat/messages", () => {
   });
 });
 
+describe("POST /api/ai/chat/generate — listeningIntent forwarding", () => {
+  let enqueueGenerate: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    enqueueGenerate = vi.fn().mockResolvedValue(undefined);
+    vi.clearAllMocks();
+  });
+
+  function makeHistoryUseCases(
+    topTracks: unknown[] = [{ trackName: "Song A", artist: "Artist A" }],
+    topArtists: unknown[] = [{ artist: "Artist B" }],
+  ) {
+    return {
+      getTopTracks: vi.fn().mockResolvedValue(topTracks),
+      getTopArtists: vi.fn().mockResolvedValue(topArtists),
+    };
+  }
+
+  async function buildContainerWithHistory(historyUseCases: {
+    getTopTracks: ReturnType<typeof vi.fn>;
+    getTopArtists: ReturnType<typeof vi.fn>;
+  }) {
+    const queueService = makeQueueService(enqueueGenerate);
+    const aiChatController = new AiChatController(
+      queueService,
+      undefined,
+      makeGetChatMessagesUseCase(),
+      makeClearChatMessagesUseCase(),
+      historyUseCases,
+    );
+    const container = {
+      aiChatController,
+      aiPlaylistQueueService: queueService,
+    } as unknown as Container;
+    return startServer(buildApp(container));
+  }
+
+  it("listeningIntent is forwarded through the route schema to the controller (not stripped by Zod)", async () => {
+    // This test exercises the full schema→validate middleware→controller path.
+    // It fails when generateAiPlaylistSchema does not declare listeningIntent,
+    // because Zod strips unknown keys and the controller receives undefined.
+    const historyUseCases = makeHistoryUseCases();
+    const baseUrl = await buildContainerWithHistory(historyUseCases);
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "latin jazz", listeningIntent: "tracks" }),
+    });
+
+    expect(res.status).toBe(202);
+    // getTopTracks must have been called because listeningIntent reached the controller.
+    // If the schema strips listeningIntent, the controller sees undefined and never calls getTopTracks.
+    expect(historyUseCases.getTopTracks).toHaveBeenCalled();
+  });
+
+  it("intent 'tracks' → enqueueGenerate called with non-empty listeningContext, getTopArtists NOT called", async () => {
+    const historyUseCases = makeHistoryUseCases();
+    const baseUrl = await buildContainerWithHistory(historyUseCases);
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "upbeat tracks", listeningIntent: "tracks" }),
+    });
+
+    expect(res.status).toBe(202);
+    expect(historyUseCases.getTopTracks).toHaveBeenCalled();
+    expect(historyUseCases.getTopArtists).not.toHaveBeenCalled();
+    expect(enqueueGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({ listeningContext: expect.stringMatching(/.+/) }),
+    );
+  });
+
+  it("intent 'artists' → getTopArtists called, getTopTracks NOT, listeningContext non-empty", async () => {
+    const historyUseCases = makeHistoryUseCases();
+    const baseUrl = await buildContainerWithHistory(historyUseCases);
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "best artists", listeningIntent: "artists" }),
+    });
+
+    expect(res.status).toBe(202);
+    expect(historyUseCases.getTopArtists).toHaveBeenCalled();
+    expect(historyUseCases.getTopTracks).not.toHaveBeenCalled();
+    expect(enqueueGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({ listeningContext: expect.stringMatching(/.+/) }),
+    );
+  });
+
+  it("intent 'both' → both getTopTracks and getTopArtists called", async () => {
+    const historyUseCases = makeHistoryUseCases();
+    const baseUrl = await buildContainerWithHistory(historyUseCases);
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "mixed playlist", listeningIntent: "both" }),
+    });
+
+    expect(res.status).toBe(202);
+    expect(historyUseCases.getTopTracks).toHaveBeenCalled();
+    expect(historyUseCases.getTopArtists).toHaveBeenCalled();
+    expect(enqueueGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({ listeningContext: expect.stringMatching(/.+/) }),
+    );
+  });
+
+  it("intent ABSENT → neither history use case called AND enqueueGenerate called with listeningContext: undefined", async () => {
+    const historyUseCases = makeHistoryUseCases();
+    const baseUrl = await buildContainerWithHistory(historyUseCases);
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "chill vibes" }),
+    });
+
+    expect(res.status).toBe(202);
+    expect(historyUseCases.getTopTracks).not.toHaveBeenCalled();
+    expect(historyUseCases.getTopArtists).not.toHaveBeenCalled();
+    expect(enqueueGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({ listeningContext: undefined }),
+    );
+  });
+
+  it("invalid intent value → 400 (Zod enum rejects, enqueue NOT called)", async () => {
+    const historyUseCases = makeHistoryUseCases();
+    const baseUrl = await buildContainerWithHistory(historyUseCases);
+
+    const res = await fetch(`${baseUrl}/api/ai/chat/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "playlist", listeningIntent: "malicious" }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(enqueueGenerate).not.toHaveBeenCalled();
+  });
+});
+
 describe("POST /api/ai/models", () => {
   beforeEach(() => {
     vi.clearAllMocks();

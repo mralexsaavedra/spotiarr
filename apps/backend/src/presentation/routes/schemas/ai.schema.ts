@@ -7,6 +7,7 @@ export const generateAiPlaylistSchema = z.object({
       .trim()
       .min(1, "Prompt must not be empty")
       .max(500, "Prompt must not exceed 500 characters"),
+    listeningIntent: z.enum(["tracks", "artists", "both"]).optional(),
   }),
 });
 

@@ -250,6 +250,9 @@ describe("api mock installers", () => {
       "**/api/playlist/preview/tracks**",
       "**/api/history/downloads",
       "**/api/history/tracks",
+      "**/api/history/top-tracks**",
+      "**/api/history/top-artists**",
+      "**/api/history/recent-plays**",
     ]);
 
     await expect(

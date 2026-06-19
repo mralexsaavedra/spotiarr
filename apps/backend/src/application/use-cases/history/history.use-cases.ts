@@ -1,8 +1,17 @@
-import type { PlaylistHistory, DownloadHistoryItem } from "@spotiarr/shared";
+import type {
+  PlaylistHistory,
+  DownloadHistoryItem,
+  RecordPlayInput,
+  TopTrackItem,
+  TopArtistItem,
+  RecentPlayItem,
+} from "@spotiarr/shared";
+import type { SettingsPort } from "@/application/ports/settings.port";
 import type { HistoryRepository } from "@/domain/repositories/history.repository";
 
 export interface HistoryUseCaseDependencies {
   repository: HistoryRepository;
+  settingsService?: SettingsPort;
 }
 
 interface PlaylistIdentifiers {
@@ -36,6 +45,36 @@ export class HistoryUseCases {
 
   async getRecentTracks(limit = 1000): Promise<DownloadHistoryItem[]> {
     return this.deps.repository.findAll(limit);
+  }
+
+  async recordPlay(input: RecordPlayInput): Promise<void> {
+    const enabled =
+      (await this.deps.settingsService?.getBoolean("LISTENING_HISTORY_ENABLED", true)) ?? true;
+
+    if (!enabled) return;
+
+    await this.deps.repository.recordPlay(input);
+  }
+
+  async getTopTracks(limit?: number): Promise<TopTrackItem[]> {
+    const DEFAULT_TOP_TRACKS = 10;
+    const MAX_TOP_TRACKS = 50;
+    const clamped = Math.min(limit ?? DEFAULT_TOP_TRACKS, MAX_TOP_TRACKS);
+    return this.deps.repository.getTopTracks(clamped);
+  }
+
+  async getTopArtists(limit?: number): Promise<TopArtistItem[]> {
+    const DEFAULT_TOP_ARTISTS = 10;
+    const MAX_TOP_ARTISTS = 50;
+    const clamped = Math.min(limit ?? DEFAULT_TOP_ARTISTS, MAX_TOP_ARTISTS);
+    return this.deps.repository.getTopArtists(clamped);
+  }
+
+  async getRecentPlays(limit?: number): Promise<RecentPlayItem[]> {
+    const DEFAULT_RECENT_PLAYS = 20;
+    const MAX_RECENT_PLAYS = 100;
+    const clamped = Math.min(limit ?? DEFAULT_RECENT_PLAYS, MAX_RECENT_PLAYS);
+    return this.deps.repository.getRecentPlays(clamped);
   }
 
   private initializeDeduplicationMaps(): DeduplicationMaps {

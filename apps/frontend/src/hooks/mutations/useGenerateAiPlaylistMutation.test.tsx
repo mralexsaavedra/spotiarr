@@ -36,10 +36,10 @@ describe("useGenerateAiPlaylistMutation", () => {
     });
 
     await act(async () => {
-      await result.current.mutateAsync("top jazz tracks");
+      await result.current.mutateAsync({ prompt: "top jazz tracks" });
     });
 
-    expect(aiChatService.generate).toHaveBeenCalledWith("top jazz tracks");
+    expect(aiChatService.generate).toHaveBeenCalledWith("top jazz tracks", undefined);
   });
 
   it("returns the jobId on success", async () => {
@@ -51,7 +51,7 @@ describe("useGenerateAiPlaylistMutation", () => {
 
     let returnedData: { jobId: string } | undefined;
     await act(async () => {
-      returnedData = await result.current.mutateAsync("chill vibes");
+      returnedData = await result.current.mutateAsync({ prompt: "chill vibes" });
     });
 
     expect(returnedData?.jobId).toBe("job-xyz");
@@ -65,7 +65,7 @@ describe("useGenerateAiPlaylistMutation", () => {
     });
 
     await act(async () => {
-      await result.current.mutateAsync("test prompt").catch(() => undefined);
+      await result.current.mutateAsync({ prompt: "test prompt" }).catch(() => undefined);
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));

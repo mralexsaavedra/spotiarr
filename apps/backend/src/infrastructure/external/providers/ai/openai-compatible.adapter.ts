@@ -111,12 +111,16 @@ export class OpenAiCompatibleAdapter implements AiChatPort {
     };
   }
 
-  async generateTracks(prompt: string): Promise<AiTrackSuggestion[]> {
+  async generateTracks(prompt: string, listeningContext?: string): Promise<AiTrackSuggestion[]> {
     const { baseURL, apiKey, model, generateFn } = this.config;
 
     if (!baseURL || !apiKey) {
       throw new AiChatError("provider-misconfig", "AI_BASE_URL and AI_API_KEY must be configured");
     }
+
+    const effectivePrompt = listeningContext
+      ? `${prompt}\n\nUser's listening context:\n${listeningContext}`
+      : prompt;
 
     try {
       const provider = createOpenAI({ baseURL, apiKey });
@@ -124,7 +128,7 @@ export class OpenAiCompatibleAdapter implements AiChatPort {
         model: provider.chat(model),
         schema: tracksSchema,
         system: SYSTEM_PROMPT,
-        prompt,
+        prompt: effectivePrompt,
       });
       return result.object.tracks;
     } catch (err) {
@@ -139,7 +143,7 @@ Return at most 50 tracks.`;
 
 export function createAiChatPort(settingsService: SettingsService): AiChatPort {
   return {
-    async generateTracks(prompt: string): Promise<AiTrackSuggestion[]> {
+    async generateTracks(prompt: string, listeningContext?: string): Promise<AiTrackSuggestion[]> {
       const { baseURL, apiKey } = await resolveAiConnection(settingsService);
 
       const model = await settingsService.getString("AI_MODEL", "");
@@ -148,7 +152,7 @@ export function createAiChatPort(settingsService: SettingsService): AiChatPort {
       }
 
       const adapter = new OpenAiCompatibleAdapter({ baseURL, apiKey, model });
-      return adapter.generateTracks(prompt);
+      return adapter.generateTracks(prompt, listeningContext);
     },
   };
 }

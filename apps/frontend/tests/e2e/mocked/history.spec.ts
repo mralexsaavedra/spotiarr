@@ -46,6 +46,7 @@ test.describe("Mocked history flows", () => {
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     await expect(page.getByRole("heading", { name: "Download History" })).toBeVisible();
+    await page.getByRole("heading", { name: "Download History" }).scrollIntoViewIfNeeded();
     await expect(page.getByText("Archive Mix")).toBeVisible();
 
     await page.getByText("Archive Mix").click();
@@ -83,6 +84,7 @@ test.describe("Mocked history flows", () => {
     });
 
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await page.getByRole("heading", { name: "Download History" }).scrollIntoViewIfNeeded();
     await page.getByText("Archive Mix").click();
 
     await expect(page).toHaveURL(`/playlist/${managedPlaylist.id}`);

@@ -71,6 +71,10 @@ test.describe("SSE live updates", () => {
 
     await page.goto("/history", { waitUntil: "domcontentloaded" });
 
+    // Scroll the Download History section into view — new sections above it push it
+    // past Virtuoso's render threshold when the window is short.
+    await page.getByRole("heading", { name: "Download History" }).scrollIntoViewIfNeeded();
+
     // Confirm the initial render before allowing the SSE event to fire
     await expect(page.getByText("Old Item")).toBeVisible();
 

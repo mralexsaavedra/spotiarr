@@ -1,4 +1,10 @@
-import type { DownloadHistoryItem } from "@spotiarr/shared";
+import type {
+  DownloadHistoryItem,
+  RecordPlayInput,
+  TopTrackItem,
+  TopArtistItem,
+  RecentPlayItem,
+} from "@spotiarr/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HistoryUseCases } from "./history.use-cases";
 
@@ -133,5 +139,254 @@ describe("HistoryUseCases.getRecentDownloads", () => {
     repository.findAll.mockResolvedValue([]);
     await useCases.getRecentDownloads(50);
     expect(repository.findAll).toHaveBeenCalledWith(50);
+  });
+});
+
+describe("HistoryUseCases.recordPlay", () => {
+  function makePlayInput(overrides: Partial<RecordPlayInput> = {}): RecordPlayInput {
+    return {
+      trackId: "track-1",
+      trackUrl: "https://open.spotify.com/track/abc",
+      trackName: "Test Song",
+      artist: "Test Artist",
+      album: "Test Album",
+      albumCoverUrl: null,
+      durationMs: 180_000,
+      playedAt: 1_700_000_000_000,
+      ...overrides,
+    };
+  }
+
+  function makeSettingsService(enabled = true) {
+    return {
+      getBoolean: vi.fn().mockResolvedValue(enabled),
+    };
+  }
+
+  let repository: {
+    findAll: ReturnType<typeof vi.fn>;
+    createFromTrack: ReturnType<typeof vi.fn>;
+    recordPlay: ReturnType<typeof vi.fn>;
+  };
+  let settingsService: ReturnType<typeof makeSettingsService>;
+  let useCases: HistoryUseCases;
+
+  beforeEach(() => {
+    repository = {
+      findAll: vi.fn(),
+      createFromTrack: vi.fn(),
+      recordPlay: vi.fn().mockResolvedValue(undefined),
+    };
+    settingsService = makeSettingsService(true);
+    useCases = new HistoryUseCases({
+      repository: repository as never,
+      settingsService: settingsService as never,
+    });
+  });
+
+  it("calls repository.recordPlay when LISTENING_HISTORY_ENABLED is true", async () => {
+    await useCases.recordPlay(makePlayInput());
+
+    expect(settingsService.getBoolean).toHaveBeenCalledWith("LISTENING_HISTORY_ENABLED", true);
+    expect(repository.recordPlay).toHaveBeenCalledOnce();
+    expect(repository.recordPlay).toHaveBeenCalledWith(makePlayInput());
+  });
+
+  it("does NOT call repository.recordPlay when LISTENING_HISTORY_ENABLED is false", async () => {
+    settingsService = makeSettingsService(false);
+    useCases = new HistoryUseCases({
+      repository: repository as never,
+      settingsService: settingsService as never,
+    });
+
+    await useCases.recordPlay(makePlayInput());
+
+    expect(settingsService.getBoolean).toHaveBeenCalledWith("LISTENING_HISTORY_ENABLED", true);
+    expect(repository.recordPlay).not.toHaveBeenCalled();
+  });
+
+  it("returns void on success", async () => {
+    const result = await useCases.recordPlay(makePlayInput());
+    expect(result).toBeUndefined();
+  });
+});
+
+// ── Aggregation use-cases — limit clamping (REQ-LH-010, REQ-LH-014, REQ-LH-018) ────────
+
+function makeTopTrackItem(overrides: Partial<TopTrackItem> = {}): TopTrackItem {
+  return {
+    trackUrl: "https://open.spotify.com/track/x",
+    trackName: "Song",
+    artist: "Artist",
+    album: null,
+    albumCoverUrl: null,
+    playCount: 3,
+    lastPlayedAt: 1_000,
+    ...overrides,
+  };
+}
+
+function makeTopArtistItem(overrides: Partial<TopArtistItem> = {}): TopArtistItem {
+  return {
+    artist: "Artist",
+    playCount: 5,
+    lastPlayedAt: 2_000,
+    ...overrides,
+  };
+}
+
+function makeRecentPlayItem(overrides: Partial<RecentPlayItem> = {}): RecentPlayItem {
+  return {
+    trackId: null,
+    trackUrl: null,
+    trackName: "Track",
+    artist: "Artist",
+    album: null,
+    playedAt: 3_000,
+    ...overrides,
+  };
+}
+
+describe("HistoryUseCases.getTopTracks", () => {
+  let repository: {
+    findAll: ReturnType<typeof vi.fn>;
+    createFromTrack: ReturnType<typeof vi.fn>;
+    recordPlay: ReturnType<typeof vi.fn>;
+    getTopTracks: ReturnType<typeof vi.fn>;
+    getTopArtists: ReturnType<typeof vi.fn>;
+    getRecentPlays: ReturnType<typeof vi.fn>;
+  };
+  let useCases: HistoryUseCases;
+
+  beforeEach(() => {
+    repository = {
+      findAll: vi.fn(),
+      createFromTrack: vi.fn(),
+      recordPlay: vi.fn().mockResolvedValue(undefined),
+      getTopTracks: vi.fn().mockResolvedValue([]),
+      getTopArtists: vi.fn().mockResolvedValue([]),
+      getRecentPlays: vi.fn().mockResolvedValue([]),
+    };
+    useCases = new HistoryUseCases({ repository: repository as never });
+  });
+
+  it("uses default N=10 when called without arguments", async () => {
+    await useCases.getTopTracks();
+    expect(repository.getTopTracks).toHaveBeenCalledWith(10);
+  });
+
+  it("passes the provided limit to the repository", async () => {
+    await useCases.getTopTracks(25);
+    expect(repository.getTopTracks).toHaveBeenCalledWith(25);
+  });
+
+  it("clamps N to max 50 (REQ-LH-010)", async () => {
+    await useCases.getTopTracks(200);
+    expect(repository.getTopTracks).toHaveBeenCalledWith(50);
+  });
+
+  it("returns the array from the repository", async () => {
+    const items = [makeTopTrackItem()];
+    repository.getTopTracks.mockResolvedValue(items);
+
+    const result = await useCases.getTopTracks(10);
+
+    expect(result).toBe(items);
+  });
+});
+
+describe("HistoryUseCases.getTopArtists", () => {
+  let repository: {
+    findAll: ReturnType<typeof vi.fn>;
+    createFromTrack: ReturnType<typeof vi.fn>;
+    recordPlay: ReturnType<typeof vi.fn>;
+    getTopTracks: ReturnType<typeof vi.fn>;
+    getTopArtists: ReturnType<typeof vi.fn>;
+    getRecentPlays: ReturnType<typeof vi.fn>;
+  };
+  let useCases: HistoryUseCases;
+
+  beforeEach(() => {
+    repository = {
+      findAll: vi.fn(),
+      createFromTrack: vi.fn(),
+      recordPlay: vi.fn().mockResolvedValue(undefined),
+      getTopTracks: vi.fn().mockResolvedValue([]),
+      getTopArtists: vi.fn().mockResolvedValue([]),
+      getRecentPlays: vi.fn().mockResolvedValue([]),
+    };
+    useCases = new HistoryUseCases({ repository: repository as never });
+  });
+
+  it("uses default N=10 when called without arguments", async () => {
+    await useCases.getTopArtists();
+    expect(repository.getTopArtists).toHaveBeenCalledWith(10);
+  });
+
+  it("passes the provided limit to the repository", async () => {
+    await useCases.getTopArtists(20);
+    expect(repository.getTopArtists).toHaveBeenCalledWith(20);
+  });
+
+  it("clamps N to max 50 (REQ-LH-014)", async () => {
+    await useCases.getTopArtists(99);
+    expect(repository.getTopArtists).toHaveBeenCalledWith(50);
+  });
+
+  it("returns the array from the repository", async () => {
+    const items = [makeTopArtistItem()];
+    repository.getTopArtists.mockResolvedValue(items);
+
+    const result = await useCases.getTopArtists(10);
+
+    expect(result).toBe(items);
+  });
+});
+
+describe("HistoryUseCases.getRecentPlays", () => {
+  let repository: {
+    findAll: ReturnType<typeof vi.fn>;
+    createFromTrack: ReturnType<typeof vi.fn>;
+    recordPlay: ReturnType<typeof vi.fn>;
+    getTopTracks: ReturnType<typeof vi.fn>;
+    getTopArtists: ReturnType<typeof vi.fn>;
+    getRecentPlays: ReturnType<typeof vi.fn>;
+  };
+  let useCases: HistoryUseCases;
+
+  beforeEach(() => {
+    repository = {
+      findAll: vi.fn(),
+      createFromTrack: vi.fn(),
+      recordPlay: vi.fn().mockResolvedValue(undefined),
+      getTopTracks: vi.fn().mockResolvedValue([]),
+      getTopArtists: vi.fn().mockResolvedValue([]),
+      getRecentPlays: vi.fn().mockResolvedValue([]),
+    };
+    useCases = new HistoryUseCases({ repository: repository as never });
+  });
+
+  it("uses default N=20 when called without arguments", async () => {
+    await useCases.getRecentPlays();
+    expect(repository.getRecentPlays).toHaveBeenCalledWith(20);
+  });
+
+  it("passes the provided limit to the repository", async () => {
+    await useCases.getRecentPlays(50);
+    expect(repository.getRecentPlays).toHaveBeenCalledWith(50);
+  });
+
+  it("clamps N to max 100 (REQ-LH-018)", async () => {
+    await useCases.getRecentPlays(500);
+    expect(repository.getRecentPlays).toHaveBeenCalledWith(100);
+  });
+
+  it("returns the array from the repository", async () => {
+    const items = [makeRecentPlayItem()];
+    repository.getRecentPlays.mockResolvedValue(items);
+
+    const result = await useCases.getRecentPlays(20);
+
+    expect(result).toBe(items);
   });
 });

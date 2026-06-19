@@ -154,7 +154,11 @@ describe("useChatController", () => {
       await result.current.handleSubmit();
     });
 
-    expect(mockMutateAsync).toHaveBeenCalledWith("latin jazz");
+    expect(mockMutateAsync).toHaveBeenCalledWith(expect.objectContaining({ prompt: "latin jazz" }));
+    // "latin jazz" carries no listening-history signal — intent must be absent (undefined),
+    // not "both" or any other scope. This guards against intent always leaking to the mutation.
+    const callArg = mockMutateAsync.mock.calls[0][0] as { prompt: string; intent?: string };
+    expect(callArg.intent).toBeUndefined();
     expect(result.current.isGenerating).toBe(true);
   });
 

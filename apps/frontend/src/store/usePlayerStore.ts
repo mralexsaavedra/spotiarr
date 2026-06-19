@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { shouldRecordPlay } from "@/utils/should-record-play";
 import { createPlayerUISlice, type PlayerUISlice } from "./playerUISlice";
 
 export interface QueueItem {
@@ -52,6 +53,8 @@ export interface PlayerState extends PlayerUISlice {
   reorderQueue: (fromIndex: number, toIndex: number) => void;
 
   setAudioElement: (el: HTMLAudioElement | null) => void;
+  /** Inject the play-recorder fn from TanStack Query mutation (GlobalPlayerBar effect). */
+  setPlayRecorder: (fn: ((item: QueueItem) => void) | null) => void;
   _onLoadedMetadata: (duration: number) => void;
   _onTimeUpdate: (currentTime: number) => void;
   _onEnded: () => void;
@@ -88,6 +91,22 @@ export const __partialize = (
 });
 
 let _audioElement: HTMLAudioElement | null = null;
+
+// Play-session dedup guard (Decision 2).
+// Module-level (not persisted, not in store state) — mirrors _audioElement pattern.
+let _playSessionId = 0;
+let _recordedPlaySession: number | null = null;
+let _playRecorder: ((item: QueueItem) => void) | null = null;
+
+/**
+ * Called from onRehydrateStorage so that a rehydrated mid-track position
+ * does not fire the recorder. Only a genuine new play action (playQueue,
+ * playFromIndex, next, prev advancing tracks) bumps _playSessionId and
+ * clears _recordedPlaySession, enabling the next threshold cross to record.
+ */
+export function markRehydratedSessionAsRecorded(): void {
+  _recordedPlaySession = _playSessionId;
+}
 
 function shuffleIndices(length: number, pin: number): number[] {
   if (length === 0) return [];
@@ -130,11 +149,18 @@ type AdvanceSource = "user" | "ended" | "error";
 export const usePlayerStore = create<PlayerState>()(
   persist(
     (set, get) => {
+      function bumpPlaySession(): void {
+        _playSessionId += 1;
+        _recordedPlaySession = null;
+      }
+
       function advance(source: AdvanceSource): void {
         const { currentIndex, queue, shuffleMode, shuffleOrder, shuffleOrderIndex, repeatMode } =
           get();
         if (currentIndex === null) return;
         if (source === "ended" && repeatMode === "one") {
+          // Repeat-one: same track restarts → new play instance (REQ-LH-005)
+          bumpPlaySession();
           if (_audioElement) {
             _audioElement.currentTime = 0;
             void _audioElement.play();
@@ -144,6 +170,7 @@ export const usePlayerStore = create<PlayerState>()(
         if (shuffleMode) {
           if (shuffleOrderIndex >= shuffleOrder.length - 1) {
             if (repeatMode === "all") {
+              bumpPlaySession();
               set({
                 shuffleOrderIndex: 0,
                 currentIndex: shuffleOrder[0]!,
@@ -155,6 +182,7 @@ export const usePlayerStore = create<PlayerState>()(
             }
             return;
           }
+          bumpPlaySession();
           const nextOrderIndex = shuffleOrderIndex + 1;
           set({
             shuffleOrderIndex: nextOrderIndex,
@@ -166,12 +194,14 @@ export const usePlayerStore = create<PlayerState>()(
         }
         if (currentIndex >= queue.length - 1) {
           if (repeatMode === "all") {
+            bumpPlaySession();
             set({ currentIndex: 0, currentTime: 0, isBuffering: false });
           } else {
             set({ isPlaying: false });
           }
           return;
         }
+        bumpPlaySession();
         set({ currentIndex: currentIndex + 1, currentTime: 0, isBuffering: false });
       }
 
@@ -184,6 +214,7 @@ export const usePlayerStore = create<PlayerState>()(
             get().clear();
             return;
           }
+          bumpPlaySession();
           set({
             queue: items,
             currentIndex: startIndex,
@@ -231,6 +262,7 @@ export const usePlayerStore = create<PlayerState>()(
           }
           if (shuffleMode) {
             if (shuffleOrderIndex > 0) {
+              bumpPlaySession();
               const nextOrderIndex = shuffleOrderIndex - 1;
               set({
                 shuffleOrderIndex: nextOrderIndex,
@@ -241,6 +273,7 @@ export const usePlayerStore = create<PlayerState>()(
               return;
             }
             if (repeatMode === "all") {
+              bumpPlaySession();
               const nextOrderIndex = shuffleOrder.length - 1;
               set({
                 shuffleOrderIndex: nextOrderIndex,
@@ -252,10 +285,12 @@ export const usePlayerStore = create<PlayerState>()(
             return;
           }
           if (currentIndex > 0) {
+            bumpPlaySession();
             set({ currentIndex: currentIndex - 1, currentTime: 0, isBuffering: false });
             return;
           }
           if (repeatMode === "all") {
+            bumpPlaySession();
             set({ currentIndex: queue.length - 1, currentTime: 0, isBuffering: false });
           }
         },
@@ -305,6 +340,10 @@ export const usePlayerStore = create<PlayerState>()(
           _audioElement = el;
         },
 
+        setPlayRecorder(fn) {
+          _playRecorder = fn;
+        },
+
         _onLoadedMetadata(duration) {
           set({
             duration: Number.isFinite(duration) && duration > 0 ? duration : 0,
@@ -314,6 +353,20 @@ export const usePlayerStore = create<PlayerState>()(
 
         _onTimeUpdate(currentTime) {
           set({ currentTime });
+          // Play-session threshold check (REQ-LH-001, REQ-LH-003)
+          const { duration, currentIndex, queue } = get();
+          if (
+            _playRecorder !== null &&
+            _recordedPlaySession !== _playSessionId &&
+            currentIndex !== null &&
+            shouldRecordPlay(currentTime, duration > 0 ? duration : null)
+          ) {
+            _recordedPlaySession = _playSessionId;
+            const item = queue[currentIndex];
+            if (item) {
+              _playRecorder(item);
+            }
+          }
         },
 
         _onEnded() {
@@ -373,6 +426,7 @@ export const usePlayerStore = create<PlayerState>()(
         playFromIndex(index) {
           const { queue, shuffleMode } = get();
           if (index < 0 || index >= queue.length) return;
+          bumpPlaySession();
           set({
             currentIndex: index,
             isPlaying: true,
@@ -425,6 +479,11 @@ export const usePlayerStore = create<PlayerState>()(
     {
       name: "spotiarr-player",
       partialize: __partialize,
+      onRehydrateStorage: () => () => {
+        // Prevent a rehydrated mid-track position from triggering a duplicate record.
+        // Only bumpPlaySession (called by playQueue/playFromIndex/next/prev) resets this.
+        markRehydratedSessionAsRecorded();
+      },
     },
   ),
 );
