@@ -145,17 +145,21 @@ describe("render guard", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Single audio element
+// Audio elements
 // ---------------------------------------------------------------------------
 
 describe("audio element", () => {
-  it("renders exactly one hidden audio element", () => {
+  it("renders main player audio and hidden warmer audio element", () => {
     usePlayerStore.getState().playQueue([makeItem("a")], 0);
     const { container } = render(<GlobalPlayerBar />);
 
     const audioEls = container.querySelectorAll("audio");
-    expect(audioEls).toHaveLength(1);
-    expect(audioEls[0]?.getAttribute("aria-label")).toBe("Audio player");
+    expect(audioEls).toHaveLength(2);
+    const mainAudio = container.querySelector("audio[aria-label='Audio player']");
+    expect(mainAudio).not.toBeNull();
+    const warmerAudio = container.querySelector("audio[aria-hidden='true']");
+    expect(warmerAudio).not.toBeNull();
+    expect(warmerAudio?.getAttribute("preload")).toBe("auto");
   });
 });
 

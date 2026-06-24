@@ -94,3 +94,40 @@ describe("persist — state updates are reflected after setState", () => {
     expect(persistApi.getOptions().name).toBe("spotiarr-preferences");
   });
 });
+
+describe("audioPrefetchCount", () => {
+  it("defaults to 3", () => {
+    expect(usePreferencesStore.getState().audioPrefetchCount).toBe(3);
+  });
+
+  it("setAudioPrefetchCount updates the value", () => {
+    usePreferencesStore.getState().setAudioPrefetchCount(1);
+    expect(usePreferencesStore.getState().audioPrefetchCount).toBe(1);
+  });
+
+  it("setAudioPrefetchCount(-1) clamps to 0", () => {
+    usePreferencesStore.getState().setAudioPrefetchCount(-1);
+    expect(usePreferencesStore.getState().audioPrefetchCount).toBe(0);
+  });
+
+  it("setAudioPrefetchCount(11) clamps to 10", () => {
+    usePreferencesStore.getState().setAudioPrefetchCount(11);
+    expect(usePreferencesStore.getState().audioPrefetchCount).toBe(10);
+  });
+
+  it("setAudioPrefetchCount(0) sets to 0 (lower bound inclusive)", () => {
+    usePreferencesStore.getState().setAudioPrefetchCount(0);
+    expect(usePreferencesStore.getState().audioPrefetchCount).toBe(0);
+  });
+
+  it("setAudioPrefetchCount(10) sets to 10 (upper bound inclusive)", () => {
+    usePreferencesStore.getState().setAudioPrefetchCount(10);
+    expect(usePreferencesStore.getState().audioPrefetchCount).toBe(10);
+  });
+
+  it("value is persisted under spotiarr-preferences key", () => {
+    usePreferencesStore.getState().setAudioPrefetchCount(5);
+    expect(usePreferencesStore.getState().audioPrefetchCount).toBe(5);
+    expect(usePreferencesStore.persist.getOptions().name).toBe("spotiarr-preferences");
+  });
+});

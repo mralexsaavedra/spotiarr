@@ -193,6 +193,8 @@ export class LibraryController {
 
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("Content-Type", result.contentType);
+      res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
+      res.setHeader("Last-Modified", new Date(result.mtimeMs).toUTCString());
 
       if (range.kind === "full") {
         res.setHeader("Content-Length", result.sizeBytes.toString());
