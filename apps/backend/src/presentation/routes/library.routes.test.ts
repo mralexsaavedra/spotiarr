@@ -463,6 +463,70 @@ describe("GET /audio integration", () => {
     });
   });
 
+  it("responds with Cache-Control: private, max-age=31536000, immutable on 200", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-cache-200-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, max-age=31536000, immutable");
+  });
+
+  it("responds with Last-Modified on 200", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-lm-200-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+
+    expect(response.status).toBe(200);
+    const lastModified = response.headers.get("last-modified");
+    expect(lastModified).toBeTruthy();
+    expect(isNaN(Date.parse(lastModified!))).toBe(false);
+  });
+
+  it("responds with Cache-Control: private, max-age=31536000, immutable on 206", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-cache-206-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "abcdef");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`, {
+      headers: { Range: "bytes=0-1023" },
+    });
+
+    expect(response.status).toBe(206);
+    expect(response.headers.get("cache-control")).toBe("private, max-age=31536000, immutable");
+  });
+
+  it("responds with Last-Modified on 206", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-lm-206-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "abcdef");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`, {
+      headers: { Range: "bytes=0-2" },
+    });
+
+    expect(response.status).toBe(206);
+    const lastModified = response.headers.get("last-modified");
+    expect(lastModified).toBeTruthy();
+    expect(isNaN(Date.parse(lastModified!))).toBe(false);
+  });
+
   it("returns 404 for unsupported extension", async () => {
     const downloadsRoot = await makeTempDir("lib-audio-route-root-");
     const filePath = path.join(downloadsRoot, "Artist", "cover.jpg");

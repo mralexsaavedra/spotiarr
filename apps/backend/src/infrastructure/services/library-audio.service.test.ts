@@ -50,6 +50,7 @@ describe("FileSystemLibraryAudioService", () => {
       absolutePath: await fs.realpath(trackPath),
       contentType: "audio/mpeg",
       sizeBytes: 10,
+      mtimeMs: expect.any(Number),
     });
   });
 
