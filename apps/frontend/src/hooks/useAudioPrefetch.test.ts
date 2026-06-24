@@ -324,3 +324,169 @@ describe("useAudioPrefetch hook", () => {
     expect(el.load).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("useAudioPrefetch — Cache-API fetch path (Slice 2)", () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    Object.defineProperty(window, "isSecureContext", {
+      value: true,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(navigator, "onLine", { value: true, configurable: true, writable: true });
+    if (!("serviceWorker" in navigator)) {
+      Object.defineProperty(navigator, "serviceWorker", {
+        value: {},
+        configurable: true,
+        writable: true,
+      });
+    }
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, "isSecureContext", {
+      value: false,
+      configurable: true,
+      writable: true,
+    });
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("no fetch when isSecureContext is false", () => {
+    Object.defineProperty(window, "isSecureContext", {
+      value: false,
+      configurable: true,
+      writable: true,
+    });
+
+    const queue = makeQueue(4);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 3 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("no fetch when navigator.onLine is false", async () => {
+    Object.defineProperty(navigator, "onLine", {
+      value: false,
+      configurable: true,
+      writable: true,
+    });
+
+    const queue = makeQueue(4);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 3 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("fetches next N urls sequentially with credentials:include when secure and online", async () => {
+    const queue = makeQueue(5);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 3 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+    expect(fetchSpy).toHaveBeenNthCalledWith(1, queue[1]!.audioUrl, {
+      credentials: "include",
+    });
+    expect(fetchSpy).toHaveBeenNthCalledWith(2, queue[2]!.audioUrl, {
+      credentials: "include",
+    });
+    expect(fetchSpy).toHaveBeenNthCalledWith(3, queue[3]!.audioUrl, {
+      credentials: "include",
+    });
+  });
+
+  it("fetch does not include Range header", async () => {
+    const queue = makeQueue(3);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 2 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const calls = fetchSpy.mock.calls as [string, RequestInit][];
+    for (const [, opts] of calls) {
+      const headers = opts?.headers as Record<string, string> | undefined;
+      expect(headers?.["Range"]).toBeUndefined();
+      expect(headers?.["range"]).toBeUndefined();
+    }
+  });
+
+  it("QuotaExceededError is swallowed — no unhandled rejection", async () => {
+    const err = new DOMException("QuotaExceededError");
+    fetchSpy.mockRejectedValueOnce(err);
+
+    const queue = makeQueue(3);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 1 });
+
+    const el = makeMockAudioElement();
+
+    await expect(
+      act(async () => {
+        renderHook(() => useAudioPrefetch({ current: el }));
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+      }),
+    ).resolves.not.toThrow();
+  });
+
+  it("network error is swallowed — no unhandled rejection", async () => {
+    fetchSpy.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+    const queue = makeQueue(3);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 1 });
+
+    const el = makeMockAudioElement();
+
+    await expect(
+      act(async () => {
+        renderHook(() => useAudioPrefetch({ current: el }));
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+      }),
+    ).resolves.not.toThrow();
+  });
+
+  it("N=0 in secure context: no fetch", async () => {
+    const queue = makeQueue(4);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 0 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});

@@ -60,6 +60,16 @@ export function computeNextAudioUrls(state: PrefetchState, n: number): string[] 
   return results;
 }
 
+async function prefetchIntoCache(urls: string[]): Promise<void> {
+  for (const url of urls) {
+    try {
+      await fetch(url, { credentials: "include" });
+    } catch {
+      // Quota exhaustion and network errors are silent no-ops.
+    }
+  }
+}
+
 export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | null>): void {
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
@@ -69,12 +79,12 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
   const repeatMode = usePlayerStore((s) => s.repeatMode);
   const audioPrefetchCount = usePreferencesStore((s) => s.audioPrefetchCount);
 
-  const nextUrl = useMemo(
+  const nextUrls = useMemo(
     () =>
       computeNextAudioUrls(
         { queue, currentIndex, shuffleMode, shuffleOrder, shuffleOrderIndex, repeatMode },
         audioPrefetchCount,
-      )[0] ?? null,
+      ),
     [
       queue,
       currentIndex,
@@ -86,8 +96,12 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
     ],
   );
 
+  const nextUrl = nextUrls[0] ?? null;
+
   const prevUrlRef = useRef<string | null>(null);
 
+  // Slice 1: warm the immediate-next track via hidden <audio> element (works over plain HTTP).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const el = warmerRef.current;
     if (!el) return;
@@ -109,4 +123,14 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
     el.src = nextUrl;
     el.load();
   }, [nextUrl, audioPrefetchCount]);
+
+  // Slice 2: sequentially fetch the next N tracks into the SW Cache API (HTTPS / secure context only).
+  // Inert when not secure, offline, or N=0. The SW CacheFirst rule serves them offline.
+  useEffect(() => {
+    if (!window.isSecureContext || !("serviceWorker" in navigator)) return;
+    if (!navigator.onLine) return;
+    if (audioPrefetchCount <= 0 || nextUrls.length === 0) return;
+
+    void prefetchIntoCache(nextUrls);
+  }, [nextUrls, audioPrefetchCount]);
 }
