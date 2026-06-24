@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@11.7.0 --activate
@@ -34,7 +34,7 @@ RUN pnpm run build
 # a standalone directory, so the final image ships only runtime packages.
 RUN pnpm --filter backend deploy --prod --legacy /spotiarr/prod-deploy
 
-FROM node:22-alpine
+FROM node:26-alpine
 
 # Pre-cache pnpm in a system-wide corepack store. The entrypoint sets
 # COREPACK_HOME=/usr/local/share/corepack before su-exec so the shim
