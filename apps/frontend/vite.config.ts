@@ -49,7 +49,6 @@ export default defineConfig(({ mode }) => {
               handler: "CacheFirst",
               options: {
                 cacheName: "spotiarr-audio",
-                // maxEntries = audioPrefetchCount clamp max (10) + 1 to avoid premature eviction
                 cacheableResponse: { statuses: [200] },
                 expiration: { maxEntries: 11, purgeOnQuotaError: true },
                 plugins: [new RangeRequestsPlugin()],

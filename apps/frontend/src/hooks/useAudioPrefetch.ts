@@ -89,7 +89,6 @@ async function prefetchIntoCache(urls: string[], signal: AbortSignal): Promise<v
         (err as { name?: string }).name === "AbortError"
       )
         return;
-      // Quota exhaustion and network errors are silent no-ops.
     }
   }
 }
@@ -120,14 +119,12 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
     ],
   );
 
-  // Stable string key — cache effect only re-fires when the URL set actually changes.
   const nextUrlsKey = nextUrls.join("\n");
 
   const nextUrl = nextUrls[0] ?? null;
 
   const prevUrlRef = useRef<string | null>(null);
 
-  // Slice 1: warm the immediate-next track via hidden <audio> element (works over plain HTTP).
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const el = warmerRef.current;
@@ -151,8 +148,6 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
     el.load();
   }, [nextUrl, audioPrefetchCount]);
 
-  // Slice 2: sequentially fetch the next N tracks into the SW Cache API (HTTPS / secure context only).
-  // Inert when not secure, offline, or N=0. The SW CacheFirst rule serves them offline.
   useEffect(() => {
     if (!window.isSecureContext || !("serviceWorker" in navigator)) return;
     if (audioPrefetchCount <= 0 || nextUrlsKey === "") return;
@@ -179,7 +174,6 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
       controller.abort();
       window.removeEventListener("online", onOnline);
     };
-    // nextUrlsKey is the stable proxy for nextUrls identity; audioPrefetchCount gates the run.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextUrlsKey, audioPrefetchCount]);
 }
