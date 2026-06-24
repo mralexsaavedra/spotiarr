@@ -93,6 +93,8 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
     if (!el) return;
 
     if (audioPrefetchCount <= 0) {
+      el.src = "";
+      prevUrlRef.current = null;
       return;
     }
 
@@ -106,5 +108,5 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
 
     el.src = nextUrl;
     el.load();
-  }, [nextUrl, audioPrefetchCount, warmerRef]);
+  }, [nextUrl, audioPrefetchCount]);
 }

@@ -122,11 +122,59 @@ describe("computeNextAudioUrls", () => {
     const result = computeNextAudioUrls({ queue: [], currentIndex: null, ...DEFAULT_STATE }, 3);
     expect(result).toEqual([]);
   });
-});
 
-// ---------------------------------------------------------------------------
-// useAudioPrefetch hook tests
-// ---------------------------------------------------------------------------
+  it("repeatMode=all non-shuffle 2-track: returns the other track (wrap bug)", () => {
+    const queue = makeQueue(2);
+    const result = computeNextAudioUrls(
+      {
+        queue,
+        currentIndex: 0,
+        shuffleMode: false,
+        shuffleOrder: [],
+        shuffleOrderIndex: -1,
+        repeatMode: "all",
+      },
+      1,
+    );
+    expect(result).toEqual([queue[1]!.audioUrl]);
+  });
+
+  it("repeatMode=all shuffle 2-track: returns the other track (wrap bug)", () => {
+    const queue = makeQueue(2);
+    const result = computeNextAudioUrls(
+      {
+        queue,
+        currentIndex: 0,
+        shuffleMode: true,
+        shuffleOrder: [0, 1],
+        shuffleOrderIndex: 0,
+        repeatMode: "all",
+      },
+      1,
+    );
+    expect(result).toEqual([queue[1]!.audioUrl]);
+  });
+
+  it("repeatMode=all: wrap that lands on currentUrl is skipped, next valid takes its place", () => {
+    const queue = makeQueue(3);
+    const customQueue = [...queue];
+    customQueue[0] = { ...customQueue[0]!, audioUrl: "http://localhost/same.mp3" };
+    customQueue[2] = { ...customQueue[2]!, audioUrl: "http://localhost/same.mp3" };
+    const result = computeNextAudioUrls(
+      {
+        queue: customQueue,
+        currentIndex: 2,
+        shuffleMode: false,
+        shuffleOrder: [],
+        shuffleOrderIndex: -1,
+        repeatMode: "all",
+      },
+      2,
+    );
+    expect(result).toEqual([customQueue[1]!.audioUrl]);
+    expect(result).not.toContain("http://localhost/same.mp3");
+  });
+});
 
 function makeWarmerRef(el: HTMLAudioElement) {
   return { current: el } as React.RefObject<HTMLAudioElement | null>;
@@ -234,5 +282,45 @@ describe("useAudioPrefetch hook", () => {
     });
 
     expect(el.play).not.toHaveBeenCalled();
+  });
+
+  it("count 3→0: clears warmer.src instead of leaving old buffer active", () => {
+    const queue = makeQueue(4);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+
+    const el = makeMockAudioElement();
+    const warmerRef = makeWarmerRef(el);
+
+    renderHook(() => useAudioPrefetch(warmerRef));
+    expect(el.src).toBe(queue[1]!.audioUrl);
+
+    act(() => {
+      usePreferencesStore.setState({ audioPrefetchCount: 0 });
+    });
+
+    expect(el.src).toBe("");
+  });
+
+  it("count 3→0→3: re-warms after being re-enabled", () => {
+    const queue = makeQueue(4);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+
+    const el = makeMockAudioElement();
+    const warmerRef = makeWarmerRef(el);
+
+    renderHook(() => useAudioPrefetch(warmerRef));
+    expect(el.src).toBe(queue[1]!.audioUrl);
+
+    act(() => {
+      usePreferencesStore.setState({ audioPrefetchCount: 0 });
+    });
+    expect(el.src).toBe("");
+
+    act(() => {
+      usePreferencesStore.setState({ audioPrefetchCount: 3 });
+    });
+
+    expect(el.src).toBe(queue[1]!.audioUrl);
+    expect(el.load).toHaveBeenCalledTimes(2);
   });
 });

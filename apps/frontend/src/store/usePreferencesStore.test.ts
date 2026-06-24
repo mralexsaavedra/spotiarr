@@ -95,10 +95,6 @@ describe("persist — state updates are reflected after setState", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// audioPrefetchCount
-// ---------------------------------------------------------------------------
-
 describe("audioPrefetchCount", () => {
   it("defaults to 3", () => {
     expect(usePreferencesStore.getState().audioPrefetchCount).toBe(3);
