@@ -75,6 +75,8 @@ export class FileSystemLibraryAudioService implements LibraryAudioPort {
       absolutePath: candidateRealPath,
       contentType: AUDIO_CONTENT_TYPES[extension],
       sizeBytes: stat.size,
+      mtimeMs: stat.mtimeMs,
+      ino: stat.ino,
     };
   }
 

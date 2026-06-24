@@ -5,6 +5,8 @@ interface PreferencesState {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (isCollapsed: boolean) => void;
+  audioPrefetchCount: number;
+  setAudioPrefetchCount: (n: number) => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>()(
@@ -13,9 +15,12 @@ export const usePreferencesStore = create<PreferencesState>()(
       isSidebarCollapsed: false,
       toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
       setSidebarCollapsed: (isCollapsed: boolean) => set({ isSidebarCollapsed: isCollapsed }),
+      audioPrefetchCount: 3,
+      setAudioPrefetchCount: (n: number) =>
+        set({ audioPrefetchCount: Math.min(10, Math.max(0, n)) }),
     }),
     {
-      name: "spotiarr-preferences", // unique name for localStorage key
+      name: "spotiarr-preferences",
     },
   ),
 );

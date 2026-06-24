@@ -43,6 +43,17 @@ export default defineConfig(({ mode }) => {
           navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
             {
+              // Must precede the /api NetworkOnly catch-all below (Workbox is first-match).
+              urlPattern: ({ url }) => url.pathname === "/api/library/audio",
+              handler: "CacheFirst",
+              options: {
+                cacheName: "spotiarr-audio",
+                cacheableResponse: { statuses: [200] },
+                rangeRequests: true,
+                expiration: { maxEntries: 11, purgeOnQuotaError: true },
+              },
+            },
+            {
               urlPattern: ({ url }) => url.pathname.startsWith("/api"),
               handler: "NetworkOnly",
             },

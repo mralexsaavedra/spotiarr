@@ -66,6 +66,17 @@ SPOTIARR_CORS_ORIGIN=             # comma-separated CORS origin allowlist; omit 
                                   # Wildcard "*" is rejected. Only needed for a separate-origin client.
 ```
 
+## Offline Audio Caching (Slice 2 — HTTPS required)
+
+The Service Worker audio cache (`spotiarr-audio`, CacheFirst strategy) requires a **secure context** (HTTPS or localhost). On plain HTTP the feature is automatically inert — online playback is unaffected, but tracks are not cached for offline use.
+
+To enable offline caching in production, terminate TLS at the reverse proxy before the container:
+
+- **Traefik** (bundled in `compose.yml`): configure the `websecure` entrypoint + a `CertificateResolver` (Let's Encrypt or manual cert). Set `SPOTIFY_REDIRECT_URI` to your `https://` domain.
+- Any other reverse proxy (Nginx, Caddy, etc.) works the same way — just ensure the browser sees HTTPS.
+
+Plain HTTP self-hosted installs continue to work online; they simply receive no offline benefit.
+
 ## Update Flow
 
 ```bash

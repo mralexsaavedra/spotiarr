@@ -9,6 +9,7 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useRecordPlayMutation } from "@/hooks/mutations/useRecordPlayMutation";
+import { useAudioPrefetch } from "@/hooks/useAudioPrefetch";
 import { useFocusReturnOnClose } from "@/hooks/useFocusReturnOnClose";
 import { useGlobalPlayerShortcuts } from "@/hooks/useGlobalPlayerShortcuts";
 import { useMediaSession } from "@/hooks/useMediaSession";
@@ -96,6 +97,7 @@ const TrackMeta: FC<{ item: QueueItem; onNavigate: (path: string) => void }> = (
 
 export const GlobalPlayerBar: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const warmerRef = useRef<HTMLAudioElement | null>(null);
   const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
   const registerAudioEl = useCallback((el: HTMLAudioElement | null) => {
     audioRef.current = el;
@@ -171,6 +173,7 @@ export const GlobalPlayerBar: FC = () => {
   useGlobalPlayerShortcuts();
   useFocusReturnOnClose(isQueuePanelOpen, triggerRef);
   useFocusReturnOnClose(isNowPlayingOpen, nowPlayingTriggerRef);
+  useAudioPrefetch(warmerRef);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -327,6 +330,7 @@ export const GlobalPlayerBar: FC = () => {
         preload="metadata"
         className="hidden"
       />
+      <audio ref={warmerRef} preload="auto" className="hidden" aria-hidden="true" />
       <QueueSidePanel />
       <NowPlayingFullscreen />
 

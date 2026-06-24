@@ -463,6 +463,184 @@ describe("GET /audio integration", () => {
     });
   });
 
+  it("responds with Cache-Control: private, max-age=86400 (no immutable) on 200", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-cache-200-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, max-age=86400");
+  });
+
+  it("responds with strong 3-part ETag (ino-mtime-size, no W/) on 200", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-etag-200-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+
+    expect(response.status).toBe(200);
+    const etag = response.headers.get("etag");
+    expect(etag).toBeTruthy();
+    expect(etag).not.toMatch(/^W\//);
+    expect(etag).not.toContain(".");
+    expect(etag).toMatch(/^"[0-9a-f]+-[0-9a-f]+-[0-9a-f]+"$/);
+  });
+
+  it("responds with Last-Modified on 200", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-lm-200-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+
+    expect(response.status).toBe(200);
+    const lastModified = response.headers.get("last-modified");
+    expect(lastModified).toBeTruthy();
+    expect(isNaN(Date.parse(lastModified!))).toBe(false);
+  });
+
+  it("responds with Cache-Control: private, max-age=86400 (no immutable) on 206", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-cache-206-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "abcdef");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`, {
+      headers: { Range: "bytes=0-1023" },
+    });
+
+    expect(response.status).toBe(206);
+    expect(response.headers.get("cache-control")).toBe("private, max-age=86400");
+  });
+
+  it("responds with strong 3-part ETag (ino-mtime-size, no W/) on 206", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-etag-206-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "abcdef");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`, {
+      headers: { Range: "bytes=0-2" },
+    });
+
+    expect(response.status).toBe(206);
+    const etag = response.headers.get("etag");
+    expect(etag).toBeTruthy();
+    expect(etag).not.toMatch(/^W\//);
+    expect(etag).not.toContain(".");
+    expect(etag).toMatch(/^"[0-9a-f]+-[0-9a-f]+-[0-9a-f]+"$/);
+  });
+
+  it("returns 304 when If-None-Match matches ETag and no Range header", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-304-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+
+    const firstResponse = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+    expect(firstResponse.status).toBe(200);
+    const etag = firstResponse.headers.get("etag")!;
+    expect(etag).toBeTruthy();
+
+    const conditionalResponse = await fetch(
+      `${baseUrl}/audio?path=${encodeURIComponent(filePath)}`,
+      { headers: { "If-None-Match": etag } },
+    );
+    expect(conditionalResponse.status).toBe(304);
+  });
+
+  it("ignores If-None-Match when Range header is present — returns 206 not 304", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-304-range-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "abcdef");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+
+    const firstResponse = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+    const etag = firstResponse.headers.get("etag")!;
+
+    const conditionalResponse = await fetch(
+      `${baseUrl}/audio?path=${encodeURIComponent(filePath)}`,
+      { headers: { "If-None-Match": etag, Range: "bytes=0-2" } },
+    );
+    expect(conditionalResponse.status).toBe(206);
+    expect(await conditionalResponse.text()).toBe("abc");
+  });
+
+  it("responds with Last-Modified on 206", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-lm-206-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "abcdef");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+    const response = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`, {
+      headers: { Range: "bytes=0-2" },
+    });
+
+    expect(response.status).toBe(206);
+    const lastModified = response.headers.get("last-modified");
+    expect(lastModified).toBeTruthy();
+    expect(isNaN(Date.parse(lastModified!))).toBe(false);
+  });
+
+  it("returns 304 when If-None-Match is a comma list containing the ETag", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-304-list-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+
+    const firstResponse = await fetch(`${baseUrl}/audio?path=${encodeURIComponent(filePath)}`);
+    const etag = firstResponse.headers.get("etag")!;
+
+    const conditionalResponse = await fetch(
+      `${baseUrl}/audio?path=${encodeURIComponent(filePath)}`,
+      { headers: { "If-None-Match": `"other-etag", ${etag}` } },
+    );
+    expect(conditionalResponse.status).toBe(304);
+  });
+
+  it("returns 304 when If-None-Match is *", async () => {
+    const downloadsRoot = await makeTempDir("lib-audio-304-wildcard-");
+    const filePath = path.join(downloadsRoot, "Artist", "song.mp3");
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, "audio-content");
+
+    const baseUrl = await startTestServer(downloadsRoot);
+
+    const conditionalResponse = await fetch(
+      `${baseUrl}/audio?path=${encodeURIComponent(filePath)}`,
+      { headers: { "If-None-Match": "*" } },
+    );
+    expect(conditionalResponse.status).toBe(304);
+  });
+
   it("returns 404 for unsupported extension", async () => {
     const downloadsRoot = await makeTempDir("lib-audio-route-root-");
     const filePath = path.join(downloadsRoot, "Artist", "cover.jpg");
