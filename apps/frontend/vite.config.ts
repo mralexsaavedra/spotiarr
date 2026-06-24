@@ -43,10 +43,7 @@ export default defineConfig(({ mode }) => {
           navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
             {
-              // Audio files only — must precede the /api NetworkOnly catch-all (Workbox first-match).
-              // maxEntries is fixed at build time (N+1 default: audioPrefetchCount=3 → 4 entries).
-              // Serving full 200 bodies (no Range) lets the SW cache offline playback without
-              // synthetic-206 slicing. The NetworkOnly rule at index 1 keeps SSE/status/downloads live.
+              // Must precede the /api NetworkOnly catch-all below (Workbox is first-match).
               urlPattern: ({ url }) => url.pathname === "/api/library/audio",
               handler: "CacheFirst",
               options: {
