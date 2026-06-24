@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.23.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.22.0...v1.23.0) (2026-06-24)
+
+### Features
+
+- **Player**: The next track in the queue now preloads while the current one is still playing, so track changes start almost instantly instead of waiting on the buffer — especially noticeable on slow or unstable networks. How many tracks to warm ahead is configurable in Settings. ([055c839b](https://github.com/mralexsaavedra/spotiarr/commit/055c839b))
+- **Player**: Queued tracks are now cached for offline playback, so music keeps playing when you lose connectivity (e.g. on the metro). Offline caching requires the app to be served over HTTPS. ([0984d499](https://github.com/mralexsaavedra/spotiarr/commit/0984d499))
+- **History**: The dashboard now shows your listening history — most-listened artists with a distinct track count, and a recent-plays section. ([9a87ed3c](https://github.com/mralexsaavedra/spotiarr/commit/9a87ed3c))
+- **AI Playlists**: Playlist generation can now use your listening history as context, so suggestions reflect what you actually play. ([304af818](https://github.com/mralexsaavedra/spotiarr/commit/304af818))
+
+### Bug Fixes
+
+- **Player**: Audio responses now revalidate correctly (dropped the over-aggressive year-long immutable caching) and the offline cache is bounded and evicts oldest entries, so replaced track files are picked up and storage stays in check. ([80a35151](https://github.com/mralexsaavedra/spotiarr/commit/80a35151))
+- **History**: Play counts are no longer double-recorded after the player store rehydrates on reload. ([e847636e](https://github.com/mralexsaavedra/spotiarr/commit/e847636e))
+- **AI Playlists**: The generation worker now validates its job payload with Zod at entry, rejecting malformed jobs instead of failing mid-run. ([53275972](https://github.com/mralexsaavedra/spotiarr/commit/53275972))
+- **Docker**: Redis is no longer published on host port 6379, keeping it private to the compose network. ([4a89c5a8](https://github.com/mralexsaavedra/spotiarr/commit/4a89c5a8))
+
 ## [1.22.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.21.4...v1.22.0) (2026-06-18)
 
 ### Features
