@@ -5,7 +5,14 @@ export type AudioRejectReason = "outside-root" | "bad-extension" | "not-found" |
 export type AudioByteRange = { start: number; end: number };
 
 export type ResolveAudioResult =
-  | { kind: "ok"; absolutePath: string; contentType: string; sizeBytes: number; mtimeMs: number }
+  | {
+      kind: "ok";
+      absolutePath: string;
+      contentType: string;
+      sizeBytes: number;
+      mtimeMs: number;
+      ino: number;
+    }
   | { kind: "reject"; reason: AudioRejectReason };
 
 export interface LibraryAudioPort {

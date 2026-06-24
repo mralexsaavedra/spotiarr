@@ -21,8 +21,11 @@ export function computeNextAudioUrls(state: PrefetchState, n: number): string[] 
 
   if (repeatMode === "one") return [];
 
+  if (shuffleMode && shuffleOrder.length === 0) return [];
+
   const currentUrl = queue[currentIndex]?.audioUrl;
   const results: string[] = [];
+  const seen = new Set<string>();
 
   if (shuffleMode) {
     for (let i = 1; i <= n; i++) {
@@ -32,13 +35,19 @@ export function computeNextAudioUrls(state: PrefetchState, n: number): string[] 
         const queueIdx = shuffleOrder[wrappedOrderIdx];
         if (queueIdx === undefined) break;
         const url = queue[queueIdx]?.audioUrl;
-        if (url && url !== currentUrl) results.push(url);
+        if (url && url !== currentUrl && !seen.has(url)) {
+          seen.add(url);
+          results.push(url);
+        }
       } else {
         if (orderIdx >= shuffleOrder.length) break;
         const queueIdx = shuffleOrder[orderIdx];
         if (queueIdx === undefined) break;
         const url = queue[queueIdx]?.audioUrl;
-        if (url && url !== currentUrl) results.push(url);
+        if (url && url !== currentUrl && !seen.has(url)) {
+          seen.add(url);
+          results.push(url);
+        }
       }
     }
     return results;
@@ -54,17 +63,32 @@ export function computeNextAudioUrls(state: PrefetchState, n: number): string[] 
       }
     }
     const url = queue[nextIdx]?.audioUrl;
-    if (url && url !== currentUrl) results.push(url);
+    if (url && url !== currentUrl && !seen.has(url)) {
+      seen.add(url);
+      results.push(url);
+    }
   }
 
   return results;
 }
 
-async function prefetchIntoCache(urls: string[]): Promise<void> {
+async function prefetchIntoCache(urls: string[], signal: AbortSignal): Promise<void> {
   for (const url of urls) {
+    if (signal.aborted) return;
     try {
-      await fetch(url, { credentials: "include" });
-    } catch {
+      const response = await fetch(url, { credentials: "include", signal });
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403 || response.status === 429) return;
+        continue;
+      }
+      await response.arrayBuffer().catch(() => {});
+      if (signal.aborted) return;
+    } catch (err) {
+      if (
+        (err instanceof DOMException && err.name === "AbortError") ||
+        (err as { name?: string }).name === "AbortError"
+      )
+        return;
       // Quota exhaustion and network errors are silent no-ops.
     }
   }
@@ -95,6 +119,9 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
       audioPrefetchCount,
     ],
   );
+
+  // Stable string key — cache effect only re-fires when the URL set actually changes.
+  const nextUrlsKey = nextUrls.join("\n");
 
   const nextUrl = nextUrls[0] ?? null;
 
@@ -128,9 +155,31 @@ export function useAudioPrefetch(warmerRef: React.RefObject<HTMLAudioElement | n
   // Inert when not secure, offline, or N=0. The SW CacheFirst rule serves them offline.
   useEffect(() => {
     if (!window.isSecureContext || !("serviceWorker" in navigator)) return;
-    if (!navigator.onLine) return;
-    if (audioPrefetchCount <= 0 || nextUrls.length === 0) return;
+    if (audioPrefetchCount <= 0 || nextUrlsKey === "") return;
 
-    void prefetchIntoCache(nextUrls);
-  }, [nextUrls, audioPrefetchCount]);
+    const urls = nextUrlsKey.split("\n");
+
+    function run(): AbortController {
+      const controller = new AbortController();
+      if (navigator.onLine) {
+        void prefetchIntoCache(urls, controller.signal);
+      }
+      return controller;
+    }
+
+    let controller = run();
+
+    function onOnline(): void {
+      controller.abort();
+      controller = run();
+    }
+
+    window.addEventListener("online", onOnline);
+    return () => {
+      controller.abort();
+      window.removeEventListener("online", onOnline);
+    };
+    // nextUrlsKey is the stable proxy for nextUrls identity; audioPrefetchCount gates the run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextUrlsKey, audioPrefetchCount]);
 }

@@ -191,12 +191,26 @@ export class LibraryController {
         return;
       }
 
+      const etag = `"${result.ino.toString(16)}-${Math.floor(result.mtimeMs).toString(16)}-${result.sizeBytes.toString(16)}"`;
+
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("Content-Type", result.contentType);
-      res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
+      res.setHeader("Cache-Control", "private, max-age=86400");
       res.setHeader("Last-Modified", new Date(result.mtimeMs).toUTCString());
+      res.setHeader("ETag", etag);
 
       if (range.kind === "full") {
+        const inm = req.headers["if-none-match"];
+        const matches =
+          inm === "*" ||
+          inm
+            ?.split(",")
+            .map((t) => t.trim())
+            .includes(etag);
+        if (matches) {
+          res.status(304).end();
+          return;
+        }
         res.setHeader("Content-Length", result.sizeBytes.toString());
         const stream = this.libraryAudioService.createAudioReadStream(result.absolutePath);
         stream.on("error", () => {

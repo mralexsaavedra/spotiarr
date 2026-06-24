@@ -49,6 +49,8 @@ function makeAudioService(): LibraryAudioPort {
       absolutePath: "/music/song.mp3",
       contentType: "audio/mpeg",
       sizeBytes: 1000,
+      mtimeMs: 1700000000000,
+      ino: 12345,
     }),
     createAudioReadStream: vi
       .fn()

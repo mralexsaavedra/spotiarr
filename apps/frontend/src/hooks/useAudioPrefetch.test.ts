@@ -51,7 +51,7 @@ describe("computeNextAudioUrls", () => {
     expect(result).toEqual([queue[2]!.audioUrl]);
   });
 
-  it("dedup: current track url is not included in output", () => {
+  it("dedup: current track url is not included in output but subsequent valid urls are", () => {
     const queue = makeQueue(4);
     const customQueue = [...queue];
     customQueue[2] = { ...customQueue[2]!, audioUrl: customQueue[1]!.audioUrl };
@@ -60,6 +60,39 @@ describe("computeNextAudioUrls", () => {
       3,
     );
     expect(result).not.toContain(customQueue[1]!.audioUrl);
+    expect(result).toContain(queue[3]!.audioUrl);
+  });
+
+  it("repeatMode=all non-shuffle: no duplicate URLs when N exceeds distinct tracks", () => {
+    const queue = makeQueue(2);
+    const result = computeNextAudioUrls(
+      {
+        queue,
+        currentIndex: 0,
+        shuffleMode: false,
+        shuffleOrder: [],
+        shuffleOrderIndex: -1,
+        repeatMode: "all",
+      },
+      3,
+    );
+    expect(result).toEqual([queue[1]!.audioUrl]);
+  });
+
+  it("repeatMode=all shuffle: no duplicate URLs when N exceeds distinct tracks", () => {
+    const queue = makeQueue(2);
+    const result = computeNextAudioUrls(
+      {
+        queue,
+        currentIndex: 0,
+        shuffleMode: true,
+        shuffleOrder: [0, 1],
+        shuffleOrderIndex: 0,
+        repeatMode: "all",
+      },
+      3,
+    );
+    expect(result).toEqual([queue[1]!.audioUrl]);
   });
 
   it("shuffle mode: maps via shuffleOrder indices correctly", () => {
@@ -395,7 +428,7 @@ describe("useAudioPrefetch — Cache-API fetch path (Slice 2)", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("fetches next N urls sequentially with credentials:include when secure and online", async () => {
+  it("fetches next N urls sequentially with credentials:include and a signal when secure and online", async () => {
     const queue = makeQueue(5);
     usePlayerStore.setState({ queue, currentIndex: 0 });
     usePreferencesStore.setState({ audioPrefetchCount: 3 });
@@ -408,15 +441,18 @@ describe("useAudioPrefetch — Cache-API fetch path (Slice 2)", () => {
     });
 
     expect(fetchSpy).toHaveBeenCalledTimes(3);
-    expect(fetchSpy).toHaveBeenNthCalledWith(1, queue[1]!.audioUrl, {
-      credentials: "include",
-    });
-    expect(fetchSpy).toHaveBeenNthCalledWith(2, queue[2]!.audioUrl, {
-      credentials: "include",
-    });
-    expect(fetchSpy).toHaveBeenNthCalledWith(3, queue[3]!.audioUrl, {
-      credentials: "include",
-    });
+    const [url1, opts1] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const [url2, opts2] = fetchSpy.mock.calls[1] as [string, RequestInit];
+    const [url3, opts3] = fetchSpy.mock.calls[2] as [string, RequestInit];
+    expect(url1).toBe(queue[1]!.audioUrl);
+    expect(url2).toBe(queue[2]!.audioUrl);
+    expect(url3).toBe(queue[3]!.audioUrl);
+    expect(opts1.credentials).toBe("include");
+    expect(opts2.credentials).toBe("include");
+    expect(opts3.credentials).toBe("include");
+    expect(opts1.signal).toBeInstanceOf(AbortSignal);
+    expect(opts2.signal).toBeInstanceOf(AbortSignal);
+    expect(opts3.signal).toBeInstanceOf(AbortSignal);
   });
 
   it("fetch does not include Range header", async () => {
@@ -488,5 +524,257 @@ describe("useAudioPrefetch — Cache-API fetch path (Slice 2)", () => {
     });
 
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("aborts in-flight loop when queue changes (new AbortController per run)", async () => {
+    let resolveFirst!: () => void;
+    const firstFetchDone = new Promise<void>((res) => {
+      resolveFirst = res;
+    });
+
+    fetchSpy.mockImplementationOnce((_url: string, opts: RequestInit) => {
+      return new Promise<Response>((resolve, reject) => {
+        const signal = opts.signal as AbortSignal;
+        signal.addEventListener("abort", () => {
+          reject(new DOMException("The operation was aborted", "AbortError"));
+        });
+        firstFetchDone.then(() => resolve(new Response(null, { status: 200 })));
+      });
+    });
+
+    const queue = makeQueue(5);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 3 });
+
+    const el = makeMockAudioElement();
+    const { unmount } = renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const firstSignal = (fetchSpy.mock.calls[0] as [string, RequestInit])[1].signal as AbortSignal;
+    expect(firstSignal.aborted).toBe(false);
+
+    act(() => {
+      usePlayerStore.setState({ currentIndex: 2 });
+    });
+
+    await act(async () => {
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+
+    expect(firstSignal.aborted).toBe(true);
+
+    unmount();
+    resolveFirst();
+  });
+
+  it("aborts in-flight loop on unmount", async () => {
+    let capturedSignal: AbortSignal | undefined;
+
+    fetchSpy.mockImplementation((_url: string, opts: RequestInit) => {
+      capturedSignal = opts.signal as AbortSignal;
+      return new Promise<Response>(() => {});
+    });
+
+    const queue = makeQueue(3);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 2 });
+
+    const el = makeMockAudioElement();
+    const { unmount } = renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(capturedSignal).toBeInstanceOf(AbortSignal);
+    expect(capturedSignal!.aborted).toBe(false);
+
+    unmount();
+
+    expect(capturedSignal!.aborted).toBe(true);
+  });
+
+  it("drains response body after ok response (arrayBuffer called)", async () => {
+    const arrayBufferSpy = vi.fn().mockResolvedValue(new ArrayBuffer(0));
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      status: 200,
+      arrayBuffer: arrayBufferSpy,
+    } as unknown as Response);
+
+    const queue = makeQueue(3);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 2 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 20; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(arrayBufferSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("401 on first URL stops the entire batch", async () => {
+    fetchSpy
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
+    const queue = makeQueue(5);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 3 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 20; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("404 on first URL skips it and prefetches remaining URLs", async () => {
+    fetchSpy
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
+    const queue = makeQueue(5);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 3 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 20; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+  });
+
+  it("identical next-URL set after a queue-ref change does not re-trigger the fetch loop", async () => {
+    const queue = makeQueue(5);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 3 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    const callsAfterFirst = fetchSpy.mock.calls.length;
+
+    act(() => {
+      usePlayerStore.setState({ queue: [...queue] });
+    });
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy.mock.calls.length).toBe(callsAfterFirst);
+  });
+
+  it("online listener is removed after unmount — no further fetch on online event", async () => {
+    const queue = makeQueue(3);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 2 });
+
+    const el = makeMockAudioElement();
+    const { unmount } = renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    const callsBeforeUnmount = fetchSpy.mock.calls.length;
+
+    unmount();
+
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy.mock.calls.length).toBe(callsBeforeUnmount);
+  });
+
+  it("online event while secure+queued triggers a fetch attempt", async () => {
+    Object.defineProperty(navigator, "onLine", {
+      value: false,
+      configurable: true,
+      writable: true,
+    });
+
+    const queue = makeQueue(3);
+    usePlayerStore.setState({ queue, currentIndex: 0 });
+    usePreferencesStore.setState({ audioPrefetchCount: 2 });
+
+    const el = makeMockAudioElement();
+    renderHook(() => useAudioPrefetch({ current: el }));
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    Object.defineProperty(navigator, "onLine", {
+      value: true,
+      configurable: true,
+      writable: true,
+    });
+
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    });
+
+    expect(fetchSpy).toHaveBeenCalled();
+  });
+});
+
+describe("computeNextAudioUrls — shuffle guard", () => {
+  it("shuffle + empty shuffleOrder returns []", () => {
+    const queue = makeQueue(4);
+    const result = computeNextAudioUrls(
+      {
+        queue,
+        currentIndex: 0,
+        shuffleMode: true,
+        shuffleOrder: [],
+        shuffleOrderIndex: -1,
+        repeatMode: "all",
+      },
+      3,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it("shuffle repeatMode=all at last shuffleOrder position wraps to index 0", () => {
+    const queue = makeQueue(4);
+    // currentIndex=3 is the queue index of the last track in shuffleOrder ([2,0,1,3]).
+    // shuffleOrderIndex=3 is the last position in shuffleOrder; next should wrap to
+    // shuffleOrder[0]=2, so queue[2].audioUrl, which differs from queue[3].audioUrl.
+    const result = computeNextAudioUrls(
+      {
+        queue,
+        currentIndex: 3,
+        shuffleMode: true,
+        shuffleOrder: [2, 0, 1, 3],
+        shuffleOrderIndex: 3,
+        repeatMode: "all",
+      },
+      1,
+    );
+    expect(result).toEqual([queue[2]!.audioUrl]);
   });
 });
