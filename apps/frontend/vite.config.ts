@@ -4,7 +4,6 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 import { defineConfig, loadEnv } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import { RangeRequestsPlugin } from "workbox-range-requests";
 
 const packageJson = JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf-8"));
 
@@ -50,8 +49,8 @@ export default defineConfig(({ mode }) => {
               options: {
                 cacheName: "spotiarr-audio",
                 cacheableResponse: { statuses: [200] },
+                rangeRequests: true,
                 expiration: { maxEntries: 11, purgeOnQuotaError: true },
-                plugins: [new RangeRequestsPlugin()],
               },
             },
             {

@@ -210,9 +210,6 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.10.1)(jiti@2.6.1)(jsdom@29.1.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)
-      workbox-range-requests:
-        specifier: ^7.4.1
-        version: 7.4.1
 
   packages/shared:
     devDependencies:
