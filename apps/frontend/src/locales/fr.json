@@ -1,0 +1,520 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "clearAll": "Tout effacer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "close": "Fermer",
+    "unknownError": "Erreur inconnue",
+    "downloadAll": "Tout télécharger",
+    "popular": "Populaire",
+    "title": "Titre",
+    "album": "Album",
+    "albums": "Albums",
+    "track": "Titre",
+    "tracks": "Titres",
+    "artist": "Artiste",
+    "artists": "Artistes",
+    "by": "Par",
+    "duration": "Durée",
+    "status": "Statut",
+    "openInSpotify": "Ouvrir dans Spotify",
+    "spotifyUnavailable": "Spotify est temporairement indisponible. Veuillez réessayer plus tard.",
+    "openInSpotifyFailed": "Impossible d'ouvrir dans Spotify. Veuillez réessayer.",
+    "errors": {
+      "pageNotFound": "Page introuvable",
+      "pageNotFoundDesc": "La page que vous recherchez n'existe pas ou a été déplacée.",
+      "pageError": "Erreur de page",
+      "pageErrorDesc": "Cette page a rencontré une erreur. Pas d'inquiétude, le reste de l'application fonctionne toujours."
+    },
+    "trackStatus": {
+      "retry": "Relancer le téléchargement",
+      "error": "Erreur",
+      "downloading": "Téléchargement...",
+      "queued": "En file d'attente",
+      "searching": "Recherche...",
+      "download": "Télécharger le titre"
+    },
+    "dates": {
+      "today": "Aujourd'hui",
+      "todayAt": "Aujourd'hui à {{time}}",
+      "yesterday": "Hier",
+      "yesterdayAt": "Hier à {{time}}",
+      "daysAgo": "Il y a {{count}} jours",
+      "daysAgo_one": "Il y a {{count}} jour",
+      "daysAgo_other": "Il y a {{count}} jours",
+      "tomorrow": "Demain",
+      "inDays": "Dans {{count}} jours",
+      "inDays_one": "Dans {{count}} jour",
+      "inDays_other": "Dans {{count}} jours"
+    },
+    "cards": {
+      "albumTypes": {
+        "all": "Tous",
+        "artist": "Artiste",
+        "single": "Single",
+        "ep": "EP",
+        "singlesAndEps": "Singles et EP",
+        "album": "Album",
+        "compilation": "Compilation",
+        "release": "Sortie"
+      },
+      "tooltips": {
+        "alreadyDownloaded": "Déjà téléchargé",
+        "downloading": "Téléchargement...",
+        "download": "Télécharger",
+        "subscribed": "Abonné"
+      },
+      "status": {
+        "downloading": "Téléchargement...",
+        "failed": "en échec",
+        "tracks": "titres",
+        "tracks_one": "titre",
+        "tracks_other": "titres"
+      },
+      "unnamedPlaylist": "Playlist sans nom",
+      "albumCardAriaLabel": "{{name}} par {{artist}}",
+      "viewArtist": "Voir l'artiste {{name}}"
+    }
+  },
+  "header": {
+    "searchOrPasteUrl": "Rechercher ou coller un lien...",
+    "download": "Télécharger"
+  },
+  "navigation": {
+    "home": "Bibliothèque",
+    "dashboard": "Tableau de bord",
+    "releases": "Nouveautés",
+    "myPlaylists": "Mes playlists",
+    "artists": "Mes artistes",
+    "aiChat": "Chat IA",
+    "settings": "Paramètres",
+    "collapse": "Réduire la barre latérale",
+    "expand": "Déployer la barre latérale",
+    "spotiarrHome": "Accueil SpotiArr",
+    "buyMeCoffee": "Offrez-moi un café"
+  },
+  "home": {
+    "title": "Votre bibliothèque",
+    "clearCompleted": "Effacer les playlists terminées",
+    "emptyTitle": "Créez votre première playlist",
+    "emptyDescription": "Recherchez des artistes ou des albums pour constituer votre collection.",
+    "clearModal": {
+      "title": "Effacer les playlists terminées ?",
+      "description": "Cette action retirera toutes les playlists terminées de votre bibliothèque. Les fichiers téléchargés ne seront PAS supprimés."
+    }
+  },
+  "history": {
+    "title": "Historique des téléchargements",
+    "emptyTitle": "Aucun historique de téléchargement",
+    "emptyDescription": "Les téléchargements terminés apparaîtront ici.",
+    "completed": "Terminé",
+    "actions": "Actions",
+    "downloading": "Téléchargement...",
+    "exists": "Existe déjà",
+    "recreate": "Recréer",
+    "playlistExists": "La playlist existe déjà",
+    "recreateTooltip": "Recréer la playlist et se réabonner"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "mostListenedTitle": "Les plus écoutés",
+    "mostListenedEmpty": "Aucune écoute enregistrée pour le moment",
+    "topTracksTitle": "Titres les plus écoutés",
+    "topArtistsTitle": "Artistes les plus écoutés",
+    "recentPlaysTitle": "Écoutés récemment",
+    "recentPlaysEmpty": "Aucune écoute récente",
+    "trackCount": "{{count}} titre",
+    "trackCount_one": "{{count}} titre",
+    "trackCount_other": "{{count}} titres"
+  },
+  "library": {
+    "title": "Bibliothèque",
+    "description": "Votre collection musicale téléchargée",
+    "scanning": "Analyse en cours...",
+    "scan": "Analyser la bibliothèque",
+    "artists": "Artistes",
+    "albums": "Albums",
+    "tracks": "Titres",
+    "size": "Taille totale",
+    "emptyTitle": "La bibliothèque est vide",
+    "emptyDescription": "Analysez ou réanalysez votre dossier de téléchargements pour alimenter votre bibliothèque et ses pochettes.",
+    "scanNow": "Analyser maintenant",
+    "searchPlaceholder": "Rechercher des playlists et des artistes...",
+    "albumSearchPlaceholder": "Rechercher des albums...",
+    "albumSearchNoResults": "Aucun album trouvé",
+    "albumSearchNoResultsDescription": "Aucun album ne correspond à votre recherche.",
+    "playlistsSection": "Playlists",
+    "artistsSection": "Artistes",
+    "artistNotFound": "Artiste introuvable",
+    "artistNotFoundDescription": "Impossible de charger les détails de l'artiste.",
+    "artistCardAriaLabel": "Artiste {{name}}, {{albums}} albums, {{tracks}} titres",
+    "albumCardAriaLabel": "Album {{name}} par {{artist}}, {{year}}, {{tracks}} titres",
+    "playlistCardAriaLabel": "Playlist {{name}}, {{downloaded}} sur {{total}} téléchargés",
+    "album": {
+      "notFound": "Album introuvable",
+      "notFoundDescription": "Impossible de trouver cet album dans votre bibliothèque.",
+      "backToArtist": "Retour à l'artiste",
+      "tracks": "titres",
+      "loading": "Chargement des détails de l'album...",
+      "error": "Impossible de charger les détails de l'album.",
+      "emptyTracks": "Aucun titre trouvé pour cet album.",
+      "play": "Lire",
+      "pause": "Pause",
+      "playTrack": "Lire le titre",
+      "pauseTrack": "Mettre le titre en pause",
+      "playAlbum": "Lire l'album",
+      "pauseAlbum": "Mettre l'album en pause",
+      "playbackBlocked": "Votre navigateur a bloqué la lecture. Réessayez d'appuyer sur lecture ou vérifiez les autorisations de lecture automatique.",
+      "playbackFailed": "La lecture de ce titre a échoué. Réessayez.",
+      "playbackUnavailable": "Ce titre n'a pas pu être chargé pour la lecture. La source est peut-être indisponible ou non prise en charge.",
+      "playbackUnsupported": "La lecture de ce format de titre n'est pas prise en charge par votre navigateur."
+    },
+    "scanModal": {
+      "title": "Analyser la bibliothèque",
+      "description": "Choisissez d'analyser uniquement votre bibliothèque ou de lancer également la récupération des pochettes.",
+      "startBackfill": "Lancer la récupération des pochettes une fois l'analyse démarrée avec succès",
+      "backfillActive": "La récupération des pochettes est déjà en cours. Vous pouvez tout de même lancer l'analyse seule.",
+      "confirm": "Démarrer l'analyse",
+      "scanStarted": "Analyse de la bibliothèque démarrée.",
+      "scanAndBackfillStarted": "Analyse de la bibliothèque et récupération des pochettes démarrées.",
+      "retryBackfillStarted": "Récupération des pochettes démarrée.",
+      "backfillAlreadyRunning": "Analyse de la bibliothèque démarrée. La récupération des pochettes est déjà en cours.",
+      "retryBackfillAlreadyRunning": "La récupération des pochettes est déjà en cours.",
+      "partialFailure": "L'analyse de la bibliothèque a démarré, mais la récupération des pochettes n'a pas pu être lancée.",
+      "scanFailed": "Impossible de démarrer l'analyse de la bibliothèque."
+    },
+    "artworkBackfill": {
+      "title": "Récupération des pochettes",
+      "progress": "{{processed}} traités",
+      "status": {
+        "running": "En cours",
+        "pause_requested": "Pause demandée",
+        "paused": "En pause",
+        "paused_rate_limited": "En pause (limite de requêtes atteinte)",
+        "completed": "Terminé",
+        "error": "Échec"
+      }
+    }
+  },
+  "releases": {
+    "title": "Nouveautés",
+    "emptyTitle": "Aucune nouveauté",
+    "emptyDescription": "Aucune sortie récente trouvée parmi les artistes que vous suivez.",
+    "error": "Impossible de charger les nouveautés."
+  },
+  "myPlaylists": {
+    "title": "Mes playlists Spotify",
+    "filterPlaceholder": "Filtrer les playlists...",
+    "empty": "Aucune playlist trouvée.",
+    "error": "Impossible de charger vos playlists depuis Spotify."
+  },
+  "playlist": {
+    "errors": {
+      "createFailed": "Impossible de créer la playlist. Veuillez réessayer.",
+      "retryFailedTracks": "Impossible de relancer les titres. Veuillez réessayer."
+    },
+    "emptyTracksTitle": "Aucun titre dans cette playlist pour le moment",
+    "emptyTracksDescription": "Les titres que vous téléchargez ou synchronisez apparaîtront ici.",
+    "noPlayableTracks": "Téléchargez des titres de cette playlist pour démarrer la lecture locale.",
+    "deleteModal": {
+      "title": "Supprimer {{name}} ?",
+      "description": "Cette action retirera la playlist de votre bibliothèque. Les fichiers téléchargés ne seront PAS supprimés."
+    },
+    "unknownAlbum": "Album inconnu",
+    "notFound": "Playlist introuvable",
+    "goBack": "Retour à la bibliothèque",
+    "songs": "titres",
+    "downloaded": "Téléchargés",
+    "actions": {
+      "download": "Télécharger la playlist",
+      "downloading": "Téléchargement...",
+      "subscribe": "S'abonner",
+      "unsubscribe": "Se désabonner",
+      "subscribed": "Abonné",
+      "retryFailed": "Relancer les échecs",
+      "retryFailedTooltip": "Relancer les téléchargements en échec",
+      "delete": "Supprimer",
+      "deleteTooltip": "Supprimer la playlist",
+      "downloadToEnable": "Téléchargez pour activer les actions",
+      "shufflePlay": "Lecture aléatoire"
+    }
+  },
+  "artist": {
+    "notFound": "Artiste introuvable.",
+    "error": "Impossible de charger les détails de l'artiste.",
+    "downloaded": "Artiste téléchargé",
+    "noDiscography": "Aucune discographie disponible.",
+    "updatingDiscography": "Mise à jour de la discographie…",
+    "rateLimited": "Discographie temporairement indisponible. Spotify limite les requêtes — réessayez dans quelques minutes.",
+    "type": "Artiste",
+    "discography": {
+      "title": "Discographie",
+      "emptyFiltered": "Aucune sortie trouvée pour cette catégorie.",
+      "showMore": "Afficher plus"
+    },
+    "albums": {
+      "noTracks": "Aucun titre disponible pour cet album."
+    }
+  },
+  "artists": {
+    "title": "Artistes suivis",
+    "filterPlaceholder": "Filtrer les artistes...",
+    "empty": "Aucun artiste suivi trouvé.",
+    "error": "Impossible de charger les artistes."
+  },
+  "auth": {
+    "title": "Authentification Spotify",
+    "connectedDescription": "Vous êtes connecté à Spotify. Cela permet d'accéder à vos playlists et à celles créées par Spotify.",
+    "disconnectedDescription": "Connectez votre compte Spotify pour accéder à vos playlists personnelles et à celles créées par Spotify (comme « Fait pour vous »).",
+    "connectedStatus": "Connecté",
+    "disconnectedStatus": "Non connecté",
+    "disconnectButton": "Déconnecter Spotify",
+    "connectButton": "Se connecter avec Spotify",
+    "whyConnect": "Pourquoi se connecter ?",
+    "benefits": {
+      "editorial": "Accéder aux playlists éditoriales Spotify (par ex. « Top 50 », « Discover Weekly »)",
+      "personal": "Importer vos playlists personnelles et collaboratives",
+      "sync": "Synchroniser les artistes que vous suivez pour les nouvelles sorties"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "resetToDefaults": "Réinitialiser aux valeurs par défaut",
+    "saveSettings": "Enregistrer les paramètres",
+    "saving": "Enregistrement...",
+    "language": "Langue de l'interface",
+    "description": "Sélectionnez la langue de votre choix pour l'interface.",
+    "savedSuccess": "Paramètres enregistrés avec succès",
+    "saveError": "Impossible d'enregistrer les paramètres",
+    "sections": {
+      "General": "Général",
+      "Spotify": "Spotify",
+      "Playlists": "Playlists",
+      "Releases": "Nouveautés",
+      "Downloads": "Téléchargements",
+      "Maintenance": "Maintenance",
+      "AI": "IA"
+    },
+    "items": {
+      "AI_PROVIDER": {
+        "label": "Fournisseur d'IA",
+        "description": "Le fournisseur d'IA à utiliser pour la génération de playlists."
+      },
+      "AI_BASE_URL": {
+        "label": "URL de base de l'IA",
+        "description": "Surcharge facultative du point de terminaison par défaut du fournisseur. Requise uniquement pour le fournisseur « custom »."
+      },
+      "AI_API_KEY": {
+        "label": "Clé API de l'IA",
+        "description": "La clé API du fournisseur d'IA. Stockée de manière sécurisée et masquée à la lecture."
+      },
+      "AI_MODEL": {
+        "label": "Modèle d'IA",
+        "description": "Le nom du modèle à utiliser pour la génération de playlists (par ex. gpt-4o, llama-3.1).",
+        "loadModels": "Charger les modèles",
+        "loadingModels": "Chargement...",
+        "modelsLoaded": "{{count}} modèles chargés",
+        "modelsEmpty": "Aucun modèle renvoyé. Saisissez un nom de modèle manuellement.",
+        "modelsError": "Impossible de charger les modèles. Vérifiez les paramètres de votre fournisseur.",
+        "toggleModels": "Afficher les modèles"
+      },
+      "UI_LANGUAGE": {
+        "label": "Langue de l'interface",
+        "description": "Sélectionnez la langue de votre choix pour l'interface."
+      },
+      "SPOTIFY_MARKET": {
+        "label": "Marché/Région Spotify",
+        "description": "Code pays ISO à 2 lettres qui influe sur la disponibilité des contenus et les restrictions régionales. Adaptez-le à votre localisation pour de meilleurs résultats."
+      },
+      "AUTO_SUBSCRIBE_NEW_PLAYLISTS": {
+        "label": "S'abonner automatiquement aux nouvelles playlists",
+        "description": "Lorsque cette option est activée, les nouvelles playlists font automatiquement l'objet d'un abonnement. Si elle est désactivée, vous devrez vous y abonner manuellement."
+      },
+      "PLAYLIST_CHECK_INTERVAL_MINUTES": {
+        "label": "Intervalle de vérification des playlists (minutes)",
+        "description": "Fréquence à laquelle SpotiArr doit revérifier les playlists suivies sur Spotify pour détecter de nouveaux titres. Des valeurs plus faibles augmentent l'utilisation de l'API."
+      },
+      "M3U_GENERATION_ENABLED": {
+        "label": "Générer automatiquement les playlists M3U",
+        "description": "Lorsque cette option est activée, un fichier M3U est créé/mis à jour pour chaque playlist terminée."
+      },
+      "RELEASES_LOOKBACK_DAYS": {
+        "label": "Période de recherche des nouveautés (jours)",
+        "description": "Jusqu'à quelle ancienneté rechercher les nouvelles sorties."
+      },
+      "FOLLOWED_ARTISTS_MAX": {
+        "label": "Nombre maximum d'artistes suivis",
+        "description": "Nombre maximum d'artistes suivis à prendre en compte dans les vues Nouveautés et Artistes. Des valeurs plus élevées peuvent ralentir le flux des nouveautés et augmenter l'utilisation de l'API."
+      },
+      "RELEASES_CACHE_MINUTES": {
+        "label": "Durée du cache (minutes)",
+        "description": "Durée de mise en cache des données de nouveautés avant actualisation depuis Spotify. Des valeurs plus faibles augmentent l'utilisation de l'API."
+      },
+      "FORMAT": {
+        "label": "Format audio",
+        "description": "Le format audio des titres téléchargés."
+      },
+      "YT_AUDIO_QUALITY": {
+        "label": "Qualité audio YouTube",
+        "description": "Préférence de qualité audio pour les téléchargements YouTube. « best » pour la meilleure qualité, « good » pour un compromis, « acceptable » pour des téléchargements plus rapides."
+      },
+      "YT_COOKIES": {
+        "label": "Cookies YouTube",
+        "description": "Collez le contenu de votre fichier cookies.txt (format Netscape). Il sera enregistré sous forme de fichier."
+      },
+      "YT_SEARCH_CONCURRENCY": {
+        "label": "Recherches YouTube simultanées",
+        "description": "Nombre de recherches YouTube simultanées. Des valeurs plus élevées sont plus rapides mais peuvent déclencher des limitations de débit."
+      },
+      "YT_DOWNLOADS_PER_MINUTE": {
+        "label": "Téléchargements YouTube par minute",
+        "description": "Nombre maximum de téléchargements pouvant démarrer par minute afin d'éviter la limitation de débit de YouTube."
+      },
+      "DOWNLOAD_MAX_RETRIES": {
+        "label": "Nombre maximum de tentatives de téléchargement",
+        "description": "Nombre de tentatives de reprise d'un téléchargement en échec avant abandon."
+      },
+      "SEARCH_MAX_ATTEMPTS": {
+        "label": "Nombre maximum de tentatives de recherche",
+        "description": "Nombre de tentatives pour trouver un titre sur YouTube avant de le marquer comme définitivement en échec."
+      },
+      "RECOVERY_JOB_INTERVAL_MINUTES": {
+        "label": "Intervalle de reprise sur erreur (minutes)",
+        "description": "Fréquence de relance des titres en erreur dans toutes les playlists."
+      },
+      "STUCK_TRACKS_CLEANUP_INTERVAL_MINUTES": {
+        "label": "Intervalle de nettoyage des titres bloqués (minutes)",
+        "description": "Fréquence de vérification et de nettoyage des titres bloqués."
+      },
+      "STUCK_TRACKS_TIMEOUT_MINUTES": {
+        "label": "Délai avant blocage d'un titre (minutes)",
+        "description": "Délai au-delà duquel un titre est considéré comme bloqué et éligible au nettoyage."
+      }
+    }
+  },
+  "aiProviders": {
+    "openai": "OpenAI",
+    "gemini": "Gemini",
+    "openrouter": "OpenRouter",
+    "groq": "Groq",
+    "nvidia": "NVIDIA NIM",
+    "ollama": "Ollama",
+    "ollama-cloud": "Ollama Cloud",
+    "lmstudio": "LM Studio",
+    "vercel": "Vercel AI Gateway",
+    "custom": "Personnalisé"
+  },
+  "search": {
+    "title": "Recherche",
+    "resultsFor": "Résultats pour",
+    "topResult": "Meilleur résultat",
+    "tracks": "Titres",
+    "albums": "Albums",
+    "artists": "Artistes",
+    "emptyState": "Saisissez quelque chose dans la barre de recherche pour trouver des titres, des albums ou des artistes",
+    "noResults": "Aucun résultat trouvé"
+  },
+  "album": {
+    "detail": {
+      "title": "Album"
+    }
+  },
+  "instanceAuth": {
+    "title": "Instance protégée",
+    "description": "Cette instance SpotiArr est protégée par mot de passe. Saisissez le jeton d'accès pour continuer.",
+    "tokenLabel": "Jeton d'accès",
+    "tokenPlaceholder": "Saisissez le jeton d'accès...",
+    "submitButton": "Déverrouiller",
+    "loadingButton": "Déverrouillage...",
+    "invalidToken": "Jeton invalide. Veuillez réessayer.",
+    "rateLimited": "Trop de tentatives. Veuillez patienter un instant avant de réessayer.",
+    "sessionExpired": "Votre session a expiré. Veuillez saisir à nouveau le jeton.",
+    "connectionErrorTitle": "Connexion impossible",
+    "connectionErrorMessage": "Impossible de joindre le serveur SpotiArr. Vérifiez qu'il est bien démarré et réessayez.",
+    "reloadButton": "Réessayer"
+  },
+  "player": {
+    "queue": {
+      "title": "File d'attente",
+      "empty": "Aucun titre dans la file d'attente",
+      "toggleOpen": "Ouvrir la file d'attente",
+      "toggleClose": "Fermer la file d'attente",
+      "close": "Fermer",
+      "repeatAll": "Tout répéter",
+      "repeatOne": "Répéter le titre",
+      "shuffleOn": "Lecture aléatoire activée",
+      "moveUp": "Déplacer {{name}} vers le haut",
+      "moveDown": "Déplacer {{name}} vers le bas"
+    },
+    "nowPlaying": {
+      "title": "Lecture en cours",
+      "open": "Ouvrir la lecture en cours",
+      "close": "Fermer",
+      "queueLabel": "File d'attente",
+      "dragHandle": "Faire glisser pour réorganiser {{name}}",
+      "moveUp": "Déplacer {{name}} vers le haut",
+      "moveDown": "Déplacer {{name}} vers le bas",
+      "seek": "Position de lecture"
+    },
+    "transport": {
+      "shuffleOn": "Lecture aléatoire activée",
+      "shuffleOff": "Lecture aléatoire désactivée",
+      "previous": "Titre précédent",
+      "next": "Titre suivant",
+      "pause": "Pause",
+      "play": "Lire",
+      "seek": "Position de lecture",
+      "repeatEnable": "Activer la répétition",
+      "repeatAll": "Tout répéter",
+      "repeatOne": "Répéter le titre",
+      "loading": "Chargement"
+    }
+  },
+  "aiChat": {
+    "emptyState": "Aucune conversation pour le moment. Demandez-moi de générer une playlist.",
+    "userPrompt": "{{prompt}}",
+    "assistantDone": "Playlist créée avec {{count}} titres.",
+    "assistantError": "Échec de la génération : {{code}}",
+    "clearConversation": "Effacer la conversation",
+    "clearConfirm": "Cette action supprimera définitivement votre historique de discussion.",
+    "playlistGone": "La playlist n'existe plus"
+  },
+  "ai": {
+    "title": "Chat IA",
+    "subtitle": "Décrivez une playlist avec vos propres mots et l'IA trouvera et téléchargera les titres.",
+    "empty": {
+      "title": "Créer une playlist avec l'IA",
+      "hint": "Décrivez une ambiance, un genre, une activité ou une époque — par exemple « du rock entraînant des années 90 pour courir »."
+    },
+    "promptPlaceholder": "Décrivez la playlist souhaitée... (par ex. « du jazz pour un après-midi pluvieux »)",
+    "sendButton": "Générer",
+    "stages": {
+      "llm": "Génération des suggestions de titres...",
+      "validating": "Validation des titres sur Spotify...",
+      "saving": "Enregistrement de la playlist...",
+      "done": "Terminé",
+      "error": "Erreur"
+    },
+    "result": {
+      "tracksAdded": "{{count}} titres ajoutés à votre bibliothèque",
+      "tracksAdded_one": "{{count}} titre ajouté à votre bibliothèque",
+      "tracksAdded_other": "{{count}} titres ajoutés à votre bibliothèque",
+      "droppedTitles": "{{count}} titre est introuvable",
+      "droppedTitles_one": "{{count}} titre est introuvable",
+      "droppedTitles_other": "{{count}} titres sont introuvables",
+      "savedTo": "Enregistré dans la playlist « {{name}} »",
+      "viewPlaylist": "Voir la playlist"
+    },
+    "errors": {
+      "provider-misconfig": "Le fournisseur d'IA n'est pas configuré. Rendez-vous dans Paramètres > IA pour ajouter vos identifiants.",
+      "provider-unreachable": "Impossible de joindre le fournisseur d'IA. Vérifiez votre URL et votre clé API, puis réessayez.",
+      "provider-auth": "Échec de l'authentification. Vérifiez votre clé API dans Paramètres > IA.",
+      "provider-forbidden": "Accès refusé par le fournisseur d'IA : {{detail}}",
+      "llm-bad-output": "L'IA a renvoyé une réponse inattendue. Essayez de reformuler votre demande.",
+      "zero-resolved": "Aucun des titres suggérés n'a pu être trouvé sur Spotify. Essayez de reformuler votre demande."
+    }
+  }
+}

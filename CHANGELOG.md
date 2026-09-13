@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [Unreleased]
+
+### Features
+
+- **Translations**: French is now available as an interface language. Pick "Français (France)" in Settings → General → Interface Language; the whole UI is translated, and English remains the fallback for anything untranslated.
+
 ## [1.23.0](https://github.com/mralexsaavedra/spotiarr/compare/v1.22.0...v1.23.0) (2026-06-24)
 
 ### Features

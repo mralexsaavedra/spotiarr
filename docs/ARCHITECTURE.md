@@ -153,7 +153,7 @@ El pegamento entre backend y frontend. Define el lenguaje común del sistema:
 
 - **Enums de Estado:** `TrackStatusEnum` (New, Searching, Downloading...) que controla la UI.
 - **Formatos:** `SUPPORTED_AUDIO_FORMATS` (mp3, flac, opus, etc.).
-- **i18n:** `APP_LOCALES` (es, en) para la internacionalización.
+- **i18n:** `APP_LOCALES` (es, en, fr) para la internacionalización.
 
 ### 5.2. Integración Spotify (`SpotifyAuthService`)
 

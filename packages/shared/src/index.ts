@@ -59,12 +59,13 @@ export const UI_SUPPORTED_AUDIO_FORMATS = [
   "m4a",
 ] as const satisfies readonly SupportedAudioFormat[];
 
-export const APP_LOCALES = ["en", "es"] as const;
+export const APP_LOCALES = ["en", "es", "fr"] as const;
 export type AppLocale = (typeof APP_LOCALES)[number];
 
 export const APP_LOCALE_LABELS: Record<AppLocale, string> = {
   en: "English",
   es: "Español (España)",
+  fr: "Français (France)",
 };
 
 export enum PlaylistTypeEnum {

@@ -153,7 +153,7 @@ The glue between backend and frontend. Defines the common system language:
 
 - **State Enums:** `TrackStatusEnum` (New, Searching, Downloading...) controlling UI.
 - **Formats:** `SUPPORTED_AUDIO_FORMATS` (mp3, flac, opus, etc.).
-- **i18n:** `APP_LOCALES` (es, en) for internationalization.
+- **i18n:** `APP_LOCALES` (es, en, fr) for internationalization.
 
 ### 5.2. Spotify Integration (`SpotifyAuthService`)
 
