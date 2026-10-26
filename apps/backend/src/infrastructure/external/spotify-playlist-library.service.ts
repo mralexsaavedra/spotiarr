@@ -28,7 +28,7 @@ export type SpotifyUserPlaylistItem = {
   collaborative?: boolean;
   images: { url: string }[];
   owner: { id?: string; display_name: string; external_urls: { spotify: string } };
-  tracks?: { total?: number };
+  items?: { total?: number };
   external_urls: { spotify: string };
 };
 
@@ -221,7 +221,7 @@ export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
     currentUserId: string,
   ): Promise<PlaylistAccessResult> {
     if (isOwnedPlaylist(item, currentUserId)) {
-      const playlistTrackTotal = item.tracks?.total;
+      const playlistTrackTotal = item.items?.total;
 
       if (
         typeof playlistTrackTotal === "number" &&
@@ -294,7 +294,7 @@ export class SpotifyPlaylistLibraryService extends SpotifyHttpClient {
         }
 
         const mapped = accessibleItems.map(({ item, trackTotal }) => {
-          const playlistTrackTotal = item.tracks?.total;
+          const playlistTrackTotal = item.items?.total;
           const tracks = resolvePlaylistTrackTotal({
             playlistTrackTotal,
             probedTrackTotal: trackTotal,

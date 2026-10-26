@@ -108,7 +108,7 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
           name: string;
           images?: SpotifyImage[];
           owner?: { display_name: string; external_urls?: { spotify: string } };
-          tracks?: { total?: number };
+          items?: { total?: number };
         };
 
         return {
@@ -117,8 +117,8 @@ export class SpotifyPlaylistClient extends SpotifyBaseClient {
           owner: data.owner?.display_name ?? "Unknown",
           ownerUrl: data.owner?.external_urls?.spotify,
           totalTracks:
-            typeof data.tracks?.total === "number" && Number.isFinite(data.tracks.total)
-              ? data.tracks.total
+            typeof data.items?.total === "number" && Number.isFinite(data.items.total)
+              ? data.items.total
               : undefined,
         };
       } catch (error) {

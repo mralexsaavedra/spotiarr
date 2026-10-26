@@ -80,9 +80,9 @@ describe("SpotifySearchClient", () => {
       // (order is non-deterministic due to Promise.all). Then getArtistImagesBatch fires a 3rd
       // request. Use mockImplementation to route by URL rather than call order.
       const fetchMock = vi.fn().mockImplementation((url: string) => {
-        if (url.includes("/v1/artists?ids=")) {
+        if (url.includes("/v1/artists/")) {
           return Promise.resolve(
-            jsonResponse({ artists: [{ id: "a1", images: [{ url: "http://artist.jpg" }] }] }),
+            jsonResponse({ id: "a1", images: [{ url: "http://artist.jpg" }] }),
           );
         }
         if (url.includes("type=track")) {
@@ -291,11 +291,11 @@ describe("SpotifySearchClient", () => {
 
     it("getArtistImagesBatch returns null for artists without id", async () => {
       const fetchMock = vi.fn().mockImplementation((url: string) => {
-        if (url.includes("/v1/artists?ids=")) {
+        if (url.includes("/v1/artists/")) {
           // Return artist without id field
           return Promise.resolve(
             jsonResponse({
-              artists: [{ images: [{ url: "http://img.jpg" }] }],
+              images: [{ url: "http://img.jpg" }],
             }),
           );
         }
@@ -349,7 +349,7 @@ describe("SpotifySearchClient", () => {
 
     it("getArtistImagesBatch falls back gracefully when artist batch request fails", async () => {
       const fetchMock = vi.fn().mockImplementation((url: string) => {
-        if (url.includes("/v1/artists?ids=")) {
+        if (url.includes("/v1/artists/")) {
           return Promise.resolve(new Response("", { status: 500 }));
         }
         if (url.includes("type=track")) {
@@ -442,9 +442,9 @@ describe("SpotifySearchClient", () => {
       );
       const result = await client.searchCatalog("Track", ["track"]);
       expect(result.tracks).toHaveLength(1);
-      // No /v1/artists?ids= call should have been made
+      // No /v1/artists/{id} call should have been made
       const artistBatchCall = fetchMock.mock.calls.find(([url]: [string]) =>
-        url.includes("/v1/artists?ids="),
+        url.includes("/v1/artists/"),
       );
       expect(artistBatchCall).toBeUndefined();
     });

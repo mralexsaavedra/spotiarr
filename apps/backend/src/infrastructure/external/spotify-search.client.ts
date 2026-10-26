@@ -45,36 +45,40 @@ export class SpotifySearchClient extends SpotifyBaseClient {
     for (let index = 0; index < uniqueIds.length; index += MAX_ARTISTS_PER_REQUEST) {
       const chunk = uniqueIds.slice(index, index + MAX_ARTISTS_PER_REQUEST);
       const chunkKey = chunk.join(",");
-      const response = await this.requestCache.getOrSet(
-        `search-artist-image-batch:${chunkKey}`,
-        () => this.fetchWithAppToken(`https://api.spotify.com/v1/artists?ids=${chunkKey}`),
-      );
-
-      if (!response.ok) {
-        this.log(`Failed to fetch batched artist images: ${response.status}`, "warn");
-        chunk.forEach((artistId) => {
-          imageMap[artistId] = null;
-        });
-        continue;
-      }
-
-      const payload = (await response.json()) as {
-        artists?: Array<{ id?: string; images?: Array<{ url: string }> }>;
-      };
-
-      const artists = payload.artists ?? [];
 
       chunk.forEach((artistId) => {
         imageMap[artistId] = null;
       });
 
-      artists.forEach((artist) => {
+      // Batch artist fetches were removed: request each id on its own.
+      for (const artistId of chunk) {
+        const response = await this.requestCache.getOrSet(
+          `search-artist-image:${artistId}`,
+          () =>
+            this.fetchWithAppToken(
+              `https://api.spotify.com/v1/artists/${encodeURIComponent(artistId)}`,
+            ),
+        );
+
+        if (!response.ok) {
+          this.log(
+            `Failed to fetch artist image for batch ${chunkKey}: ${response.status}`,
+            "warn",
+          );
+          continue;
+        }
+
+        const artist = (await response.json()) as {
+          id?: string;
+          images?: Array<{ url: string }>;
+        };
+
         if (!artist.id) {
-          return;
+          continue;
         }
 
         imageMap[artist.id] = artist.images?.[0]?.url ?? null;
-      });
+      }
     }
 
     return imageMap;
