@@ -76,7 +76,7 @@ describe("SpotifyPlaylistClient", () => {
               display_name: "User",
               external_urls: { spotify: "https://spotify.com/user" },
             },
-            tracks: { total: 42 },
+            items: { total: 42 },
           }),
         ),
       );
@@ -100,7 +100,7 @@ describe("SpotifyPlaylistClient", () => {
               name: "Private Playlist",
               images: [],
               owner: { display_name: "Private User" },
-              tracks: { total: 5 },
+              items: { total: 5 },
             }),
           ),
       );
@@ -467,7 +467,7 @@ describe("SpotifyPlaylistClient", () => {
             name: "Playlist",
             images: [],
             owner: { display_name: "User" },
-            tracks: {},
+            items: {},
           }),
         ),
       );

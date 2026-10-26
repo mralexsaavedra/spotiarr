@@ -23,7 +23,7 @@ const buildPlaylist = (
     display_name: "Other User",
     external_urls: { spotify: "https://open.spotify.com/user/other-user" },
   },
-  tracks: { total: 10 },
+  items: { total: 10 },
   external_urls: { spotify: "https://open.spotify.com/playlist/playlist-id" },
   ...overrides,
 });
@@ -194,7 +194,7 @@ describe("SpotifyPlaylistLibraryService.getMyPlaylists", () => {
     const accessiblePlaylist = buildPlaylist({
       id: "accessible",
       name: "Accessible",
-      tracks: {},
+      items: {},
       external_urls: { spotify: "https://open.spotify.com/playlist/accessible" },
     });
 
@@ -227,7 +227,7 @@ describe("SpotifyPlaylistLibraryService.getMyPlaylists", () => {
     const accessiblePlaylist = buildPlaylist({
       id: "accessible",
       name: "Accessible",
-      tracks: { total: 0 },
+      items: { total: 0 },
       external_urls: { spotify: "https://open.spotify.com/playlist/accessible" },
     });
 
@@ -261,7 +261,7 @@ describe("SpotifyPlaylistLibraryService.getMyPlaylists", () => {
       id: "owned-zero",
       name: "Owned Zero",
       owner: { ...buildPlaylist().owner, id: "current-user", display_name: "Me" },
-      tracks: { total: 0 },
+      items: { total: 0 },
       external_urls: { spotify: "https://open.spotify.com/playlist/owned-zero" },
     });
 
@@ -613,7 +613,7 @@ describe("SpotifyPlaylistLibraryService.getMyPlaylists", () => {
       id: "owned-ok",
       name: "Owned OK",
       owner: { ...buildPlaylist().owner, id: "current-user", display_name: "Me" },
-      tracks: { total: 5 },
+      items: { total: 5 },
       external_urls: { spotify: "https://open.spotify.com/playlist/owned-ok" },
     });
 
